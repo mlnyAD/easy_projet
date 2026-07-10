@@ -1,3 +1,36 @@
+
+
 from django.contrib import admin
 
-# Register your models here.
+from .models import Company
+
+
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = (
+        "code",
+        "name",
+        "city",
+        "email",
+        "phone",
+        "is_active",
+    )
+
+    list_filter = (
+        "is_active",
+        "city",
+    )
+
+    search_fields = (
+        "code",
+        "name",
+        "legal_name",
+        "city",
+        "email",
+    )
+
+    ordering = (
+        "name",
+    )
+
+    list_per_page = 20
