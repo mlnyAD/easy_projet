@@ -19,3 +19,15 @@
 - Reconstruction propre de la base PostgreSQL
 - Rétablissement du modèle utilisateur standard Django
 - Utilisation du rôle PostgreSQL `easy_projet_user`
+
+## [0.2.0-dev] - 2026-07-11
+
+### Ajouté
+- Architecture du Design System
+- Component Library
+- Première version de Company
+- Documentation de développement
+
+### Modifié
+- Dictionnaire de données enrichi avec la colonne Widget
+- Principes de développement

@@ -23,3 +23,9 @@ Terminer un sujet avant d'en ouvrir un autre.
 
 Principe 8
 Une décision importante est documentée.
+
+Principe 9
+Le Design System est indépendant du métier.
+
+Principe 10
+Les composants reçoivent leur configuration.

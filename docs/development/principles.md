@@ -45,3 +45,43 @@ Toute décision structurante doit être tracée dans une ADR.
 ## 10. Une seule source de vérité
 
 Les constantes techniques, règles transverses, modèles abstraits et catalogues doivent être centralisés pour éviter les divergences.
+
+
+II. Design System
+## 11. Les composants ne contiennent aucune logique métier
+
+Les composants du Design System Easy Projet sont uniquement responsables de la présentation.
+
+Ils reçoivent leur configuration des modèles, formulaires ou du contexte d'utilisation.
+
+Ils ne prennent aucune décision métier.
+
+## 12. Les composants sont stateless
+
+Les composants ne stockent aucun état fonctionnel.
+
+Ils affichent les données qui leur sont fournies.
+
+## 13. Les composants sont configurables
+
+Les caractéristiques d'un champ (label, longueur, validation, aide, etc.) proviennent du modèle ou du formulaire, jamais du composant.
+
+## 14. Responsive dès la conception
+
+Chaque composant doit définir son comportement sur PC, tablette et téléphone.
+
+## 15. Compatible thème clair / sombre
+
+Tout composant du Design System doit être utilisable dans les deux thèmes.
+
+## 16. Le dictionnaire de données est la référence
+
+Le dictionnaire décrit non seulement la structure des données mais également leur représentation dans l'interface (widget et propriétés).
+
+Toute évolution d'un composant commence par la mise à jour du dictionnaire.
+
+## 17. Les composants ignorent le métier
+
+Un composant graphique Easy Projet ne contient aucune connaissance métier.
+
+Il reçoit uniquement une configuration et produit une représentation graphique.

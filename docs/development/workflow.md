@@ -10,7 +10,8 @@ Chaque sujet de développement suit le cycle suivant :
 4. Développement
 5. Tests
 6. Documentation
-7. Clôture du sujet
+7. Validation
+8. Git
 
 ## Definition of Done
 
@@ -50,3 +51,16 @@ Lorsqu'une question se pose, il faut identifier son niveau :
 3. Implémentation
 
 La correction doit être apportée au bon niveau.
+
+## Développement d'un composant UI
+
+Tout composant Easy Projet suit les étapes suivantes :
+
+1. Analyse du besoin
+2. Définition de la responsabilité
+3. Définition du contrat du composant
+4. Vérification / mise à jour du dictionnaire de données
+5. Développement
+6. Tests
+7. Documentation
+8. Validation
