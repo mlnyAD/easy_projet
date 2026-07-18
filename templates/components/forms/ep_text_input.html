@@ -1,72 +1,71 @@
 
 
 {% comment %}
-============================================================================
-EP-UI-002 - TextInput
+==============================================================================
+EP-UI-002 — TextInput
 Composant du Design System Easy Projet
-============================================================================
+
+Responsabilité :
+    Afficher un champ de saisie textuelle Django.
+
+Gère :
+    - le libellé ;
+    - le widget ;
+    - l'indication de champ obligatoire ;
+    - le texte d'aide ;
+    - les erreurs de validation ;
+    - les attributs d'accessibilité préparés par ep_forms.py ;
+    - l'espacement vertical.
+
+Ne gère pas :
+    - la logique métier ;
+    - la validation métier.
+==============================================================================
 {% endcomment %}
 
-<input
-    type="{{ field.field.widget.input_type }}"
-    name="{{ field.html_name }}"
-    id="{{ field.id_for_label }}"
-    value="{{ field.value|default_if_none:'' }}"
-    class="{{ css_classes }}"
+<div class="mb-4">
 
-    {% if field.field.required %}
-        required
+    <label
+        for="{{ field.id_for_label }}"
+        class="mb-1 block text-sm font-normal text-gray-800 dark:text-neutral-200"
+    >
+        {{ field.label }}
+
+        {% if field.field.required %}
+            <span
+                class="text-red-600 dark:text-red-400"
+                aria-hidden="true"
+            >
+                *
+            </span>
+
+            <span class="sr-only">
+                Champ obligatoire
+            </span>
+        {% endif %}
+    </label>
+
+    {{ widget_html }}
+
+    {% if field.help_text %}
+        <p
+            id="{{ field.auto_id }}_help"
+            class="mt-1 text-sm text-gray-500 dark:text-neutral-400"
+        >
+            {{ field.help_text }}
+        </p>
     {% endif %}
 
-    {% if field.field.widget.attrs.minlength %}
-        minlength="{{ field.field.widget.attrs.minlength }}"
+    {% if field.errors %}
+        <div
+            id="{{ field.auto_id }}_errors"
+            class="mt-2 text-sm text-red-600 dark:text-red-400"
+            role="alert"
+        >
+            {% for error in field.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
     {% endif %}
 
-    {% if field.field.widget.attrs.maxlength %}
-        maxlength="{{ field.field.widget.attrs.maxlength }}"
-    {% endif %}
-
-    {% if field.field.widget.attrs.pattern %}
-        pattern="{{ field.field.widget.attrs.pattern }}"
-    {% endif %}
-
-    {% if field.field.widget.attrs.placeholder %}
-        placeholder="{{ field.field.widget.attrs.placeholder }}"
-    {% endif %}
-
-    {% if field.field.widget.attrs.autocomplete %}
-        autocomplete="{{ field.field.widget.attrs.autocomplete }}"
-    {% endif %}
-
-    {% if field.field.widget.attrs.inputmode %}
-        inputmode="{{ field.field.widget.attrs.inputmode }}"
-    {% endif %}
-
-    {% if field.field.widget.attrs.readonly %}
-        readonly
-    {% endif %}
-
-    {% if field.field.widget.attrs.disabled %}
-        disabled
-    {% endif %}
-
-    {% if aria_describedby %}
-        aria-describedby="{{ aria_describedby }}"
-    {% endif %}
-
-    {% if aria_invalid %}
-        aria-invalid="true"
-    {% endif %}
-
-    {% if field.field.widget.attrs.data_uppercase %}
-        data-uppercase="true"
-    {% endif %}
-
-    {% if field.field.widget.attrs.data_lowercase %}
-        data-lowercase="true"
-    {% endif %}
-
-    {% if field.field.widget.attrs.data_trim %}
-        data-trim="true"
-    {% endif %}
-/>
+</div>

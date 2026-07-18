@@ -25,7 +25,11 @@ class CompanyForm(forms.ModelForm):
             "country",
             "is_active",
         )
-
+        
+        labels = {
+            "is_active": "Société active",
+        }
+    
         help_texts = {
             "code": "Code interne unique de la société.",
             "name": "Nom utilisé dans l'application.",
@@ -38,8 +42,8 @@ class CompanyForm(forms.ModelForm):
                     "maxlength": 10,
                     "placeholder": "Ex. AXCIO",
                     "autocomplete": "off",
-                    "data_uppercase": True,
-                    "data_trim": True,
+                    "data-uppercase": True,
+                    "data-trim": True,
                 }
             ),
             "name": forms.TextInput(
@@ -47,7 +51,8 @@ class CompanyForm(forms.ModelForm):
                     "maxlength": 150,
                     "placeholder": "Nom utilisé dans l'application",
                     "autocomplete": "organization",
-                    "data_trim": True,
+                    "data-uppercase": True,
+                    "data-trim": True,
                 }
             ),
             "email": forms.EmailInput(
@@ -55,17 +60,18 @@ class CompanyForm(forms.ModelForm):
                     "maxlength": 254,
                     "autocomplete": "email",
                     "placeholder": "contact@entreprise.fr",
-                    "data_lowercase": True,
-                    "data_trim": True,
+                    "data-lowercase": True,
+                    "data-trim": True,
                 }
-            ),            
+            ),
             "phone": TelInput(
                 attrs={
                     "maxlength": 20,
                     "autocomplete": "tel",
                     "inputmode": "tel",
                     "placeholder": "01 23 45 67 89",
-                    "data_trim": True,
+                    "data-phone": True,
+                    "data-trim": True,
                 }
             ),
             "postal_code": forms.TextInput(
@@ -75,9 +81,17 @@ class CompanyForm(forms.ModelForm):
                 }
             ),
             "city": forms.TextInput(
-                attrs={"autocomplete": "address-level2"}
+                attrs={
+                    "autocomplete": "address-level2",
+                    "data-uppercase": True,
+                    "data-trim": True,
+                }
             ),
             "country": forms.TextInput(
-                attrs={"autocomplete": "country-name"}
+                attrs={
+                    "autocomplete": "country-name",
+                    "data-uppercase": True,
+                    "data-trim": True,
+                }
             ),
         }

@@ -54,12 +54,18 @@ INPUT_ERROR_CLASSES = (
 # =============================================================================
 
 CHECKBOX_CLASSES = (
-    "size-4 "
+    "size-7 "
+    "shrink-0 "
     "rounded "
     "border-gray-300 "
     "text-[#0D5262] "
+    "accent-[#0D5262] "
+    "cursor-pointer "
+    "transition-colors duration-150 "
+    "focus:outline-none "
     "focus:ring-2 "
     "focus:ring-[#0D5262]/20 "
+    "focus:ring-offset-1 "
     "disabled:cursor-not-allowed "
     "disabled:opacity-50 "
     "dark:border-neutral-700 "
