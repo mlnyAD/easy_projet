@@ -2,6 +2,8 @@
 
 from django import forms
 
+from common.forms.widgets import TelInput
+
 from .models import Company
 
 
@@ -50,15 +52,20 @@ class CompanyForm(forms.ModelForm):
             ),
             "email": forms.EmailInput(
                 attrs={
+                    "maxlength": 254,
                     "autocomplete": "email",
                     "placeholder": "contact@entreprise.fr",
+                    "data_lowercase": True,
+                    "data_trim": True,
                 }
-            ),
-            "phone": forms.TextInput(
+            ),            
+            "phone": TelInput(
                 attrs={
+                    "maxlength": 20,
                     "autocomplete": "tel",
                     "inputmode": "tel",
                     "placeholder": "01 23 45 67 89",
+                    "data_trim": True,
                 }
             ),
             "postal_code": forms.TextInput(

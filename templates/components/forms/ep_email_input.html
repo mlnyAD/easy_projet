@@ -1,0 +1,68 @@
+
+
+{% comment %}
+============================================================================
+EP-UI-003 - EmailInput
+Composant du Design System Easy Projet
+============================================================================
+{% endcomment %}
+
+<input
+    type="{{ field.field.widget.input_type }}"
+    name="{{ field.html_name }}"
+    id="{{ field.id_for_label }}"
+    value="{{ field.value|default_if_none:'' }}"
+    class="{{ css_classes }}"
+
+    {% if field.field.required %}
+        required
+    {% endif %}
+
+    {% if field.field.widget.attrs.minlength %}
+        minlength="{{ field.field.widget.attrs.minlength }}"
+    {% endif %}
+
+    {% if field.field.widget.attrs.maxlength %}
+        maxlength="{{ field.field.widget.attrs.maxlength }}"
+    {% endif %}
+
+    {% if field.field.widget.attrs.pattern %}
+        pattern="{{ field.field.widget.attrs.pattern }}"
+    {% endif %}
+
+    {% if field.field.widget.attrs.placeholder %}
+        placeholder="{{ field.field.widget.attrs.placeholder }}"
+    {% endif %}
+
+    {% if field.field.widget.attrs.autocomplete %}
+        autocomplete="{{ field.field.widget.attrs.autocomplete }}"
+    {% endif %}
+
+    {% if field.field.widget.attrs.inputmode %}
+        inputmode="{{ field.field.widget.attrs.inputmode }}"
+    {% endif %}
+
+    {% if field.field.widget.attrs.readonly %}
+        readonly
+    {% endif %}
+
+    {% if field.field.widget.attrs.disabled %}
+        disabled
+    {% endif %}
+
+    {% if aria_describedby %}
+        aria-describedby="{{ aria_describedby }}"
+    {% endif %}
+
+    {% if aria_invalid %}
+        aria-invalid="true"
+    {% endif %}
+
+    {% if field.field.widget.attrs.data_lowercase %}
+        data-lowercase="true"
+    {% endif %}
+
+    {% if field.field.widget.attrs.data_trim %}
+        data-trim="true"
+    {% endif %}
+/>

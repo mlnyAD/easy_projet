@@ -32,7 +32,7 @@ class Company(TimeStampedModel):
     )
 
     email = models.EmailField(
-        max_length=100,
+        max_length=254,
         verbose_name="Adresse électronique",
     )
 

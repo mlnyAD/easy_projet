@@ -86,21 +86,17 @@ def _build_common_attributes(field, css_classes: str) -> dict[str, str]:
     return attrs
 
 
-@register.inclusion_tag("components/forms/ep_text_input.html")
-def ep_text_input(field):
+def _build_input_context(field) -> dict:
     """
-    Rend un composant TextInput Easy Projet à partir d'un BoundField Django.
+    Construit le contexte commun aux composants de saisie textuelle.
 
-    Le champ doit utiliser un widget dérivé de forms.TextInput.
+    Cette fonction centralise :
+
+    - les classes CSS du widget ;
+    - l'état normal ou en erreur ;
+    - les attributs ARIA.
     """
     widget = field.field.widget
-
-    if not isinstance(widget, forms.TextInput):
-        raise TypeError(
-            "ep_text_input attend un champ utilisant un widget "
-            "dérivé de django.forms.TextInput."
-        )
-
     existing_classes = widget.attrs.get("class", "")
 
     css_classes = _join_classes(
@@ -115,6 +111,50 @@ def ep_text_input(field):
         "aria_describedby": _build_aria_describedby(field),
         "aria_invalid": bool(field.errors),
     }
+
+
+@register.inclusion_tag("components/forms/ep_text_input.html")
+def ep_text_input(field):
+    """
+    Rend un composant TextInput Easy Projet à partir d'un BoundField Django.
+
+    Le composant est réservé au widget forms.TextInput standard.
+    Les widgets spécialisés disposent de leur propre composant.
+    """
+    widget = field.field.widget
+
+    if not isinstance(widget, forms.TextInput):
+        raise TypeError(
+            "ep_text_input attend un champ utilisant un widget "
+            "dérivé de django.forms.TextInput."
+        )
+
+    if isinstance(widget, forms.EmailInput):
+        raise TypeError(
+            "ep_text_input ne doit pas être utilisé avec forms.EmailInput. "
+            "Utiliser ep_email_input."
+        )
+
+    return _build_input_context(field)
+
+
+@register.inclusion_tag("components/forms/ep_email_input.html")
+def ep_email_input(field):
+    """
+    Rend un composant EmailInput Easy Projet à partir d'un BoundField Django.
+
+    Le composant assure uniquement le rendu d'un champ HTML de type email.
+    La validation serveur reste assurée par Django.
+    """
+    widget = field.field.widget
+
+    if not isinstance(widget, forms.EmailInput):
+        raise TypeError(
+            "ep_email_input attend un champ utilisant "
+            "django.forms.EmailInput."
+        )
+
+    return _build_input_context(field)
 
 
 @register.simple_tag

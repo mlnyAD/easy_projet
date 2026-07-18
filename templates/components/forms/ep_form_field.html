@@ -89,7 +89,11 @@
 
         </label>
 
-        {% if field.field.widget.input_type == "text" %}
+        {% if field.field.widget.input_type == "email" %}
+
+            {% ep_email_input field %}
+
+        {% elif field.field.widget.input_type == "text" %}
 
             {% ep_text_input field %}
 
