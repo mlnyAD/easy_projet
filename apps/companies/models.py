@@ -15,20 +15,9 @@ class Company(TimeStampedModel):
         verbose_name="Identifiant",
     )
 
-    code = models.CharField(
-        max_length=10,
-        unique=True,
-        verbose_name="Code",
-    )
-
     name = models.CharField(
         max_length=150,
         verbose_name="Nom usuel",
-    )
-
-    legal_name = models.CharField(
-        max_length=150,
-        verbose_name="Raison sociale",
     )
 
     email = models.EmailField(
@@ -90,7 +79,6 @@ class Company(TimeStampedModel):
         verbose_name_plural = "Sociétés"
 
     def save(self, *args, **kwargs):
-        self.code = self.code.strip().upper()
         super().save(*args, **kwargs)
 
     def __str__(self):

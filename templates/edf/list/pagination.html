@@ -1,0 +1,31 @@
+
+
+{% if list_view.pagination.total_pages > 1 %}
+    <nav
+        class="edf-list__pagination"
+        aria-label="Pagination"
+    >
+        {% if list_view.pagination.has_previous %}
+            <span
+                class="edf-list__pagination-previous"
+                data-page="{{ list_view.pagination.previous_page }}"
+            >
+                Page précédente
+            </span>
+        {% endif %}
+
+        <span class="edf-list__pagination-current">
+            Page {{ list_view.pagination.page }}
+            sur {{ list_view.pagination.total_pages }}
+        </span>
+
+        {% if list_view.pagination.has_next %}
+            <span
+                class="edf-list__pagination-next"
+                data-page="{{ list_view.pagination.next_page }}"
+            >
+                Page suivante
+            </span>
+        {% endif %}
+    </nav>
+{% endif %}

@@ -8,7 +8,6 @@ from .models import Company
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
     list_display = (
-        "code",
         "name",
         "city",
         "email",
@@ -22,9 +21,7 @@ class CompanyAdmin(admin.ModelAdmin):
     )
 
     search_fields = (
-        "code",
         "name",
-        "legal_name",
         "city",
         "email",
     )

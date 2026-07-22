@@ -1,0 +1,19 @@
+
+
+<thead>
+    <tr>
+        {% for column in list_view.columns %}
+            <th scope="col">
+                <span>{{ column.label }}</span>
+
+                {% if column.sorted %}
+                    {% if column.descending %}
+                        <span aria-label="Tri décroissant">▼</span>
+                    {% else %}
+                        <span aria-label="Tri croissant">▲</span>
+                    {% endif %}
+                {% endif %}
+            </th>
+        {% endfor %}
+    </tr>
+</thead>

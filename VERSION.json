@@ -1,0 +1,32 @@
+
+
+{
+  "application": {
+    "name": "Easy Projet",
+    "version": "1.1.0",
+    "status": "Development"
+  },
+
+  "framework": {
+    "version": "1.0.0"
+  },
+
+  "database": {
+    "schema": "1.0.0"
+  },
+
+  "documentation": {
+    "version": "1.1.0"
+  },
+
+  "git": {
+    "branch": null,
+    "commit": null
+  },
+
+  "runtime": {
+    "python": null,
+    "django": null,
+    "postgresql": null
+  }
+}

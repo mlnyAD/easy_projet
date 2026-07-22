@@ -3,7 +3,11 @@
 {% extends "base.html" %}
 
 {% block title %}
-    Nouvelle société
+    {% if object %}
+        Modifier la société
+    {% else %}
+        Nouvelle société
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -12,7 +16,11 @@
 
     <div class="mb-8">
         <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-            Nouvelle société
+            {% if object %}
+                Modifier la société
+            {% else %}
+                Nouvelle société
+            {% endif %}
         </h1>
 
         <p class="mt-2 text-sm text-gray-600 dark:text-neutral-400">
@@ -46,16 +54,8 @@
 
             <div class="grid grid-cols-1 gap-x-6 md:grid-cols-2">
 
-                <div>
-                    {% include "components/forms/ep_form_field.html" with field=form.code %}
-                </div>
-
-                <div>
-                    {% include "components/forms/ep_form_field.html" with field=form.name %}
-                </div>
-
                 <div class="md:col-span-2">
-                    {% include "components/forms/ep_form_field.html" with field=form.legal_name %}
+                    {% include "components/forms/ep_form_field.html" with field=form.name %}
                 </div>
 
                 <div>
@@ -102,7 +102,7 @@
                         dark:border-neutral-700">
 
                 <a
-                    href="#"
+                    href="{% url 'companies:list' %}"
                     class="inline-flex items-center justify-center rounded-lg
                            border border-gray-300 px-4 py-2 text-sm font-medium
                            text-gray-700 hover:bg-gray-50

@@ -1,0 +1,16 @@
+
+
+
+<div class="edf-list__table-container">
+    <table class="edf-list__table">
+        {% include "edf/list/header.html" %}
+
+        <tbody>
+            {% for row in list_view.rows %}
+                {% include "edf/list/row.html" %}
+            {% empty %}
+                {% include "edf/list/empty.html" %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

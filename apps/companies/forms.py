@@ -12,9 +12,7 @@ class CompanyForm(forms.ModelForm):
         model = Company
 
         fields = (
-            "code",
             "name",
-            "legal_name",
             "email",
             "phone",
             "address_1",
@@ -31,9 +29,7 @@ class CompanyForm(forms.ModelForm):
         }
     
         help_texts = {
-            "code": "Code interne unique de la société.",
             "name": "Nom utilisé dans l'application.",
-            "legal_name": "Raison sociale officielle.",
         }
 
         widgets = {
