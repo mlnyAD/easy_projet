@@ -128,3 +128,11 @@ Lorsqu'un nouveau composant générique est créé, celui-ci doit être conçu d
 La bibliothèque des composants génériques est appelée à évoluer au rythme des besoins fonctionnels du produit.
 
 L'ajout de nouveaux composants devra respecter les principes définis dans le présent document afin de préserver l'homogénéité de l'interface utilisateur et la cohérence de l'architecture.
+
+# 12.Décisions d'architecture
+
+ADR-001  Les templates ne contiennent pas de logique métier.
+ADR-002  Le framework ne contient pas de vocabulaire métier.
+ADR-003  Les ViewModels préparent les données d'affichage.
+ADR-004  Le fonctionnel pilote l'évolution du framework.
+ADR-005  Les paramètres visuels seront centralisés après stabilisation.

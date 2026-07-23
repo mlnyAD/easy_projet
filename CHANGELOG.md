@@ -62,3 +62,18 @@
 
 - Validation de l'approche "développer un cas concret avant de généraliser".
 - La liste Société devient la référence pour la conception du futur composant EPList.
+
+## Développement en cours
+
+## Version 0.2.1 - Framework de listes
+
+* Ajout d’un renderer générique de listes décomposé en composants.
+* Ajout des composants de header, body, ligne, cellule et pagination.
+* Ajout du support générique des cellules texte, booléennes, email et téléphone.
+* Ajout d’un template métier injectable pour les actions de ligne.
+* Ajout des propriétés d’affichage de `ViewCell`.
+* Ajout des rangs `first_item` et `last_item` dans `PaginationViewModel`.
+* Migration de la liste des sociétés vers le renderer générique.
+* Réduction de la hauteur des lignes de données.
+* Conservation de la sélection du nombre de lignes par page comme évolution ultérieure.
+* Report de la centralisation des paramètres visuels dans une configuration du framework.

@@ -1,373 +1,50 @@
 
 
-
-
 {% extends "base.html" %}
 
-{% block title %}
-    Sociétés
-{% endblock %}
+{% block title %}Sociétés{% endblock %}
 
 {% block content %}
 
-<div class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+<div class="space-y-6">
 
-    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
+    {# En-tête de la page #}
+    <div
+        class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    >
         <div>
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+            <h1
+                class="text-2xl font-semibold text-gray-800
+                       dark:text-white"
+            >
                 Sociétés
             </h1>
 
-            <p class="mt-2 text-sm text-gray-600 dark:text-neutral-400">
-                Liste des sociétés enregistrées dans Easy Projet.
+            <p
+                class="mt-1 text-sm text-gray-500
+                       dark:text-neutral-400"
+            >
+                Gestion des sociétés enregistrées dans Easy Projet.
             </p>
         </div>
 
-        <a
-            href="{% url 'companies:create' %}"
-            class="inline-flex items-center justify-center rounded-lg
-                   border border-transparent bg-blue-600 px-4 py-2
-                   text-sm font-medium text-white hover:bg-blue-700
-                   focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-        >
-            Nouvelle société
-        </a>
-
+        <div>
+            <a
+                href="{% url 'companies:create' %}"
+                class="inline-flex items-center gap-x-2 rounded-lg
+                       border border-transparent bg-blue-600 px-4 py-3
+                       text-sm font-medium text-white
+                       hover:bg-blue-700
+                       focus:outline-none focus:bg-blue-700
+                       disabled:pointer-events-none disabled:opacity-50"
+            >
+                Nouvelle société
+            </a>
+        </div>
     </div>
 
-    {% if messages %}
-        <div class="mb-6 space-y-3">
-            {% for message in messages %}
-                <div
-                    class="rounded-lg border border-green-200 bg-green-50 p-4
-                           text-sm text-green-700
-                           dark:border-green-900 dark:bg-green-950/30
-                           dark:text-green-300"
-                    role="alert"
-                >
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    {% include "components/lists/ep_toolbar.html" %}
-
-    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm
-                dark:border-neutral-700 dark:bg-neutral-900">
-
-        <div class="overflow-x-auto">
-
-            <table id="company-list" data-ep-list class="min-w-max divide-y divide-gray-200 dark:divide-neutral-700">
-
-                <thead class="bg-gray-50 dark:bg-neutral-800">
-                    <tr>
-                        {% for column in list.columns %}
-                            <th
-                                scope="col"
-                                class="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-neutral-200"
-                            >
-                                {{ column.label }}
-                            </th>
-                        {% endfor %}
-
-                        <th
-                            scope="col"
-                            class="whitespace-nowrap px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-neutral-200"
-                        >
-                            Actions
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-
-					{% for row in list.rows %}
-						{% with company=row.source_object %}
-
-                        <tr class="hover:bg-gray-50 dark:hover:bg-neutral-800/60">
-
-                            <td
-                                data-column="name"
-                                class="whitespace-nowrap px-6 py-4 text-sm text-gray-700
-                                    dark:text-neutral-300"
-                            >
-                                {{ row.cells.0.display_value }}
-                            </td>
-
-                            <td
-                                data-column="email"
-                                class="whitespace-nowrap px-6 py-4 text-sm text-gray-700
-                                    dark:text-neutral-300"
-                            >
-                                {{ row.cells.1.display_value }}
-                            </td>
-
-                            <td
-                                data-column="phone"
-                                class="whitespace-nowrap px-6 py-4 text-sm text-gray-700
-                                    dark:text-neutral-300"
-                            >
-                                {{ row.cells.2.display_value }}
-                            </td>
-
-                            <td
-                                data-column="city"
-                                class="whitespace-nowrap px-6 py-4 text-sm text-gray-700
-                                    dark:text-neutral-300"
-                            >
-                                {{ row.cells.3.display_value }}
-                            </td>
-
-                            <td
-                                data-column="is_active"
-                                class="whitespace-nowrap px-6 py-4 text-sm"
-                            >
-                                {% if company.is_active %}
-                                    <span
-                                        class="inline-flex rounded-full bg-green-100 px-2.5 py-1
-                                            text-xs font-medium text-green-800
-                                            dark:bg-green-900/40 dark:text-green-300"
-                                    >
-                                        Active
-                                    </span>
-                                {% else %}
-                                    <span
-                                        class="inline-flex rounded-full bg-gray-100 px-2.5 py-1
-                                            text-xs font-medium text-gray-700
-                                            dark:bg-neutral-700 dark:text-neutral-300"
-                                    >
-                                        Inactive
-                                    </span>
-                                {% endif %}
-                            </td>
-
-                            <td
-                                data-column="actions"
-                                class="whitespace-nowrap px-6 py-4 text-center"
-                            >
-                                <a
-                                    href="{% url 'companies:update' company.pk %}"
-                                    class="inline-flex items-center justify-center rounded-lg p-2
-                                        text-blue-600 hover:bg-blue-50 hover:text-blue-700
-                                        dark:text-blue-400 dark:hover:bg-neutral-800"
-                                    title="Modifier la société"
-                                    aria-label="Modifier la société"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke-width="1.8"
-                                        stroke="currentColor"
-                                        class="h-5 w-5"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            d="M16.862 4.487a2.25 2.25 0 113.182 3.182L8.25 19.463 3.75 20.25l.787-4.5L16.862 4.487z"
-                                        />
-                                    </svg>
-                                </a>
-                            </td>
-
-                        </tr>
-					{% endwith %}
-                    
-					{% empty %}
-
-                        <tr>
-
-                           <td
-                                colspan="{{ list.columns|length|add:1 }}"
-                                class="px-6 py-12 text-center text-sm
-                                    text-gray-500 dark:text-neutral-400"
-                                >
-                                Aucune société enregistrée.
-                           </td>
-
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-            {% if is_paginated %}
-
-                <div
-                    class="flex flex-col gap-4 border-t border-gray-200
-                        px-6 py-4 sm:flex-row sm:items-center sm:justify-between
-                        dark:border-neutral-700"
-                >
-
-                    <p class="text-sm text-gray-600 dark:text-neutral-400">
-                        Sociétés
-                        {{ page_obj.start_index }}
-                        à
-                        {{ page_obj.end_index }}
-                        sur
-                        {{ page_obj.paginator.count }}
-                    </p>
-
-                    <nav
-                        class="flex flex-wrap items-center gap-1"
-                        aria-label="Pagination des sociétés"
-                    >
-
-                        {% if page_obj.has_previous %}
-
-                            <a
-                                href="?page=1"
-                                class="inline-flex min-h-9 min-w-9 items-center justify-center
-                                    rounded-lg border border-gray-300 px-3 py-2
-                                    text-sm text-gray-700 hover:bg-gray-50
-                                    focus:outline-none focus:ring-2 focus:ring-blue-500/30
-                                    dark:border-neutral-700 dark:text-neutral-300
-                                    dark:hover:bg-neutral-800"
-                                aria-label="Première page"
-                                title="Première page"
-                            >
-                                «
-                            </a>
-
-                            <a
-                                href="?page={{ page_obj.previous_page_number }}"
-                                class="inline-flex min-h-9 items-center justify-center
-                                    rounded-lg border border-gray-300 px-3 py-2
-                                    text-sm text-gray-700 hover:bg-gray-50
-                                    focus:outline-none focus:ring-2 focus:ring-blue-500/30
-                                    dark:border-neutral-700 dark:text-neutral-300
-                                    dark:hover:bg-neutral-800"
-                            >
-                                Précédente
-                            </a>
-
-                        {% else %}
-
-                            <span
-                                class="inline-flex min-h-9 min-w-9 cursor-not-allowed
-                                    items-center justify-center rounded-lg
-                                    border border-gray-200 px-3 py-2
-                                    text-sm text-gray-400
-                                    dark:border-neutral-800 dark:text-neutral-600"
-                                aria-disabled="true"
-                            >
-                                «
-                            </span>
-
-                            <span
-                                class="inline-flex min-h-9 cursor-not-allowed
-                                    items-center justify-center rounded-lg
-                                    border border-gray-200 px-3 py-2
-                                    text-sm text-gray-400
-                                    dark:border-neutral-800 dark:text-neutral-600"
-                                aria-disabled="true"
-                            >
-                                Précédente
-                            </span>
-
-                        {% endif %}
-
-                        {% for page_number in page_obj.paginator.page_range %}
-
-                            {% if page_number == page_obj.number %}
-
-                                <span
-                                    class="inline-flex min-h-9 min-w-9 items-center
-                                        justify-center rounded-lg border border-blue-600
-                                        bg-blue-600 px-3 py-2 text-sm font-medium
-                                        text-white"
-                                    aria-current="page"
-                                >
-                                    {{ page_number }}
-                                </span>
-
-                            {% elif page_number >= page_obj.number|add:"-2" and page_number <= page_obj.number|add:"2" %}
-
-                                <a
-                                    href="?page={{ page_number }}"
-                                    class="inline-flex min-h-9 min-w-9 items-center
-                                        justify-center rounded-lg
-                                        border border-gray-300 px-3 py-2
-                                        text-sm text-gray-700 hover:bg-gray-50
-                                        focus:outline-none focus:ring-2
-                                        focus:ring-blue-500/30
-                                        dark:border-neutral-700
-                                        dark:text-neutral-300
-                                        dark:hover:bg-neutral-800"
-                                >
-                                    {{ page_number }}
-                                </a>
-
-                            {% endif %}
-
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-
-                            <a
-                                href="?page={{ page_obj.next_page_number }}"
-                                class="inline-flex min-h-9 items-center justify-center
-                                    rounded-lg border border-gray-300 px-3 py-2
-                                    text-sm text-gray-700 hover:bg-gray-50
-                                    focus:outline-none focus:ring-2 focus:ring-blue-500/30
-                                    dark:border-neutral-700 dark:text-neutral-300
-                                    dark:hover:bg-neutral-800"
-                            >
-                                Suivante
-                            </a>
-
-                            <a
-                                href="?page={{ page_obj.paginator.num_pages }}"
-                                class="inline-flex min-h-9 min-w-9 items-center justify-center
-                                    rounded-lg border border-gray-300 px-3 py-2
-                                    text-sm text-gray-700 hover:bg-gray-50
-                                    focus:outline-none focus:ring-2 focus:ring-blue-500/30
-                                    dark:border-neutral-700 dark:text-neutral-300
-                                    dark:hover:bg-neutral-800"
-                                aria-label="Dernière page"
-                                title="Dernière page"
-                            >
-                                »
-                            </a>
-
-                        {% else %}
-
-                            <span
-                                class="inline-flex min-h-9 cursor-not-allowed
-                                    items-center justify-center rounded-lg
-                                    border border-gray-200 px-3 py-2
-                                    text-sm text-gray-400
-                                    dark:border-neutral-800 dark:text-neutral-600"
-                                aria-disabled="true"
-                            >
-                                Suivante
-                            </span>
-
-                            <span
-                                class="inline-flex min-h-9 min-w-9 cursor-not-allowed
-                                    items-center justify-center rounded-lg
-                                    border border-gray-200 px-3 py-2
-                                    text-sm text-gray-400
-                                    dark:border-neutral-800 dark:text-neutral-600"
-                                aria-disabled="true"
-                            >
-                                »
-                            </span>
-
-                        {% endif %}
-
-                    </nav>
-
-                </div>
-
-            {% endif %}
-
-    </div>
+    {# Liste générique fournie par le framework #}
+    {% include "components/lists/ep_list.html" %}
 
 </div>
 

@@ -22,3 +22,28 @@ class ViewCell:
                 "La propriété 'column' doit être une instance "
                 "de ViewColumn."
             )
+
+    @property
+    def identifier(self) -> str:
+        """Retourne l'identifiant de la colonne."""
+        return self.column.identifier
+
+    @property
+    def label(self) -> str:
+        """Retourne le libellé de la colonne."""
+        return self.column.label
+
+    @property
+    def data_type(self) -> str:
+        """Retourne le type métier de la donnée."""
+        return self.column.definition.field.data_type
+
+    @property
+    def sortable(self) -> bool:
+        """Indique si la colonne est triable."""
+        return self.column.sortable
+
+    @property
+    def visible(self) -> bool:
+        """Indique si la colonne est visible."""
+        return self.column.visible

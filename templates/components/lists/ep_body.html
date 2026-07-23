@@ -1,0 +1,25 @@
+
+
+<tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
+
+    {% for row in list.rows %}
+
+        {% include "components/lists/ep_row.html" %}
+
+    {% empty %}
+
+        <tr>
+
+            <td
+                colspan="{{ list.columns|length }}"
+                class="px-6 py-12 text-center text-sm
+                       text-gray-500 dark:text-neutral-400"
+            >
+                Aucun enregistrement.
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+</tbody>

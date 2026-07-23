@@ -44,8 +44,11 @@ class CompanyListView(ListView):
         )
 
         context["page_sizes"] = (10, 20, 50, 100)
+        
+        context["actions_template"] = "companies/company_actions.html"
 
         return context
+    
 class CompanyCreateView(CreateView):
     model = Company
     form_class = CompanyForm

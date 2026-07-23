@@ -1,25 +1,73 @@
 
 
-{% load ep_forms %}
+{% if is_checkbox %}
 
-{% if field.field.widget.input_type == "checkbox" %}
-    {% ep_checkbox field %}
+    <div class="mb-4">
 
-{% elif field.field.widget.input_type == "email" %}
-    {% ep_email_input field %}
+        <div class="flex items-start gap-3">
 
-{% elif field.field.widget.input_type == "tel" %}
-    {% ep_phone_input field %}
+            <div class="flex h-5 items-center">
+                {{ widget_html }}
+            </div>
 
-{% elif field.field.widget.input_type == "text" %}
-    {% ep_text_input field %}
+            <div>
+                <label
+                    for="{{ field.id_for_label }}"
+                    class="text-sm font-normal text-gray-800
+                           dark:text-neutral-200"
+                >
+                    {{ field.label }}
+
+                    {% if field.field.required %}
+                        <span
+                            class="text-red-600 dark:text-red-400"
+                            aria-hidden="true"
+                        >
+                            *
+                        </span>
+
+                        <span class="sr-only">
+                            Champ obligatoire
+                        </span>
+                    {% endif %}
+                </label>
+
+                {% if field.help_text %}
+                    <p
+                        id="{{ field.auto_id }}_help"
+                        class="mt-1 text-sm text-gray-500
+                               dark:text-neutral-400"
+                    >
+                        {{ field.help_text }}
+                    </p>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% if field.errors %}
+            <div
+                id="{{ field.auto_id }}_errors"
+                class="mt-2 text-sm text-red-600
+                       dark:text-red-400"
+                role="alert"
+            >
+                {% for error in field.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    </div>
 
 {% else %}
+
     <div class="mb-4">
 
         <label
             for="{{ field.id_for_label }}"
-            class="mb-1 block text-sm font-normal text-gray-800 dark:text-neutral-200"
+            class="mb-1 block text-sm font-normal text-gray-800
+                   dark:text-neutral-200"
         >
             {{ field.label }}
 
@@ -37,12 +85,13 @@
             {% endif %}
         </label>
 
-        {% ep_widget field %}
+        {{ widget_html }}
 
         {% if field.help_text %}
             <p
                 id="{{ field.auto_id }}_help"
-                class="mt-1 text-sm text-gray-500 dark:text-neutral-400"
+                class="mt-1 text-sm text-gray-500
+                       dark:text-neutral-400"
             >
                 {{ field.help_text }}
             </p>
@@ -51,7 +100,8 @@
         {% if field.errors %}
             <div
                 id="{{ field.auto_id }}_errors"
-                class="mt-2 text-sm text-red-600 dark:text-red-400"
+                class="mt-2 text-sm text-red-600
+                       dark:text-red-400"
                 role="alert"
             >
                 {% for error in field.errors %}
@@ -61,4 +111,5 @@
         {% endif %}
 
     </div>
+
 {% endif %}

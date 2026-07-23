@@ -1,0 +1,103 @@
+
+
+{% with pagination=list.pagination %}
+    <div
+        class="flex flex-col gap-3 border-t border-gray-200 px-6 py-4
+               sm:flex-row sm:items-center sm:justify-between
+               dark:border-neutral-700"
+    >
+        <div class="text-sm text-gray-500 dark:text-neutral-400">
+            {% if pagination.total_items %}
+                Affichage de
+                <span class="font-medium text-gray-700 dark:text-neutral-200">
+                    {{ pagination.first_item }}
+                </span>
+                à
+                <span class="font-medium text-gray-700 dark:text-neutral-200">
+                    {{ pagination.last_item }}
+                </span>
+                sur
+                <span class="font-medium text-gray-700 dark:text-neutral-200">
+                    {{ pagination.total_items }}
+                </span>
+                enregistrement{{ pagination.total_items|pluralize }}
+            {% else %}
+                Aucun enregistrement
+            {% endif %}
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-500 dark:text-neutral-400">
+                Page {{ pagination.page }}
+                sur {{ pagination.total_pages }}
+            </span>
+
+            <nav
+                class="inline-flex items-center gap-x-1"
+                aria-label="Pagination"
+            >
+                {% if pagination.has_previous %}
+                    <a
+                        href="?page={{ pagination.previous_page }}"
+                        class="inline-flex min-h-9 min-w-9 items-center
+                               justify-center gap-x-1.5 rounded-lg border
+                               border-gray-200 bg-white px-3 py-2 text-sm
+                               text-gray-800 hover:bg-gray-50
+                               focus:outline-none
+                               dark:border-neutral-700
+                               dark:bg-neutral-900
+                               dark:text-neutral-200
+                               dark:hover:bg-neutral-800"
+                        aria-label="Page précédente"
+                    >
+                        Précédent
+                    </a>
+                {% else %}
+                    <span
+                        class="inline-flex min-h-9 min-w-9 cursor-not-allowed
+                               items-center justify-center gap-x-1.5
+                               rounded-lg border border-gray-200 bg-gray-50
+                               px-3 py-2 text-sm text-gray-400
+                               dark:border-neutral-700
+                               dark:bg-neutral-800
+                               dark:text-neutral-500"
+                        aria-disabled="true"
+                    >
+                        Précédent
+                    </span>
+                {% endif %}
+
+                {% if pagination.has_next %}
+                    <a
+                        href="?page={{ pagination.next_page }}"
+                        class="inline-flex min-h-9 min-w-9 items-center
+                               justify-center gap-x-1.5 rounded-lg border
+                               border-gray-200 bg-white px-3 py-2 text-sm
+                               text-gray-800 hover:bg-gray-50
+                               focus:outline-none
+                               dark:border-neutral-700
+                               dark:bg-neutral-900
+                               dark:text-neutral-200
+                               dark:hover:bg-neutral-800"
+                        aria-label="Page suivante"
+                    >
+                        Suivant
+                    </a>
+                {% else %}
+                    <span
+                        class="inline-flex min-h-9 min-w-9 cursor-not-allowed
+                               items-center justify-center gap-x-1.5
+                               rounded-lg border border-gray-200 bg-gray-50
+                               px-3 py-2 text-sm text-gray-400
+                               dark:border-neutral-700
+                               dark:bg-neutral-800
+                               dark:text-neutral-500"
+                        aria-disabled="true"
+                    >
+                        Suivant
+                    </span>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+{% endwith %}

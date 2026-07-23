@@ -80,6 +80,28 @@ class PaginationViewModel:
             raise ValueError(
                 "'next_page' doit désigner la page suivante."
             )
+            
+    @property
+    def first_item(self) -> int:
+        """Retourne le rang du premier élément affiché."""
+
+        if self.total_items == 0:
+            return 0
+
+        return ((self.page - 1) * self.page_size) + 1
+
+
+    @property
+    def last_item(self) -> int:
+        """Retourne le rang du dernier élément affiché."""
+
+        if self.total_items == 0:
+            return 0
+
+        return min(
+            self.page * self.page_size,
+            self.total_items,
+        )
 
     def _validate_positive_integer(
         self,
