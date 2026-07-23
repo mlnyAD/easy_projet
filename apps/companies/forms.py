@@ -33,15 +33,6 @@ class CompanyForm(forms.ModelForm):
         }
 
         widgets = {
-            "code": forms.TextInput(
-                attrs={
-                    "maxlength": 10,
-                    "placeholder": "Ex. AXCIO",
-                    "autocomplete": "off",
-                    "data-uppercase": True,
-                    "data-trim": True,
-                }
-            ),
             "name": forms.TextInput(
                 attrs={
                     "maxlength": 150,

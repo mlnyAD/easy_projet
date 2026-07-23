@@ -1,5 +1,11 @@
+
+    
 from django.apps import AppConfig
 
 
-class CoreConfig(AppConfig):
-    name = 'apps.catalogs'
+class CatalogsConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.catalogs"
+
+    def ready(self) -> None:
+        from apps.catalogs import bootstrap  # noqa: F401

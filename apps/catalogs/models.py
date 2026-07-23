@@ -26,6 +26,7 @@ class CatalogType(TimeStampedModel):
         default=False,
         verbose_name="Hiérarchique",
     )
+
     is_editable = models.BooleanField(
         default=False,
         verbose_name="Modifiable",
@@ -46,9 +47,15 @@ class CatalogType(TimeStampedModel):
         verbose_name_plural = "Types de catalogues"
 
     def clean(self):
+        super().clean()
+
         if self.is_incremental and not self.is_editable:
             raise ValidationError(
-                "Un catalogue incrémental doit être modifiable."
+                {
+                    "is_incremental": (
+                        "Un catalogue incrémental doit être modifiable."
+                    )
+                }
             )
 
     def save(self, *args, **kwargs):
@@ -80,10 +87,20 @@ class CatalogValue(TimeStampedModel):
         verbose_name="Description",
     )
 
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="children",
+        verbose_name="Valeur parente",
+    )
+
     level = models.PositiveIntegerField(
         default=0,
         verbose_name="Niveau",
     )
+
     sort_order = models.PositiveIntegerField(
         default=0,
         verbose_name="Ordre d'affichage",
@@ -104,7 +121,12 @@ class CatalogValue(TimeStampedModel):
 
     class Meta:
         db_table = "catalog_value"
-        ordering = ["catalog_type", "sort_order", "label"]
+        ordering = [
+            "catalog_type",
+            "level",
+            "sort_order",
+            "label",
+        ]
         verbose_name = "Valeur de catalogue"
         verbose_name_plural = "Valeurs de catalogue"
         constraints = [
@@ -118,6 +140,62 @@ class CatalogValue(TimeStampedModel):
                 name="uniq_default_value_by_catalog_type",
             ),
         ]
+
+    def clean(self):
+        super().clean()
+
+        if self.parent is not None:
+            if self.parent.catalog_type_id != self.catalog_type_id:
+                raise ValidationError(
+                    {
+                        "parent": (
+                            "La valeur parente doit appartenir "
+                            "au même catalogue."
+                        )
+                    }
+                )
+
+            if not self.catalog_type.is_hierarchical:
+                raise ValidationError(
+                    {
+                        "parent": (
+                            "Un catalogue non hiérarchique "
+                            "ne peut pas avoir de valeur parente."
+                        )
+                    }
+                )
+
+            expected_level = self.parent.level + 1
+
+            if self.level != expected_level:
+                raise ValidationError(
+                    {
+                        "level": (
+                            f"Le niveau attendu est {expected_level} "
+                            "pour cette valeur parente."
+                        )
+                    }
+                )
+
+        elif not self.catalog_type.is_hierarchical and self.level != 0:
+            raise ValidationError(
+                {
+                    "level": (
+                        "Le niveau d'une valeur appartenant à un "
+                        "catalogue non hiérarchique doit être égal à 0."
+                    )
+                }
+            )
+
+        if self.is_default and not self.is_active:
+            raise ValidationError(
+                {
+                    "is_default": (
+                        "Une valeur inactive ne peut pas être "
+                        "la valeur par défaut."
+                    )
+                }
+            )
 
     def save(self, *args, **kwargs):
         self.code = self.code.strip().upper()
