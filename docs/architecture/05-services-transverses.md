@@ -14,6 +14,8 @@ Ils sont partagés par toutes les applications métier et interviennent indépen
 
 Leur objectif est de centraliser les mécanismes communs afin d'améliorer la cohérence, la maintenance et l'évolutivité du produit.
 
+Les services transverses sont exécutés dans le contexte de l'environnement actif. Ils appliquent les principes d'isolation des données, de sécurité et de traçabilité définis par l'architecture du produit.
+
 # 3. Principes de conception
 
 Les services transverses respectent les principes suivants :
@@ -22,13 +24,18 @@ Les services transverses respectent les principes suivants :
 - mutualisation des fonctionnalités communes ;
 - configuration privilégiée au développement spécifique ;
 - simplicité d'utilisation ;
-- évolutivité sans impact sur les applications utilisatrices.
+- évolutivité sans impact sur les applications utilisatricesfonctionnement dans le contexte de l'environnement actif ;
+- absence de logique métier spécifique ;
+- interfaces publiques stables ;
+- traçabilité systématique des opérations lorsque nécessaire.
 
 # 4. Familles de services
 
 | Famille                          | Rôle                                                                     |
 | -------------------------------- | ------------------------------------------------------------------------ |
-| Authentification et autorisation | Gérer l'identité et les droits des utilisateurs                          |
+| Gestion des environnements	     | Déterminer le contexte de travail et assurer l'isolation des données.    |
+| Authentification	           | Vérifier l'identité des opérateurs.                                      |
+| Autorisations	                 | Déterminer les droits dans l'environnement courant.                      |
 | Notifications                    | Informer les utilisateurs des événements importants                      |
 | Journalisation et traçabilité    | Conserver l'historique des actions                                       |
 | Recherche globale                | Retrouver rapidement les informations                                    |
@@ -37,6 +44,8 @@ Les services transverses respectent les principes suivants :
 | Génération de documents          | Produire PDF, Excel ou autres restitutions                               |
 | Configuration                    | Gérer les paramètres généraux du produit                                 |
 | Intégration                      | Communiquer avec les services externes (OnlyOffice, CADViewer, IA, etc.) |
+| Audit	                       | Produire les informations nécessaires aux contrôles et à la conformité.  |
+| Cache (éventuel)	           | Optimiser les performances sans modifier le comportement fonctionnel.    |
 
 
 # 5. Règles d'utilisation
@@ -51,17 +60,26 @@ Les services transverses doivent rester indépendants des règles métier propre
 
 Les services transverses constituent des briques mutualisées. Ils ne doivent dépendre d'aucune application métier afin de pouvoir être utilisés de manière identique dans l'ensemble du produit.
 
-                +--------------------+
-                | Services           |
-                | transverses        |
-                +--------------------+
-                   ▲    ▲     ▲
-                   │    │     │
-      +------------+    │     +-------------+
-      │                 │                   │
-+-------------+   +-------------+   +--------------+
-| Projets     |   | Documents   |   | Réunions     |
-+-------------+   +-------------+   +--------------+
+Les services transverses ne doivent jamais contourner les mécanismes d'autorisation.
+
+Les services transverses ne doivent jamais accéder directement aux données d'un environnement autre que celui résolu pour la requête courante.
+
+Toute opération ayant un impact sur les données métier doit pouvoir être tracée lorsque les exigences de sécurité ou de conformité l'imposent.
+
+Les services transverses ne doivent jamais porter de règles métier propres à une application.
+             Environnement actif
+                     │
+                     ▼
+          +------------------------+
+          | Services transverses   |
+          +------------------------+
+             ▲        ▲        ▲
+             │        │        │
+      +------+   +----+----+   +------+
+      │             │               │
++-------------+ +-------------+ +--------------+
+| Projets     | | Documents   | | Réunions     |
++-------------+ +-------------+ +--------------+
 
 # 6. Évolutions
 
@@ -70,3 +88,11 @@ Les services transverses sont appelés à évoluer en fonction des besoins du pr
 Tout nouveau service devra répondre à un besoin partagé par plusieurs applications métier et respecter les principes de mutualisation, d'indépendance et de réutilisation définis dans le présent document.
 
 L'évolution des services transverses ne devra pas remettre en cause les interfaces publiques utilisées par les applications métier.
+
+Les évolutions des services transverses devront préserver :
+
+- leur indépendance vis-à-vis des applications métier ;
+- l'isolation des environnements ;
+- la stabilité de leurs interfaces publiques ;
+- la traçabilité des traitements ;
+- les principes d'architecture définis dans le document 00-principes-architecture.md.

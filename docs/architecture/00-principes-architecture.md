@@ -33,43 +33,79 @@ Une exception peut être retenue lorsqu'elle apporte un bénéfice clairement id
 
 ## Principes fondateurs
 
-### 1. Une seule source de vérité
+1. Une seule source de vérité
 
 Chaque information est définie une seule fois dans le système.
 
 Toute duplication constitue une exception qui doit être justifiée.
 
----
-
-### 2. Généricité maîtrisée
+2. Généricité maîtrisée
 
 Les mécanismes communs sont mutualisés au sein de composants génériques.
 
 La généricité ne doit jamais rendre le système plus complexe que nécessaire.
 
----
-
-### 3. Simplicité avant sophistication
+3. Simplicité avant sophistication
 
 La solution la plus simple répondant correctement au besoin est privilégiée.
 
 Une architecture simple est plus facile à comprendre, à maintenir et à faire évoluer.
 
----
-
-### 4. Séparation des responsabilités
+4. Séparation des responsabilités
 
 Chaque composant possède une responsabilité clairement identifiée.
 
 Les couches fonctionnelles, techniques et de présentation restent indépendantes autant que possible.
 
----
-
-### 5. Pérennité du produit
+5. Pérennité du produit
 
 Les décisions d'architecture sont prises dans une perspective de long terme.
 
 La facilité de maintenance, la stabilité et l'évolutivité priment sur les gains de développement à court terme.
+
+6. L'identité est indépendante des autorisations
+
+L'identité d'un opérateur est unique et pérenne.
+
+Les droits d'accès ne dépendent jamais de son identité mais exclusivement de ses appartenances actives, de ses responsabilités et des autorisations qui lui sont accordées.
+
+Une identité ne constitue jamais une permission.
+
+7. Les environnements sont totalement isolés
+
+Chaque environnement client constitue un espace de travail autonome.
+
+Aucune donnée ne peut être consultée, modifiée ou recherchée en dehors de son environnement, sauf par les mécanismes explicitement prévus à cet effet.
+
+L'isolation des environnements constitue un principe fondamental de sécurité.
+
+8. Les données appartiennent à leur environnement
+
+Les données produites dans Easy Projet appartiennent à l'environnement dans lequel elles ont été créées.
+
+L'auteur d'une donnée en conserve la traçabilité mais n'en est jamais propriétaire.
+
+Le changement d'affectation ou le départ d'un opérateur n'entraîne jamais le transfert de propriété des données.
+
+9. La traçabilité est permanente
+
+Les contributions des opérateurs sont conservées afin de garantir l'historique complet des projets.
+
+La suppression d'un accès ou le départ d'un collaborateur ne doit jamais altérer l'historique des actions réalisées.
+
+10. La mobilité des opérateurs est un fonctionnement normal
+
+L'architecture doit permettre à un opérateur de rejoindre, quitter ou réintégrer un environnement sans compromettre la sécurité ni la cohérence des données.
+
+Les changements d'organisation des entreprises constituent un cas nominal de fonctionnement et non une exception.
+
+## Invariants architecturaux
+
+Les principes définis dans ce document constituent les invariants de l'architecture d'Easy Projet.
+
+Toute évolution fonctionnelle, technique ou organisationnelle doit pouvoir être mise en œuvre sans remettre en cause ces invariants.
+
+Lorsqu'une évolution semble nécessiter leur remise en cause, une révision de l'architecture doit être engagée avant tout développement.
 
 ## Règles d'application
 
