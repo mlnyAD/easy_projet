@@ -2,9 +2,16 @@
 
 import uuid
 
+from django.core.validators import RegexValidator
 from django.db import models
 
 from common.models import TimeStampedModel
+
+
+siret_validator = RegexValidator(
+    regex=r"^\d{14}$",
+    message="Le SIRET doit contenir exactement 14 chiffres.",
+)
 
 
 class Company(TimeStampedModel):
@@ -20,8 +27,22 @@ class Company(TimeStampedModel):
         verbose_name="Nom usuel",
     )
 
+    siret = models.CharField(
+        "SIRET",
+        max_length=14,
+        blank=True,
+        validators=[siret_validator],
+    )
+
+    vat_number = models.CharField(
+        "Numéro de TVA intracommunautaire",
+        max_length=32,
+        blank=True,
+    )
+
     email = models.EmailField(
         max_length=254,
+        blank=True,
         verbose_name="Adresse électronique",
     )
 
@@ -32,37 +53,37 @@ class Company(TimeStampedModel):
     )
 
     address_1 = models.CharField(
-        max_length=100,
+        max_length=150,
         blank=True,
         verbose_name="Adresse",
     )
 
     address_2 = models.CharField(
-        max_length=100,
+        max_length=150,
         blank=True,
         verbose_name="Complément d'adresse",
     )
 
     address_3 = models.CharField(
-        max_length=100,
+        max_length=150,
         blank=True,
         verbose_name="Complément d'adresse 2",
     )
 
     postal_code = models.CharField(
-        max_length=10,
+        max_length=20,
         blank=True,
         verbose_name="Code postal",
     )
 
     city = models.CharField(
-        max_length=50,
+        max_length=100,
         blank=True,
         verbose_name="Ville",
     )
 
     country = models.CharField(
-        max_length=50,
+        max_length=100,
         blank=True,
         verbose_name="Pays",
     )
@@ -72,14 +93,24 @@ class Company(TimeStampedModel):
         verbose_name="Active",
     )
 
+    def save(self, *args, **kwargs):
+        self.siret = "".join((self.siret or "").split())
+        self.vat_number = (self.vat_number or "").strip().upper()
+        super().save(*args, **kwargs)
+
     class Meta:
         db_table = "company"
         ordering = ["name"]
         verbose_name = "Société"
         verbose_name_plural = "Sociétés"
+        
+    def clean_siret(self):
+        siret = self.cleaned_data.get("siret", "")
+        return "".join(siret.split())
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    def clean_vat_number(self):
+        vat_number = self.cleaned_data.get("vat_number", "")
+        return vat_number.strip().upper()
 
     def __str__(self):
         return self.name

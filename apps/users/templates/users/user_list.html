@@ -1,0 +1,38 @@
+
+
+{% extends "base.html" %}
+
+{% block title %}Utilisateurs{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6">
+
+    <div
+        class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+        <div>
+            <h1
+                class="text-2xl font-semibold text-gray-800
+                       dark:text-white"
+            >
+                Utilisateurs
+            </h1>
+
+            <p
+                class="mt-1 text-sm text-gray-500
+                       dark:text-neutral-400"
+            >
+                Gestion des utilisateurs d'Easy Projet.
+            </p>
+        </div>
+
+        {# Pour l'instant, on ne met pas le bouton de création #}
+
+    </div>
+
+    {% include "components/lists/ep_list.html" %}
+
+</div>
+
+{% endblock %}

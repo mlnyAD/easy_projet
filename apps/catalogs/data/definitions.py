@@ -12,8 +12,6 @@ CATALOG_DEFINITIONS = [
     CatalogDefinition(
         code="ACTIVITY_REPORT_LINE",
         label="Détail rapport d'activité",
-        is_incremental=True,
-        is_editable=True,
     ),
 
     CatalogDefinition(

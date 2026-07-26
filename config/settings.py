@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "apps.documents",
     "apps.finance",
     "apps.meetings",
+    "apps.users",
 ]
 
 MIDDLEWARE = [
@@ -83,6 +84,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+AUTH_USER_MODEL = "users.User"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -138,3 +140,6 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+
+DEBUG = True

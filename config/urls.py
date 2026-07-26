@@ -24,4 +24,8 @@ urlpatterns = [
         "companies/",
         include("apps.companies.urls"),
     ),
+    path(
+        "users/",
+        include("apps.users.urls"),
+    ),
 ]

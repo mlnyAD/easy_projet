@@ -7,16 +7,6 @@ from framework.bootstrap import BootstrapExecutor, registry
 from framework.bootstrap import Bootstrap
 
 
-class TestBootstrap(Bootstrap):
-    name = "test"
-
-    def run(self) -> None:
-        print("Bootstrap de test exécuté")
-
-
-registry.register(TestBootstrap())
-
-
 class Command(BaseCommand):
     help = "Initialise les données de référence d'Easy Projet."
 

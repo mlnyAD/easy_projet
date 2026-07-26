@@ -13,6 +13,8 @@ class CompanyForm(forms.ModelForm):
 
         fields = (
             "name",
+            "siret",
+            "vat_number",
             "email",
             "phone",
             "address_1",
@@ -81,4 +83,24 @@ class CompanyForm(forms.ModelForm):
                     "data-trim": True,
                 }
             ),
+            "siret": forms.TextInput(
+                attrs={
+                    "maxlength": 17,
+                    "placeholder": "123 456 789 00012",
+                    "autocomplete": "siret",
+                    "data-uppercase": True,
+                    "data-trim": True,
+                }
+            ),
+            "vat_number": forms.TextInput(
+                attrs={
+                    "maxlength": 32,
+                    "placeholder": "Ex. FR12345678901",
+                    "autocomplete": "off",
+                    "data-uppercase": True,
+                    "inputmode": "numeric",
+                    "data-trim": True,
+                }
+            ),
+            
         }

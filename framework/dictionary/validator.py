@@ -18,6 +18,7 @@ SUPPORTED_DATA_TYPES = {
     "phone",
     "postal_code",
     "url",
+    "image",
     "country",
     "currency",
     "percentage",
