@@ -76,7 +76,10 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
             ],
             "libraries": {
-                "ep_forms": "common.templatetags.ep_forms",
+                "ep_form_fields": (
+                    "framework.integrations.django."
+                    "templatetags.ep_form_fields"
+                ),
             },
         },
     },

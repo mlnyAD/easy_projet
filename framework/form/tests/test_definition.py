@@ -61,3 +61,65 @@ class FormDefinitionTests(TestCase):
             section.title,
             "Adresse",
         )
+    
+    def test_get_existing_field(self):
+        field = FieldDefinition(name="name")
+
+        definition = FormDefinition(
+            name="company",
+            title="Company",
+            sections=[
+                SectionDefinition(
+                    title="General",
+                    fields=[field],
+                ),
+            ],
+        )
+
+        self.assertIs(
+            definition.get_field("name"),
+            field,
+        )
+        
+    def test_get_unknown_field(self):
+        definition = FormDefinition(
+            name="company",
+            title="Company",
+            sections=[
+                SectionDefinition(
+                    title="General",
+                    fields=[
+                        FieldDefinition(name="name"),
+                    ],
+                ),
+            ],
+        )
+
+        self.assertIsNone(
+            definition.get_field("unknown"),
+        )        
+
+    def test_get_field_in_second_section(self):
+        field = FieldDefinition(name="city")
+
+        definition = FormDefinition(
+            name="company",
+            title="Company",
+            sections=[
+                SectionDefinition(
+                    title="General",
+                    fields=[
+                        FieldDefinition(name="name"),
+                    ],
+                ),
+                SectionDefinition(
+                    title="Address",
+                    fields=[field],
+                ),
+            ],
+        )
+
+        self.assertIs(
+            definition.get_field("city"),
+            field,
+        )

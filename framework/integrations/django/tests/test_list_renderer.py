@@ -16,7 +16,7 @@ django.setup()
 from django.http import HttpRequest, HttpResponse
 
 from framework.integrations.django import (
-    DEFAULT_LIST_TEMPLATE,
+    DEFAULT_LIST_TEMPLATE_NAME,
     LIST_VIEW_CONTEXT_KEY,
     DjangoListRenderer,
 )
@@ -52,7 +52,7 @@ class DjangoListRendererTests(unittest.TestCase):
     def test_default_template_name(self) -> None:
         self.assertEqual(
             self.renderer.template_name,
-            DEFAULT_LIST_TEMPLATE,
+            DEFAULT_LIST_TEMPLATE_NAME,
         )
 
     def test_custom_template_name(self) -> None:
@@ -136,7 +136,7 @@ class DjangoListRendererTests(unittest.TestCase):
             )
 
     @patch(
-        "framework.integrations.django.renderer.django_render"
+        "framework.integrations.django.list_renderer.django_render"
     )
     def test_render_uses_default_template(
         self,
@@ -154,7 +154,7 @@ class DjangoListRendererTests(unittest.TestCase):
 
         django_render_mock.assert_called_once_with(
             request=self.request,
-            template_name=DEFAULT_LIST_TEMPLATE,
+            template_name=DEFAULT_LIST_TEMPLATE_NAME,
             context={
                 LIST_VIEW_CONTEXT_KEY: self.view_model,
             },
@@ -162,7 +162,7 @@ class DjangoListRendererTests(unittest.TestCase):
         )
 
     @patch(
-        "framework.integrations.django.renderer.django_render"
+        "framework.integrations.django.list_renderer.django_render"
     )
     def test_render_uses_temporary_template(
         self,
@@ -186,7 +186,7 @@ class DjangoListRendererTests(unittest.TestCase):
         )
 
     @patch(
-        "framework.integrations.django.renderer.django_render"
+        "framework.integrations.django.list_renderer.django_render"
     )
     def test_render_passes_additional_context(
         self,
@@ -204,7 +204,7 @@ class DjangoListRendererTests(unittest.TestCase):
 
         django_render_mock.assert_called_once_with(
             request=self.request,
-            template_name=DEFAULT_LIST_TEMPLATE,
+            template_name=DEFAULT_LIST_TEMPLATE_NAME,
             context={
                 "page_title": "Sociétés",
                 LIST_VIEW_CONTEXT_KEY: self.view_model,
@@ -213,7 +213,7 @@ class DjangoListRendererTests(unittest.TestCase):
         )
 
     @patch(
-        "framework.integrations.django.renderer.django_render"
+        "framework.integrations.django.list_renderer.django_render"
     )
     def test_render_passes_http_status(
         self,
@@ -233,7 +233,7 @@ class DjangoListRendererTests(unittest.TestCase):
 
         django_render_mock.assert_called_once_with(
             request=self.request,
-            template_name=DEFAULT_LIST_TEMPLATE,
+            template_name=DEFAULT_LIST_TEMPLATE_NAME,
             context={
                 LIST_VIEW_CONTEXT_KEY: self.view_model,
             },
@@ -241,7 +241,7 @@ class DjangoListRendererTests(unittest.TestCase):
         )
 
     @patch(
-        "framework.integrations.django.renderer."
+        "framework.integrations.django.list_renderer."
         "django_render_to_string"
     )
     def test_render_to_string_returns_html(
@@ -263,7 +263,7 @@ class DjangoListRendererTests(unittest.TestCase):
         )
 
         django_render_to_string_mock.assert_called_once_with(
-            template_name=DEFAULT_LIST_TEMPLATE,
+            template_name=DEFAULT_LIST_TEMPLATE_NAME,
             context={
                 LIST_VIEW_CONTEXT_KEY: self.view_model,
             },

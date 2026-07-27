@@ -1,0 +1,25 @@
+
+
+<div class="edf-form-field">
+
+    <label for="{{ field.name }}">
+        {{ field.label }}
+    </label>
+
+    {% if field.kind.value == "text" %}
+
+        <input
+            id="{{ field.name }}"
+            name="{{ field.name }}"
+            type="text"
+        >
+
+    {% else %}
+
+        <small>
+            Type "{{ field.kind.value }}" non supporté.
+        </small>
+
+    {% endif %}
+
+</div>

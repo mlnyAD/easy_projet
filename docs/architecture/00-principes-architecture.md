@@ -95,6 +95,14 @@ La suppression d'un accès ou le départ d'un collaborateur ne doit jamais alté
 
 10. La mobilité des opérateurs est un fonctionnement normal
 
+11. Séparation des vocabulaires
+
+- Easy Projet distingue systématiquement le vocabulaire métier du vocabulaire technique.
+
+- Les interfaces utilisateur, les messages, les aides et la documentation fonctionnelle utilisent exclusivement le vocabulaire métier.
+- Les documents d'architecture et le code source utilisent le vocabulaire technique lorsque cela est nécessaire.
+- Chaque concept métier possède une correspondance unique dans l'architecture technique, afin d'éviter toute ambiguïté.
+
 L'architecture doit permettre à un opérateur de rejoindre, quitter ou réintégrer un environnement sans compromettre la sécurité ni la cohérence des données.
 
 Les changements d'organisation des entreprises constituent un cas nominal de fonctionnement et non une exception.

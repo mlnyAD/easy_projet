@@ -4,6 +4,7 @@ from framework.form.definition import FormDefinition
 from framework.form.field import FieldDefinition
 from framework.form.section import SectionDefinition
 from framework.form.kinds import FieldKind
+from framework.providers import ChoiceProviderDefinition
 
 
 class FormValidationError(ValueError):
@@ -149,3 +150,11 @@ class FormValidator:
             raise FormValidationError(
                 f"Le champ '{field.name}' ne peut pas être à la fois readonly et disabled."
             )
+            
+        if (
+            field.provider is not None
+            and not isinstance(field.provider, ChoiceProviderDefinition)
+        ):
+            raise FormValidationError(
+                f"Le provider du champ '{field.name}' est invalide."
+        )

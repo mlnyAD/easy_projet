@@ -1,0 +1,25 @@
+
+
+{% load ep_form_fields %}
+
+<div class="edf-form-sections">
+
+    {% for section in form.sections %}
+
+        <section class="edf-form-section">
+
+            {% if section.title %}
+                <h2>{{ section.title }}</h2>
+            {% endif %}
+
+            {% for field in section.fields %}
+
+                {% render_ep_field field %}
+
+            {% endfor %}
+
+        </section>
+
+    {% endfor %}
+
+</div>

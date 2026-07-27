@@ -105,3 +105,10 @@ Très Petite Entreprise (Effectif entre 0 et 19 employés).
 
 # Transaction
 Fonction métier permettant de consulter ou de modifier des informations dans l'application.
+
+
+Terme métier	Définition	Nom technique
+Contexte de travail	Ensemble des informations définissant le cadre de travail d'un utilisateur.	ClientEnvironment / EPContext
+Intervenant	Personne participant à un projet.	Operator
+Société	Organisation participant à un ou plusieurs projets.	Company
+Lot de travaux	Ensemble cohérent de tâches appartenant à un même domaine technique.	WorkPackage

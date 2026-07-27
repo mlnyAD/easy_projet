@@ -1256,3 +1256,13 @@ Les points suivants devront être arbitrés avant ou pendant l’implémentation
 * politique de rétention et de restitution des données.
 
 Ces décisions ne remettent pas en cause les invariants d’isolation définis dans ce document.
+
+# 40. Contexte d'exécution du framework (EPContext)
+# 40.1 Objectif
+# 40.2 Construction du contexte
+# 40.3 Contenu du contexte
+# 40.4 Utilisation par les composants du framework
+# 40.5 Utilisation par les ChoiceProviders
+# 40.6 Principes d'architecture
+
+Dans l'interface utilisateur, le terme "Contexte de travail" est utilisé. Il désigne l'environnement métier dans lequel l'utilisateur exerce son activité. Sur le plan technique, ce contexte est implémenté par un ClientEnvironment et matérialisé à l'exécution par un EPContext.

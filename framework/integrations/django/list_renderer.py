@@ -12,7 +12,7 @@ from django.template.loader import render_to_string as django_render_to_string
 from framework.viewmodel import ListViewModel
 
 
-DEFAULT_LIST_TEMPLATE = "edf/list/list.html"
+DEFAULT_LIST_TEMPLATE_NAME = "edf/list/list.html"
 LIST_VIEW_CONTEXT_KEY = "list_view"
 
 
@@ -28,7 +28,7 @@ class DjangoListRenderer:
 
     def __init__(
         self,
-        template_name: str = DEFAULT_LIST_TEMPLATE,
+        template_name: str = DEFAULT_LIST_TEMPLATE_NAME,
     ) -> None:
         self._template_name = self._validate_template_name(
             template_name,

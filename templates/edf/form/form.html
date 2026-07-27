@@ -1,0 +1,25 @@
+
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="edf-form">
+
+    {% include "edf/form/header.html" %}
+
+    {% include "edf/form/messages.html" %}
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        {% include "edf/form/sections.html" %}
+
+        {% include "edf/form/actions.html" %}
+
+    </form>
+
+</div>
+
+{% endblock %}
