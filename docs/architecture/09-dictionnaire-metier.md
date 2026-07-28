@@ -10,6 +10,10 @@ Le dictionnaire métier ne décrit jamais les traitements. Il décrit exclusivem
 
 # 2 Principes 
 
+Le dictionnaire métier constitue la source unique de vérité décrivant une entité métier. Les autres composants du framework (EntityDefinition, FormDefinition, ListDefinition, ViewModel, etc.) sont construits à partir de cette description et ne doivent pas dupliquer ces informations.
+
+Un dictionnaire métier est autoporteur. Sa lecture doit permettre de comprendre l'entité sans dépendre d'autres définitions métier. La mutualisation est réservée aux composants techniques du framework.
+
 Quelques règles simples, par exemple :
 
 - un dictionnaire décrit le métier ;
@@ -26,7 +30,13 @@ Quelques règles simples, par exemple :
 
 # 3 Structure générale
 
-Entity Definition
+        Dictionary
+            │
+            ▼
+        DictionaryValidator
+            │
+            ▼
+      Entity Definition
         │
         ├── Métadonnées
         │
@@ -156,4 +166,80 @@ Une propriété ne peut être ajoutée que si :
 - sa documentation est complète ;
 - son impact sur la compatibilité est maîtrisé.
 
-# 10 Exemple complet (Company)
+# 10 Entités de référence
+
+# 11 Cycle de vie d'une entité
+
+Dictionnaire métier
+        │
+        ▼
+Validation
+        │
+        ▼
+EntityDefinition
+        │
+        ├── FormDefinition
+        ├── ListDefinition
+        ├── Providers
+        ├── ViewModels
+        └── Documentation
+
+
+        ---> à intégrer
+
+        Règle : Dictionnaire métier autoporteur
+Principe
+
+Le dictionnaire métier constitue la description complète d'une entité métier.
+
+Sa lecture doit permettre de comprendre immédiatement :
+
+la finalité de l'entité ;
+les propriétés qu'elle expose ;
+la signification de chaque propriété.
+
+La compréhension d'une entité ne doit pas nécessiter la consultation d'autres dictionnaires métier.
+
+Conséquences
+
+Le dictionnaire contient :
+
+les métadonnées de l'entité ;
+la définition complète de chaque propriété ;
+les caractéristiques fonctionnelles de ces propriétés.
+
+Le dictionnaire ne contient pas :
+
+de logique métier ;
+de logique de présentation ;
+de logique technique ;
+de logique de persistance.
+Mutualisation
+
+La mutualisation est réservée aux éléments techniques du framework :
+
+constantes ;
+validateurs ;
+composants ;
+moteurs de rendu ;
+providers ;
+services ;
+utilitaires.
+
+Les définitions métier restent locales à chaque dictionnaire afin de préserver leur lisibilité et leur autonomie.
+
+Je pense également que nous avons progressivement fait émerger une hiérarchie très claire des responsabilités :
+
+                Framework
+                    │
+        ┌───────────┼───────────┐
+        │           │           │
+ Validation     Rendu UI    Providers
+        │           │           │
+        └───────────┼───────────┘
+                    │
+            Dictionnaire métier
+                    │
+             Entité fonctionnelle
+                    │
+             Modèle de persistance

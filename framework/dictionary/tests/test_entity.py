@@ -5,6 +5,7 @@ from types import MappingProxyType
 
 from framework.dictionary.entity import EntityDefinition
 from framework.dictionary.field import FieldDefinition
+from framework.dictionary.validator import DictionaryValidationError
 
 
 class EntityDefinitionTests(unittest.TestCase):
@@ -172,6 +173,20 @@ class EntityDefinitionTests(unittest.TestCase):
             "EntityDefinition(name='company', fields=3)",
         )
 
+    def test_from_dictionary_returns_entity_definition(self):
+        entity = EntityDefinition.from_dictionary(self.definition)
+
+        self.assertIsInstance(entity, EntityDefinition)
+        self.assertEqual(entity.name, "company")
+
+    def test_from_dictionary_validates_dictionary(self):
+        definition = {
+            "entity": {},
+            "fields": {},
+        }
+
+        with self.assertRaises(DictionaryValidationError):
+            EntityDefinition.from_dictionary(definition)
 
 if __name__ == "__main__":
     unittest.main()

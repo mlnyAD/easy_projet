@@ -3,18 +3,21 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from common.constants import CODE_LENGTH, LABEL_LENGTH
+from common.constants.catalog import (
+    CATALOG_CODE_LENGTH,
+    CATALOG_LABEL_LENGTH,
+)
 from common.models import TimeStampedModel
 
 
 class CatalogType(TimeStampedModel):
     code = models.CharField(
-        max_length=CODE_LENGTH,
+        max_length=CATALOG_CODE_LENGTH,
         unique=True,
         verbose_name="Code",
     )
     label = models.CharField(
-        max_length=LABEL_LENGTH,
+        max_length=CATALOG_LABEL_LENGTH,
         verbose_name="Libellé",
     )
     description = models.TextField(
@@ -75,11 +78,11 @@ class CatalogValue(TimeStampedModel):
     )
 
     code = models.CharField(
-        max_length=CODE_LENGTH,
+        max_length=CATALOG_CODE_LENGTH,
         verbose_name="Code",
     )
     label = models.CharField(
-        max_length=LABEL_LENGTH,
+        max_length=CATALOG_LABEL_LENGTH,
         verbose_name="Libellé",
     )
     description = models.TextField(

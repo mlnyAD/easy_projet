@@ -49,12 +49,41 @@ class DictionaryValidator:
                 "Le dictionnaire métier doit être une structure de type Mapping."
             )
 
-        for section_name in ("entity", "fields"):
+        REQUIRED_SECTIONS = (
+            "entity",
+            "fields",
+        )
+
+        OPTIONAL_SECTIONS = (
+            "list",
+            "form",
+            "detail",
+        )
+        ALLOWED_SECTIONS = (
+            *REQUIRED_SECTIONS,
+            *OPTIONAL_SECTIONS,
+        )
+        for section_name in REQUIRED_SECTIONS:
             if section_name not in definition:
                 raise DictionaryValidationError(
                     f"La section '{section_name}' est obligatoire."
                 )
 
+        for section_name in OPTIONAL_SECTIONS:
+            section = definition.get(section_name)
+
+            if section is not None and not isinstance(section, Mapping):
+                raise DictionaryValidationError(
+                    f"La section '{section_name}' doit être de type Mapping."
+                )
+
+        for section_name in definition:
+            if section_name not in ALLOWED_SECTIONS:
+                raise DictionaryValidationError(
+                    f"Section inconnue : '{section_name}'. "
+                    f"Sections autorisées : {', '.join(ALLOWED_SECTIONS)}."
+                )
+        
     def _validate_entity(self, entity: Mapping[str, Any]) -> None:
         if not isinstance(entity, Mapping):
             raise DictionaryValidationError(

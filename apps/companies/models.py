@@ -104,13 +104,5 @@ class Company(TimeStampedModel):
         verbose_name = "Société"
         verbose_name_plural = "Sociétés"
         
-    def clean_siret(self):
-        siret = self.cleaned_data.get("siret", "")
-        return "".join(siret.split())
-
-    def clean_vat_number(self):
-        vat_number = self.cleaned_data.get("vat_number", "")
-        return vat_number.strip().upper()
-
     def __str__(self):
         return self.name

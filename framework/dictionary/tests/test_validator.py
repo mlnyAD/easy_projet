@@ -69,6 +69,16 @@ class DictionaryValidatorTests(unittest.TestCase):
         ):
             self.validator.validate(definition)
 
+    def test_rejects_unknown_root_section(self) -> None:
+        definition = self.make_valid_definition()
+        definition["unknown"] = {}
+
+        with self.assertRaisesRegex(
+            DictionaryValidationError,
+            "Section inconnue",
+        ):
+            self.validator.validate(definition)
+        
     def test_rejects_non_mapping_entity(self) -> None:
         definition = self.make_valid_definition()
         definition["entity"] = []  # type: ignore[assignment]
@@ -135,6 +145,15 @@ class DictionaryValidatorTests(unittest.TestCase):
 
         self.validator.validate(definition)
 
+    def test_accepts_optional_sections(self) -> None:
+        definition = self.make_valid_definition()
+
+        definition["list"] = {}
+        definition["form"] = {}
+        definition["detail"] = {}
+
+        self.validator.validate(definition)
+    
     def test_rejects_non_mapping_fields(self) -> None:
         definition = self.make_valid_definition()
         definition["fields"] = []  # type: ignore[assignment]

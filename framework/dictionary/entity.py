@@ -7,6 +7,7 @@ from types import MappingProxyType
 from typing import Any
 
 from .field import FieldDefinition
+from .validator import DictionaryValidator
 
 
 class EntityDefinition:
@@ -104,3 +105,15 @@ class EntityDefinition:
             f"fields={len(self)}"
             f")"
         )
+       
+    @classmethod
+    def from_dictionary(
+        cls,
+        definition: Mapping[str, Any],
+    ) -> "EntityDefinition":
+        """
+        Construit une EntityDefinition à partir d'un
+        dictionnaire métier validé.
+        """
+        DictionaryValidator().validate(definition)
+        return cls(definition) 
