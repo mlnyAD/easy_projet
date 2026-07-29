@@ -1,6 +1,8 @@
 
-
+    
 from django.contrib import admin
+
+from common.constants import DEFAULT_PAGE_SIZE
 
 from .models import Company
 
@@ -26,8 +28,6 @@ class CompanyAdmin(admin.ModelAdmin):
         "email",
     )
 
-    ordering = (
-        "name",
-    )
+    ordering = ("name",)
 
-    list_per_page = 20
+    list_per_page = DEFAULT_PAGE_SIZE

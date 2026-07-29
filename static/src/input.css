@@ -2,6 +2,13 @@
 
 @import "tailwindcss";
 
+@import "./edf/variables.css";
+@import "./edf/forms.css";
+@import "./edf/buttons.css";
+@import "./edf/lists.css";
+@import "./edf/cards.css";
+@import "./edf/tables.css";
+
 @source "../../templates";
 @source "../../apps";
 @source "../../common";

@@ -1,5 +1,9 @@
+
+    
 from django.apps import AppConfig
 
 
-class CoreConfig(AppConfig):
-    name = 'apps.companies'
+class CompaniesConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.companies"
+    verbose_name = "Sociétés"

@@ -2,7 +2,7 @@
 
 
 {% extends "base.html" %}
-{% load ep_forms %}
+{% load ep_form_fields %}
 
 {% block title %}
     {% if object %}
@@ -57,51 +57,51 @@
                 <div class="grid grid-cols-1 gap-x-6 md:grid-cols-2">
 
                     <div class="md:col-span-2">
-                        {% ep_form_field form.name %}
+                        {% render_ep_field form.name %}
                     </div>
 
                     <div class="md:col-span-2">
-                        {% ep_form_field form.siret %}
+                        {% render_ep_field form.siret %}
                     </div>
 
                     <div class="md:col-span-2">
-                        {% ep_form_field form.vat_number %}
+                        {% render_ep_field form.vat_number %}
                     </div>
 
                     <div>
-                        {% ep_form_field form.email %}
+                        {% render_ep_field form.email %}
                     </div>
 
                     <div>
-                        {% ep_form_field form.phone %}
+                        {% render_ep_field form.phone %}
                     </div>
 
                     <div class="md:col-span-2">
-                        {% ep_form_field form.address_1 %}
+                        {% render_ep_field form.address_1 %}
                     </div>
 
                     <div>
-                        {% ep_form_field form.address_2 %}
+                        {% render_ep_field form.address_2 %}
                     </div>
 
                     <div>
-                        {% ep_form_field form.address_3 %}
+                        {% render_ep_field form.address_3 %}
                     </div>
 
                     <div>
-                        {% ep_form_field form.postal_code %}
+                        {% render_ep_field form.postal_code %}
                     </div>
 
                     <div>
-                        {% ep_form_field form.city %}
+                        {% render_ep_field form.city %}
                     </div>
 
                     <div class="md:col-span-2">
-                        {% ep_form_field form.country %}
+                        {% render_ep_field form.country %}
                     </div>
 
                     <div class="md:col-span-2">
-                        {% ep_form_field form.is_active %}
+                        {% render_ep_field form.is_active %}
                     </div>
 
                 </div>

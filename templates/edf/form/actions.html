@@ -1,0 +1,23 @@
+
+
+<div class="mt-6 flex gap-2">
+
+    {% if not ep_form.is_readonly %}
+
+        <button type="submit">
+            Enregistrer
+        </button>
+
+        <a href="{{ cancel_url }}">
+            Annuler
+        </a>
+
+    {% else %}
+
+        <a href="{{ cancel_url }}">
+            Retour
+        </a>
+
+    {% endif %}
+
+</div>

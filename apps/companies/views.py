@@ -38,15 +38,20 @@ class CompanyListView(ListView):
             has_next=django_page.has_next(),
         )
 
-        context["list"] = ListViewModelBuilder().build(
+        list_view = ListViewModelBuilder().build(
             runtime=runtime,
             page=framework_page,
         )
 
-        context["page_sizes"] = (10, 20, 50, 100)
-        
-        context["actions_template"] = "companies/company_actions.html"
+        context["list_view"] = list_view
 
+        # Alias temporaire pour compatibilité avec les tests existants.
+        context["list"] = list_view
+
+        context["page_sizes"] = (10, 20, 50, 100)
+        context["row_actions_template"] = (
+            "companies/company_actions.html"
+        )
         return context
     
 class CompanyCreateView(CreateView):

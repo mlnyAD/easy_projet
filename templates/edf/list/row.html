@@ -6,4 +6,10 @@
             {{ cell.display_value }}
         </td>
     {% endfor %}
+
+    {% if row_actions_template %}
+        <td>
+            {% include row_actions_template %}
+        </td>
+    {% endif %}
 </tr>

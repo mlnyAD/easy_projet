@@ -2,14 +2,59 @@
 
 <div class="edf-form-field">
 
-    <label for="{{ field.name }}">
-        {{ field.label }}
-    </label>
+    {% if field.field %}
 
-    <input
-        id="{{ field.name }}"
-        name="{{ field.name }}"
-        type="text"
-    >
+        {# Champ Django BoundField #}
+
+        <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+
+            {% if field.field.required %}
+                <span class="text-red-600">*</span>
+            {% endif %}
+        </label>
+
+        {{ field }}
+
+        {% if field.help_text %}
+            <p class="text-sm text-gray-500">
+                {{ field.help_text }}
+            </p>
+        {% endif %}
+
+        {% for error in field.errors %}
+            <p class="text-sm text-red-600">
+                {{ error }}
+            </p>
+        {% endfor %}
+
+    {% else %}
+
+        {# FieldDefinition du framework #}
+
+        <label for="id_{{ field.name }}">
+            {{ field.label }}
+
+            {% if field.required %}
+                <span class="text-red-600">*</span>
+            {% endif %}
+        </label>
+
+        <input
+            id="id_{{ field.name }}"
+            name="{{ field.name }}"
+            type="text"
+            {% if field.required %}required{% endif %}
+            {% if field.readonly %}readonly{% endif %}
+            {% if field.disabled %}disabled{% endif %}
+        >
+
+        {% if field.help_text %}
+            <p class="text-sm text-gray-500">
+                {{ field.help_text }}
+            </p>
+        {% endif %}
+
+    {% endif %}
 
 </div>

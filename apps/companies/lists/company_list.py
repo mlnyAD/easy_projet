@@ -16,34 +16,34 @@ from framework.list import (
 
 DictionaryValidator().validate(COMPANY_DICTIONARY)
 
-COMPANY_ENTITY_DEFINITION = EntityDefinition(COMPANY_DICTIONARY)
+_ENTITY_DEFINITION = EntityDefinition(COMPANY_DICTIONARY)
 
 
 COMPANY_LIST_DEFINITION = ListDefinition(
-    entity=COMPANY_ENTITY_DEFINITION,
+    entity=_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(
-            field=COMPANY_ENTITY_DEFINITION.get_field("name"),
+            field=_ENTITY_DEFINITION.get_field("name"),
             order=10,
         ),
         ColumnDefinition(
-            field=COMPANY_ENTITY_DEFINITION.get_field("siret"),
+            field=_ENTITY_DEFINITION.get_field("siret"),
             order=20,
         ),
         ColumnDefinition(
-            field=COMPANY_ENTITY_DEFINITION.get_field("email"),
+            field=_ENTITY_DEFINITION.get_field("email"),
             order=30,
         ),
         ColumnDefinition(
-            field=COMPANY_ENTITY_DEFINITION.get_field("phone"),
+            field=_ENTITY_DEFINITION.get_field("phone"),
             order=40,
         ),
         ColumnDefinition(
-            field=COMPANY_ENTITY_DEFINITION.get_field("city"),
+            field=_ENTITY_DEFINITION.get_field("city"),
             order=50,
         ),
         ColumnDefinition(
-            field=COMPANY_ENTITY_DEFINITION.get_field("is_active"),
+            field=_ENTITY_DEFINITION.get_field("is_active"),
             order=60,
         ),
     ),

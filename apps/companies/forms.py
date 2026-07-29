@@ -87,8 +87,7 @@ class CompanyForm(forms.ModelForm):
                 attrs={
                     "maxlength": 17,
                     "placeholder": "123 456 789 00012",
-                    "autocomplete": "siret",
-                    "data-uppercase": True,
+                    "autocomplete": "off",
                     "data-trim": True,
                 }
             ),
@@ -98,7 +97,6 @@ class CompanyForm(forms.ModelForm):
                     "placeholder": "Ex. FR12345678901",
                     "autocomplete": "off",
                     "data-uppercase": True,
-                    "inputmode": "numeric",
                     "data-trim": True,
                 }
             ),
