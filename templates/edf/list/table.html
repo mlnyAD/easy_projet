@@ -1,11 +1,11 @@
 
 
 
-<div class="edf-list__table-container">
-    <table class="edf-list__table">
+<div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200">
         {% include "edf/list/header.html" %}
 
-        <tbody>
+        <tbody class="divide-y divide-gray-200 bg-white">
             {% for row in list_view.rows %}
                 {% include "edf/list/row.html" %}
             {% empty %}

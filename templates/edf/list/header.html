@@ -1,9 +1,13 @@
 
 
-<thead>
+<thead class="bg-gray-50">
     <tr>
         {% for column in list_view.columns %}
-            <th scope="col">
+            <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-semibold uppercase
+                       tracking-wider text-gray-500"
+            >
                 <span>{{ column.label }}</span>
 
                 {% if column.sorted %}
@@ -17,7 +21,11 @@
         {% endfor %}
 
         {% if row_actions_template %}
-            <th scope="col">
+            <th
+                scope="col"
+                class="px-6 py-3 text-right text-xs font-semibold uppercase
+                       tracking-wider text-gray-500"
+            >
                 Actions
             </th>
         {% endif %}

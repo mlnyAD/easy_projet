@@ -2,30 +2,38 @@
 
 {% if list_view.pagination.total_pages > 1 %}
     <nav
-        class="edf-list__pagination"
+        class="flex items-center justify-between"
         aria-label="Pagination"
     >
-        {% if list_view.pagination.has_previous %}
-            <span
-                class="edf-list__pagination-previous"
-                data-page="{{ list_view.pagination.previous_page }}"
-            >
-                Page précédente
-            </span>
-        {% endif %}
+        <div>
+            {% if list_view.pagination.has_previous %}
+                <a
+                    href="?page={{ list_view.pagination.previous_page }}"
+                    class="inline-flex items-center rounded-md border border-gray-300
+                           bg-white px-3 py-2 text-sm font-medium text-gray-700
+                           shadow-sm hover:bg-gray-50"
+                >
+                    Page précédente
+                </a>
+            {% endif %}
+        </div>
 
-        <span class="edf-list__pagination-current">
+        <span class="text-sm text-gray-600">
             Page {{ list_view.pagination.page }}
             sur {{ list_view.pagination.total_pages }}
         </span>
 
-        {% if list_view.pagination.has_next %}
-            <span
-                class="edf-list__pagination-next"
-                data-page="{{ list_view.pagination.next_page }}"
-            >
-                Page suivante
-            </span>
-        {% endif %}
+        <div>
+            {% if list_view.pagination.has_next %}
+                <a
+                    href="?page={{ list_view.pagination.next_page }}"
+                    class="inline-flex items-center rounded-md border border-gray-300
+                           bg-white px-3 py-2 text-sm font-medium text-gray-700
+                           shadow-sm hover:bg-gray-50"
+                >
+                    Page suivante
+                </a>
+            {% endif %}
+        </div>
     </nav>
 {% endif %}

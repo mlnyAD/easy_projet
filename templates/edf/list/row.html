@@ -1,14 +1,14 @@
 
 
-<tr>
+<tr class="transition-colors hover:bg-gray-50">
     {% for cell in row.cells %}
-        <td>
+        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
             {{ cell.display_value }}
         </td>
     {% endfor %}
 
     {% if row_actions_template %}
-        <td>
+        <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
             {% include row_actions_template %}
         </td>
     {% endif %}
