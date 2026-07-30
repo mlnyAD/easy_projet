@@ -107,6 +107,9 @@ L'architecture doit permettre à un opérateur de rejoindre, quitter ou réinté
 
 Les changements d'organisation des entreprises constituent un cas nominal de fonctionnement et non une exception.
 
+Un composant du framework ne doit avoir qu'une seule implémentation active.
+
+
 ## Invariants architecturaux
 
 Les principes définis dans ce document constituent les invariants de l'architecture d'Easy Projet.

@@ -2,21 +2,35 @@
 
 {% load ep_form_fields %}
 
-<div class="edf-form-sections">
+<div class="space-y-8">
 
     {% for section in form.sections %}
 
-        <section class="edf-form-section">
+        <section
+            class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-800"
+        >
 
             {% if section.title %}
-                <h2>{{ section.title }}</h2>
+                <header class="mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-neutral-100">
+                        {{ section.title }}
+                    </h2>
+
+                    {% if section.description %}
+                        <p class="mt-1 text-sm text-gray-500 dark:text-neutral-400">
+                            {{ section.description }}
+                        </p>
+                    {% endif %}
+                </header>
             {% endif %}
 
-            {% for field in section.fields %}
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-                {% render_ep_field field %}
+                {% for field in section.fields %}
+                    {% render_ep_field field %}
+                {% endfor %}
 
-            {% endfor %}
+            </div>
 
         </section>
 

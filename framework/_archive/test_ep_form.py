@@ -5,8 +5,8 @@ import unittest
 from common.dictionaries.company import COMPANY_DICTIONARY
 from framework.components.inputs.text import EPTextInput
 from framework.dictionary.entity import EntityDefinition
-from framework.form.ep_form import EPForm
-from framework.form.form_definition import FormDefinition
+from framework._archive.ep_form import EPForm
+from framework._archive.form_definition import FormDefinition
 
 
 class EPFormTests(unittest.TestCase):

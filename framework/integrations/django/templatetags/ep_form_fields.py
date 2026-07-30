@@ -1,5 +1,5 @@
 
-    
+
 from django import template
 from django.forms.boundfield import BoundField
 from django.template.loader import render_to_string
@@ -21,7 +21,19 @@ def render_ep_field(context, field) -> str:
     """
 
     if isinstance(field, BoundField):
-        _widget_adapter.adapt(field.field.widget)
+        described_by = []
+
+        if field.help_text:
+            described_by.append(f"{field.auto_id}_help")
+
+        if field.errors:
+            described_by.append(f"{field.auto_id}_errors")
+
+        _widget_adapter.adapt(
+            field.field.widget,
+            has_errors=bool(field.errors),
+            described_by=" ".join(described_by) or None,
+        )
 
     template_name = _field_renderer.get_template_name(field)
 

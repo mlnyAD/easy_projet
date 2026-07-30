@@ -54,6 +54,8 @@
     --text-xs--line-height: calc(1 / 0.75);
     --text-sm: 0.875rem;
     --text-sm--line-height: calc(1.25 / 0.875);
+    --text-lg: 1.125rem;
+    --text-lg--line-height: calc(1.75 / 1.125);
     --text-2xl: 1.5rem;
     --text-2xl--line-height: calc(2 / 1.5);
     --font-weight-normal: 400;
@@ -256,8 +258,14 @@
   .mb-1 {
     margin-bottom: var(--spacing);
   }
+  .mb-2 {
+    margin-bottom: calc(var(--spacing) * 2);
+  }
   .mb-4 {
     margin-bottom: calc(var(--spacing) * 4);
+  }
+  .mb-5 {
+    margin-bottom: calc(var(--spacing) * 5);
   }
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
@@ -283,6 +291,10 @@
   .table {
     display: table;
   }
+  .size-4 {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+  }
   .size-7 {
     width: calc(var(--spacing) * 7);
     height: calc(var(--spacing) * 7);
@@ -292,6 +304,9 @@
   }
   .min-h-9 {
     min-height: calc(var(--spacing) * 9);
+  }
+  .min-h-24 {
+    min-height: calc(var(--spacing) * 24);
   }
   .min-h-screen {
     min-height: 100vh;
@@ -304,6 +319,9 @@
   }
   .max-w-4xl {
     max-width: var(--container-4xl);
+  }
+  .min-w-0 {
+    min-width: 0px;
   }
   .min-w-9 {
     min-width: calc(var(--spacing) * 9);
@@ -328,6 +346,9 @@
   }
   .resize {
     resize: both;
+  }
+  .resize-y {
+    resize: vertical;
   }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -365,6 +386,19 @@
   .gap-4 {
     gap: calc(var(--spacing) * 4);
   }
+  .gap-6 {
+    gap: calc(var(--spacing) * 6);
+  }
+  :where(.space-y-1 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(var(--spacing) * var(--tw-space-y-reverse));
+    margin-block-end: calc(var(--spacing) * calc(1 - var(--tw-space-y-reverse)));
+  }
+  :where(.space-y-2 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));
+  }
   :where(.space-y-4 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));
@@ -374,6 +408,11 @@
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 6) * var(--tw-space-y-reverse));
     margin-block-end: calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-y-reverse)));
+  }
+  :where(.space-y-8 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)));
   }
   .gap-x-1 {
     column-gap: var(--spacing);
@@ -514,6 +553,9 @@
   .py-12 {
     padding-block: calc(var(--spacing) * 12);
   }
+  .pe-9 {
+    padding-inline-end: calc(var(--spacing) * 9);
+  }
   .pt-6 {
     padding-top: calc(var(--spacing) * 6);
   }
@@ -529,6 +571,10 @@
   .text-2xl {
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
+  }
+  .text-lg {
+    font-size: var(--text-lg);
+    line-height: var(--tw-leading, var(--text-lg--line-height));
   }
   .text-sm {
     font-size: var(--text-sm);
@@ -635,6 +681,33 @@
     --tw-duration: 200ms;
     transition-duration: 200ms;
   }
+  .file\:me-4::file-selector-button {
+    margin-inline-end: calc(var(--spacing) * 4);
+  }
+  .file\:border-0::file-selector-button {
+    border-style: var(--tw-border-style);
+    border-width: 0px;
+  }
+  .file\:bg-gray-100::file-selector-button {
+    background-color: var(--color-gray-100);
+  }
+  .file\:px-4::file-selector-button {
+    padding-inline: calc(var(--spacing) * 4);
+  }
+  .file\:py-2::file-selector-button {
+    padding-block: calc(var(--spacing) * 2);
+  }
+  .file\:text-sm::file-selector-button {
+    font-size: var(--text-sm);
+    line-height: var(--tw-leading, var(--text-sm--line-height));
+  }
+  .file\:font-medium::file-selector-button {
+    --tw-font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-medium);
+  }
+  .placeholder\:text-gray-400::placeholder {
+    color: var(--color-gray-400);
+  }
   @media (hover: hover) {
     .hover\:bg-\[\#0A4451\]:hover {
       background-color: #0A4451;
@@ -657,9 +730,15 @@
     .hover\:underline:hover {
       text-decoration-line: underline;
     }
+    .hover\:file\:bg-gray-200:hover::file-selector-button {
+      background-color: var(--color-gray-200);
+    }
   }
   .focus\:border-\[\#0D5262\]:focus {
     border-color: #0D5262;
+  }
+  .focus\:border-blue-500:focus {
+    border-color: var(--color-blue-500);
   }
   .focus\:border-red-500:focus {
     border-color: var(--color-red-500);
@@ -673,6 +752,15 @@
   }
   .focus\:ring-\[\#0D5262\]\/20:focus {
     --tw-ring-color: color-mix(in oklab, #0D5262 20%, transparent);
+  }
+  .focus\:ring-blue-500:focus {
+    --tw-ring-color: var(--color-blue-500);
+  }
+  .focus\:ring-blue-500\/20:focus {
+    --tw-ring-color: color-mix(in srgb, oklch(62.3% 0.214 259.815) 20%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      --tw-ring-color: color-mix(in oklab, var(--color-blue-500) 20%, transparent);
+    }
   }
   .focus\:ring-blue-500\/30:focus {
     --tw-ring-color: color-mix(in srgb, oklch(62.3% 0.214 259.815) 30%, transparent);
@@ -704,8 +792,17 @@
     --tw-outline-style: none;
     outline-style: none;
   }
+  .disabled\:pointer-events-none:disabled {
+    pointer-events: none;
+  }
   .disabled\:cursor-not-allowed:disabled {
     cursor: not-allowed;
+  }
+  .disabled\:bg-gray-100:disabled {
+    background-color: var(--color-gray-100);
+  }
+  .disabled\:text-gray-500:disabled {
+    color: var(--color-gray-500);
   }
   .disabled\:opacity-50:disabled {
     opacity: 50%;
@@ -815,8 +912,20 @@
   .dark\:text-red-400:where(.dark, .dark *) {
     color: var(--color-red-400);
   }
+  .dark\:text-red-500:where(.dark, .dark *) {
+    color: var(--color-red-500);
+  }
   .dark\:text-white:where(.dark, .dark *) {
     color: var(--color-white);
+  }
+  .dark\:file\:bg-neutral-800:where(.dark, .dark *)::file-selector-button {
+    background-color: var(--color-neutral-800);
+  }
+  .dark\:file\:text-neutral-200:where(.dark, .dark *)::file-selector-button {
+    color: var(--color-neutral-200);
+  }
+  .dark\:placeholder\:text-neutral-500:where(.dark, .dark *)::placeholder {
+    color: var(--color-neutral-500);
   }
   @media (hover: hover) {
     .dark\:hover\:bg-\[\#116779\]:where(.dark, .dark *):hover {

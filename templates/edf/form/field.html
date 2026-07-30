@@ -1,25 +1,79 @@
 
 
-<div class="edf-form-field">
+<div class="space-y-2">
+    {% if field.field.widget.input_type == "checkbox" %}
+        <div class="flex items-start gap-3">
+            <div class="flex h-5 items-center">
+                {{ field }}
+            </div>
 
-    <label for="{{ field.name }}">
-        {{ field.label }}
-    </label>
+            <div class="min-w-0">
+                <label
+                    for="{{ field.id_for_label }}"
+                    class="text-sm font-medium text-gray-800 dark:text-neutral-200"
+                >
+                    {{ field.label }}
 
-    {% if field.kind.value == "text" %}
+                    {% if field.field.required %}
+                        <span
+                            class="text-red-600"
+                            aria-hidden="true"
+                        >
+                            *
+                        </span>
+                    {% endif %}
+                </label>
 
-        <input
-            id="{{ field.name }}"
-            name="{{ field.name }}"
-            type="text"
-        >
-
+                {% if field.help_text %}
+                    <p
+                        id="{{ field.auto_id }}_help"
+                        class="mt-1 text-xs text-gray-500 dark:text-neutral-400"
+                    >
+                        {{ field.help_text }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
     {% else %}
+        <label
+            for="{{ field.id_for_label }}"
+            class="block text-sm font-medium text-gray-800 dark:text-neutral-200"
+        >
+            {{ field.label }}
 
-        <small>
-            Type "{{ field.kind.value }}" non supporté.
-        </small>
+            {% if field.field.required %}
+                <span
+                    class="text-red-600"
+                    aria-hidden="true"
+                >
+                    *
+                </span>
+            {% endif %}
+        </label>
 
+        {{ field }}
+
+        {% if field.help_text %}
+            <p
+                id="{{ field.auto_id }}_help"
+                class="text-xs text-gray-500 dark:text-neutral-400"
+            >
+                {{ field.help_text }}
+            </p>
+        {% endif %}
     {% endif %}
 
+    {% if field.errors %}
+        <div
+            id="{{ field.auto_id }}_errors"
+            class="space-y-1"
+            role="alert"
+        >
+            {% for error in field.errors %}
+                <p class="text-sm text-red-600 dark:text-red-500">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>

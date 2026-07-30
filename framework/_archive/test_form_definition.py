@@ -4,7 +4,7 @@ import unittest
 
 from common.dictionaries.company import COMPANY_DICTIONARY
 from framework.dictionary.entity import EntityDefinition
-from framework.form.form_definition import FormDefinition
+from framework._archive.form_definition import FormDefinition
 
 
 class FormDefinitionTests(unittest.TestCase):

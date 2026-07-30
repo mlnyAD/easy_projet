@@ -4,31 +4,38 @@
 Formulaire générique du framework Easy Projet.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+from django.forms.forms import BaseForm
 
 from framework.context import EPContext
 from framework.form.definition import FormDefinition
-from framework.providers import ProviderRegistry
-
 from framework.form.field import FieldDefinition
-from framework.providers import Choice
+from framework.form.mode import FormMode
+from framework.form.resolved_section import ResolvedSection
+from framework.providers import Choice, ProviderRegistry
 
 
 @dataclass(frozen=True, slots=True)
 class EPForm:
     """
-    Représente un formulaire générique Easy Projet.
+    ViewModel générique d'un formulaire Easy Projet.
 
-    EPForm orchestre une définition de formulaire, un contexte
-    d'exécution et un registre de fournisseurs.
-
-    Il ne produit pas directement de HTML et ne dépend pas de Django.
+    Il associe une définition de formulaire à un formulaire Django
+    afin d'exposer des sections directement exploitables par les
+    templates.
     """
 
     definition: FormDefinition
+
     context: EPContext
+
     providers: ProviderRegistry
-    
+
+    mode: FormMode = FormMode.CREATE
+
+    django_form: BaseForm = field(kw_only=True)
+
     @property
     def title(self) -> str:
         """
@@ -37,12 +44,28 @@ class EPForm:
         return self.definition.title
 
     @property
-    def sections(self):
+    def sections(self) -> list[ResolvedSection]:
         """
-        Retourne les sections du formulaire.
+        Retourne les sections dont les champs ont été résolus
+        en BoundField Django.
         """
-        return self.definition.sections
-    
+        resolved_sections: list[ResolvedSection] = []
+
+        for section in self.definition.sections:
+            resolved_fields = [
+                self._resolve_field(field_definition)
+                for field_definition in section.fields
+            ]
+
+            resolved_sections.append(
+                ResolvedSection(
+                    title=section.title,
+                    fields=resolved_fields,
+                )
+            )
+
+        return resolved_sections
+
     def get_choices(
         self,
         field: FieldDefinition,
@@ -50,7 +73,6 @@ class EPForm:
         """
         Retourne les choix disponibles pour un champ.
         """
-
         if field.provider is None:
             return []
 
@@ -62,3 +84,32 @@ class EPForm:
             field.provider,
             self.context,
         )
+
+    @property
+    def is_create(self) -> bool:
+        return self.mode is FormMode.CREATE
+
+    @property
+    def is_edit(self) -> bool:
+        return self.mode is FormMode.EDIT
+
+    @property
+    def is_readonly(self) -> bool:
+        return self.mode is FormMode.READONLY
+
+    def _resolve_field(
+        self,
+        field_definition: FieldDefinition,
+    ):
+        """
+        Résout un FieldDefinition en BoundField Django.
+        """
+        field_name = field_definition.name
+
+        try:
+            return self.django_form[field_name]
+        except KeyError as error:
+            raise ValueError(
+                f"Le champ {field_name!r} défini dans EPForm "
+                "n'existe pas dans le formulaire Django."
+            ) from error
