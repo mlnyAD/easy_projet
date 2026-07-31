@@ -5,6 +5,32 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from framework.dictionary.field import FieldDefinition
+from framework.defaults.column import (
+    DEFAULT_COLUMN_ALIGN,
+    DEFAULT_COLUMN_ORDER,
+    DEFAULT_COLUMN_SORTABLE,
+    DEFAULT_COLUMN_TRUNCATE,
+    DEFAULT_COLUMN_VISIBLE,
+    DEFAULT_COLUMN_WIDTH,
+)
+
+COLUMN_WIDTHS = frozenset(
+    {
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "auto",
+    }
+)
+COLUMN_ALIGNMENTS = frozenset(
+    {
+        "left",
+        "center",
+        "right",
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,10 +45,13 @@ class ColumnDefinition:
     field: FieldDefinition
     identifier: str | None = None
     label: str | None = None
-    visible: bool = True
-    sortable: bool = True
-    width: int | None = None
-    order: int = 0
+   
+    visible: bool = DEFAULT_COLUMN_VISIBLE
+    sortable: bool = DEFAULT_COLUMN_SORTABLE
+    width: str = DEFAULT_COLUMN_WIDTH
+    truncate: bool = DEFAULT_COLUMN_TRUNCATE
+    order: int = DEFAULT_COLUMN_ORDER
+    align: str = DEFAULT_COLUMN_ALIGN
 
     def __post_init__(self) -> None:
         self._validate_field()
@@ -37,6 +66,16 @@ class ColumnDefinition:
 
         if self.label is None:
             object.__setattr__(self, "label", self.field.label)
+
+        if not isinstance(self.align, str):
+            raise TypeError(
+                "La propriété 'align' doit être une chaîne de caractères."
+            )
+
+        if self.align not in COLUMN_ALIGNMENTS:
+            raise ValueError(
+                "La propriété 'align' est invalide."
+            )
 
     @property
     def title(self) -> str:
@@ -88,18 +127,21 @@ class ColumnDefinition:
                 "La propriété 'sortable' doit être un booléen."
             )
 
-    def _validate_width(self) -> None:
-        if self.width is None:
-            return
-
-        if isinstance(self.width, bool) or not isinstance(self.width, int):
+        if not isinstance(self.truncate, bool):
             raise TypeError(
-                "La propriété 'width' doit être un entier."
+                "La propriété 'truncate' doit être un booléen."
             )
 
-        if self.width <= 0:
+    def _validate_width(self) -> None:
+        if not isinstance(self.width, str):
+            raise TypeError(
+                "La propriété 'width' doit être une chaîne de caractères."
+            )
+
+        if self.width not in COLUMN_WIDTHS:
             raise ValueError(
-                "La propriété 'width' doit être strictement positive."
+                "La propriété 'width' doit être l'une des valeurs "
+                f"{sorted(COLUMN_WIDTHS)}."
             )
 
     def _validate_order(self) -> None:
@@ -118,6 +160,8 @@ class ColumnDefinition:
             f"{self.__class__.__name__}("
             f"identifier={self.identifier!r}, "
             f"field={self.field.name!r}, "
-            f"label={self.label!r}"
+            f"label={self.label!r}, "
+            f"width={self.width!r}, "
+            f"truncate={self.truncate!r}"
             f")"
         )

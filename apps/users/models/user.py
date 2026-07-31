@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.catalogs.models import CatalogValue
 from apps.companies.models import Company
 
-from common.constants import (
+from common.constants.user import (
     USER_EMAIL_LENGTH,
     USER_FIRST_NAME_LENGTH,
     USER_INITIALS_LENGTH,

@@ -80,6 +80,8 @@ TEMPLATES = [
                     "framework.integrations.django."
                     "templatetags.ep_form_fields"
                 ),
+                "ep_forms": "common.templatetags.ep_forms",
+                "ep_lists": "common.templatetags.ep_lists",
             },
         },
     },

@@ -2,8 +2,9 @@
 
 from framework.form.definition import FormDefinition
 from framework.form.field import FieldDefinition
-from framework.form.section import SectionDefinition
 from framework.form.kinds import FieldKind
+from framework.form.section import SectionDefinition
+from framework.types.field_width import FieldWidth
 from framework.providers import ChoiceProviderDefinition
 
 
@@ -158,3 +159,36 @@ class FormValidator:
             raise FormValidationError(
                 f"Le provider du champ '{field.name}' est invalide."
         )
+
+        if not isinstance(field.width, FieldWidth):
+            raise FormValidationError(
+                f"La largeur du champ '{field.name}' est invalide."
+            )
+
+        if field.placeholder is not None and not isinstance(field.placeholder, str):
+            raise FormValidationError(
+                f"Le placeholder du champ '{field.name}' est invalide."
+            )
+
+        if field.icon is not None and not isinstance(field.icon, str):
+            raise FormValidationError(
+                f"L'icône du champ '{field.name}' est invalide."
+            )
+
+        if not isinstance(field.visible, bool):
+            raise FormValidationError(
+                f"La propriété visible du champ '{field.name}' est invalide."
+            )
+
+        if not isinstance(field.autofocus, bool):
+            raise FormValidationError(
+                f"La propriété autofocus du champ '{field.name}' est invalide."
+            )
+
+        if (
+            field.tab_index is not None
+            and not isinstance(field.tab_index, int)
+        ):
+            raise FormValidationError(
+                f"Le tab_index du champ '{field.name}' est invalide."
+            )

@@ -1,0 +1,17 @@
+
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    {% include "edf/form/header.html" %}
+    {% include "edf/form/messages.html" %}
+    {% include "edf/form/sections.html" %}
+    {% include "edf/form/actions.html" %}
+
+</form>
+
+{% endblock %}

@@ -12,7 +12,7 @@ from .form_renderer import (
 )
 
 __all__ = [
-    "DEFAULT_LIST_TEMPLATE",
+    "DEFAULT_LIST_TEMPLATE_NAME",
     "LIST_VIEW_CONTEXT_KEY",
     "DjangoListRenderer",
     "DEFAULT_FORM_TEMPLATE_NAME",

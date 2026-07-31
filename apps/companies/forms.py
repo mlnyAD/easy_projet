@@ -2,6 +2,13 @@
 
 from django import forms
 
+from common.constants.company import (
+    COMPANY_EMAIL_LENGTH,
+    COMPANY_NAME_LENGTH,
+    COMPANY_PHONE_LENGTH,
+    COMPANY_SIRET_LENGTH,
+    COMPANY_VAT_NUMBER_LENGTH,
+)
 from common.forms.widgets import TelInput
 
 from .models import Company
@@ -25,11 +32,11 @@ class CompanyForm(forms.ModelForm):
             "country",
             "is_active",
         )
-        
+
         labels = {
             "is_active": "Société active",
         }
-    
+
         help_texts = {
             "name": "Nom utilisé dans l'application.",
         }
@@ -37,7 +44,7 @@ class CompanyForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(
                 attrs={
-                    "maxlength": 150,
+                    "maxlength": COMPANY_NAME_LENGTH,
                     "placeholder": "Nom utilisé dans l'application",
                     "autocomplete": "organization",
                     "data-uppercase": True,
@@ -46,7 +53,7 @@ class CompanyForm(forms.ModelForm):
             ),
             "email": forms.EmailInput(
                 attrs={
-                    "maxlength": 254,
+                    "maxlength": COMPANY_EMAIL_LENGTH,
                     "autocomplete": "email",
                     "placeholder": "contact@entreprise.fr",
                     "data-lowercase": True,
@@ -55,7 +62,7 @@ class CompanyForm(forms.ModelForm):
             ),
             "phone": TelInput(
                 attrs={
-                    "maxlength": 20,
+                    "maxlength": COMPANY_PHONE_LENGTH,
                     "autocomplete": "tel",
                     "inputmode": "tel",
                     "placeholder": "01 23 45 67 89",
@@ -85,7 +92,7 @@ class CompanyForm(forms.ModelForm):
             ),
             "siret": forms.TextInput(
                 attrs={
-                    "maxlength": 17,
+                    "maxlength": COMPANY_SIRET_LENGTH,
                     "placeholder": "123 456 789 00012",
                     "autocomplete": "off",
                     "data-trim": True,
@@ -93,12 +100,11 @@ class CompanyForm(forms.ModelForm):
             ),
             "vat_number": forms.TextInput(
                 attrs={
-                    "maxlength": 32,
+                    "maxlength": COMPANY_VAT_NUMBER_LENGTH,
                     "placeholder": "Ex. FR12345678901",
                     "autocomplete": "off",
                     "data-uppercase": True,
                     "data-trim": True,
                 }
             ),
-            
         }

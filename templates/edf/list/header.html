@@ -1,20 +1,41 @@
 
 
+{% load ep_lists %}
+
 <thead class="bg-gray-50">
     <tr>
         {% for column in list_view.columns %}
             <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-semibold uppercase
-                       tracking-wider text-gray-500"
+                class="
+                    {{ column|column_width_class }}
+                    {{ column|column_alignment_class }}
+                    whitespace-nowrap
+                    px-4 py-2.5
+                    text-xs
+                    font-semibold
+                    uppercase
+                    tracking-wider
+                    text-gray-600
+                "
             >
                 <span>{{ column.label }}</span>
 
                 {% if column.sorted %}
                     {% if column.descending %}
-                        <span aria-label="Tri décroissant">▼</span>
+                        <span
+                            class="ml-1"
+                            aria-label="Tri décroissant"
+                        >
+                            ▼
+                        </span>
                     {% else %}
-                        <span aria-label="Tri croissant">▲</span>
+                        <span
+                            class="ml-1"
+                            aria-label="Tri croissant"
+                        >
+                            ▲
+                        </span>
                     {% endif %}
                 {% endif %}
             </th>
@@ -23,8 +44,17 @@
         {% if row_actions_template %}
             <th
                 scope="col"
-                class="px-6 py-3 text-right text-xs font-semibold uppercase
-                       tracking-wider text-gray-500"
+                class="
+                    w-px
+                    whitespace-nowrap
+                    text-center
+                    px-4 py-2.5
+                    text-xs
+                    font-semibold
+                    uppercase
+                    tracking-wider
+                    text-gray-600
+                "
             >
                 Actions
             </th>

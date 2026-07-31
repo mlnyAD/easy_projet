@@ -2,22 +2,31 @@
 
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView, UpdateView
+from django.views.generic import ListView
 
-from .forms import CompanyForm
-from .models import Company
-
-from .lists import COMPANY_LIST_DEFINITION
-
+from common.constants import (
+    DEFAULT_PAGE_SIZE,
+    PAGE_SIZE_VALUES,
+)
+from framework.integrations.django.views import (
+    EPCreateView,
+    EPUpdateView,
+)
 from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
+
+from .form_definition import COMPANY_FORM_DEFINITION
+from .forms import CompanyForm
+from .lists import COMPANY_LIST_DEFINITION
+from .models import Company
+
 
 class CompanyListView(ListView):
     model = Company
     template_name = "companies/company_list.html"
     context_object_name = "companies"
-    paginate_by = 20
-    
+    paginate_by = DEFAULT_PAGE_SIZE
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -48,17 +57,21 @@ class CompanyListView(ListView):
         # Alias temporaire pour compatibilité avec les tests existants.
         context["list"] = list_view
 
-        context["page_sizes"] = (10, 20, 50, 100)
+        context["page_sizes"] = PAGE_SIZE_VALUES
         context["row_actions_template"] = (
             "companies/company_actions.html"
         )
+
         return context
     
-class CompanyCreateView(CreateView):
+class CompanyCreateView(EPCreateView):
     model = Company
     form_class = CompanyForm
-    template_name = "companies/company_form.html"
+    definition = COMPANY_FORM_DEFINITION
+    template_name = "edf/form/view.html"
+
     success_url = reverse_lazy("companies:list")
+    cancel_url = reverse_lazy("companies:list")
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -69,12 +82,16 @@ class CompanyCreateView(CreateView):
         )
 
         return response
-    
-class CompanyUpdateView(UpdateView):
+
+
+class CompanyUpdateView(EPUpdateView):
     model = Company
     form_class = CompanyForm
-    template_name = "companies/company_form.html"
+    definition = COMPANY_FORM_DEFINITION
+    template_name = "edf/form/view.html"
+
     success_url = reverse_lazy("companies:list")
+    cancel_url = reverse_lazy("companies:list")
 
     def form_valid(self, form):
         response = super().form_valid(form)

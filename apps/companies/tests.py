@@ -4,7 +4,10 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.companies.models import Company
-
+from common.constants import (
+    DEFAULT_PAGE_SIZE,
+    PAGE_SIZE_VALUES,
+)
 
 class CompanyListViewTests(TestCase):
     @classmethod
@@ -68,11 +71,11 @@ class CompanyListViewTests(TestCase):
         self.assertIn("page_sizes", response.context)
         self.assertEqual(
             response.context["page_sizes"],
-            (10, 20, 50, 100),
+            PAGE_SIZE_VALUES,
         )
 
-    def test_company_list_is_paginated_by_twenty(self):
-        for index in range(20):
+    def test_company_list_uses_default_page_size(self):
+        for index in range(DEFAULT_PAGE_SIZE):
             Company.objects.create(
                 name=f"SOCIETE {index:02d}",
                 email=f"company{index}@example.com",
@@ -86,9 +89,9 @@ class CompanyListViewTests(TestCase):
         self.assertTrue(response.context["is_paginated"])
         self.assertEqual(
             len(response.context["page_obj"].object_list),
-            20,
+            DEFAULT_PAGE_SIZE,
         )
-        
+            
 class CompanyCreateViewTests(TestCase):
     def test_create_page_returns_http_200(self):
         response = self.client.get(reverse("companies:create"))
@@ -100,9 +103,9 @@ class CompanyCreateViewTests(TestCase):
 
         self.assertTemplateUsed(
             response,
-            "companies/company_form.html",
+            "edf/form/view.html",
         )
-
+    
     def test_create_page_contains_form(self):
         response = self.client.get(reverse("companies:create"))
 

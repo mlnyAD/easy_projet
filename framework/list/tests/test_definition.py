@@ -48,7 +48,7 @@ class ListDefinitionTests(unittest.TestCase):
         )
         self.name_column = ColumnDefinition(
             field=self.entity.get_field("name"),
-            width=250,
+            width="lg",
             order=20,
         )
         self.city_column = ColumnDefinition(

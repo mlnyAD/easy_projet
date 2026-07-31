@@ -6,6 +6,7 @@ from .column import ViewColumn
 from .list import ListViewModel
 from .pagination import PaginationViewModel
 from .row import ViewRow
+from .form import FormViewModel
 
 __all__ = [
     "ListViewModelBuilder",
@@ -14,4 +15,5 @@ __all__ = [
     "ViewCell",
     "ViewColumn",
     "ViewRow",
+    "FormViewModel",
 ]

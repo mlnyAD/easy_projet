@@ -5,13 +5,17 @@
         class="flex items-center justify-between"
         aria-label="Pagination"
     >
-        <div>
+        <div class="min-w-32">
             {% if list_view.pagination.has_previous %}
                 <a
                     href="?page={{ list_view.pagination.previous_page }}"
-                    class="inline-flex items-center rounded-md border border-gray-300
-                           bg-white px-3 py-2 text-sm font-medium text-gray-700
-                           shadow-sm hover:bg-gray-50"
+                    class="inline-flex items-center rounded-md
+                           bg-[#248A8D] px-3 py-1.5
+                           text-sm font-medium text-white shadow-sm
+                           transition-colors
+                           hover:bg-[#1E7477]
+                           focus:outline-none focus:ring-2
+                           focus:ring-[#248A8D] focus:ring-offset-2"
                 >
                     Page précédente
                 </a>
@@ -23,13 +27,17 @@
             sur {{ list_view.pagination.total_pages }}
         </span>
 
-        <div>
+        <div class="flex min-w-32 justify-end">
             {% if list_view.pagination.has_next %}
                 <a
                     href="?page={{ list_view.pagination.next_page }}"
-                    class="inline-flex items-center rounded-md border border-gray-300
-                           bg-white px-3 py-2 text-sm font-medium text-gray-700
-                           shadow-sm hover:bg-gray-50"
+                    class="inline-flex items-center rounded-md
+                           bg-[#248A8D] px-3 py-1.5
+                           text-sm font-medium text-white shadow-sm
+                           transition-colors
+                           hover:bg-[#1E7477]
+                           focus:outline-none focus:ring-2
+                           focus:ring-[#248A8D] focus:ring-offset-2"
                 >
                     Page suivante
                 </a>

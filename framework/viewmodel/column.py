@@ -59,11 +59,21 @@ class ViewColumn:
         return self.definition.sortable
 
     @property
-    def width(self):
-        """Retourne la largeur déclarée de la colonne."""
+    def width(self) -> str:
+        """Retourne la largeur sémantique déclarée de la colonne."""
         return self.definition.width
+
+    @property
+    def truncate(self) -> bool:
+        """Indique si le contenu de la colonne doit être tronqué."""
+        return self.definition.truncate
 
     @property
     def order(self) -> int:
         """Retourne l'ordre déclaré de la colonne."""
         return self.definition.order
+    
+    @property
+    def align(self) -> str:
+        """Retourne l'alignement déclaré."""
+        return self.definition.align

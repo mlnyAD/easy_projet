@@ -7,6 +7,27 @@ Constantes CSS utilisées par les composants du Design System Easy Projet.
 Aucune logique métier ne doit apparaître dans ce fichier.
 """
 
+from __future__ import annotations
+
+
+# =============================================================================
+# Listes
+# =============================================================================
+COLUMN_WIDTH_CLASSES = {
+    "auto": "",
+    "xs": "w-20 max-w-20",
+    "s": "w-24 max-w-24",
+    "sm": "w-32 max-w-32",
+    "md": "w-48 max-w-48",
+    "lg": "w-64 max-w-64",
+    "xl": "w-80 max-w-80",
+}
+COLUMN_ALIGNMENT_CLASSES = {
+    "left": "text-left",
+    "center": "text-center",
+    "right": "text-right",
+}
+
 # =============================================================================
 # Couleurs Easy Projet
 # =============================================================================

@@ -14,7 +14,7 @@ from framework.form.field import FieldDefinition
 from framework.form.mode import FormMode
 from framework.form.resolved_section import ResolvedSection
 from framework.providers import Choice, ProviderRegistry
-
+from framework.form.resolved_field import ResolvedField
 
 @dataclass(frozen=True, slots=True)
 class EPForm:
@@ -100,16 +100,21 @@ class EPForm:
     def _resolve_field(
         self,
         field_definition: FieldDefinition,
-    ):
+    ) -> ResolvedField:
         """
-        Résout un FieldDefinition en BoundField Django.
+        Associe un FieldDefinition à son BoundField Django.
         """
         field_name = field_definition.name
 
         try:
-            return self.django_form[field_name]
+            bound_field = self.django_form[field_name]
         except KeyError as error:
             raise ValueError(
                 f"Le champ {field_name!r} défini dans EPForm "
                 "n'existe pas dans le formulaire Django."
             ) from error
+
+        return ResolvedField(
+            definition=field_definition,
+            bound_field=bound_field,
+        )

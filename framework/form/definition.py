@@ -2,9 +2,8 @@
 
 from dataclasses import dataclass, field
 
+from framework.form.field import FieldDefinition
 from framework.form.section import SectionDefinition
-from framework.form.field import FieldDefinition
-from framework.form.field import FieldDefinition
 
 
 @dataclass(frozen=True, slots=True)
@@ -14,11 +13,9 @@ class FormDefinition:
     """
 
     name: str
-
     title: str
-
     sections: list[SectionDefinition] = field(default_factory=list)
-    
+
     def get_field(
         self,
         name: str,
@@ -28,8 +25,8 @@ class FormDefinition:
         """
 
         for section in self.sections:
-            for field in section.fields:
-                if field.name == name:
-                    return field
+            for field_definition in section.fields:
+                if field_definition.name == name:
+                    return field_definition
 
         return None

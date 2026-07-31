@@ -149,12 +149,15 @@ class EPFormTestCase(unittest.TestCase):
             "Informations générales",
         )
         self.assertEqual(len(sections[0].fields), 1)
+        resolved_field = sections[0].fields[0]
+
         self.assertEqual(
-            sections[0].fields[0].name,
+            resolved_field.bound_field.name,
             "name",
         )
+
         self.assertIs(
-            sections[0].fields[0].form,
+            resolved_field.bound_field.form,
             django_form,
         )
 

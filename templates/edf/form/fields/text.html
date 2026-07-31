@@ -1,42 +1,20 @@
 
 
-<div class="edf-form-field">
+{% load ep_forms %}
 
-    {% if field.field %}
-
-        {# Champ Django BoundField #}
-
-        <label for="{{ field.id_for_label }}">
-            {{ field.label }}
-
-            {% if field.field.required %}
-                <span class="text-red-600">*</span>
-            {% endif %}
-        </label>
-
-        {{ field }}
-
-        {% if field.help_text %}
-            <p class="text-sm text-gray-500">
-                {{ field.help_text }}
-            </p>
-        {% endif %}
-
-        {% for error in field.errors %}
-            <p class="text-sm text-red-600">
-                {{ error }}
-            </p>
-        {% endfor %}
-
-    {% else %}
-
-        {# FieldDefinition du framework #}
-
-        <label for="id_{{ field.name }}">
+{% if field.bound_field %}
+    {% ep_form_field field.bound_field %}
+{% else %}
+    <div class="space-y-2">
+        <label
+            for="id_{{ field.name }}"
+            class="block text-sm font-medium text-gray-800
+                   dark:text-neutral-200"
+        >
             {{ field.label }}
 
             {% if field.required %}
-                <span class="text-red-600">*</span>
+                <span class="text-red-600" aria-hidden="true">*</span>
             {% endif %}
         </label>
 
@@ -44,17 +22,22 @@
             id="id_{{ field.name }}"
             name="{{ field.name }}"
             type="text"
+            class="
+                block w-full rounded-lg border border-gray-300
+                bg-white px-3 py-2 text-sm text-gray-900 shadow-sm
+                transition focus:border-[#0D5262]
+                focus:outline-none focus:ring-2
+                focus:ring-[#0D5262]/20
+            "
             {% if field.required %}required{% endif %}
             {% if field.readonly %}readonly{% endif %}
             {% if field.disabled %}disabled{% endif %}
         >
 
         {% if field.help_text %}
-            <p class="text-sm text-gray-500">
+            <p class="text-xs text-gray-500">
                 {{ field.help_text }}
             </p>
         {% endif %}
-
-    {% endif %}
-
-</div>
+    </div>
+{% endif %}

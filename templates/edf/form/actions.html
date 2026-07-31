@@ -2,7 +2,7 @@
 
 <div class="mt-8 flex items-center gap-3 border-t border-gray-200 pt-6">
 
-    {% if not form.is_readonly %}
+    {% if not form_view.is_readonly %}
 
         <button
             type="submit"
@@ -11,21 +11,25 @@
             Enregistrer
         </button>
 
-        <a
-            href="{{ cancel_url }}"
-            class="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-            Annuler
-        </a>
+        {% if form_view.cancel_url %}
+            <a
+                href="{{ form_view.cancel_url }}"
+                class="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+                Annuler
+            </a>
+        {% endif %}
 
     {% else %}
 
-        <a
-            href="{{ cancel_url }}"
-            class="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-            Retour
-        </a>
+        {% if form_view.cancel_url %}
+            <a
+                href="{{ form_view.cancel_url }}"
+                class="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+                Retour
+            </a>
+        {% endif %}
 
     {% endif %}
 

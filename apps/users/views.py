@@ -4,9 +4,12 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
 
+from common.constants import (
+    DEFAULT_PAGE_SIZE,
+    PAGE_SIZE_VALUES,
+)
 from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
-
 
 from .lists import USER_LIST_DEFINITION
 from .models import User
@@ -16,7 +19,7 @@ class UserListView(ListView):
     model = User
     template_name = "users/user_list.html"
     context_object_name = "users"
-    paginate_by = 20
+    paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
@@ -56,8 +59,7 @@ class UserListView(ListView):
             page=framework_page,
         )
 
-        context["page_sizes"] = (10, 20, 50, 100)
+        context["page_sizes"] = PAGE_SIZE_VALUES
         context["actions_template"] = "users/user_actions.html"
 
         return context
-

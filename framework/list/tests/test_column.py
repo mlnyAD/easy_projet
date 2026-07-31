@@ -74,7 +74,7 @@ class ColumnDefinitionTests(unittest.TestCase):
 
         self.assertTrue(column.visible)
         self.assertTrue(column.sortable)
-        self.assertIsNone(column.width)
+        self.assertEqual(column.width, "auto")
         self.assertEqual(column.order, 0)
 
     def test_complete_creation(self) -> None:
@@ -84,7 +84,7 @@ class ColumnDefinitionTests(unittest.TestCase):
             label="Société",
             visible=False,
             sortable=False,
-            width=250,
+            width="lg",
             order=20,
         )
 
@@ -92,7 +92,7 @@ class ColumnDefinitionTests(unittest.TestCase):
         self.assertEqual(column.label, "Société")
         self.assertFalse(column.visible)
         self.assertFalse(column.sortable)
-        self.assertEqual(column.width, 250)
+        self.assertEqual(column.width, "lg")
         self.assertEqual(column.order, 20)
 
     def test_definition_is_immutable(self) -> None:
@@ -175,20 +175,26 @@ class ColumnDefinitionTests(unittest.TestCase):
                 width=True,
             )
 
-    def test_width_cannot_be_zero(self) -> None:
-        with self.assertRaises(ValueError):
+    def test_width_must_be_a_string(self) -> None:
+        with self.assertRaisesRegex(
+            TypeError,
+            "La propriété 'width' doit être une chaîne de caractères.",
+        ):
             ColumnDefinition(
                 field=self.field,
-                width=0,
+                width=100,
             )
 
-    def test_width_cannot_be_negative(self) -> None:
-        with self.assertRaises(ValueError):
+    def test_width_must_be_supported(self) -> None:
+        with self.assertRaisesRegex(
+            ValueError,
+            "La propriété 'width' doit être l'une des valeurs",
+        ):
             ColumnDefinition(
                 field=self.field,
-                width=-100,
+                width="xxl",
             )
-
+                
     def test_order_must_be_an_integer(self) -> None:
         with self.assertRaises(TypeError):
             ColumnDefinition(
@@ -212,8 +218,8 @@ class ColumnDefinitionTests(unittest.TestCase):
 
     def test_repr(self) -> None:
         column = ColumnDefinition(
-            field=self.field,
             identifier="company_name",
+            field=self.field,
             label="Société",
         )
 
@@ -223,11 +229,12 @@ class ColumnDefinitionTests(unittest.TestCase):
                 "ColumnDefinition("
                 "identifier='company_name', "
                 "field='name', "
-                "label='Société'"
+                "label='Société', "
+                "width='auto', "
+                "truncate=True"
                 ")"
             ),
         )
-
-
+    
 if __name__ == "__main__":
     unittest.main()

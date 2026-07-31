@@ -1,14 +1,38 @@
 
 
+{% load ep_lists %}
+
 <tr class="transition-colors hover:bg-gray-50">
     {% for cell in row.cells %}
-        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
+        <td
+            class="
+                {{ cell.column|column_width_class }}
+                {{ cell.column|column_alignment_class }}
+                px-4 py-1.5
+                text-sm
+                leading-5
+                text-gray-700
+                {% if cell.column.truncate %}
+                    truncate whitespace-nowrap
+                {% endif %}
+            "
+            {% if cell.column.truncate and cell.display_value %}
+                title="{{ cell.display_value }}"
+            {% endif %}
+        >
             {{ cell.display_value }}
         </td>
     {% endfor %}
 
     {% if row_actions_template %}
-        <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+        <td
+            class="
+                w-px
+                whitespace-nowrap
+                text-center
+                px-4 py-1.5
+            "
+        >
             {% include row_actions_template %}
         </td>
     {% endif %}
