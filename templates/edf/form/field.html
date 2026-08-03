@@ -2,4 +2,6 @@
 
 {% load ep_forms %}
 
-{% ep_form_field field.bound_field %}
+{% if bound_field %}
+    {% ep_form_field bound_field %}
+{% endif %}

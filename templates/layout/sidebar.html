@@ -1,6 +1,5 @@
 
 
-
 {% load static %}
 
 {% url "home" as home_url %}
@@ -8,17 +7,19 @@
 {% url "users:list" as users_url %}
 {% url "licenses:list" as licenses_url %}
 
-{% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-2 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-800" %}
+{% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-2 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2 text-sm text-axcio-text-secondary transition-colors hover:bg-axcio-surface-alt hover:text-axcio-text dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-surface-alt-dark dark:hover:text-axcio-text-dark" %}
 
 <aside
     class="flex w-64 shrink-0 flex-col
-           border-r border-gray-200 bg-white
-           dark:border-neutral-800 dark:bg-neutral-900"
+           border-r border-axcio-border-light
+           bg-axcio-surface
+           dark:border-axcio-border-dark
+           dark:bg-axcio-surface-dark"
 >
     <div
         class="flex h-20 shrink-0 items-center justify-center
-               border-b border-gray-200 px-5
-               dark:border-neutral-800"
+               border-b border-axcio-border-light px-5
+               dark:border-axcio-border-dark"
     >
         <img
             src="{% static 'images/branding/axcio-data-logo.png' %}"
@@ -30,14 +31,13 @@
     <nav class="min-h-0 flex-1 overflow-y-auto px-3 py-4">
         <p
             class="px-3 text-xs font-semibold uppercase
-                   tracking-wider text-gray-400
-                   dark:text-neutral-500"
+                   tracking-wider text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
         >
             Navigation
         </p>
 
         <div class="mt-3 space-y-1">
-
             <a
                 href="{{ home_url }}"
                 class="
@@ -143,29 +143,33 @@
 
                 <span>GED</span>
             </a>
-
         </div>
     </nav>
 
     <div
-        class="shrink-0 border-t border-gray-200 p-3
-               dark:border-neutral-800"
+        class="shrink-0 border-t border-axcio-border-light p-3
+               dark:border-axcio-border-dark"
     >
         <button
             type="button"
             class="flex w-full items-center gap-3 rounded-lg
-                   px-3 py-2 text-left transition
-                   hover:bg-gray-100
-                   dark:hover:bg-neutral-800"
+                   px-3 py-2 text-left
+                   transition-colors
+                   hover:bg-axcio-surface-alt
+                   focus:outline-none focus:ring-2
+                   focus:ring-axcio-light
+                   dark:hover:bg-axcio-surface-alt-dark
+                   dark:focus:ring-offset-axcio-surface-dark"
             aria-label="Ouvrir le menu utilisateur"
         >
             <div
                 class="flex h-9 w-9 shrink-0 items-center
                        justify-center rounded-full
-                       bg-gray-200 text-sm font-semibold
-                       text-gray-700
-                       dark:bg-neutral-700
-                       dark:text-neutral-100"
+                       bg-axcio-surface-alt
+                       text-sm font-semibold
+                       text-axcio-text-secondary
+                       dark:bg-axcio-surface-alt-dark
+                       dark:text-axcio-text-secondary-dark"
             >
                 ML
             </div>
@@ -173,14 +177,16 @@
             <div class="min-w-0 flex-1">
                 <p
                     class="truncate text-sm font-medium
-                           text-gray-900 dark:text-neutral-100"
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
                 >
                     Martin Lenourry
                 </p>
 
                 <p
-                    class="truncate text-xs text-gray-500
-                           dark:text-neutral-400"
+                    class="truncate text-xs
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
                 >
                     Administrateur système
                 </p>
@@ -188,7 +194,9 @@
 
             <i
                 data-lucide="chevron-up"
-                class="h-4 w-4 shrink-0 text-gray-400"
+                class="h-4 w-4 shrink-0
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
                 aria-hidden="true"
             ></i>
         </button>

@@ -12,19 +12,20 @@ from common.constants.user import (
     USER_LAST_NAME_LENGTH,
     USER_MOBILE_LENGTH,
     USER_PHONE_LENGTH,
-    USER_THEME_LENGTH,
 )
+from common.forms.fields import CatalogModelChoiceField
 from common.forms.widgets import TelInput
 
 from .models import User
-from common.forms.fields import CatalogModelChoiceField
 
 
 class UserForm(forms.ModelForm):
     """
     Formulaire de création et de modification d'un utilisateur.
 
-    Le mot de passe n'est jamais saisi dans ce formulaire.
+    Le mot de passe et les préférences personnelles ne sont jamais
+    saisis dans ce formulaire d'administration.
+
     Un nouvel utilisateur est créé avec un mot de passe inutilisable,
     dans l'attente de la validation de son invitation.
     """
@@ -56,6 +57,7 @@ class UserForm(forms.ModelForm):
         required=True,
         label="Niveau d'accès",
     )
+
     class Meta:
         model = User
 
@@ -71,7 +73,6 @@ class UserForm(forms.ModelForm):
             "global_role",
             "access_level",
             "is_active",
-            "theme",
         )
 
         labels = {
@@ -120,13 +121,6 @@ class UserForm(forms.ModelForm):
                     "inputmode": "tel",
                     "placeholder": "06 12 34 56 78",
                     "data-phone": True,
-                    "data-trim": True,
-                }
-            ),
-            "theme": forms.TextInput(
-                attrs={
-                    "maxlength": USER_THEME_LENGTH,
-                    "autocomplete": "off",
                     "data-trim": True,
                 }
             ),
@@ -223,7 +217,7 @@ class UserForm(forms.ModelForm):
         field.catalog_is_incremental = (
             catalog["catalog_type__is_incremental"]
         )
-    
+
     def _apply_catalog_default(
         self,
         field_name: str,

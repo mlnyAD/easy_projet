@@ -7,9 +7,7 @@ Rendu des champs du framework Easy Projet.
 from django.forms.boundfield import BoundField
 from django.forms.widgets import (
     CheckboxInput,
-    DateInput,
     Select,
-    Textarea,
 )
 
 from framework.form import (
@@ -22,6 +20,10 @@ from framework.form.resolved_field import ResolvedField
 class FieldRenderer:
     """
     Résout le template associé à un champ.
+
+    Les widgets Django ordinaires utilisent le template générique.
+    Seuls les composants nécessitant une structure particulière
+    disposent d'un template dédié.
     """
 
     DEFAULT_TEMPLATE = "edf/form/field.html"
@@ -31,17 +33,14 @@ class FieldRenderer:
     }
 
     WIDGET_TEMPLATE = {
-        Textarea: "edf/form/fields/textarea.html",
         Select: "edf/form/fields/select.html",
         CheckboxInput: "edf/form/fields/checkbox.html",
-        DateInput: "edf/form/fields/date.html",
     }
 
     def get_template_name(self, field) -> str:
         """
         Retourne le template correspondant au champ fourni.
         """
-
         if isinstance(field, ResolvedField):
             return self._get_bound_field_template(
                 field.bound_field,
@@ -65,11 +64,12 @@ class FieldRenderer:
         """
         Résout le template à partir du widget Django.
         """
-
         widget = field.field.widget
 
-        for widget_type, template in self.WIDGET_TEMPLATE.items():
+        for widget_type, template_name in (
+            self.WIDGET_TEMPLATE.items()
+        ):
             if isinstance(widget, widget_type):
-                return template
+                return template_name
 
-        return "edf/form/fields/text.html"
+        return self.DEFAULT_TEMPLATE

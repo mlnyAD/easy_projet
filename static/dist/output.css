@@ -35,7 +35,6 @@
     --color-neutral-700: oklch(37.1% 0 none);
     --color-neutral-800: oklch(26.9% 0 none);
     --color-neutral-900: oklch(20.5% 0 none);
-    --color-neutral-950: oklch(14.5% 0 none);
     --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
@@ -68,6 +67,7 @@
     --color-axcio-dark: #0D5262;
     --color-axcio-light: #248A8D;
     --color-axcio-light-hover: #1E7477;
+    --color-axcio-page: #F3F4F6;
     --color-axcio-page-dark: #0A0A0A;
     --color-axcio-surface: #FFFFFF;
     --color-axcio-surface-dark: #171717;
@@ -430,6 +430,9 @@
   .h-20 {
     height: calc(var(--spacing) * 20);
   }
+  .h-screen {
+    height: 100vh;
+  }
   .max-h-14 {
     max-height: calc(var(--spacing) * 14);
   }
@@ -653,6 +656,9 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .overflow-auto {
+    overflow: auto;
+  }
   .overflow-hidden {
     overflow: hidden;
   }
@@ -758,6 +764,9 @@
       background-color: color-mix(in oklab, var(--color-axcio-light) 10%, transparent);
     }
   }
+  .bg-axcio-page {
+    background-color: var(--color-axcio-page);
+  }
   .bg-axcio-success {
     background-color: var(--color-axcio-success);
   }
@@ -790,12 +799,6 @@
   }
   .bg-gray-100 {
     background-color: var(--color-gray-100);
-  }
-  .bg-gray-200 {
-    background-color: var(--color-gray-200);
-  }
-  .bg-gray-900 {
-    background-color: var(--color-gray-900);
   }
   .bg-green-100 {
     background-color: var(--color-green-100);
@@ -976,9 +979,6 @@
   }
   .text-green-800 {
     color: var(--color-green-800);
-  }
-  .text-red-600 {
-    color: var(--color-red-600);
   }
   .text-white {
     color: var(--color-white);
@@ -1278,6 +1278,9 @@
   .dark\:bg-axcio-light:where(.dark, .dark *) {
     background-color: var(--color-axcio-light);
   }
+  .dark\:bg-axcio-page-dark:where(.dark, .dark *) {
+    background-color: var(--color-axcio-page-dark);
+  }
   .dark\:bg-axcio-success-soft-dark:where(.dark, .dark *) {
     background-color: var(--color-axcio-success-soft-dark);
   }
@@ -1304,9 +1307,6 @@
   }
   .dark\:bg-neutral-900:where(.dark, .dark *) {
     background-color: var(--color-neutral-900);
-  }
-  .dark\:bg-neutral-950:where(.dark, .dark *) {
-    background-color: var(--color-neutral-950);
   }
   .dark\:bg-red-700:where(.dark, .dark *) {
     background-color: var(--color-red-700);
@@ -1340,9 +1340,6 @@
   }
   .dark\:text-neutral-500:where(.dark, .dark *) {
     color: var(--color-neutral-500);
-  }
-  .dark\:text-red-400:where(.dark, .dark *) {
-    color: var(--color-red-400);
   }
   .dark\:accent-axcio-light:where(.dark, .dark *) {
     accent-color: var(--color-axcio-light);
@@ -1427,6 +1424,9 @@
   }
   .dark\:focus\:ring-offset-axcio-page-dark:where(.dark, .dark *):focus {
     --tw-ring-offset-color: var(--color-axcio-page-dark);
+  }
+  .dark\:focus\:ring-offset-axcio-surface-dark:where(.dark, .dark *):focus {
+    --tw-ring-offset-color: var(--color-axcio-surface-dark);
   }
   .dark\:disabled\:bg-axcio-input-disabled-dark:where(.dark, .dark *):disabled {
     background-color: var(--color-axcio-input-disabled-dark);

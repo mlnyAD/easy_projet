@@ -3,9 +3,7 @@
 {% if is_checkbox %}
 
     <div class="group relative">
-
         <div class="flex items-start gap-3">
-
             <div class="flex h-5 items-center">
                 {{ widget_html }}
             </div>
@@ -14,14 +12,15 @@
                 <div class="flex items-center gap-1.5">
                     <label
                         for="{{ field.id_for_label }}"
-                        class="text-sm font-normal text-gray-800
-                               dark:text-neutral-200"
+                        class="text-sm font-normal
+                               text-axcio-text-secondary
+                               dark:text-axcio-text-secondary-dark"
                     >
                         {{ field.label }}
 
                         {% if field.field.required %}
                             <span
-                                class="text-red-600 dark:text-red-400"
+                                class="text-axcio-danger"
                                 aria-hidden="true"
                             >
                                 *
@@ -35,8 +34,9 @@
 
                     {% if field.help_text %}
                         <span
-                            class="inline-flex text-gray-400
-                                   dark:text-neutral-500"
+                            class="inline-flex
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
                             aria-hidden="true"
                         >
                             <i
@@ -47,19 +47,19 @@
                     {% endif %}
                 </div>
             </div>
-
         </div>
 
         {% if field.help_text %}
             <div
                 id="{{ field.auto_id }}_help"
-                class="pointer-events-none absolute left-0 top-full z-30
-                       mt-1 max-w-sm rounded-md bg-gray-900
-                       px-3 py-2 text-xs leading-4 text-white
+                class="pointer-events-none absolute left-0 top-full
+                       z-30 mt-1 max-w-sm rounded-md
+                       bg-axcio-text px-3 py-2
+                       text-xs leading-4 text-white
                        opacity-0 shadow-lg transition-opacity
                        group-hover:opacity-100
                        group-focus-within:opacity-100
-                       dark:bg-neutral-700"
+                       dark:bg-axcio-surface-alt-dark"
                 role="tooltip"
             >
                 {{ field.help_text }}
@@ -69,8 +69,7 @@
         {% if field.errors %}
             <div
                 id="{{ field.auto_id }}_errors"
-                class="mt-1 text-sm text-red-600
-                       dark:text-red-400"
+                class="mt-1 text-sm text-axcio-danger"
                 role="alert"
             >
                 {% for error in field.errors %}
@@ -78,24 +77,23 @@
                 {% endfor %}
             </div>
         {% endif %}
-
     </div>
 
 {% else %}
 
     <div class="group relative">
-
         <div class="mb-1 flex items-center gap-1.5">
             <label
                 for="{{ field.id_for_label }}"
-                class="block text-sm font-normal text-gray-800
-                       dark:text-neutral-200"
+                class="block text-sm font-normal
+                       text-axcio-text-secondary
+                       dark:text-axcio-text-secondary-dark"
             >
                 {{ field.label }}
 
                 {% if field.field.required %}
                     <span
-                        class="text-red-600 dark:text-red-400"
+                        class="text-axcio-danger"
                         aria-hidden="true"
                     >
                         *
@@ -109,8 +107,9 @@
 
             {% if field.help_text %}
                 <span
-                    class="inline-flex text-gray-400
-                           dark:text-neutral-500"
+                    class="inline-flex
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
                     aria-hidden="true"
                 >
                     <i
@@ -126,13 +125,14 @@
         {% if field.help_text %}
             <div
                 id="{{ field.auto_id }}_help"
-                class="pointer-events-none absolute left-0 top-full z-30
-                       mt-1 max-w-sm rounded-md bg-gray-900
-                       px-3 py-2 text-xs leading-4 text-white
+                class="pointer-events-none absolute left-0 top-full
+                       z-30 mt-1 max-w-sm rounded-md
+                       bg-axcio-text px-3 py-2
+                       text-xs leading-4 text-white
                        opacity-0 shadow-lg transition-opacity
                        group-hover:opacity-100
                        group-focus-within:opacity-100
-                       dark:bg-neutral-700"
+                       dark:bg-axcio-surface-alt-dark"
                 role="tooltip"
             >
                 {{ field.help_text }}
@@ -142,8 +142,7 @@
         {% if field.errors %}
             <div
                 id="{{ field.auto_id }}_errors"
-                class="mt-1 text-sm text-red-600
-                       dark:text-red-400"
+                class="mt-1 text-sm text-axcio-danger"
                 role="alert"
             >
                 {% for error in field.errors %}
@@ -151,7 +150,6 @@
                 {% endfor %}
             </div>
         {% endif %}
-
     </div>
 
 {% endif %}

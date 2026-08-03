@@ -49,11 +49,5 @@ USER_FORM_DEFINITION = FormDefinition(
                 FieldDefinition(name="access_level"),
             ],
         ),
-        SectionDefinition(
-            title="Préférences",
-            fields=[
-                FieldDefinition(name="theme"),
-            ],
-        ),
     ],
 )
