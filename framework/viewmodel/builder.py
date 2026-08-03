@@ -8,7 +8,13 @@ from framework.viewmodel.column import ViewColumn
 from framework.viewmodel.list import ListViewModel
 from framework.viewmodel.pagination import PaginationViewModel
 from framework.viewmodel.row import ViewRow
+from datetime import date, datetime
+from typing import Any
 
+from common.constants import (
+    DATE_FORMAT,
+    DATETIME_FORMAT,
+)
 
 class ListViewModelBuilder:
     """Construit un ListViewModel à partir d'une EPList et d'une page."""
@@ -131,9 +137,41 @@ class ListViewModelBuilder:
 
         return ViewCell(
             value=value,
-            display_value=value,
+            display_value=self._format_display_value(
+                value=value,
+                data_type=column.definition.field.data_type,
+            ),
             column=column,
         )
+
+    def _format_display_value(
+        self,
+        *,
+        value: Any,
+        data_type: str,
+    ) -> str:
+        """
+        Prépare une valeur pour son affichage dans une liste.
+        """
+
+        if value is None:
+            return "Aucune"
+
+        if isinstance(value, bool):
+            return "Oui" if value else "Non"
+
+        if isinstance(value, datetime):
+            return value.strftime(DATETIME_FORMAT)
+
+        if isinstance(value, date):
+            return value.strftime(DATE_FORMAT)
+
+        label = getattr(value, "label", None)
+
+        if label is not None:
+            return str(label)
+
+        return str(value)
 
     def _build_pagination(
         self,

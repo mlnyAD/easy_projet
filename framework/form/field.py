@@ -3,20 +3,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from framework.types.field_width import FieldWidth
 
 from framework.defaults.field import (
     DEFAULT_FIELD_AUTOFOCUS,
     DEFAULT_FIELD_AUTOCOMPLETE,
+    DEFAULT_FIELD_CHECKED_LABEL,
     DEFAULT_FIELD_ICON,
     DEFAULT_FIELD_PLACEHOLDER,
     DEFAULT_FIELD_TAB_INDEX,
+    DEFAULT_FIELD_UNCHECKED_LABEL,
     DEFAULT_FIELD_VISIBLE,
     DEFAULT_FIELD_WIDTH,
 )
 from framework.form.kinds import FieldKind
-
 from framework.providers import ChoiceProviderDefinition
+from framework.types.field_width import FieldWidth
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,3 +55,7 @@ class FieldDefinition:
     tab_index: int | None = DEFAULT_FIELD_TAB_INDEX
 
     icon: str | None = DEFAULT_FIELD_ICON
+
+    checked_label: str = DEFAULT_FIELD_CHECKED_LABEL
+
+    unchecked_label: str = DEFAULT_FIELD_UNCHECKED_LABEL

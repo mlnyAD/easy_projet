@@ -9,8 +9,16 @@
 @import "./edf/cards.css";
 @import "./edf/tables.css";
 
-@source "../../templates";
-@source "../../apps";
-@source "../../common";
+@source "../../templates/**/*.html";
+@source "../../apps/**/*.html";
+@source "../../common/**/*.py";
+
+@theme {
+    /* Couleurs institutionnelles */
+
+    --color-axcio-dark: #0D5262;
+    --color-axcio-light: #248A8D;
+    --color-axcio-light-hover: #1E7477;
+}
 
 @custom-variant dark (&:where(.dark, .dark *));

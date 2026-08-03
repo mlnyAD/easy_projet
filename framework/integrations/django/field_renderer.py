@@ -11,8 +11,12 @@ from django.forms.widgets import (
     Select,
     Textarea,
 )
-from framework.form import FieldDefinition
-from framework.form import FieldKind
+
+from framework.form import (
+    FieldDefinition,
+    FieldKind,
+)
+from framework.form.resolved_field import ResolvedField
 
 
 class FieldRenderer:
@@ -33,7 +37,15 @@ class FieldRenderer:
         DateInput: "edf/form/fields/date.html",
     }
 
-    def get_template_name(self, field):
+    def get_template_name(self, field) -> str:
+        """
+        Retourne le template correspondant au champ fourni.
+        """
+
+        if isinstance(field, ResolvedField):
+            return self._get_bound_field_template(
+                field.bound_field,
+            )
 
         if isinstance(field, FieldDefinition):
             return self.TEMPLATE_BY_KIND.get(
@@ -42,13 +54,22 @@ class FieldRenderer:
             )
 
         if isinstance(field, BoundField):
-
-            widget = field.field.widget
-
-            for widget_type, template in self.WIDGET_TEMPLATE.items():
-                if isinstance(widget, widget_type):
-                    return template
-
-            return "edf/form/fields/text.html"
+            return self._get_bound_field_template(field)
 
         return self.DEFAULT_TEMPLATE
+
+    def _get_bound_field_template(
+        self,
+        field: BoundField,
+    ) -> str:
+        """
+        Résout le template à partir du widget Django.
+        """
+
+        widget = field.field.widget
+
+        for widget_type, template in self.WIDGET_TEMPLATE.items():
+            if isinstance(widget, widget_type):
+                return template
+
+        return "edf/form/fields/text.html"

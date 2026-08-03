@@ -108,24 +108,6 @@ def catalog_value_exists(
 
     return queryset.exists()
 
-def get_next_sort_order(
-    catalog: CatalogType,
-) -> int:
-    """
-    Retourne le prochain ordre d'affichage disponible.
-    """
-    maximum = (
-        CatalogValue.objects
-        .filter(catalog_type=catalog)
-        .aggregate(
-            maximum=Max("sort_order")
-        )["maximum"]
-    )
-
-    if maximum is None:
-        return 10
-
-    return maximum + 10
 
 def get_next_sort_order(
     catalog: CatalogType,

@@ -1,17 +1,21 @@
 
 
-<div class="mb-6 flex items-center justify-between">
-    <h1 class="text-2xl font-semibold">
-        Sociétés
-    </h1>
+{% extends "base.html" %}
+{% load ep_buttons %}
 
-    <a
-        href="{% url 'companies:create' %}"
-        class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2
-               text-sm font-medium text-white hover:bg-blue-700"
-    >
-        Nouvelle société
-    </a>
-</div>
+{% block title %}
+    Sociétés — Easy Projet
+{% endblock %}
 
-{% include "edf/list/list.html" %}
+{% block content %}
+    <div class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-neutral-100">
+            Sociétés
+        </h1>
+
+        {% url "companies:create" as company_create_url %}
+        {% ep_button label="Nouvelle société" action="execute" url=company_create_url icon="plus" %}
+    </div>
+
+    {% include "edf/list/list.html" %}
+{% endblock %}

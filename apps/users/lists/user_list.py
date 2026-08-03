@@ -1,6 +1,6 @@
 
 
-from common.constants.common import DEFAULT_PAGE_SIZE
+from common.constants import DEFAULT_PAGE_SIZE
 from common.dictionaries.user import USER_DICTIONARY
 
 from framework.dictionary import (

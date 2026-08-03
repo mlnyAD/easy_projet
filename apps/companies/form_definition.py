@@ -5,6 +5,7 @@ from framework.form import (
     FormDefinition,
     SectionDefinition,
 )
+from framework.types.field_width import FieldWidth
 
 
 COMPANY_FORM_DEFINITION = FormDefinition(
@@ -17,7 +18,13 @@ COMPANY_FORM_DEFINITION = FormDefinition(
                 FieldDefinition(name="name"),
                 FieldDefinition(name="siret"),
                 FieldDefinition(name="vat_number"),
-                FieldDefinition(name="is_active"),
+                FieldDefinition(
+                    name="is_active",
+                    required=False,
+                    width=FieldWidth.FULL,
+                    checked_label="Active",
+                    unchecked_label="Inactive",
+                ),
             ],
         ),
         SectionDefinition(

@@ -4,13 +4,10 @@ from common.constants.user import (
     USER_EMAIL_LENGTH,
     USER_FIRST_NAME_LENGTH,
     USER_INITIALS_LENGTH,
-    USER_LANGUAGE_LENGTH,
     USER_LAST_NAME_LENGTH,
     USER_MOBILE_LENGTH,
     USER_PHONE_LENGTH,
-    USER_PREFERRED_NAME_LENGTH,
     USER_THEME_LENGTH,
-    USER_TIMEZONE_LENGTH,
 )
 
 USER_DICTIONARY = {
@@ -45,13 +42,6 @@ USER_DICTIONARY = {
             "data_type": "string",
             "required": True,
             "max_length": USER_FIRST_NAME_LENGTH,
-        },
-
-        "preferred_name": {
-            "label": "Prénom d’usage",
-            "data_type": "string",
-            "required": False,
-            "max_length": USER_PREFERRED_NAME_LENGTH,
         },
 
         "initials": {
@@ -147,20 +137,6 @@ USER_DICTIONARY = {
         # ------------------------------------------------------------------
         # Préférences
         # ------------------------------------------------------------------
-
-        "language": {
-            "label": "Langue",
-            "data_type": "string",
-            "required": False,
-            "max_length": USER_LANGUAGE_LENGTH,
-        },
-
-        "timezone": {
-            "label": "Fuseau horaire",
-            "data_type": "string",
-            "required": False,
-            "max_length": USER_TIMEZONE_LENGTH,
-        },
 
         "theme": {
             "label": "Thème",

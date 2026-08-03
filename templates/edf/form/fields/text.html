@@ -2,8 +2,8 @@
 
 {% load ep_forms %}
 
-{% if field.bound_field %}
-    {% ep_form_field field.bound_field %}
+{% if bound_field %}
+    {% ep_form_field bound_field %}
 {% else %}
     <div class="space-y-2">
         <label

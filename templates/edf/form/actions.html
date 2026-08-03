@@ -1,36 +1,16 @@
 
 
-<div class="mt-8 flex items-center gap-3 border-t border-gray-200 pt-6">
+{% load ep_buttons %}
 
+<div class="mt-5 flex items-center gap-3 border-t border-gray-200 pt-4
+            dark:border-neutral-700">
     {% if not form_view.is_readonly %}
-
-        <button
-            type="submit"
-            class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-            Enregistrer
-        </button>
+        {% ep_button label="Enregistrer" action="execute" button_type="submit" icon="save" %}
 
         {% if form_view.cancel_url %}
-            <a
-                href="{{ form_view.cancel_url }}"
-                class="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-                Annuler
-            </a>
+            {% ep_button label="Annuler" action="cancel" url=form_view.cancel_url icon="x" %}
         {% endif %}
-
-    {% else %}
-
-        {% if form_view.cancel_url %}
-            <a
-                href="{{ form_view.cancel_url }}"
-                class="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-                Retour
-            </a>
-        {% endif %}
-
+    {% elif form_view.cancel_url %}
+        {% ep_button label="Retour" action="cancel" url=form_view.cancel_url icon="arrow-left" %}
     {% endif %}
-
 </div>

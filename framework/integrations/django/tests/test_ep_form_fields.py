@@ -152,7 +152,7 @@ class EPFormFieldsTemplateTagTests(unittest.TestCase):
         )
 
         self.assertIn(
-            'class="edf-form-input"',
+            "edf-form-input",
             html,
         )
     

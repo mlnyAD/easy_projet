@@ -2,7 +2,7 @@
 
 {% if is_checkbox %}
 
-    <div class="mb-4">
+    <div class="group relative">
 
         <div class="flex items-start gap-3">
 
@@ -10,45 +10,66 @@
                 {{ widget_html }}
             </div>
 
-            <div>
-                <label
-                    for="{{ field.id_for_label }}"
-                    class="text-sm font-normal text-gray-800
-                           dark:text-neutral-200"
-                >
-                    {{ field.label }}
+            <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                    <label
+                        for="{{ field.id_for_label }}"
+                        class="text-sm font-normal text-gray-800
+                               dark:text-neutral-200"
+                    >
+                        {{ field.label }}
 
-                    {% if field.field.required %}
+                        {% if field.field.required %}
+                            <span
+                                class="text-red-600 dark:text-red-400"
+                                aria-hidden="true"
+                            >
+                                *
+                            </span>
+
+                            <span class="sr-only">
+                                Champ obligatoire
+                            </span>
+                        {% endif %}
+                    </label>
+
+                    {% if field.help_text %}
                         <span
-                            class="text-red-600 dark:text-red-400"
+                            class="inline-flex text-gray-400
+                                   dark:text-neutral-500"
                             aria-hidden="true"
                         >
-                            *
-                        </span>
-
-                        <span class="sr-only">
-                            Champ obligatoire
+                            <i
+                                data-lucide="circle-help"
+                                class="h-3.5 w-3.5"
+                            ></i>
                         </span>
                     {% endif %}
-                </label>
-
-                {% if field.help_text %}
-                    <p
-                        id="{{ field.auto_id }}_help"
-                        class="mt-1 text-sm text-gray-500
-                               dark:text-neutral-400"
-                    >
-                        {{ field.help_text }}
-                    </p>
-                {% endif %}
+                </div>
             </div>
 
         </div>
 
+        {% if field.help_text %}
+            <div
+                id="{{ field.auto_id }}_help"
+                class="pointer-events-none absolute left-0 top-full z-30
+                       mt-1 max-w-sm rounded-md bg-gray-900
+                       px-3 py-2 text-xs leading-4 text-white
+                       opacity-0 shadow-lg transition-opacity
+                       group-hover:opacity-100
+                       group-focus-within:opacity-100
+                       dark:bg-neutral-700"
+                role="tooltip"
+            >
+                {{ field.help_text }}
+            </div>
+        {% endif %}
+
         {% if field.errors %}
             <div
                 id="{{ field.auto_id }}_errors"
-                class="mt-2 text-sm text-red-600
+                class="mt-1 text-sm text-red-600
                        dark:text-red-400"
                 role="alert"
             >
@@ -62,45 +83,66 @@
 
 {% else %}
 
-    <div class="mb-4">
+    <div class="group relative">
 
-        <label
-            for="{{ field.id_for_label }}"
-            class="mb-1 block text-sm font-normal text-gray-800
-                   dark:text-neutral-200"
-        >
-            {{ field.label }}
+        <div class="mb-1 flex items-center gap-1.5">
+            <label
+                for="{{ field.id_for_label }}"
+                class="block text-sm font-normal text-gray-800
+                       dark:text-neutral-200"
+            >
+                {{ field.label }}
 
-            {% if field.field.required %}
+                {% if field.field.required %}
+                    <span
+                        class="text-red-600 dark:text-red-400"
+                        aria-hidden="true"
+                    >
+                        *
+                    </span>
+
+                    <span class="sr-only">
+                        Champ obligatoire
+                    </span>
+                {% endif %}
+            </label>
+
+            {% if field.help_text %}
                 <span
-                    class="text-red-600 dark:text-red-400"
+                    class="inline-flex text-gray-400
+                           dark:text-neutral-500"
                     aria-hidden="true"
                 >
-                    *
-                </span>
-
-                <span class="sr-only">
-                    Champ obligatoire
+                    <i
+                        data-lucide="circle-help"
+                        class="h-3.5 w-3.5"
+                    ></i>
                 </span>
             {% endif %}
-        </label>
+        </div>
 
         {{ widget_html }}
 
         {% if field.help_text %}
-            <p
+            <div
                 id="{{ field.auto_id }}_help"
-                class="mt-1 text-sm text-gray-500
-                       dark:text-neutral-400"
+                class="pointer-events-none absolute left-0 top-full z-30
+                       mt-1 max-w-sm rounded-md bg-gray-900
+                       px-3 py-2 text-xs leading-4 text-white
+                       opacity-0 shadow-lg transition-opacity
+                       group-hover:opacity-100
+                       group-focus-within:opacity-100
+                       dark:bg-neutral-700"
+                role="tooltip"
             >
                 {{ field.help_text }}
-            </p>
+            </div>
         {% endif %}
 
         {% if field.errors %}
             <div
                 id="{{ field.auto_id }}_errors"
-                class="mt-2 text-sm text-red-600
+                class="mt-1 text-sm text-red-600
                        dark:text-red-400"
                 role="alert"
             >

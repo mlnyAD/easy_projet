@@ -1,0 +1,48 @@
+
+
+{% if button.is_link %}
+    <a
+        {% if not button.disabled %}
+            href="{{ button.url }}"
+        {% endif %}
+        class="{{ css_classes }}"
+        {% if button.disabled %}
+            aria-disabled="true"
+            tabindex="-1"
+        {% endif %}
+        {% if button.confirm %}
+            onclick="return window.confirm('{{ button.confirm|escapejs }}');"
+        {% endif %}
+    >
+        {% if button.icon %}
+            <i
+                data-lucide="{{ button.icon }}"
+                class="mr-2 h-4 w-4"
+                aria-hidden="true"
+            ></i>
+        {% endif %}
+
+        <span>{{ button.label }}</span>
+    </a>
+{% else %}
+    <button
+        type="{{ button.button_type.value }}"
+        class="{{ css_classes }}"
+        {% if button.disabled %}
+            disabled
+        {% endif %}
+        {% if button.confirm %}
+            onclick="return window.confirm('{{ button.confirm|escapejs }}');"
+        {% endif %}
+    >
+        {% if button.icon %}
+            <i
+                data-lucide="{{ button.icon }}"
+                class="mr-2 h-4 w-4"
+                aria-hidden="true"
+            ></i>
+        {% endif %}
+
+        <span>{{ button.label }}</span>
+    </button>
+{% endif %}

@@ -14,17 +14,19 @@ from common.constants.user import (
     USER_EMAIL_LENGTH,
     USER_FIRST_NAME_LENGTH,
     USER_INITIALS_LENGTH,
-    USER_LANGUAGE_LENGTH,
     USER_LAST_NAME_LENGTH,
     USER_MOBILE_LENGTH,
     USER_PHONE_LENGTH,
-    USER_PREFERRED_NAME_LENGTH,
     USER_THEME_LENGTH,
-    USER_TIMEZONE_LENGTH,
 )
 from common.models.base import TimeStampedModel
 
 from .managers import UserManager
+
+class Theme(models.TextChoices):
+    SYSTEM = "system", _("Système")
+    LIGHT = "light", _("Clair")
+    DARK = "dark", _("Sombre")
 
 class User(
     AbstractBaseUser,
@@ -63,12 +65,6 @@ class User(
     first_name = models.CharField(
         max_length=USER_FIRST_NAME_LENGTH,
         verbose_name=_("Prénom"),
-    )
-
-    preferred_name = models.CharField(
-        max_length=USER_PREFERRED_NAME_LENGTH,
-        blank=True,
-        verbose_name=_("Prénom d'usage"),
     )
 
     initials = models.CharField(
@@ -155,23 +151,13 @@ class User(
     # Préférences
     # ------------------------------------------------------------------
 
-    language = models.CharField(
-        max_length=USER_LANGUAGE_LENGTH,
-        blank=True,
-        verbose_name=_("Langue"),
-    )
-
-    timezone = models.CharField(
-        max_length=USER_TIMEZONE_LENGTH,
-        blank=True,
-        verbose_name=_("Fuseau horaire"),
-    )
-
     theme = models.CharField(
         max_length=USER_THEME_LENGTH,
-        blank=True,
+        choices=Theme.choices,
+        default=Theme.SYSTEM,
         verbose_name=_("Thème"),
-    )        
+    )
+            
     class Meta:
         db_table = "user"
         ordering = [
@@ -195,9 +181,6 @@ class User(
         self.last_name = self.last_name.strip()
         self.first_name = self.first_name.strip()
 
-        if self.preferred_name:
-            self.preferred_name = self.preferred_name.strip()
-
         initials = ""
 
         if self.first_name:
@@ -208,4 +191,4 @@ class User(
 
         self.initials = initials
 
-        super().save(*args, **kwargs)    
+        super().save(*args, **kwargs)

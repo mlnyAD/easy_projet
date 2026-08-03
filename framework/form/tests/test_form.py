@@ -19,6 +19,7 @@ from framework.providers import (
     ChoiceProviderDefinition,
     ProviderRegistry,
 )
+from framework.form.resolved_field import ResolvedField
 
 
 class DummyForm(forms.Form):
@@ -28,6 +29,7 @@ class DummyForm(forms.Form):
 
     name = forms.CharField(required=False)
     country = forms.ChoiceField(required=False)
+    is_active = forms.BooleanField(required=False)
 
 
 class DummyChoiceProvider(ChoiceProvider):
@@ -287,7 +289,69 @@ class EPFormTestCase(unittest.TestCase):
                 ),
             ],
         )
+        
+    def test_resolved_field_exposes_boolean_labels(self):
+        definition = FormDefinition(
+            name="company",
+            title="Société",
+            sections=[
+                SectionDefinition(
+                    title="Informations générales",
+                    fields=[
+                        FieldDefinition(
+                            name="is_active",
+                            checked_label="Active",
+                            unchecked_label="Inactive",
+                        ),
+                    ],
+                ),
+            ],
+        )
 
+        form = EPForm(
+            definition=definition,
+            context=self.context,
+            providers=self.providers,
+            django_form=DummyForm(),
+        )
+
+        resolved_field = form.sections[0].fields[0]
+
+        self.assertEqual(
+            resolved_field.checked_label,
+            "Active",
+        )
+        self.assertEqual(
+            resolved_field.unchecked_label,
+            "Inactive",
+        )
+        
+    def test_resolved_field_exposes_catalog_metadata(self):
+        django_form = DummyForm()
+
+        bound_field = django_form["country"]
+        bound_field.field.catalog_code = "COUNTRY"
+        bound_field.field.catalog_is_editable = True
+        bound_field.field.catalog_is_incremental = True
+
+        resolved_field = ResolvedField(
+            definition=FieldDefinition(name="country"),
+            bound_field=bound_field,
+        )
+
+        self.assertEqual(
+            resolved_field.catalog_code,
+            "COUNTRY",
+        )
+        self.assertTrue(
+            resolved_field.catalog_is_editable,
+        )
+        self.assertTrue(
+            resolved_field.catalog_is_incremental,
+        )
+        self.assertTrue(
+            resolved_field.allows_catalog_increment,
+        )
 
 if __name__ == "__main__":
     unittest.main()

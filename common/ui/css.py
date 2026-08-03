@@ -32,7 +32,7 @@ COLUMN_ALIGNMENT_CLASSES = {
 # Couleurs Easy Projet
 # =============================================================================
 
-PRIMARY_COLOR = "#0D5262"
+PRIMARY_COLOR = "#248A8D"
 
 # =============================================================================
 # Champs de saisie
@@ -44,20 +44,29 @@ INPUT_BASE_CLASSES = (
     "text-sm shadow-sm transition "
     "focus:outline-none focus:ring-2 "
     "disabled:cursor-not-allowed "
-    "disabled:opacity-50 "
-    "dark:bg-neutral-900 "
-    "dark:text-neutral-100"
+    "disabled:bg-gray-100 "
+    "disabled:text-gray-500 "
+    "disabled:opacity-100 "
+    "read-only:cursor-default "
+    "read-only:bg-gray-100 "
+    "read-only:text-gray-600 "
+    "dark:disabled:bg-neutral-900 "
+    "dark:disabled:text-neutral-500 "
+    "dark:read-only:bg-neutral-900 "
+    "dark:read-only:text-neutral-400"
 )
 
 INPUT_NORMAL_CLASSES = (
     "border-gray-300 "
-    "bg-white "
+    "bg-[#F4FBFA] "
     "text-gray-900 "
     "focus:border-[#0D5262] "
     "focus:ring-[#0D5262]/20 "
     "dark:border-neutral-700 "
-    "dark:focus:border-[#0D5262] "
-    "dark:focus:ring-[#0D5262]/20"
+    "dark:bg-neutral-800/70 "
+    "dark:text-neutral-100 "
+    "dark:focus:border-[#248A8D] "
+    "dark:focus:ring-[#248A8D]/20"
 )
 
 INPUT_ERROR_CLASSES = (
@@ -67,7 +76,8 @@ INPUT_ERROR_CLASSES = (
     "focus:border-red-500 "
     "focus:ring-red-500/20 "
     "dark:border-red-500 "
-    "dark:bg-red-950/20"
+    "dark:bg-red-950/20 "
+    "dark:text-neutral-100"
 )
 
 # =============================================================================
@@ -110,13 +120,11 @@ BUTTON_BASE_CLASSES = (
     "disabled:opacity-50"
 )
 
-BUTTON_PRIMARY_CLASSES = (
-    "bg-[#0D5262] "
+PRIMARY_BUTTON_CLASSES = (
+    "bg-axcio-light "
+    "hover:bg-axcio-light-hover "
     "text-white "
-    "hover:bg-[#0A4451] "
-    "focus:ring-[#0D5262] "
-    "dark:bg-[#0D5262] "
-    "dark:hover:bg-[#116779]"
+    "focus:ring-axcio-light"
 )
 
 BUTTON_SECONDARY_CLASSES = (

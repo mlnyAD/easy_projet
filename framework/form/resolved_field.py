@@ -82,6 +82,16 @@ class ResolvedField:
         return self.definition.disabled
 
     @property
+    def checked_label(self) -> str:
+        """Retourne le libellé associé à l'état coché."""
+        return self.definition.checked_label
+
+    @property
+    def unchecked_label(self) -> str:
+        """Retourne le libellé associé à l'état non coché."""
+        return self.definition.unchecked_label
+
+    @property
     def errors(self):
         """Retourne les erreurs Django du champ."""
         return self.bound_field.errors
@@ -95,3 +105,44 @@ class ResolvedField:
     def id_for_label(self) -> str:
         """Retourne l'identifiant HTML associé au libellé."""
         return self.bound_field.id_for_label
+    
+    @property
+    def catalog_code(self) -> str | None:
+        """Retourne le code du catalogue associé au champ."""
+        return getattr(
+            self.bound_field.field,
+            "catalog_code",
+            None,
+        )
+
+    @property
+    def catalog_is_editable(self) -> bool:
+        """Indique si le catalogue peut être modifié."""
+        return bool(
+            getattr(
+                self.bound_field.field,
+                "catalog_is_editable",
+                False,
+            )
+        )
+
+    @property
+    def catalog_is_incremental(self) -> bool:
+        """Indique si une valeur peut être ajoutée depuis le champ."""
+        return bool(
+            getattr(
+                self.bound_field.field,
+                "catalog_is_incremental",
+                False,
+            )
+        )
+
+    @property
+    def allows_catalog_increment(self) -> bool:
+        """
+        Indique si le champ autorise l'ajout direct d'une valeur.
+        """
+        return (
+            self.catalog_is_editable
+            and self.catalog_is_incremental
+        )

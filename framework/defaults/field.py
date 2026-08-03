@@ -2,7 +2,6 @@
 
 from framework.types.field_width import FieldWidth
 
-# framework/defaults/field.py
 
 DEFAULT_FIELD_LABEL = None
 DEFAULT_FIELD_KIND = "text"
@@ -16,3 +15,6 @@ DEFAULT_FIELD_AUTOFOCUS = False
 DEFAULT_FIELD_AUTOCOMPLETE = None
 DEFAULT_FIELD_TAB_INDEX = None
 DEFAULT_FIELD_ICON = None
+
+DEFAULT_FIELD_CHECKED_LABEL = "Oui"
+DEFAULT_FIELD_UNCHECKED_LABEL = "Non"

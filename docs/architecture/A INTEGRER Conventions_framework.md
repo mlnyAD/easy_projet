@@ -24,3 +24,7 @@ les valeurs par défaut existantes ;
 les règles pour en ajouter de nouvelles.
 
 Ce document deviendrait la référence. Ainsi, dans six mois, nous n'aurons pas à rediscuter de la question « où doit vivre une valeur par défaut ? ».
+
+
+suite à la modification de checkbox
+Je pense également que cette évolution mérite d'être documentée dans 03-conventions-framework.md comme une convention de présentation des champs booléens, mais nous avons décidé de mettre la documentation en pause pour avancer sur le fonctionnel. Nous la réintégrerons lorsque nous reprendrons ce chantier.

@@ -161,7 +161,7 @@ CATALOG_VALUE_DEFINITIONS = [
     CatalogValueDefinition(
         catalog="LICENSE_STATUS",
         code="WAITING",
-        label="En atente",
+        label="En attente",
         sort_order=20,
     ),
 

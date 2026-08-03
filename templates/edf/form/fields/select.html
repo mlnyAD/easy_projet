@@ -1,0 +1,96 @@
+
+
+{% load ep_forms %}
+
+{% if bound_field %}
+
+    <div
+        data-catalog-field
+        {% if field.catalog_code %}
+            data-catalog-code="{{ field.catalog_code }}"
+        {% endif %}
+        data-catalog-editable="{{ field.catalog_is_editable|yesno:'true,false' }}"
+        data-catalog-incremental="{{ field.catalog_is_incremental|yesno:'true,false' }}"
+        data-catalog-allows-increment="{{ field.allows_catalog_increment|yesno:'true,false' }}"
+    >
+        <div class="flex items-end gap-2">
+            <div class="flex-1">
+                {% ep_form_field bound_field %}
+            </div>
+
+            {% if field.allows_catalog_increment %}
+                <button
+                    type="button"
+                    class="inline-flex h-10 w-10 items-center justify-center
+                           rounded-lg border border-axcio-dark
+                           bg-axcio-light text-xl font-medium text-white
+                           transition hover:bg-axcio-dark"
+                    title="Ajouter une valeur"
+                    aria-label="Ajouter une valeur"
+                    data-catalog-increment-button
+                    data-catalog-code="{{ field.catalog_code }}"
+                    data-target-field="{{ field.id_for_label }}"
+                >
+                    <span aria-hidden="true">+</span>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="space-y-2">
+        <label
+            for="id_{{ field.name }}"
+            class="block text-sm font-medium text-gray-800
+                   dark:text-neutral-200"
+        >
+            {{ field.label }}
+
+            {% if field.required %}
+                <span class="text-red-600" aria-hidden="true">*</span>
+            {% endif %}
+        </label>
+
+        <div class="flex items-end gap-2">
+            <div class="flex-1">
+                <select
+                    id="id_{{ field.name }}"
+                    name="{{ field.name }}"
+                    class="block w-full rounded-lg border border-gray-300
+                           bg-white px-3 py-2 text-sm text-gray-900 shadow-sm
+                           transition
+                           focus:border-axcio-dark
+                           focus:outline-none focus:ring-2
+                           focus:ring-axcio-dark/20
+                           dark:border-neutral-700 dark:bg-neutral-900
+                           dark:text-neutral-200"
+                    {% if field.required %}required{% endif %}
+                    {% if field.disabled %}disabled{% endif %}
+                >
+                </select>
+            </div>
+
+            {% if field.allows_catalog_increment %}
+                <button
+                    type="button"
+                    class="inline-flex h-10 w-10 items-center justify-center
+                        rounded-lg border border-axcio-dark
+                        bg-axcio-light text-xl font-medium text-white
+                        transition hover:bg-axcio-dark"
+                    title="Ajouter une valeur"
+                    aria-label="Ajouter une valeur"
+                    data-catalog-increment-button
+                    data-catalog-code="{{ field.catalog_code }}"
+                    data-target-field="{{ field.id_for_label }}"
+                >
+                    <span aria-hidden="true">+</span>
+                </button>
+            {% endif %}
+        </div>
+
+        {% if field.help_text %}
+            <p class="text-xs text-gray-500 dark:text-neutral-400">
+                {{ field.help_text }}
+            </p>
+        {% endif %}
+    </div>
+{% endif %}

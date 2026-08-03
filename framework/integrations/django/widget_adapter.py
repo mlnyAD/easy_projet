@@ -22,12 +22,13 @@ from django.forms.widgets import (
 
 
 _INPUT_CLASSES = (
+    "edf-form-input",
     "block",
     "w-full",
     "rounded-lg",
     "border",
     "border-gray-300",
-    "bg-white",
+    "bg-[#F4FBFA]",
     "px-3",
     "py-2",
     "text-sm",
@@ -41,9 +42,9 @@ _INPUT_CLASSES = (
     "focus:ring-blue-500/20",
     "disabled:cursor-not-allowed",
     "disabled:bg-gray-100",
-    "disabled:text-gray-500",
+    "disabled:text-gray-700",
     "dark:border-neutral-700",
-    "dark:bg-neutral-900",
+    "dark:bg-neutral-800/70",
     "dark:text-neutral-200",
     "dark:placeholder:text-neutral-500",
 )
@@ -64,8 +65,9 @@ _CHECKBOX_CLASSES = (
     "shrink-0",
     "rounded",
     "border-gray-300",
-    "text-blue-600",
-    "focus:ring-blue-500",
+    "text-axcio-light",
+    "accent-axcio-light",
+    "focus:ring-axcio-light",
     "disabled:pointer-events-none",
     "disabled:opacity-50",
     "dark:border-neutral-700",
@@ -90,7 +92,7 @@ _FILE_CLASSES = (
     "rounded-lg",
     "border",
     "border-gray-300",
-    "bg-white",
+    "bg-[#F4FBFA]",
     "text-sm",
     "text-gray-900",
     "shadow-sm",
@@ -109,7 +111,7 @@ _FILE_CLASSES = (
     "disabled:pointer-events-none",
     "disabled:opacity-50",
     "dark:border-neutral-700",
-    "dark:bg-neutral-900",
+    "dark:bg-neutral-800/70",
     "dark:text-neutral-200",
     "dark:file:bg-neutral-800",
     "dark:file:text-neutral-200",
@@ -183,9 +185,16 @@ class WidgetAdapter:
             self._set_default_attr(widget, "autocomplete", "current-password")
 
     def _adapt_textarea(self, widget: Textarea) -> None:
-        self._merge_classes(widget, _TEXTAREA_CLASSES)
-        self._set_default_attr(widget, "rows", 4)
+        self._merge_classes(
+            widget,
+            _TEXTAREA_CLASSES,
+        )
 
+        current_rows = widget.attrs.get("rows")
+
+        if current_rows in (None, 10, "10"):
+            widget.attrs["rows"] = 4
+        
     def _adapt_select(self, widget: Select | SelectMultiple) -> None:
         self._merge_classes(widget, _SELECT_CLASSES)
 

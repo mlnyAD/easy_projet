@@ -1,0 +1,77 @@
+
+
+<div
+    class="group relative"
+    data-checkbox-field
+>
+    <div class="mb-1 flex items-center gap-1.5">
+        <label
+            for="{{ field.id_for_label }}"
+            class="block text-sm font-medium text-gray-800
+                   dark:text-neutral-200"
+        >
+            {{ field.label }}
+        </label>
+
+        {% if field.help_text %}
+            <span
+                class="inline-flex text-gray-400
+                       dark:text-neutral-500"
+                aria-hidden="true"
+            >
+                <i
+                    data-lucide="circle-help"
+                    class="h-3.5 w-3.5"
+                ></i>
+            </span>
+        {% endif %}
+    </div>
+
+    <div class="flex min-h-10 items-center gap-3">
+        {{ field.bound_field }}
+
+        <span
+            data-checkbox-status
+            data-checked-label="{{ field.checked_label }}"
+            data-unchecked-label="{{ field.unchecked_label }}"
+            class="text-sm text-gray-700 dark:text-neutral-300"
+            aria-live="polite"
+        >
+            {% if field.value %}
+                {{ field.checked_label }}
+            {% else %}
+                {{ field.unchecked_label }}
+            {% endif %}
+        </span>
+    </div>
+
+    {% if field.help_text %}
+        <div
+            id="{{ field.bound_field.auto_id }}_help"
+            class="pointer-events-none absolute left-0 top-full z-30
+                   mt-1 max-w-sm rounded-md bg-gray-900
+                   px-3 py-2 text-xs leading-4 text-white
+                   opacity-0 shadow-lg transition-opacity
+                   group-hover:opacity-100
+                   group-focus-within:opacity-100
+                   dark:bg-neutral-700"
+            role="tooltip"
+        >
+            {{ field.help_text }}
+        </div>
+    {% endif %}
+
+    {% if field.errors %}
+        <div
+            id="{{ field.bound_field.auto_id }}_errors"
+            class="mt-1 space-y-1"
+            role="alert"
+        >
+            {% for error in field.errors %}
+                <p class="text-sm text-red-600 dark:text-red-500">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

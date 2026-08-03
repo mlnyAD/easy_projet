@@ -100,6 +100,78 @@
     }
 
     /**
+     * Met à jour le texte associé à une case à cocher.
+     */
+    function updateCheckboxStatus(container) {
+        const checkbox = container.querySelector(
+            'input[type="checkbox"]'
+        );
+        const status = container.querySelector(
+            "[data-checkbox-status]"
+        );
+
+        if (!checkbox || !status) {
+            return;
+        }
+
+        status.textContent = checkbox.checked
+            ? status.dataset.checkedLabel || "Oui"
+            : status.dataset.uncheckedLabel || "Non";
+    }
+
+    /**
+     * Initialise l'affichage des booléens.
+     */
+    function initializeCheckboxFields(root = document) {
+        root.querySelectorAll(
+            "[data-checkbox-field]"
+        ).forEach(function (container) {
+            updateCheckboxStatus(container);
+        });
+    }
+
+    /**
+     * Met à jour le libellé correspondant à l'état d'une case à cocher.
+     */
+    function updateCheckboxStatus(container) {
+        const checkbox = container.querySelector(
+            'input[type="checkbox"]'
+        );
+        const status = container.querySelector(
+            "[data-checkbox-status]"
+        );
+
+        if (!checkbox || !status) {
+            return;
+        }
+
+        const checkedLabel =
+            status.dataset.checkedLabel || "Oui";
+        const uncheckedLabel =
+            status.dataset.uncheckedLabel || "Non";
+
+        status.textContent = checkbox.checked
+            ? checkedLabel
+            : uncheckedLabel;
+    }
+
+    /**
+     * Initialise tous les comportements déclaratifs des formulaires.
+     */
+    function initializeFormBehaviors(root = document) {
+        const selector = [
+            "[data-uppercase]",
+            "[data-lowercase]",
+            "[data-trim]",
+            "[data-phone]",
+        ].join(", ");
+
+        root.querySelectorAll(selector).forEach(initializeField);
+
+        initializeCheckboxFields(root);
+    }
+
+    /**
      * Initialise tous les champs déclarant un comportement.
      */
     function initializeFormBehaviors(root = document) {
@@ -112,6 +184,24 @@
 
         root.querySelectorAll(selector).forEach(initializeField);
     }
+
+    document.addEventListener("change", function (event) {
+        if (
+            !event.target.matches(
+                '[data-checkbox-field] input[type="checkbox"]'
+            )
+        ) {
+            return;
+        }
+
+        const container = event.target.closest(
+            "[data-checkbox-field]"
+        );
+
+        if (container) {
+            updateCheckboxStatus(container);
+        }
+    });
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", function () {

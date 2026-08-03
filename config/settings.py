@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.catalogs",
     "apps.companies",
+    "apps.licenses",
     "apps.projects",
     "apps.work",
     "apps.reporting",
@@ -58,6 +60,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    
+    "apps.core.middleware.dev_auto_login.DevelopmentAutoLoginMiddleware",
+    
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -82,6 +87,7 @@ TEMPLATES = [
                 ),
                 "ep_forms": "common.templatetags.ep_forms",
                 "ep_lists": "common.templatetags.ep_lists",
+                "ep_buttons": "common.templatetags.ep_buttons",
             },
         },
     },
@@ -146,5 +152,17 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+#***********************************
+#
+# Authentification
+#
+#***********************************
+DEV_AUTO_LOGIN = (
+    DEBUG
+    and os.environ.get("EASY_PROJET_DEV_AUTO_LOGIN") == "1"
+)
 
-DEBUG = True
+DEV_AUTO_LOGIN_EMAIL = os.environ.get(
+    "EASY_PROJET_DEV_AUTO_LOGIN_EMAIL",
+    "",
+)

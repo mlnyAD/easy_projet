@@ -307,7 +307,7 @@ class DjangoListRendererTests(unittest.TestCase):
         content = response.content.decode("utf-8")
 
         self.assertIn(
-            'class="edf-list"',
+            "edf-list",
             content,
         )
 

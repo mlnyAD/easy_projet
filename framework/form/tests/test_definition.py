@@ -7,6 +7,10 @@ from framework.form import (
     FormDefinition,
     SectionDefinition,
 )
+from framework.defaults.field import (
+    DEFAULT_FIELD_CHECKED_LABEL,
+    DEFAULT_FIELD_UNCHECKED_LABEL,
+)
 
 
 class FormDefinitionTests(TestCase):
@@ -123,3 +127,25 @@ class FormDefinitionTests(TestCase):
             definition.get_field("city"),
             field,
         )
+        
+    def test_boolean_labels_use_framework_defaults(self):
+        field = FieldDefinition(name="is_active")
+
+        self.assertEqual(
+            field.checked_label,
+            DEFAULT_FIELD_CHECKED_LABEL,
+        )
+        self.assertEqual(
+            field.unchecked_label,
+            DEFAULT_FIELD_UNCHECKED_LABEL,
+        )
+
+    def test_boolean_labels_can_be_overridden(self):
+        field = FieldDefinition(
+            name="is_active",
+            checked_label="Actif",
+            unchecked_label="Inactif",
+        )
+
+        self.assertEqual(field.checked_label, "Actif")
+        self.assertEqual(field.unchecked_label, "Inactif")
