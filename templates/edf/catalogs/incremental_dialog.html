@@ -9,9 +9,11 @@
     aria-hidden="true"
 >
     <div
-        class="w-full max-w-md rounded-xl border border-gray-200
-               bg-white p-6 shadow-xl
-               dark:border-neutral-700 dark:bg-neutral-900"
+        class="w-full max-w-md rounded-xl border
+               border-axcio-border-light
+               bg-axcio-surface p-6 shadow-xl
+               dark:border-axcio-border-dark
+               dark:bg-axcio-surface-dark"
         role="dialog"
         aria-modal="true"
         aria-labelledby="catalog-incremental-title"
@@ -20,15 +22,17 @@
             <div>
                 <h2
                     id="catalog-incremental-title"
-                    class="text-lg font-semibold text-gray-900
-                           dark:text-neutral-100"
+                    class="text-lg font-semibold
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
                 >
                     Nouvelle valeur
                 </h2>
 
                 <p
-                    class="mt-1 text-sm text-gray-500
-                           dark:text-neutral-400"
+                    class="mt-1 text-sm
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
                     data-catalog-dialog-code
                 ></p>
             </div>
@@ -36,12 +40,15 @@
             <button
                 type="button"
                 class="inline-flex h-8 w-8 items-center justify-center
-                       rounded-md text-gray-500
-                       hover:bg-gray-100 hover:text-gray-800
+                       rounded-md text-axcio-text-muted
+                       transition-colors
+                       hover:bg-axcio-surface-alt
+                       hover:text-axcio-text
                        focus:outline-none focus:ring-2
                        focus:ring-axcio-light
-                       dark:hover:bg-neutral-800
-                       dark:hover:text-neutral-100"
+                       dark:text-axcio-text-muted-dark
+                       dark:hover:bg-axcio-surface-alt-dark
+                       dark:hover:text-axcio-text-dark"
                 aria-label="Fermer"
                 data-catalog-dialog-close
             >
@@ -52,15 +59,21 @@
         <div class="mt-6 space-y-2">
             <label
                 for="catalog-incremental-label"
-                class="block text-sm font-medium text-gray-800
-                       dark:text-neutral-200"
+                class="block text-sm font-medium
+                       text-axcio-text-secondary
+                       dark:text-axcio-text-secondary-dark"
             >
                 Libellé
+
                 <span
-                    class="text-red-600"
+                    class="text-axcio-danger"
                     aria-hidden="true"
                 >
                     *
+                </span>
+
+                <span class="sr-only">
+                    Champ obligatoire
                 </span>
             </label>
 
@@ -69,26 +82,37 @@
                 type="text"
                 maxlength="100"
                 autocomplete="off"
-                class="block w-full rounded-lg border border-gray-300
-                       bg-white px-3 py-2 text-sm text-gray-900 shadow-sm
-                       transition
-                       placeholder:text-gray-400
-                       focus:border-axcio-dark
-                       focus:outline-none focus:ring-2
-                       focus:ring-axcio-dark/20
-                       disabled:cursor-not-allowed
-                       disabled:bg-gray-100
-                       dark:border-neutral-700
-                       dark:bg-neutral-900
-                       dark:text-neutral-200
-                       dark:placeholder:text-neutral-500"
+                class="
+                    block w-full rounded-lg border
+                    border-axcio-border
+                    bg-axcio-input
+                    px-3 py-2
+                    text-sm text-axcio-text
+                    shadow-sm transition
+                    placeholder:text-axcio-text-muted
+                    focus:border-axcio-dark
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-axcio-dark/20
+                    disabled:cursor-not-allowed
+                    disabled:bg-axcio-input-disabled
+                    disabled:text-axcio-text-muted
+                    disabled:opacity-100
+                    dark:border-axcio-border-dark
+                    dark:bg-axcio-input-dark
+                    dark:text-axcio-text-dark
+                    dark:placeholder:text-axcio-text-muted-dark
+                    dark:focus:border-axcio-light
+                    dark:focus:ring-axcio-light/20
+                    dark:disabled:bg-axcio-input-disabled-dark
+                    dark:disabled:text-axcio-text-muted-dark
+                "
                 placeholder="Ex. : Peintre, Carreleur…"
                 data-catalog-dialog-label
             >
 
             <p
-                class="hidden text-sm text-red-600
-                       dark:text-red-500"
+                class="hidden text-sm text-axcio-danger"
                 role="alert"
                 data-catalog-dialog-error
             ></p>
@@ -98,17 +122,21 @@
             <button
                 type="button"
                 class="inline-flex items-center justify-center
-                       rounded-lg border border-gray-300
-                       bg-white px-4 py-2
-                       text-sm font-medium text-gray-700
+                       rounded-lg border border-axcio-border
+                       bg-axcio-surface-alt px-4 py-2
+                       text-sm font-medium
+                       text-axcio-text-secondary
                        transition-colors
-                       hover:bg-gray-50
+                       hover:bg-axcio-border-light
                        focus:outline-none focus:ring-2
-                       focus:ring-gray-400 focus:ring-offset-2
-                       dark:border-neutral-600
-                       dark:bg-neutral-800
-                       dark:text-neutral-100
-                       dark:hover:bg-neutral-700"
+                       focus:ring-axcio-border
+                       focus:ring-offset-2
+                       dark:border-axcio-border-dark
+                       dark:bg-axcio-surface-alt-dark
+                       dark:text-axcio-text-secondary-dark
+                       dark:hover:bg-axcio-border-dark
+                       dark:focus:ring-axcio-border-dark
+                       dark:focus:ring-offset-axcio-page-dark"
                 data-catalog-dialog-close
             >
                 Annuler
@@ -120,11 +148,13 @@
                        rounded-lg bg-axcio-light px-4 py-2
                        text-sm font-medium text-white
                        transition-colors
-                       hover:bg-axcio-dark
+                       hover:bg-axcio-light-hover
                        focus:outline-none focus:ring-2
-                       focus:ring-axcio-light focus:ring-offset-2
+                       focus:ring-axcio-light
+                       focus:ring-offset-2
                        disabled:cursor-not-allowed
-                       disabled:opacity-50"
+                       disabled:opacity-50
+                       dark:focus:ring-offset-axcio-page-dark"
                 data-catalog-dialog-submit
                 disabled
             >

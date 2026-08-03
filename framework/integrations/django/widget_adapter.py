@@ -14,7 +14,6 @@ from django.forms import (
     SelectMultiple,
     Textarea,
 )
-
 from django.forms.widgets import (
     Input,
     Widget,
@@ -27,26 +26,36 @@ _INPUT_CLASSES = (
     "w-full",
     "rounded-lg",
     "border",
-    "border-gray-300",
-    "bg-[#F4FBFA]",
+    "border-axcio-border",
+    "bg-axcio-input",
     "px-3",
     "py-2",
     "text-sm",
-    "text-gray-900",
+    "text-axcio-text",
     "shadow-sm",
     "transition",
-    "placeholder:text-gray-400",
-    "focus:border-blue-500",
+    "placeholder:text-axcio-text-muted",
+    "focus:border-axcio-dark",
     "focus:outline-none",
     "focus:ring-2",
-    "focus:ring-blue-500/20",
+    "focus:ring-axcio-dark/20",
     "disabled:cursor-not-allowed",
-    "disabled:bg-gray-100",
-    "disabled:text-gray-700",
-    "dark:border-neutral-700",
-    "dark:bg-neutral-800/70",
-    "dark:text-neutral-200",
-    "dark:placeholder:text-neutral-500",
+    "disabled:bg-axcio-input-disabled",
+    "disabled:text-axcio-text-muted",
+    "disabled:opacity-100",
+    "read-only:cursor-default",
+    "read-only:bg-axcio-input-disabled",
+    "read-only:text-axcio-text-secondary",
+    "dark:border-axcio-border-dark",
+    "dark:bg-axcio-input-dark",
+    "dark:text-axcio-text-dark",
+    "dark:placeholder:text-axcio-text-muted-dark",
+    "dark:focus:border-axcio-light",
+    "dark:focus:ring-axcio-light/20",
+    "dark:disabled:bg-axcio-input-disabled-dark",
+    "dark:disabled:text-axcio-text-muted-dark",
+    "dark:read-only:bg-axcio-input-disabled-dark",
+    "dark:read-only:text-axcio-text-muted-dark",
 )
 
 _TEXTAREA_CLASSES = (
@@ -64,68 +73,93 @@ _CHECKBOX_CLASSES = (
     "size-4",
     "shrink-0",
     "rounded",
-    "border-gray-300",
+    "border-axcio-border",
+    "bg-axcio-input",
     "text-axcio-light",
     "accent-axcio-light",
-    "focus:ring-axcio-light",
+    "focus:outline-none",
+    "focus:ring-2",
+    "focus:ring-axcio-light/20",
+    "focus:ring-offset-1",
     "disabled:pointer-events-none",
     "disabled:opacity-50",
-    "dark:border-neutral-700",
-    "dark:bg-neutral-900",
+    "dark:border-axcio-border-dark",
+    "dark:bg-axcio-input-dark",
+    "dark:text-axcio-light",
+    "dark:accent-axcio-light",
+    "dark:focus:ring-axcio-light/20",
+    "dark:focus:ring-offset-axcio-page-dark",
 )
 
 _RADIO_CLASSES = (
     "size-4",
     "shrink-0",
-    "border-gray-300",
-    "text-blue-600",
-    "focus:ring-blue-500",
+    "border-axcio-border",
+    "bg-axcio-input",
+    "text-axcio-light",
+    "accent-axcio-light",
+    "focus:outline-none",
+    "focus:ring-2",
+    "focus:ring-axcio-light/20",
+    "focus:ring-offset-1",
     "disabled:pointer-events-none",
     "disabled:opacity-50",
-    "dark:border-neutral-700",
-    "dark:bg-neutral-900",
+    "dark:border-axcio-border-dark",
+    "dark:bg-axcio-input-dark",
+    "dark:text-axcio-light",
+    "dark:accent-axcio-light",
+    "dark:focus:ring-axcio-light/20",
+    "dark:focus:ring-offset-axcio-page-dark",
 )
 
 _FILE_CLASSES = (
+    "edf-form-input",
     "block",
     "w-full",
     "rounded-lg",
     "border",
-    "border-gray-300",
-    "bg-[#F4FBFA]",
+    "border-axcio-border",
+    "bg-axcio-input",
     "text-sm",
-    "text-gray-900",
+    "text-axcio-text",
     "shadow-sm",
     "file:me-4",
     "file:border-0",
-    "file:bg-gray-100",
+    "file:bg-axcio-surface-alt",
     "file:px-4",
     "file:py-2",
     "file:text-sm",
     "file:font-medium",
-    "hover:file:bg-gray-200",
-    "focus:border-blue-500",
+    "file:text-axcio-text-secondary",
+    "hover:file:bg-axcio-border-light",
+    "focus:border-axcio-dark",
     "focus:outline-none",
     "focus:ring-2",
-    "focus:ring-blue-500/20",
+    "focus:ring-axcio-dark/20",
     "disabled:pointer-events-none",
     "disabled:opacity-50",
-    "dark:border-neutral-700",
-    "dark:bg-neutral-800/70",
-    "dark:text-neutral-200",
-    "dark:file:bg-neutral-800",
-    "dark:file:text-neutral-200",
+    "dark:border-axcio-border-dark",
+    "dark:bg-axcio-input-dark",
+    "dark:text-axcio-text-dark",
+    "dark:file:bg-axcio-surface-alt-dark",
+    "dark:file:text-axcio-text-secondary-dark",
+    "dark:hover:file:bg-axcio-border-dark",
+    "dark:focus:border-axcio-light",
+    "dark:focus:ring-axcio-light/20",
 )
 
 _INVALID_CLASSES = (
-    "border-red-500",
-    "focus:border-red-500",
-    "focus:ring-red-500/20",
+    "border-axcio-danger",
+    "bg-axcio-danger-soft",
+    "focus:border-axcio-danger",
+    "focus:ring-axcio-danger/20",
+    "dark:border-axcio-danger",
+    "dark:bg-axcio-danger-soft-dark",
 )
 
 
 class WidgetAdapter:
-    """Adapte les widgets Django au design system Easy Projet.
+    """Adapte les widgets Django au Design System Easy Projet.
 
     L'adaptateur complète les attributs existants sans supprimer les
     personnalisations éventuellement définies par le formulaire métier.
@@ -138,17 +172,7 @@ class WidgetAdapter:
         has_errors: bool = False,
         described_by: str | None = None,
     ) -> Widget:
-        """Adapte un widget et retourne la même instance.
-
-        Args:
-            widget:
-                Widget Django à adapter.
-            has_errors:
-                Indique si le champ associé comporte des erreurs.
-            described_by:
-                Identifiant HTML de l'élément décrivant le champ, par exemple
-                une aide ou un message d'erreur.
-        """
+        """Adapte un widget et retourne la même instance."""
         if not isinstance(widget, Widget):
             raise TypeError(
                 "widget doit être une instance de django.forms.Widget."
@@ -179,10 +203,17 @@ class WidgetAdapter:
         return widget
 
     def _adapt_input(self, widget: Input) -> None:
-        self._merge_classes(widget, _INPUT_CLASSES)
+        self._merge_classes(
+            widget,
+            _INPUT_CLASSES,
+        )
 
         if isinstance(widget, PasswordInput):
-            self._set_default_attr(widget, "autocomplete", "current-password")
+            self._set_default_attr(
+                widget,
+                "autocomplete",
+                "current-password",
+            )
 
     def _adapt_textarea(self, widget: Textarea) -> None:
         self._merge_classes(
@@ -194,18 +225,42 @@ class WidgetAdapter:
 
         if current_rows in (None, 10, "10"):
             widget.attrs["rows"] = 4
-        
-    def _adapt_select(self, widget: Select | SelectMultiple) -> None:
-        self._merge_classes(widget, _SELECT_CLASSES)
 
-    def _adapt_checkbox(self, widget: CheckboxInput) -> None:
-        self._merge_classes(widget, _CHECKBOX_CLASSES)
+    def _adapt_select(
+        self,
+        widget: Select | SelectMultiple,
+    ) -> None:
+        self._merge_classes(
+            widget,
+            _SELECT_CLASSES,
+        )
 
-    def _adapt_radio(self, widget: RadioSelect) -> None:
-        self._merge_classes(widget, _RADIO_CLASSES)
+    def _adapt_checkbox(
+        self,
+        widget: CheckboxInput,
+    ) -> None:
+        self._merge_classes(
+            widget,
+            _CHECKBOX_CLASSES,
+        )
 
-    def _adapt_file(self, widget: FileInput) -> None:
-        self._merge_classes(widget, _FILE_CLASSES)
+    def _adapt_radio(
+        self,
+        widget: RadioSelect,
+    ) -> None:
+        self._merge_classes(
+            widget,
+            _RADIO_CLASSES,
+        )
+
+    def _adapt_file(
+        self,
+        widget: FileInput,
+    ) -> None:
+        self._merge_classes(
+            widget,
+            _FILE_CLASSES,
+        )
 
     def _adapt_accessibility(
         self,
@@ -216,7 +271,11 @@ class WidgetAdapter:
     ) -> None:
         if has_errors:
             widget.attrs["aria-invalid"] = "true"
-            self._merge_classes(widget, _INVALID_CLASSES)
+
+            self._merge_classes(
+                widget,
+                _INVALID_CLASSES,
+            )
 
         if described_by:
             self._merge_attribute_values(
@@ -231,7 +290,10 @@ class WidgetAdapter:
         name: str,
         value: object,
     ) -> None:
-        widget.attrs.setdefault(name, value)
+        widget.attrs.setdefault(
+            name,
+            value,
+        )
 
     @classmethod
     def _merge_classes(
@@ -252,7 +314,12 @@ class WidgetAdapter:
         attribute: str,
         values: Iterable[str],
     ) -> None:
-        existing_values = str(widget.attrs.get(attribute, "")).split()
+        existing_values = str(
+            widget.attrs.get(
+                attribute,
+                "",
+            )
+        ).split()
 
         merged_values = list(existing_values)
 
@@ -262,4 +329,6 @@ class WidgetAdapter:
                     merged_values.append(item)
 
         if merged_values:
-            widget.attrs[attribute] = " ".join(merged_values)
+            widget.attrs[attribute] = " ".join(
+                merged_values
+            )

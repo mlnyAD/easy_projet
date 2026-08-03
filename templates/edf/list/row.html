@@ -2,7 +2,11 @@
 
 {% load ep_lists %}
 
-<tr class="transition-colors hover:bg-gray-50">
+<tr
+    class="transition-colors
+           hover:bg-axcio-surface-alt
+           dark:hover:bg-axcio-surface-alt-dark"
+>
     {% for cell in row.cells %}
         <td
             class="
@@ -11,7 +15,8 @@
                 px-4 py-1.5
                 text-sm
                 leading-5
-                text-gray-700
+                text-axcio-text-secondary
+                dark:text-axcio-text-secondary-dark
                 {% if cell.column.truncate %}
                     truncate whitespace-nowrap
                 {% endif %}

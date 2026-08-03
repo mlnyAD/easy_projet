@@ -13,6 +13,7 @@ from __future__ import annotations
 # =============================================================================
 # Listes
 # =============================================================================
+
 COLUMN_WIDTH_CLASSES = {
     "auto": "",
     "xs": "w-20 max-w-20",
@@ -22,17 +23,20 @@ COLUMN_WIDTH_CLASSES = {
     "lg": "w-64 max-w-64",
     "xl": "w-80 max-w-80",
 }
+
 COLUMN_ALIGNMENT_CLASSES = {
     "left": "text-left",
     "center": "text-center",
     "right": "text-right",
 }
 
+
 # =============================================================================
 # Couleurs Easy Projet
 # =============================================================================
 
 PRIMARY_COLOR = "#248A8D"
+
 
 # =============================================================================
 # Champs de saisie
@@ -44,41 +48,42 @@ INPUT_BASE_CLASSES = (
     "text-sm shadow-sm transition "
     "focus:outline-none focus:ring-2 "
     "disabled:cursor-not-allowed "
-    "disabled:bg-gray-100 "
-    "disabled:text-gray-500 "
+    "disabled:bg-axcio-input-disabled "
+    "disabled:text-axcio-text-muted "
     "disabled:opacity-100 "
     "read-only:cursor-default "
-    "read-only:bg-gray-100 "
-    "read-only:text-gray-600 "
-    "dark:disabled:bg-neutral-900 "
-    "dark:disabled:text-neutral-500 "
-    "dark:read-only:bg-neutral-900 "
-    "dark:read-only:text-neutral-400"
+    "read-only:bg-axcio-input-disabled "
+    "read-only:text-axcio-text-secondary "
+    "dark:disabled:bg-axcio-input-disabled-dark "
+    "dark:disabled:text-axcio-text-muted-dark "
+    "dark:read-only:bg-axcio-input-disabled-dark "
+    "dark:read-only:text-axcio-text-muted-dark"
 )
 
 INPUT_NORMAL_CLASSES = (
-    "border-gray-300 "
-    "bg-[#F4FBFA] "
-    "text-gray-900 "
-    "focus:border-[#0D5262] "
-    "focus:ring-[#0D5262]/20 "
-    "dark:border-neutral-700 "
-    "dark:bg-neutral-800/70 "
-    "dark:text-neutral-100 "
-    "dark:focus:border-[#248A8D] "
-    "dark:focus:ring-[#248A8D]/20"
+    "border-axcio-border "
+    "bg-axcio-input "
+    "text-axcio-text "
+    "focus:border-axcio-dark "
+    "focus:ring-axcio-dark/20 "
+    "dark:border-axcio-border-dark "
+    "dark:bg-axcio-input-dark "
+    "dark:text-axcio-text-dark "
+    "dark:focus:border-axcio-light "
+    "dark:focus:ring-axcio-light/20"
 )
 
 INPUT_ERROR_CLASSES = (
-    "border-red-500 "
-    "bg-red-50 "
-    "text-gray-900 "
-    "focus:border-red-500 "
-    "focus:ring-red-500/20 "
-    "dark:border-red-500 "
-    "dark:bg-red-950/20 "
-    "dark:text-neutral-100"
+    "border-axcio-danger "
+    "bg-axcio-danger-soft "
+    "text-axcio-text "
+    "focus:border-axcio-danger "
+    "focus:ring-axcio-danger/20 "
+    "dark:border-axcio-danger "
+    "dark:bg-axcio-danger-soft-dark "
+    "dark:text-axcio-text-dark"
 )
+
 
 # =============================================================================
 # Cases à cocher
@@ -88,20 +93,26 @@ CHECKBOX_CLASSES = (
     "size-7 "
     "shrink-0 "
     "rounded "
-    "border-gray-300 "
-    "text-[#0D5262] "
-    "accent-[#0D5262] "
+    "border-axcio-border "
+    "bg-axcio-input "
+    "text-axcio-dark "
+    "accent-axcio-dark "
     "cursor-pointer "
     "transition-colors duration-150 "
     "focus:outline-none "
     "focus:ring-2 "
-    "focus:ring-[#0D5262]/20 "
+    "focus:ring-axcio-dark/20 "
     "focus:ring-offset-1 "
     "disabled:cursor-not-allowed "
     "disabled:opacity-50 "
-    "dark:border-neutral-700 "
-    "dark:bg-neutral-900"
+    "dark:border-axcio-border-dark "
+    "dark:bg-axcio-input-dark "
+    "dark:text-axcio-light "
+    "dark:accent-axcio-light "
+    "dark:focus:ring-axcio-light/20 "
+    "dark:focus:ring-offset-axcio-page-dark"
 )
+
 
 # =============================================================================
 # Boutons
@@ -117,31 +128,35 @@ BUTTON_BASE_CLASSES = (
     "focus:ring-2 "
     "focus:ring-offset-2 "
     "disabled:cursor-not-allowed "
-    "disabled:opacity-50"
+    "disabled:opacity-50 "
+    "dark:focus:ring-offset-axcio-page-dark"
 )
 
 PRIMARY_BUTTON_CLASSES = (
     "bg-axcio-light "
-    "hover:bg-axcio-light-hover "
     "text-white "
+    "hover:bg-axcio-light-hover "
     "focus:ring-axcio-light"
 )
 
 BUTTON_SECONDARY_CLASSES = (
-    "bg-gray-300 "
-    "text-gray-900 "
-    "hover:bg-gray-400 "
-    "focus:ring-gray-400 "
-    "dark:bg-neutral-700 "
-    "dark:text-white "
-    "dark:hover:bg-neutral-600"
+    "border border-axcio-border "
+    "bg-axcio-surface-alt "
+    "text-axcio-text-secondary "
+    "hover:bg-axcio-border-light "
+    "focus:ring-axcio-border "
+    "dark:border-axcio-border-dark "
+    "dark:bg-axcio-surface-alt-dark "
+    "dark:text-axcio-text-secondary-dark "
+    "dark:hover:bg-axcio-border-dark "
+    "dark:focus:ring-axcio-border-dark"
 )
 
 BUTTON_DANGER_CLASSES = (
-    "bg-red-600 "
+    "bg-axcio-danger "
     "text-white "
     "hover:bg-red-700 "
-    "focus:ring-red-600 "
-    "dark:bg-red-700 "
-    "dark:hover:bg-red-800"
+    "focus:ring-axcio-danger "
+    "dark:bg-axcio-danger "
+    "dark:hover:bg-red-700"
 )

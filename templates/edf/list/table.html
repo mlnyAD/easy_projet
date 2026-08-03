@@ -1,10 +1,26 @@
 
 
-<div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-    <table class="min-w-full table-auto divide-y divide-gray-200">
+<div
+    class="overflow-x-auto rounded-lg border
+           border-axcio-border-light
+           bg-axcio-surface shadow-sm
+           dark:border-axcio-border-dark
+           dark:bg-axcio-surface-dark"
+>
+    <table
+        class="min-w-full table-auto divide-y
+               divide-axcio-border-light
+               dark:divide-axcio-border-dark"
+    >
         {% include "edf/list/header.html" %}
 
-        <tbody class="divide-y divide-gray-200 bg-white">
+        <tbody
+            class="divide-y
+                   divide-axcio-border-light
+                   bg-axcio-surface
+                   dark:divide-axcio-border-dark
+                   dark:bg-axcio-surface-dark"
+        >
             {% for row in list_view.rows %}
                 {% include "edf/list/row.html" %}
             {% empty %}

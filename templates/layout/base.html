@@ -1,0 +1,114 @@
+
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+    <script>
+        (function () {
+            const storedTheme = localStorage.getItem(
+                "easy-projet-theme"
+            ) || "system";
+
+            const useDarkTheme = (
+                storedTheme === "dark"
+                || (
+                    storedTheme === "system"
+                    && window.matchMedia(
+                        "(prefers-color-scheme: dark)"
+                    ).matches
+                )
+            );
+
+            document.documentElement.classList.toggle(
+                "dark",
+                useDarkTheme
+            );
+        })();
+    </script>
+
+
+    <title>
+        {% block title %}Easy Projet{% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'dist/output.css' %}?v=6"
+    >
+</head>
+
+<body class="min-h-screen bg-gray-100 text-gray-900
+             dark:bg-neutral-950 dark:text-neutral-100">
+
+    {% include "edf/notifications/toasts.html" %}
+
+    <div class="flex min-h-screen">
+
+        {% include "layout/sidebar.html" %}
+
+        <div class="flex min-w-0 flex-1 flex-col">
+
+            {% include "layout/topbar.html" %}
+
+            <main
+                class="min-h-0 flex-1 overflow-y-auto
+                       bg-gray-50 px-6 py-5
+                       dark:bg-neutral-950"
+            >
+                {% block content %}
+                {% endblock %}
+            </main>
+
+            {% include "layout/footer.html" %}
+
+        </div>
+    </div>
+
+    {% block scripts %}
+        <script
+            src="https://unpkg.com/lucide@latest"
+            defer
+        ></script>
+
+        <script
+            src="{% static 'js/forms/form_behaviors.js' %}?v=2"
+            defer
+        ></script>
+
+        <script
+            src="{% static 'js/forms/catalog_incremental.js' %}?v=3"
+            defer
+        ></script>
+
+        <script
+            src="{% static 'js/framework/toasts.js' %}?v=3"
+            defer
+        ></script>
+
+        <script
+            src="{% static 'js/framework/theme.js' %}?v=1"
+            defer
+        ></script>
+
+        <script>
+            document.addEventListener(
+                "DOMContentLoaded",
+                function () {
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                }
+            );
+        </script>
+    {% endblock %}
+
+</body>
+</html>

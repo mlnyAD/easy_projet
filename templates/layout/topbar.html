@@ -1,0 +1,244 @@
+
+
+<header
+    class="flex h-16 shrink-0 items-center gap-4
+           border-b border-gray-200 bg-white px-5
+           dark:border-neutral-800 dark:bg-neutral-900"
+>
+    <button
+        type="button"
+        class="inline-flex h-9 w-9 items-center justify-center
+               rounded-lg text-gray-500 transition
+               hover:bg-gray-100 hover:text-gray-900
+               dark:text-neutral-400
+               dark:hover:bg-neutral-800
+               dark:hover:text-neutral-100"
+        aria-label="Réduire le menu"
+    >
+        <i
+            data-lucide="panel-left-close"
+            class="h-5 w-5"
+            aria-hidden="true"
+        ></i>
+    </button>
+
+    <div class="relative max-w-md flex-1">
+        <i
+            data-lucide="search"
+            class="pointer-events-none absolute left-3 top-1/2
+                   h-4 w-4 -translate-y-1/2 text-gray-400"
+            aria-hidden="true"
+        ></i>
+
+        <input
+            type="search"
+            placeholder="Rechercher dans Easy Projet"
+            class="h-10 w-full rounded-lg border border-gray-300
+                   bg-gray-50 pl-9 pr-3 text-sm
+                   text-gray-900
+                   focus:border-axcio-dark
+                   focus:outline-none focus:ring-2
+                   focus:ring-axcio-dark/20
+                   dark:border-neutral-700
+                   dark:bg-neutral-800
+                   dark:text-neutral-100
+                   dark:placeholder:text-neutral-500"
+        >
+    </div>
+
+    <div
+        class="mx-auto min-w-0 max-w-xl flex-1
+               text-center"
+    >
+        <p
+            class="text-xs font-medium uppercase tracking-wide
+                   text-gray-400 dark:text-neutral-500"
+        >
+            Projet en cours
+        </p>
+
+        <p
+            class="truncate text-sm font-semibold text-gray-900
+                   dark:text-neutral-100"
+        >
+            Aucun projet sélectionné
+        </p>
+    </div>
+
+    <div class="flex shrink-0 items-center gap-1">
+
+        <div
+            class="relative"
+            data-theme-menu
+        >
+            <button
+                type="button"
+                class="inline-flex h-9 w-9 items-center justify-center
+                       rounded-lg text-gray-500 transition
+                       hover:bg-gray-100 hover:text-gray-900
+                       focus:outline-none focus:ring-2
+                       focus:ring-axcio-light
+                       dark:text-neutral-400
+                       dark:hover:bg-neutral-800
+                       dark:hover:text-neutral-100"
+                aria-label="Choisir le thème"
+                aria-haspopup="menu"
+                aria-expanded="false"
+                title="Thème"
+                data-theme-trigger
+            >
+                <i
+                    data-lucide="sun-moon"
+                    class="h-5 w-5"
+                    aria-hidden="true"
+                    data-theme-icon
+                ></i>
+            </button>
+
+            <div
+                class="absolute right-0 top-full z-40 mt-2 hidden
+                       w-44 overflow-hidden rounded-lg border
+                       border-gray-200 bg-white py-1 shadow-lg
+                       dark:border-neutral-700
+                       dark:bg-neutral-800"
+                role="menu"
+                aria-label="Choix du thème"
+                data-theme-dropdown
+            >
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-3 px-3 py-2
+                           text-left text-sm text-gray-700 transition
+                           hover:bg-gray-100
+                           dark:text-neutral-200
+                           dark:hover:bg-neutral-700"
+                    role="menuitem"
+                    data-theme-option="system"
+                >
+                    <i
+                        data-lucide="monitor"
+                        class="h-4 w-4"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span class="flex-1">Système</span>
+
+                    <i
+                        data-lucide="check"
+                        class="hidden h-4 w-4 text-axcio-light"
+                        aria-hidden="true"
+                        data-theme-check="system"
+                    ></i>
+                </button>
+
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-3 px-3 py-2
+                           text-left text-sm text-gray-700 transition
+                           hover:bg-gray-100
+                           dark:text-neutral-200
+                           dark:hover:bg-neutral-700"
+                    role="menuitem"
+                    data-theme-option="light"
+                >
+                    <i
+                        data-lucide="sun"
+                        class="h-4 w-4"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span class="flex-1">Clair</span>
+
+                    <i
+                        data-lucide="check"
+                        class="hidden h-4 w-4 text-axcio-light"
+                        aria-hidden="true"
+                        data-theme-check="light"
+                    ></i>
+                </button>
+
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-3 px-3 py-2
+                           text-left text-sm text-gray-700 transition
+                           hover:bg-gray-100
+                           dark:text-neutral-200
+                           dark:hover:bg-neutral-700"
+                    role="menuitem"
+                    data-theme-option="dark"
+                >
+                    <i
+                        data-lucide="moon"
+                        class="h-4 w-4"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span class="flex-1">Sombre</span>
+
+                    <i
+                        data-lucide="check"
+                        class="hidden h-4 w-4 text-axcio-light"
+                        aria-hidden="true"
+                        data-theme-check="dark"
+                    ></i>
+                </button>
+            </div>
+        </div>
+
+        <button
+            type="button"
+            class="inline-flex h-9 items-center gap-2
+                   rounded-lg px-3 text-sm text-gray-500
+                   transition hover:bg-gray-100
+                   hover:text-gray-900
+                   dark:text-neutral-400
+                   dark:hover:bg-neutral-800
+                   dark:hover:text-neutral-100"
+            title="Assistant IA"
+        >
+            <i
+                data-lucide="sparkles"
+                class="h-5 w-5"
+                aria-hidden="true"
+            ></i>
+
+            <span>IA</span>
+        </button>
+
+        <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center
+                   rounded-lg text-gray-500 transition
+                   hover:bg-gray-100 hover:text-gray-900
+                   dark:text-neutral-400
+                   dark:hover:bg-neutral-800
+                   dark:hover:text-neutral-100"
+            aria-label="Notifications"
+            title="Notifications"
+        >
+            <i
+                data-lucide="bell"
+                class="h-5 w-5"
+                aria-hidden="true"
+            ></i>
+        </button>
+
+        <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center
+                   rounded-lg text-gray-500 transition
+                   hover:bg-gray-100 hover:text-gray-900
+                   dark:text-neutral-400
+                   dark:hover:bg-neutral-800
+                   dark:hover:text-neutral-100"
+            aria-label="Aide en ligne"
+            title="Aide en ligne"
+        >
+            <i
+                data-lucide="circle-help"
+                class="h-5 w-5"
+                aria-hidden="true"
+            ></i>
+        </button>
+    </div>
+</header>

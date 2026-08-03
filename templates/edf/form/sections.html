@@ -6,16 +6,20 @@
     <div class="space-y-3">
         {% for section in form_view.sections %}
             <section
-                class="rounded-lg border border-gray-200 bg-white
+                class="rounded-lg border
+                       border-axcio-border-light
+                       bg-axcio-surface
                        px-4 py-3 shadow-sm
-                       dark:border-neutral-700 dark:bg-neutral-800"
+                       dark:border-axcio-border-dark
+                       dark:bg-axcio-surface-dark"
             >
                 {% if section.title or section.description %}
                     <header class="mb-2">
                         {% if section.title %}
                             <h2
-                                class="text-sm font-semibold text-gray-900
-                                       dark:text-neutral-100"
+                                class="text-sm font-semibold
+                                       text-axcio-text
+                                       dark:text-axcio-text-dark"
                             >
                                 {{ section.title }}
                             </h2>
@@ -23,8 +27,9 @@
 
                         {% if section.description %}
                             <p
-                                class="mt-0.5 text-xs text-gray-500
-                                       dark:text-neutral-400"
+                                class="mt-0.5 text-xs
+                                       text-axcio-text-muted
+                                       dark:text-axcio-text-muted-dark"
                             >
                                 {{ section.description }}
                             </p>

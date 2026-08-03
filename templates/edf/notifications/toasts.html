@@ -15,17 +15,21 @@
                        transition-[opacity,transform] duration-200 ease-out
 
                        {% if message.tags == 'success' %}
-                           border-emerald-200 bg-[#F4FBFA]
-                           dark:border-emerald-800 dark:bg-emerald-950/30
+                           border-axcio-success
+                           bg-axcio-success-soft
+                           dark:bg-axcio-success-soft-dark
                        {% elif message.tags == 'error' %}
-                           border-red-200 bg-red-50
-                           dark:border-red-800 dark:bg-red-950/30
+                           border-axcio-danger
+                           bg-axcio-danger-soft
+                           dark:bg-axcio-danger-soft-dark
                        {% elif message.tags == 'warning' %}
-                           border-amber-200 bg-amber-50
-                           dark:border-amber-800 dark:bg-amber-950/30
+                           border-axcio-warning
+                           bg-axcio-warning-soft
+                           dark:bg-axcio-warning-soft-dark
                        {% else %}
-                           border-blue-200 bg-blue-50
-                           dark:border-blue-800 dark:bg-blue-950/30
+                           border-axcio-info
+                           bg-axcio-info-soft
+                           dark:bg-axcio-info-soft-dark
                        {% endif %}"
                 role="{% if message.tags == 'error' %}alert{% else %}status{% endif %}"
                 data-toast
@@ -35,30 +39,45 @@
                     <div
                         class="mt-0.5 shrink-0
                                {% if message.tags == 'success' %}
-                                   text-emerald-600 dark:text-emerald-400
+                                   text-axcio-success
                                {% elif message.tags == 'error' %}
-                                   text-red-600 dark:text-red-400
+                                   text-axcio-danger
                                {% elif message.tags == 'warning' %}
-                                   text-amber-600 dark:text-amber-400
+                                   text-axcio-warning
                                {% else %}
-                                   text-blue-600 dark:text-blue-400
+                                   text-axcio-info
                                {% endif %}"
                         aria-hidden="true"
                     >
                         {% if message.tags == "success" %}
-                            <i data-lucide="circle-check" class="h-5 w-5"></i>
+                            <i
+                                data-lucide="circle-check"
+                                class="h-5 w-5"
+                            ></i>
                         {% elif message.tags == "error" %}
-                            <i data-lucide="circle-x" class="h-5 w-5"></i>
+                            <i
+                                data-lucide="circle-x"
+                                class="h-5 w-5"
+                            ></i>
                         {% elif message.tags == "warning" %}
-                            <i data-lucide="triangle-alert" class="h-5 w-5"></i>
+                            <i
+                                data-lucide="triangle-alert"
+                                class="h-5 w-5"
+                            ></i>
                         {% else %}
-                            <i data-lucide="info" class="h-5 w-5"></i>
+                            <i
+                                data-lucide="info"
+                                class="h-5 w-5"
+                            ></i>
                         {% endif %}
                     </div>
 
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-gray-900
-                                  dark:text-neutral-100">
+                        <p
+                            class="text-sm font-medium
+                                   text-axcio-text
+                                   dark:text-axcio-text-dark"
+                        >
                             {% if message.tags == "success" %}
                                 Opération réussie
                             {% elif message.tags == "error" %}
@@ -70,8 +89,11 @@
                             {% endif %}
                         </p>
 
-                        <p class="mt-0.5 text-sm text-gray-600
-                                  dark:text-neutral-300">
+                        <p
+                            class="mt-0.5 text-sm
+                                   text-axcio-text-secondary
+                                   dark:text-axcio-text-secondary-dark"
+                        >
                             {{ message }}
                         </p>
                     </div>
@@ -79,13 +101,16 @@
                     <button
                         type="button"
                         class="inline-flex h-7 w-7 shrink-0 items-center
-                               justify-center rounded-md text-gray-400
-                               transition hover:bg-black/5
-                               hover:text-gray-700
+                               justify-center rounded-md
+                               text-axcio-text-muted
+                               transition-colors
+                               hover:bg-black/5
+                               hover:text-axcio-text
                                focus:outline-none focus:ring-2
                                focus:ring-axcio-light
+                               dark:text-axcio-text-muted-dark
                                dark:hover:bg-white/10
-                               dark:hover:text-neutral-100"
+                               dark:hover:text-axcio-text-dark"
                         aria-label="Fermer la notification"
                         data-toast-close
                     >
@@ -100,13 +125,13 @@
                 <div
                     class="h-0.5 origin-left
                            {% if message.tags == 'success' %}
-                               bg-emerald-500
+                               bg-axcio-success
                            {% elif message.tags == 'error' %}
-                               bg-red-500
+                               bg-axcio-danger
                            {% elif message.tags == 'warning' %}
-                               bg-amber-500
+                               bg-axcio-warning
                            {% else %}
-                               bg-blue-500
+                               bg-axcio-info
                            {% endif %}"
                     aria-hidden="true"
                     data-toast-progress

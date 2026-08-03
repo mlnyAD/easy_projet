@@ -8,13 +8,23 @@
     <div class="space-y-2">
         <label
             for="id_{{ field.name }}"
-            class="block text-sm font-medium text-gray-800
-                   dark:text-neutral-200"
+            class="block text-sm font-medium
+                   text-axcio-text-secondary
+                   dark:text-axcio-text-secondary-dark"
         >
             {{ field.label }}
 
             {% if field.required %}
-                <span class="text-red-600" aria-hidden="true">*</span>
+                <span
+                    class="text-axcio-danger"
+                    aria-hidden="true"
+                >
+                    *
+                </span>
+
+                <span class="sr-only">
+                    Champ obligatoire
+                </span>
             {% endif %}
         </label>
 
@@ -22,21 +32,45 @@
             id="id_{{ field.name }}"
             name="{{ field.name }}"
             type="date"
-            class="block w-full rounded-lg border border-gray-300
-                   bg-white px-3 py-2 text-sm text-gray-900 shadow-sm
-                   transition
-                   focus:border-axcio-dark
-                   focus:outline-none focus:ring-2
-                   focus:ring-axcio-dark/20
-                   dark:border-neutral-700 dark:bg-neutral-900
-                   dark:text-neutral-200"
+            class="
+                block w-full rounded-lg border
+                border-axcio-border
+                bg-axcio-input
+                px-3 py-2
+                text-sm text-axcio-text
+                shadow-sm transition
+                focus:border-axcio-dark
+                focus:outline-none
+                focus:ring-2
+                focus:ring-axcio-dark/20
+                disabled:cursor-not-allowed
+                disabled:bg-axcio-input-disabled
+                disabled:text-axcio-text-muted
+                disabled:opacity-100
+                read-only:cursor-default
+                read-only:bg-axcio-input-disabled
+                read-only:text-axcio-text-secondary
+                dark:border-axcio-border-dark
+                dark:bg-axcio-input-dark
+                dark:text-axcio-text-dark
+                dark:focus:border-axcio-light
+                dark:focus:ring-axcio-light/20
+                dark:disabled:bg-axcio-input-disabled-dark
+                dark:disabled:text-axcio-text-muted-dark
+                dark:read-only:bg-axcio-input-disabled-dark
+                dark:read-only:text-axcio-text-muted-dark
+            "
             {% if field.required %}required{% endif %}
             {% if field.readonly %}readonly{% endif %}
             {% if field.disabled %}disabled{% endif %}
         >
 
         {% if field.help_text %}
-            <p class="text-xs text-gray-500 dark:text-neutral-400">
+            <p
+                class="text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
                 {{ field.help_text }}
             </p>
         {% endif %}

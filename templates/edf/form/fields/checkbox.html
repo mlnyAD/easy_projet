@@ -7,16 +7,17 @@
     <div class="mb-1 flex items-center gap-1.5">
         <label
             for="{{ field.id_for_label }}"
-            class="block text-sm font-medium text-gray-800
-                   dark:text-neutral-200"
+            class="block text-sm font-medium
+                   text-axcio-text-secondary
+                   dark:text-axcio-text-secondary-dark"
         >
             {{ field.label }}
         </label>
 
         {% if field.help_text %}
             <span
-                class="inline-flex text-gray-400
-                       dark:text-neutral-500"
+                class="inline-flex text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
                 aria-hidden="true"
             >
                 <i
@@ -34,7 +35,8 @@
             data-checkbox-status
             data-checked-label="{{ field.checked_label }}"
             data-unchecked-label="{{ field.unchecked_label }}"
-            class="text-sm text-gray-700 dark:text-neutral-300"
+            class="text-sm text-axcio-text-secondary
+                   dark:text-axcio-text-secondary-dark"
             aria-live="polite"
         >
             {% if field.value %}
@@ -49,12 +51,13 @@
         <div
             id="{{ field.bound_field.auto_id }}_help"
             class="pointer-events-none absolute left-0 top-full z-30
-                   mt-1 max-w-sm rounded-md bg-gray-900
-                   px-3 py-2 text-xs leading-4 text-white
+                   mt-1 max-w-sm rounded-md
+                   bg-axcio-text px-3 py-2
+                   text-xs leading-4 text-white
                    opacity-0 shadow-lg transition-opacity
                    group-hover:opacity-100
                    group-focus-within:opacity-100
-                   dark:bg-neutral-700"
+                   dark:bg-axcio-surface-alt-dark"
             role="tooltip"
         >
             {{ field.help_text }}
@@ -68,7 +71,7 @@
             role="alert"
         >
             {% for error in field.errors %}
-                <p class="text-sm text-red-600 dark:text-red-500">
+                <p class="text-sm text-axcio-danger">
                     {{ error }}
                 </p>
             {% endfor %}

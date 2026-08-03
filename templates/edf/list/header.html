@@ -2,7 +2,7 @@
 
 {% load ep_lists %}
 
-<thead class="bg-gray-50">
+<thead class="bg-axcio-surface-alt dark:bg-axcio-surface-alt-dark">
     <tr>
         {% for column in list_view.columns %}
             <th
@@ -16,7 +16,8 @@
                     font-semibold
                     uppercase
                     tracking-wider
-                    text-gray-600
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
                 "
             >
                 <span>{{ column.label }}</span>
@@ -24,14 +25,14 @@
                 {% if column.sorted %}
                     {% if column.descending %}
                         <span
-                            class="ml-1"
+                            class="ml-1 text-axcio-light"
                             aria-label="Tri décroissant"
                         >
                             ▼
                         </span>
                     {% else %}
                         <span
-                            class="ml-1"
+                            class="ml-1 text-axcio-light"
                             aria-label="Tri croissant"
                         >
                             ▲
@@ -53,7 +54,8 @@
                     font-semibold
                     uppercase
                     tracking-wider
-                    text-gray-600
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
                 "
             >
                 Actions

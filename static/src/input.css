@@ -12,13 +12,62 @@
 @source "../../templates/**/*.html";
 @source "../../apps/**/*.html";
 @source "../../common/**/*.py";
+@source "../../framework/**/*.py";
 
 @theme {
-    /* Couleurs institutionnelles */
-
+    /* Marque */
     --color-axcio-dark: #0D5262;
     --color-axcio-light: #248A8D;
     --color-axcio-light-hover: #1E7477;
+
+    /* Fonds */
+    --color-axcio-page: #F3F4F6;
+    --color-axcio-page-dark: #0A0A0A;
+
+    --color-axcio-surface: #FFFFFF;
+    --color-axcio-surface-dark: #171717;
+
+    --color-axcio-surface-alt: #F9FAFB;
+    --color-axcio-surface-alt-dark: #262626;
+
+    /* Champs de saisie */
+    --color-axcio-input: #F4FBFA;
+    --color-axcio-input-dark: #2F3A42;
+
+    --color-axcio-input-disabled: #F3F4F6;
+    --color-axcio-input-disabled-dark: #20252A;
+
+    /* Bordures */
+    --color-axcio-border: #D1D5DB;
+    --color-axcio-border-light: #E5E7EB;
+    --color-axcio-border-dark: #404040;
+
+    /* Textes */
+    --color-axcio-text: #111827;
+    --color-axcio-text-dark: #F5F5F5;
+
+    --color-axcio-text-secondary: #374151;
+    --color-axcio-text-secondary-dark: #D4D4D4;
+
+    --color-axcio-text-muted: #6B7280;
+    --color-axcio-text-muted-dark: #A3A3A3;
+
+    /* États */
+    --color-axcio-success: #16A34A;
+    --color-axcio-success-soft: #F0FDF4;
+    --color-axcio-success-soft-dark: #142A1B;
+
+    --color-axcio-warning: #D97706;
+    --color-axcio-warning-soft: #FFFBEB;
+    --color-axcio-warning-soft-dark: #33250D;
+
+    --color-axcio-danger: #DC2626;
+    --color-axcio-danger-soft: #FEF2F2;
+    --color-axcio-danger-soft-dark: #321516;
+
+    --color-axcio-info: #2563EB;
+    --color-axcio-info-soft: #EFF6FF;
+    --color-axcio-info-soft-dark: #172554;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
