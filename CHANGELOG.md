@@ -77,3 +77,17 @@
 * Réduction de la hauteur des lignes de données.
 * Conservation de la sélection du nombre de lignes par page comme évolution ultérieure.
 * Report de la centralisation des paramètres visuels dans une configuration du framework.
+
+## EP-005 - Transaction Projet
+
+### Ajout
+- Implémentation complète de la transaction Projet.
+- Gestion des catalogues Projet (statut, type).
+- Formulaire générique avec six sections.
+- Liste des projets avec affichage métier.
+- Dates effectives (début, fin, réception, livraison).
+- Administration Django.
+
+### Amélioration
+- La liste Projet affiche désormais les dates retenues (révisées si disponibles).
+- Affichage du maître d'ouvrage dans la liste.

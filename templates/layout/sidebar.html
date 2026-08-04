@@ -7,6 +7,7 @@
 {% url "users:list" as users_url %}
 {% url "licenses:list" as licenses_url %}
 {% url "projects:list" as projects_url %}
+{% url "work:list" as work_url %}
 
 {% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-2 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2 text-sm text-axcio-text-secondary transition-colors hover:bg-axcio-surface-alt hover:text-axcio-text dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-surface-alt-dark dark:hover:text-axcio-text-dark" %}
 
@@ -132,6 +133,24 @@
                 ></i>
 
                 <span>Projets</span>
+            </a>
+            <a
+                href="{{ work_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'work' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
+            >
+                <i
+                    data-lucide="hammer"
+                    class="h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                ></i>
+
+                <span>Lots de travaux</span>
             </a>
             <a
                 href="#"

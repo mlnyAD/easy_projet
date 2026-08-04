@@ -657,6 +657,7 @@ CATALOG_VALUE_DEFINITIONS = [
         code="PLANNED",
         label="Planifié",
         sort_order=10,
+        is_default=True,
     ),
 
     CatalogValueDefinition(
