@@ -6,6 +6,7 @@
 {% url "companies:list" as companies_url %}
 {% url "users:list" as users_url %}
 {% url "licenses:list" as licenses_url %}
+{% url "projects:list" as projects_url %}
 
 {% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-2 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2 text-sm text-axcio-text-secondary transition-colors hover:bg-axcio-surface-alt hover:text-axcio-text dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-surface-alt-dark dark:hover:text-axcio-text-dark" %}
 
@@ -115,10 +116,14 @@
             </a>
 
             <a
-                href="#"
-                class="{{ inactive_classes }}"
-                aria-disabled="true"
-                title="Module à venir"
+                href="{{ projects_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'projects' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
             >
                 <i
                     data-lucide="folder-kanban"
@@ -128,7 +133,6 @@
 
                 <span>Projets</span>
             </a>
-
             <a
                 href="#"
                 class="{{ inactive_classes }}"

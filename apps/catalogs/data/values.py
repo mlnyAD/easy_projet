@@ -198,6 +198,7 @@ CATALOG_VALUE_DEFINITIONS = [
         code="PLANNED",
         label="Planifié",
         sort_order=10,
+        is_default=True,
     ),
 
     CatalogValueDefinition(
@@ -527,6 +528,7 @@ CATALOG_VALUE_DEFINITIONS = [
         code="EMPLOYEE",
         label="Employé",
         sort_order=10,
+        is_default=True,
     ),
 
     CatalogValueDefinition(
@@ -576,6 +578,7 @@ CATALOG_VALUE_DEFINITIONS = [
         code="STANDARD",
         label="Standard",
         sort_order=20,
+         is_default=True,
     ),
 
     CatalogValueDefinition(
@@ -604,6 +607,7 @@ CATALOG_VALUE_DEFINITIONS = [
         code="NONE",
         label="Aucun",
         sort_order=30,
+        is_default=True,
     ),
 
     CatalogValueDefinition(
