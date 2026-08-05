@@ -19,8 +19,7 @@ from django.forms.widgets import (
     Widget,
 )
 
-
-_INPUT_CLASSES = (
+_FIELD_BASE_CLASSES = (
     "edf-form-input",
     "block",
     "w-full",
@@ -43,9 +42,6 @@ _INPUT_CLASSES = (
     "disabled:bg-axcio-input-disabled",
     "disabled:text-axcio-text-muted",
     "disabled:opacity-100",
-    "read-only:cursor-default",
-    "read-only:bg-axcio-input-disabled",
-    "read-only:text-axcio-text-secondary",
     "dark:border-axcio-border-dark",
     "dark:bg-axcio-input-dark",
     "dark:text-axcio-text-dark",
@@ -54,6 +50,13 @@ _INPUT_CLASSES = (
     "dark:focus:ring-axcio-light/20",
     "dark:disabled:bg-axcio-input-disabled-dark",
     "dark:disabled:text-axcio-text-muted-dark",
+)
+
+_INPUT_CLASSES = (
+    *_FIELD_BASE_CLASSES,
+    "read-only:cursor-default",
+    "read-only:bg-axcio-input-disabled",
+    "read-only:text-axcio-text-secondary",
     "dark:read-only:bg-axcio-input-disabled-dark",
     "dark:read-only:text-axcio-text-muted-dark",
 )
@@ -65,7 +68,10 @@ _TEXTAREA_CLASSES = (
 )
 
 _SELECT_CLASSES = (
-    *_INPUT_CLASSES,
+    *_FIELD_BASE_CLASSES,
+    "edf-form-select",
+    "appearance-none",
+    "cursor-pointer",
     "pe-9",
 )
 

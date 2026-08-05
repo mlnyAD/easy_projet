@@ -21,6 +21,7 @@ from common.ui.css import (
     INPUT_BASE_CLASSES,
     INPUT_ERROR_CLASSES,
     INPUT_NORMAL_CLASSES,
+    INPUT_READ_ONLY_CLASSES,
 )
 
 register = template.Library()
@@ -80,6 +81,11 @@ def _build_widget_attributes(
     else:
         component_classes = _join_classes(
             INPUT_BASE_CLASSES,
+            (
+                ""
+                if widget_kind == "select"
+                else INPUT_READ_ONLY_CLASSES
+            ),
             _get_input_state_classes(field),
         )
 

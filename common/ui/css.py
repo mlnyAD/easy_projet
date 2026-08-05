@@ -51,11 +51,14 @@ INPUT_BASE_CLASSES = (
     "disabled:bg-axcio-input-disabled "
     "disabled:text-axcio-text-muted "
     "disabled:opacity-100 "
+    "dark:disabled:bg-axcio-input-disabled-dark "
+    "dark:disabled:text-axcio-text-muted-dark"
+)
+
+INPUT_READ_ONLY_CLASSES = (
     "read-only:cursor-default "
     "read-only:bg-axcio-input-disabled "
     "read-only:text-axcio-text-secondary "
-    "dark:disabled:bg-axcio-input-disabled-dark "
-    "dark:disabled:text-axcio-text-muted-dark "
     "dark:read-only:bg-axcio-input-disabled-dark "
     "dark:read-only:text-axcio-text-muted-dark"
 )
@@ -83,7 +86,6 @@ INPUT_ERROR_CLASSES = (
     "dark:bg-axcio-danger-soft-dark "
     "dark:text-axcio-text-dark"
 )
-
 
 # =============================================================================
 # Cases à cocher
