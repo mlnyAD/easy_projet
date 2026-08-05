@@ -61,7 +61,8 @@ WORK_PACKAGE_DICTIONARY = {
         "code": {
             "label": "Code",
             "data_type": "string",
-            "required": True,
+            "required": False,
+            "generated": True,
             "max_length": WORK_PACKAGE_CODE_LENGTH,
         },
 

@@ -5,54 +5,58 @@ from __future__ import annotations
 from django import forms
 
 from apps.catalogs.models import CatalogValue
-from apps.projects.models import Project
-from apps.users.models import User
-from common.constants.work_package import (
-    WORK_PACKAGE_CODE_LENGTH,
-    WORK_PACKAGE_DESCRIPTION_LENGTH,
-    WORK_PACKAGE_NAME_LENGTH,
+from apps.work.models import WorkPackage
+from common.constants.task import (
+    TASK_CODE_LENGTH,
+    TASK_DESCRIPTION_LENGTH,
+    TASK_MAX_PROGRESS_PERCENT,
+    TASK_MIN_PROGRESS_PERCENT,
+    TASK_NAME_LENGTH,
 )
 from common.forms.fields import CatalogModelChoiceField
 
-from .models import WorkPackage
+from .models import Task
 
 
-class WorkPackageForm(forms.ModelForm):
+class TaskForm(forms.ModelForm):
     """
-    Formulaire de création et de modification d'un lot de travaux.
+    Formulaire de création et de modification d'une tâche.
     """
 
     status = CatalogModelChoiceField(
         queryset=CatalogValue.objects.none(),
-        catalog_code="WORK_PACKAGE_STATUS",
+        catalog_code="TASK_STATUS",
         required=True,
         label="Statut",
     )
 
     class Meta:
-        model = WorkPackage
+        model = Task
 
         fields = (
-            "project",
+            "work_package",
+            "status",
             "code",
             "name",
             "description",
-            "status",
-            "manager",
-            "start_date",
-            "end_date",
+            "planned_start_date",
+            "planned_end_date",
+            "updated_start_date",
+            "updated_end_date",
             "planned_workload_hours",
+            "remaining_workload_hours",
+            "progress_percent",
             "is_active",
         )
 
         labels = {
-            "is_active": "Lot actif",
+            "is_active": "Tâche active",
         }
 
         widgets = {
             "code": forms.TextInput(
                 attrs={
-                    "maxlength": WORK_PACKAGE_CODE_LENGTH,
+                    "maxlength": TASK_CODE_LENGTH,
                     "autocomplete": "off",
                     "placeholder": "Généré automatiquement si vide",
                     "data-uppercase": True,
@@ -61,28 +65,36 @@ class WorkPackageForm(forms.ModelForm):
             ),
             "name": forms.TextInput(
                 attrs={
-                    "maxlength": WORK_PACKAGE_NAME_LENGTH,
+                    "maxlength": TASK_NAME_LENGTH,
                     "autocomplete": "off",
-                    "placeholder": "Nom du lot de travaux",
+                    "placeholder": "Nom de la tâche",
                     "data-trim": True,
                 }
             ),
             "description": forms.Textarea(
                 attrs={
-                    "maxlength": WORK_PACKAGE_DESCRIPTION_LENGTH,
+                    "maxlength": TASK_DESCRIPTION_LENGTH,
                     "rows": 4,
-                    "placeholder": (
-                        "Description générale du lot de travaux"
-                    ),
+                    "placeholder": "Description de la tâche",
                     "data-trim": True,
                 }
             ),
-            "start_date": forms.DateInput(
+            "planned_start_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "end_date": forms.DateInput(
+            "planned_end_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                }
+            ),
+            "updated_start_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                }
+            ),
+            "updated_end_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
@@ -94,36 +106,42 @@ class WorkPackageForm(forms.ModelForm):
                     "inputmode": "numeric",
                 }
             ),
+            "remaining_workload_hours": forms.NumberInput(
+                attrs={
+                    "min": 0,
+                    "step": 1,
+                    "inputmode": "numeric",
+                }
+            ),
+            "progress_percent": forms.NumberInput(
+                attrs={
+                    "min": TASK_MIN_PROGRESS_PERCENT,
+                    "max": TASK_MAX_PROGRESS_PERCENT,
+                    "step": 1,
+                    "inputmode": "numeric",
+                }
+            ),
         }
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        
+
         self.fields["code"].required = False
 
-        self.fields["project"].queryset = (
-            Project.objects
+        self.fields["work_package"].queryset = (
+            WorkPackage.objects
             .filter(is_active=True)
-            .select_related("owner_company")
+            .select_related("project")
             .order_by(
-                "reference",
+                "project__reference",
+                "code",
                 "name",
-            )
-        )
-
-        self.fields["manager"].queryset = (
-            User.objects
-            .filter(is_active=True)
-            .select_related("company")
-            .order_by(
-                "last_name",
-                "first_name",
             )
         )
 
         self._configure_catalog_field(
             field_name="status",
-            catalog_code="WORK_PACKAGE_STATUS",
+            catalog_code="TASK_STATUS",
         )
 
         if not self.is_bound and not self.instance.pk:

@@ -5,7 +5,7 @@ from __future__ import annotations
 from uuid import uuid4
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 
 from apps.catalogs.models import CatalogValue
 from apps.projects.models import Project
@@ -17,6 +17,10 @@ from common.constants.work_package import (
     WORK_PACKAGE_NAME_LENGTH,
 )
 from common.models import TimeStampedModel
+from common.services.code_generator import (
+    generate_scoped_code,
+    normalize_code_part,
+)
 
 
 class WorkPackage(TimeStampedModel):
@@ -71,6 +75,7 @@ class WorkPackage(TimeStampedModel):
 
     code = models.CharField(
         max_length=WORK_PACKAGE_CODE_LENGTH,
+        blank=True,
         verbose_name="Code",
     )
 
@@ -139,10 +144,38 @@ class WorkPackage(TimeStampedModel):
             )
 
     def save(self, *args, **kwargs) -> None:
-        self.code = self.code.strip().upper()
+        """
+        Normalise ou génère le code avant l'enregistrement.
+        """
         self.name = self.name.strip()
 
-        super().save(*args, **kwargs)
+        if self.code:
+            self.code = normalize_code_part(self.code)
+            super().save(*args, **kwargs)
+            return
+
+        if self.project_id is None:
+            raise ValueError(
+                "Le projet doit être renseigné avant la génération "
+                "du code du lot de travaux."
+            )
+
+        with transaction.atomic():
+            project = (
+                Project.objects
+                .select_for_update()
+                .get(pk=self.project_id)
+            )
+
+            self.code = generate_scoped_code(
+                model=WorkPackage,
+                parent=project,
+                parent_field_name="project",
+                prefix="LOT",
+                max_length=WORK_PACKAGE_CODE_LENGTH,
+            )
+
+            super().save(*args, **kwargs)
 
     class Meta:
         db_table = "work_package"
