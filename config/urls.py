@@ -22,4 +22,5 @@ urlpatterns = [
     path("licenses/", include("apps.licenses.urls")),
     path("projects/", include("apps.projects.urls")),
     path("work/", include("apps.work.urls")),
+    path("tasks/", include("apps.tasks.urls")),
 ]

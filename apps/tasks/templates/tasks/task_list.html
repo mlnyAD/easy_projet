@@ -1,0 +1,55 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Tâches
+{% endblock %}
+
+{% block content %}
+    <div class="space-y-4">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <h1
+                    class="text-xl font-semibold
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    {% if is_work_package_context %}
+                        Tâches du lot {{ work_package.code }}
+                    {% else %}
+                        Tâches
+                    {% endif %}
+                </h1>
+
+                {% if is_work_package_context %}
+                    <p
+                        class="mt-1 text-sm
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    >
+                        {{ work_package.project.reference }}
+                        — {{ work_package.name }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <a
+                href="{% url 'tasks:create' %}"
+                class="inline-flex items-center justify-center
+                       rounded-lg bg-axcio-light px-4 py-2
+                       text-sm font-medium text-white
+                       transition-colors
+                       hover:bg-axcio-light-hover
+                       focus:outline-none focus:ring-2
+                       focus:ring-axcio-light
+                       focus:ring-offset-2
+                       dark:focus:ring-offset-axcio-page-dark"
+            >
+                Nouvelle tâche
+            </a>
+        </div>
+
+        {% include "edf/list/list.html" %}
+    </div>
+{% endblock %}
