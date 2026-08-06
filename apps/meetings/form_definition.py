@@ -1,0 +1,127 @@
+
+
+from framework.form import (
+    FieldDefinition,
+    FormDefinition,
+    SectionDefinition,
+)
+from framework.types.field_width import FieldWidth
+
+
+MEETING_FORM_DEFINITION = FormDefinition(
+    name="meeting",
+    title="Réunion",
+    sections=[
+        SectionDefinition(
+            title="Rattachement",
+            fields=[
+                FieldDefinition(
+                    name="project",
+                    width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="organizer",
+                    width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="status",
+                    width=FieldWidth.FULL,
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Identification",
+            fields=[
+                FieldDefinition(
+                    name="reference",
+                ),
+                FieldDefinition(
+                    name="subject",
+                ),
+                FieldDefinition(
+                    name="is_active",
+                    required=False,
+                    width=FieldWidth.FULL,
+                    checked_label="Active",
+                    unchecked_label="Inactive",
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Organisation",
+            fields=[
+                FieldDefinition(
+                    name="scheduled_at",
+                ),
+                FieldDefinition(
+                    name="duration_hours",
+                ),
+                FieldDefinition(
+                    name="location",
+                    width=FieldWidth.FULL,
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Informations",
+            fields=[
+                FieldDefinition(
+                    name="notes",
+                    width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="comments",
+                    width=FieldWidth.FULL,
+                ),
+            ],
+        ),
+    ],
+)
+
+
+MEETING_PARTICIPANT_FORM_DEFINITION = FormDefinition(
+    name="meeting_participant",
+    title="Participant à une réunion",
+    sections=[
+        SectionDefinition(
+            title="Rattachement",
+            fields=[
+                FieldDefinition(
+                    name="meeting",
+                    width=FieldWidth.FULL,
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Participant",
+            fields=[
+                FieldDefinition(
+                    name="participant",
+                    width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="external_name",
+                ),
+                FieldDefinition(
+                    name="external_email",
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Invitation",
+            fields=[
+                FieldDefinition(
+                    name="invitation_response",
+                    width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="is_active",
+                    required=False,
+                    width=FieldWidth.FULL,
+                    checked_label="Active",
+                    unchecked_label="Inactive",
+                ),
+            ],
+        ),
+    ],
+)

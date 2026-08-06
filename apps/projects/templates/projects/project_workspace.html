@@ -251,8 +251,18 @@
                     <i data-lucide="layers-3" class="h-6 w-6"></i>
                     <span>Lotir</span>
                 </a>
+                <a
+                    href="{% url 'meetings:list-by-project' project.pk %}"
+                    class="project-action-card"
+                >
+                    <i
+                        data-lucide="calendar-days"
+                        class="h-6 w-6"
+                        aria-hidden="true"
+                    ></i>
 
-                {% include "projects/project_workspace_action_disabled.html" with icon="calendar-days" label="Piloter" %}
+                    <span>Piloter</span>
+                </a>
                 {% include "projects/project_workspace_action_disabled.html" with icon="users" label="Affecter" %}
                 {% include "projects/project_workspace_action_disabled.html" with icon="banknote" label="Financer" %}
                 {% include "projects/project_workspace_action_disabled.html" with icon="map-pin" label="Localiser" %}
