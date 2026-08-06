@@ -1,0 +1,104 @@
+
+
+from framework.form import (
+    FieldDefinition,
+    FormDefinition,
+    SectionDefinition,
+)
+from framework.types.field_width import FieldWidth
+
+
+RISK_FORM_DEFINITION = FormDefinition(
+    name="risk",
+    title="Risque",
+    sections=[
+        SectionDefinition(
+            title="Rattachement",
+            fields=[
+                FieldDefinition(
+                    name="project",
+                    width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="owner",
+                    width=FieldWidth.FULL,
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Classification",
+            fields=[
+                FieldDefinition(
+                    name="origin",
+                ),
+                FieldDefinition(
+                    name="risk_type",
+                ),
+                FieldDefinition(
+                    name="risk_class",
+                ),
+                FieldDefinition(
+                    name="impact",
+                ),
+                FieldDefinition(
+                    name="severity",
+                ),
+                FieldDefinition(
+                    name="probability",
+                ),
+                FieldDefinition(
+                    name="status",
+                ),
+                FieldDefinition(
+                    name="criticality",
+                ),
+                FieldDefinition(
+                    name="review_frequency",
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Identification",
+            fields=[
+                FieldDefinition(
+                    name="reference",
+                ),
+                FieldDefinition(
+                    name="title",
+                ),
+                FieldDefinition(
+                    name="description",
+                    width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="is_active",
+                    required=False,
+                    width=FieldWidth.FULL,
+                    checked_label="Actif",
+                    unchecked_label="Inactif",
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Évaluation",
+            fields=[
+                FieldDefinition(
+                    name="occurrence_date",
+                ),
+                FieldDefinition(
+                    name="closure_date",
+                ),
+                FieldDefinition(
+                    name="estimated_cost",
+                ),
+                FieldDefinition(
+                    name="last_review_date",
+                ),
+                FieldDefinition(
+                    name="planned_actions",
+                    width=FieldWidth.FULL,
+                ),
+            ],
+        ),
+    ],
+)

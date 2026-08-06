@@ -6,6 +6,7 @@ from .views import (
     ProjectCreateView,
     ProjectListView,
     ProjectUpdateView,
+    ProjectWorkspaceView,
 )
 
 
@@ -21,6 +22,11 @@ urlpatterns = [
         "new/",
         ProjectCreateView.as_view(),
         name="create",
+    ),
+    path(
+        "<uuid:pk>/",
+        ProjectWorkspaceView.as_view(),
+        name="workspace",
     ),
     path(
         "<uuid:pk>/edit/",

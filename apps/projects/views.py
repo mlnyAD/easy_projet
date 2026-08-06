@@ -2,7 +2,9 @@
 
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.views.generic import ListView
+from django.views.generic import DetailView, ListView
+from django.urls import reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from common.constants import (
     DEFAULT_PAGE_SIZE,
@@ -32,6 +34,7 @@ class ProjectListView(ListView):
             Project.objects
             .select_related(
                 "company",
+                "owner_company",
                 "project_manager",
                 "status",
             )
@@ -79,6 +82,52 @@ class ProjectListView(ListView):
         return context
 
 
+class ProjectWorkspaceView(DetailView):
+    """
+    Résumé et point d'entrée fonctionnel d'un projet.
+
+    Cette vue ne permet aucune modification directe des données.
+    """
+
+    model = Project
+    template_name = "projects/project_workspace.html"
+    context_object_name = "project"
+
+    def get_queryset(self):
+        return (
+            Project.objects
+            .select_related(
+                "company",
+                "owner_company",
+                "project_manager",
+                "status",
+            )
+            .prefetch_related(
+                "work_packages",
+                "work_packages__tasks",
+            )
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        project = self.object
+
+        context["current_project"] = project
+        context["work_package_count"] = (
+            project.work_packages.count()
+        )
+        context["task_count"] = sum(
+            work_package.tasks.count()
+            for work_package in project.work_packages.all()
+        )
+
+        # Aucun calcul métier d'avancement n'est encore validé.
+        context["progress_percent"] = None
+
+        return context
+
+
 class ProjectCreateView(EPCreateView):
     model = Project
     form_class = ProjectForm
@@ -98,15 +147,32 @@ class ProjectCreateView(EPCreateView):
 
         return response
 
-
 class ProjectUpdateView(EPUpdateView):
     model = Project
     form_class = ProjectForm
     definition = PROJECT_FORM_DEFINITION
     template_name = "edf/form/view.html"
 
-    success_url = reverse_lazy("projects:list")
-    cancel_url = reverse_lazy("projects:list")
+    def get_return_url(self):
+        candidate = self.request.GET.get("next")
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={self.request.get_host()},
+                require_https=self.request.is_secure(),
+            )
+        ):
+            return candidate
+
+        return reverse_lazy("projects:list")
+
+    def get_success_url(self):
+        return self.get_return_url()
+
+    def get_cancel_url(self):
+        return self.get_return_url()
 
     def form_valid(self, form):
         response = super().form_valid(form)

@@ -1,7 +1,7 @@
 
 
 <a
-    href="{% url 'tasks:update' row.source_object.pk %}"
+    href="{% url 'tasks:update' row.source_object.pk %}?next={{ return_url|urlencode }}"
     class="inline-flex h-7 w-7 items-center justify-center rounded-md
            text-axcio-light transition-colors
            hover:bg-axcio-light/10 hover:text-axcio-light-hover

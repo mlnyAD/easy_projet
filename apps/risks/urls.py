@@ -3,34 +3,34 @@
 from django.urls import path
 
 from .views import (
-    WorkPackageCreateView,
-    WorkPackageListByProjectView,
-    WorkPackageListView,
-    WorkPackageUpdateView,
+    RiskCreateView,
+    RiskListByProjectView,
+    RiskListView,
+    RiskUpdateView,
 )
 
 
-app_name = "work"
+app_name = "risks"
 
 urlpatterns = [
     path(
         "",
-        WorkPackageListView.as_view(),
+        RiskListView.as_view(),
         name="list",
     ),
     path(
         "new/",
-        WorkPackageCreateView.as_view(),
+        RiskCreateView.as_view(),
         name="create",
     ),
     path(
         "projects/<uuid:project_pk>/",
-        WorkPackageListByProjectView.as_view(),
+        RiskListByProjectView.as_view(),
         name="list-by-project",
     ),
     path(
         "<uuid:pk>/edit/",
-        WorkPackageUpdateView.as_view(),
+        RiskUpdateView.as_view(),
         name="update",
     ),
 ]

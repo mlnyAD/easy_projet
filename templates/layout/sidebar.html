@@ -8,6 +8,8 @@
 {% url "licenses:list" as licenses_url %}
 {% url "projects:list" as projects_url %}
 {% url "work:list" as work_url %}
+{% url "tasks:list" as tasks_url %}
+{% url "risks:list" as risks_url %}
 
 {% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-2 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2 text-sm text-axcio-text-secondary transition-colors hover:bg-axcio-surface-alt hover:text-axcio-text dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-surface-alt-dark dark:hover:text-axcio-text-dark" %}
 
@@ -151,6 +153,42 @@
                 ></i>
 
                 <span>Lots de travaux</span>
+            </a>
+            <a
+                href="{{ tasks_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'tasks' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
+            >
+                <i
+                    data-lucide="list-checks"
+                    class="h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                ></i>
+
+                <span>Tâches</span>
+            </a>
+            <a
+                href="{{ risks_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'risks' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
+            >
+                <i
+                    data-lucide="triangle-alert"
+                    class="h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                ></i>
+
+                <span>Risques</span>
             </a>
             <a
                 href="#"

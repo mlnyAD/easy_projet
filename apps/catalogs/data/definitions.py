@@ -50,7 +50,17 @@ CATALOG_DEFINITIONS = [
         code="RISK_CLASS",
         label="Type de risque",
     ),
+    
+    CatalogDefinition(
+        code="RISK_CRITICALITY",
+        label="Criticité du risque",
+    ),
 
+    CatalogDefinition(
+        code="RISK_REVIEW_FREQUENCY",
+        label="Fréquence de revue du risque",
+    ),
+    
     CatalogDefinition(
         code="RISK_GRAVITY",
         label="Gravité du risque",

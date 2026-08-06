@@ -8,11 +8,13 @@
 @import "./edf/lists.css";
 @import "./edf/cards.css";
 @import "./edf/tables.css";
+@import "./edf/project.css";
 
 @source "../../templates/**/*.html";
 @source "../../apps/**/*.html";
 @source "../../common/**/*.py";
 @source "../../framework/**/*.py";
+
 
 @theme {
     /* Marque */

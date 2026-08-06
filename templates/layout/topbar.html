@@ -48,20 +48,25 @@
 
     <div
         class="mx-auto min-w-0 max-w-xl flex-1
-               text-center"
+            text-center"
     >
         <p
             class="text-xs font-medium uppercase tracking-wide
-                   text-gray-400 dark:text-neutral-500"
+                text-gray-400 dark:text-neutral-500"
         >
             Projet en cours
         </p>
 
         <p
             class="truncate text-sm font-semibold text-gray-900
-                   dark:text-neutral-100"
+                dark:text-neutral-100"
         >
-            Aucun projet sélectionné
+            {% if current_project %}
+                {{ current_project.reference }}
+                — {{ current_project.name }}
+            {% else %}
+                Aucun projet sélectionné
+            {% endif %}
         </p>
     </div>
 

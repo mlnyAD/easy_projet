@@ -1,0 +1,278 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    {{ project.reference }} — {{ project.name }}
+{% endblock %}
+
+{% block content %}
+    <div class="space-y-6">
+
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <p
+                    class="text-sm font-medium text-axcio-light"
+                >
+                    {{ project.reference }}
+                </p>
+
+                <h1
+                    class="text-2xl font-semibold
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    {{ project.name }}
+                </h1>
+            </div>
+
+            <a
+                href="{% url 'projects:list' %}"
+                class="inline-flex items-center gap-2 rounded-lg
+                       border border-axcio-border
+                       bg-axcio-surface-alt px-4 py-2
+                       text-sm font-medium
+                       text-axcio-text-secondary
+                       transition-colors
+                       hover:bg-axcio-border-light
+                       focus:outline-none focus:ring-2
+                       focus:ring-axcio-light
+                       dark:border-axcio-border-dark
+                       dark:bg-axcio-surface-alt-dark
+                       dark:text-axcio-text-secondary-dark
+                       dark:hover:bg-axcio-border-dark"
+            >
+                <i
+                    data-lucide="arrow-left"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+
+                Retour aux projets
+            </a>
+        </div>
+
+        <section
+            class="grid gap-6 rounded-xl border
+                   border-axcio-border-light bg-axcio-surface p-6
+                   shadow-sm
+                   dark:border-axcio-border-dark
+                   dark:bg-axcio-surface-dark
+                   lg:grid-cols-3"
+        >
+            <div
+                class="flex min-h-56 items-center justify-center
+                       rounded-xl border border-dashed
+                       border-axcio-border
+                       bg-axcio-surface-alt
+                       dark:border-axcio-border-dark
+                       dark:bg-axcio-surface-alt-dark"
+            >
+                <div class="text-center">
+                    <i
+                        data-lucide="image"
+                        class="mx-auto h-10 w-10
+                               text-axcio-text-muted"
+                        aria-hidden="true"
+                    ></i>
+
+                    <p
+                        class="mt-2 text-sm
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    >
+                        Photo du projet à venir
+                    </p>
+                </div>
+            </div>
+
+            <div class="space-y-5 lg:col-span-2">
+                <dl class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-xs uppercase tracking-wide
+                                   text-axcio-text-muted">
+                            Chef de projet
+                        </dt>
+                        <dd class="mt-1 text-sm font-medium">
+                            {{ project.project_manager|default:"Non renseigné" }}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-xs uppercase tracking-wide
+                                   text-axcio-text-muted">
+                            Maître d’ouvrage
+                        </dt>
+                        <dd class="mt-1 text-sm font-medium">
+                            {{ project.owner_company|default:"Non renseigné" }}
+                        </dd>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <dt class="text-xs uppercase tracking-wide
+                                   text-axcio-text-muted">
+                            Adresse
+                        </dt>
+                        <dd class="mt-1 text-sm font-medium">
+                            {% if project.address_1 %}
+                                {{ project.address_1 }}
+                                {% if project.address_2 %}
+                                    — {{ project.address_2 }}
+                                {% endif %}
+                                {% if project.address_3 %}
+                                    — {{ project.address_3 }}
+                                {% endif %}
+                                <br>
+                                {{ project.postal_code }}
+                                {{ project.city }}
+                                {% if project.country %}
+                                    — {{ project.country }}
+                                {% endif %}
+                            {% else %}
+                                Non renseignée
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-xs uppercase tracking-wide
+                                   text-axcio-text-muted">
+                            Début
+                        </dt>
+                        <dd class="mt-1 text-sm font-medium">
+                            {{ project.effective_start_date|date:"d/m/Y"|default:"Non renseigné" }}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-xs uppercase tracking-wide
+                                   text-axcio-text-muted">
+                            Fin
+                        </dt>
+                        <dd class="mt-1 text-sm font-medium">
+                            {{ project.effective_end_date|date:"d/m/Y"|default:"Non renseignée" }}
+                        </dd>
+                    </div>
+                </dl>
+
+                <div>
+                    <div class="mb-2 flex items-center justify-between">
+                        <span class="text-sm font-medium">
+                            Avancement
+                        </span>
+
+                        <span class="text-sm text-axcio-text-muted">
+                            {% if progress_percent is not None %}
+                                {{ progress_percent }} %
+                            {% else %}
+                                Non calculé
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div
+                        class="h-3 overflow-hidden rounded-full
+                               bg-axcio-input-disabled
+                               dark:bg-axcio-input-disabled-dark"
+                        role="progressbar"
+                        aria-label="Avancement du projet"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        {% if progress_percent is not None %}
+                            aria-valuenow="{{ progress_percent }}"
+                        {% endif %}
+                    >
+                        {% if progress_percent is not None %}
+                            <progress
+                                class="h-3 w-full overflow-hidden rounded-full"
+                                value="{{ progress_percent|default:0 }}"
+                                max="100"
+                                aria-label="Avancement du projet"
+                            >
+                                {{ progress_percent|default:0 }} %
+                            </progress>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div
+                        class="rounded-lg bg-axcio-surface-alt p-3
+                               dark:bg-axcio-surface-alt-dark"
+                    >
+                        <p class="text-xs text-axcio-text-muted">
+                            Lots
+                        </p>
+                        <p class="mt-1 text-xl font-semibold">
+                            {{ work_package_count }}
+                        </p>
+                    </div>
+
+                    <div
+                        class="rounded-lg bg-axcio-surface-alt p-3
+                               dark:bg-axcio-surface-alt-dark"
+                    >
+                        <p class="text-xs text-axcio-text-muted">
+                            Tâches
+                        </p>
+                        <p class="mt-1 text-xl font-semibold">
+                            {{ task_count }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2
+                class="mb-3 text-lg font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                Actions du projet
+            </h2>
+
+            <div
+                class="grid gap-3 sm:grid-cols-2
+                       lg:grid-cols-4 xl:grid-cols-6"
+            >
+                <a
+                    href="{% url 'projects:update' project.pk %}?next={% url 'projects:workspace' project.pk %}"
+                    class="project-action-card"
+                >
+                    <i data-lucide="pen" class="h-6 w-6"></i>
+                    <span>Modifier</span>
+                </a>
+
+                <a
+                    href="{% url 'work:list-by-project' project.pk %}"
+                    class="project-action-card"
+                >
+                    <i data-lucide="layers-3" class="h-6 w-6"></i>
+                    <span>Lotir</span>
+                </a>
+
+                {% include "projects/project_workspace_action_disabled.html" with icon="calendar-days" label="Piloter" %}
+                {% include "projects/project_workspace_action_disabled.html" with icon="users" label="Affecter" %}
+                {% include "projects/project_workspace_action_disabled.html" with icon="banknote" label="Financer" %}
+                {% include "projects/project_workspace_action_disabled.html" with icon="map-pin" label="Localiser" %}
+                {% include "projects/project_workspace_action_disabled.html" with icon="clock-3" label="Gérer les heures" %}
+                {% include "projects/project_workspace_action_disabled.html" with icon="chart-no-axes-combined" label="Tableau de bord" %}
+                <a
+                    href="{% url 'risks:list-by-project' project.pk %}"
+                    class="project-action-card"
+                >
+                    <i
+                        data-lucide="triangle-alert"
+                        class="h-6 w-6"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>Risques</span>
+                </a>
+                {% include "projects/project_workspace_action_disabled.html" with icon="folder-open" label="Documentation" %}
+                {% include "projects/project_workspace_action_disabled.html" with icon="image-plus" label="Photo" %}
+            </div>
+        </section>
+    </div>
+{% endblock %}

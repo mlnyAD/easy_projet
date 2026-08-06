@@ -1,22 +1,38 @@
 
 
-/*
- * Champs de formulaire du Design System Easy Projet.
- */
-
-.edf-form-select {
-    background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-position: right 0.75rem center;
-    background-repeat: no-repeat;
-    background-size: 1rem 1rem;
+.project-action-card {
+    display: flex;
+    min-height: 6rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-axcio-border-light);
+    background-color: var(--color-axcio-surface);
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-axcio-dark);
+    transition:
+        background-color 150ms,
+        border-color 150ms,
+        transform 150ms;
 }
 
-.dark .edf-form-select {
-    background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23A3A3A3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+.project-action-card:hover {
+    border-color: var(--color-axcio-light);
+    background-color: var(--color-axcio-input);
+    transform: translateY(-1px);
 }
 
-.edf-form-select:disabled {
-    cursor: not-allowed;
+.dark .project-action-card {
+    border-color: var(--color-axcio-border-dark);
+    background-color: var(--color-axcio-surface-dark);
+    color: var(--color-axcio-light);
+}
+
+.dark .project-action-card:hover {
+    background-color: var(--color-axcio-surface-alt-dark);
 }

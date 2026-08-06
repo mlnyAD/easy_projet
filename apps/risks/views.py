@@ -18,30 +18,42 @@ from framework.integrations.django.views import (
 from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
 
-from .form_definition import WORK_PACKAGE_FORM_DEFINITION
-from .forms import WorkPackageForm
-from .lists import WORK_PACKAGE_LIST_DEFINITION
-from .models import WorkPackage
+from .form_definition import RISK_FORM_DEFINITION
+from .forms import RiskForm
+from .lists import RISK_LIST_DEFINITION
+from .models import Risk
 
 
-class WorkPackageListView(ListView):
-    model = WorkPackage
-    template_name = "work/work_package_list.html"
-    context_object_name = "work_packages"
+class RiskListView(ListView):
+    """
+    Liste globale des risques et opportunités.
+    """
+
+    model = Risk
+    template_name = "risks/risk_list.html"
+    context_object_name = "risks"
     paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
-            WorkPackage.objects
+            Risk.objects
             .select_related(
                 "project",
-                "manager",
+                "owner",
+                "origin",
+                "risk_type",
+                "risk_class",
+                "impact",
+                "severity",
+                "probability",
                 "status",
+                "criticality",
+                "review_frequency",
             )
             .order_by(
                 "project__reference",
-                "code",
-                "name",
+                "reference",
+                "title",
             )
         )
 
@@ -51,7 +63,7 @@ class WorkPackageListView(ListView):
         django_page = context["page_obj"]
 
         runtime = EPList(
-            definition=WORK_PACKAGE_LIST_DEFINITION,
+            definition=RISK_LIST_DEFINITION,
             rows=django_page.object_list,
         )
 
@@ -77,7 +89,7 @@ class WorkPackageListView(ListView):
 
         context["page_sizes"] = PAGE_SIZE_VALUES
         context["row_actions_template"] = (
-            "work/work_package_actions.html"
+            "risks/risk_actions.html"
         )
 
         context["is_project_context"] = False
@@ -86,9 +98,9 @@ class WorkPackageListView(ListView):
         return context
 
 
-class WorkPackageListByProjectView(WorkPackageListView):
+class RiskListByProjectView(RiskListView):
     """
-    Liste des lots de travaux appartenant à un projet donné.
+    Liste des risques et opportunités d'un projet donné.
     """
 
     def get_project(self) -> Project:
@@ -121,6 +133,8 @@ class WorkPackageListByProjectView(WorkPackageListView):
         context["project"] = project
         context["current_project"] = project
         context["is_project_context"] = True
+
+        # Après création ou modification, retour au résumé projet.
         context["return_url"] = reverse(
             "projects:workspace",
             kwargs={
@@ -131,10 +145,10 @@ class WorkPackageListByProjectView(WorkPackageListView):
         return context
 
 
-class WorkPackageCreateView(EPCreateView):
-    model = WorkPackage
-    form_class = WorkPackageForm
-    definition = WORK_PACKAGE_FORM_DEFINITION
+class RiskCreateView(EPCreateView):
+    model = Risk
+    form_class = RiskForm
+    definition = RISK_FORM_DEFINITION
     template_name = "edf/form/view.html"
 
     def get_return_url(self):
@@ -150,7 +164,7 @@ class WorkPackageCreateView(EPCreateView):
         ):
             return candidate
 
-        return reverse_lazy("work:list")
+        return reverse_lazy("risks:list")
 
     def get_success_url(self):
         return self.get_return_url()
@@ -183,16 +197,16 @@ class WorkPackageCreateView(EPCreateView):
 
         messages.success(
             self.request,
-            "Le lot de travaux a été créé avec succès.",
+            "Le risque a été créé avec succès.",
         )
 
         return response
 
 
-class WorkPackageUpdateView(EPUpdateView):
-    model = WorkPackage
-    form_class = WorkPackageForm
-    definition = WORK_PACKAGE_FORM_DEFINITION
+class RiskUpdateView(EPUpdateView):
+    model = Risk
+    form_class = RiskForm
+    definition = RISK_FORM_DEFINITION
     template_name = "edf/form/view.html"
 
     def get_return_url(self):
@@ -208,7 +222,7 @@ class WorkPackageUpdateView(EPUpdateView):
         ):
             return candidate
 
-        return reverse_lazy("work:list")
+        return reverse_lazy("risks:list")
 
     def get_success_url(self):
         return self.get_return_url()
@@ -221,7 +235,7 @@ class WorkPackageUpdateView(EPUpdateView):
 
         messages.success(
             self.request,
-            "Le lot de travaux a été modifié avec succès.",
+            "Le risque a été modifié avec succès.",
         )
 
         return response

@@ -340,6 +340,35 @@ CATALOG_VALUE_DEFINITIONS = [
         label="Autre",
         sort_order=100,
     ),
+    
+    CatalogValueDefinition(
+        catalog="RISK_CRITICALITY",
+        code="LOW",
+        label="Faible",
+        sort_order=10,
+    ),
+
+    CatalogValueDefinition(
+        catalog="RISK_CRITICALITY",
+        code="MEDIUM",
+        label="Moyenne",
+        sort_order=20,
+        is_default=True,
+    ),
+
+    CatalogValueDefinition(
+        catalog="RISK_CRITICALITY",
+        code="HIGH",
+        label="Élevée",
+        sort_order=30,
+    ),
+
+    CatalogValueDefinition(
+        catalog="RISK_CRITICALITY",
+        code="CRITICAL",
+        label="Critique",
+        sort_order=40,
+    ),
 
     CatalogValueDefinition(
         catalog="RISK_GRAVITY",
@@ -447,6 +476,28 @@ CATALOG_VALUE_DEFINITIONS = [
     ),
 
     CatalogValueDefinition(
+        catalog="RISK_REVIEW_FREQUENCY",
+        code="WEEKLY",
+        label="Hebdomadaire",
+        sort_order=10,
+        is_default=True,
+    ),
+
+    CatalogValueDefinition(
+        catalog="RISK_REVIEW_FREQUENCY",
+        code="MONTHLY",
+        label="Mensuelle",
+        sort_order=20,
+    ),
+
+    CatalogValueDefinition(
+        catalog="RISK_REVIEW_FREQUENCY",
+        code="ON_EVENT",
+        label="À chaque événement",
+        sort_order=30,
+    ),
+
+    CatalogValueDefinition(
         catalog="RISK_STATE",
         code="LATENT",
         label="Latent",
@@ -455,7 +506,7 @@ CATALOG_VALUE_DEFINITIONS = [
 
     CatalogValueDefinition(
         catalog="RISK_STATE",
-        code="AMERGED",
+        code="EMERGED",
         label="Apparu",
         sort_order=20,
     ),
@@ -688,5 +739,7 @@ CATALOG_VALUE_DEFINITIONS = [
         label="Annulé",
         sort_order=50,
     ),
+    
+    
     
 ]

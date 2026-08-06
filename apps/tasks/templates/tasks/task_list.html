@@ -3,12 +3,16 @@
 {% extends "layout/base.html" %}
 
 {% block title %}
-    Tâches
+    {% if is_work_package_context %}
+        Tâches — {{ work_package.code }}
+    {% else %}
+        Tâches
+    {% endif %}
 {% endblock %}
 
 {% block content %}
     <div class="space-y-4">
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h1
                     class="text-xl font-semibold
@@ -28,26 +32,58 @@
                                text-axcio-text-muted
                                dark:text-axcio-text-muted-dark"
                     >
-                        {{ work_package.project.reference }}
-                        — {{ work_package.name }}
+                        {{ project.reference }} — {{ work_package.name }}
                     </p>
                 {% endif %}
             </div>
 
-            <a
-                href="{% url 'tasks:create' %}"
-                class="inline-flex items-center justify-center
-                       rounded-lg bg-axcio-light px-4 py-2
-                       text-sm font-medium text-white
-                       transition-colors
-                       hover:bg-axcio-light-hover
-                       focus:outline-none focus:ring-2
-                       focus:ring-axcio-light
-                       focus:ring-offset-2
-                       dark:focus:ring-offset-axcio-page-dark"
-            >
-                Nouvelle tâche
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                {% if is_work_package_context %}
+                    <a
+                        href="{{ parent_return_url }}"
+                        class="inline-flex items-center gap-2 rounded-lg
+                               border border-axcio-border
+                               bg-axcio-surface-alt px-4 py-2
+                               text-sm font-medium
+                               text-axcio-text-secondary
+                               transition-colors
+                               hover:bg-axcio-border-light
+                               focus:outline-none focus:ring-2
+                               focus:ring-axcio-light
+                               dark:border-axcio-border-dark
+                               dark:bg-axcio-surface-alt-dark
+                               dark:text-axcio-text-secondary-dark
+                               dark:hover:bg-axcio-border-dark"
+                    >
+                        <i
+                            data-lucide="arrow-left"
+                            class="h-4 w-4"
+                            aria-hidden="true"
+                        ></i>
+
+                        Retour aux lots
+                    </a>
+                {% endif %}
+
+                <a
+                    {% if is_work_package_context %}
+                        href="{% url 'tasks:create' %}?work_package={{ work_package.pk }}&next={{ return_url|urlencode }}"
+                    {% else %}
+                        href="{% url 'tasks:create' %}?next={{ return_url|urlencode }}"
+                    {% endif %}
+                    class="inline-flex items-center justify-center
+                           rounded-lg bg-axcio-light px-4 py-2
+                           text-sm font-medium text-white
+                           transition-colors
+                           hover:bg-axcio-light-hover
+                           focus:outline-none focus:ring-2
+                           focus:ring-axcio-light
+                           focus:ring-offset-2
+                           dark:focus:ring-offset-axcio-page-dark"
+                >
+                    Nouvelle tâche
+                </a>
+            </div>
         </div>
 
         {% include "edf/list/list.html" %}
