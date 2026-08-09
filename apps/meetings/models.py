@@ -124,6 +124,20 @@ class Meeting(TimeStampedModel):
         verbose_name="Lieu",
     )
 
+    # ------------------------------------------------------------------
+    # Ordre du jour
+    # ------------------------------------------------------------------
+
+    agenda = models.TextField(
+        max_length=MEETING_COMMENTS_LENGTH,
+        blank=True,
+        verbose_name="Ordre du jour",
+    )
+
+    # ------------------------------------------------------------------
+    # Informations
+    # ------------------------------------------------------------------
+
     notes = models.TextField(
         max_length=MEETING_COMMENTS_LENGTH,
         blank=True,
@@ -158,9 +172,6 @@ class Meeting(TimeStampedModel):
     # ------------------------------------------------------------------
 
     def clean(self) -> None:
-        """
-        Vérifie uniquement la cohérence propre à la réunion.
-        """
         super().clean()
 
         if (
@@ -180,11 +191,9 @@ class Meeting(TimeStampedModel):
     # ------------------------------------------------------------------
 
     def save(self, *args, **kwargs) -> None:
-        """
-        Normalise ou génère la référence avant l'enregistrement.
-        """
         self.subject = self.subject.strip()
         self.location = self.location.strip()
+        self.agenda = self.agenda.strip()
         self.notes = self.notes.strip()
         self.comments = self.comments.strip()
 
@@ -212,11 +221,6 @@ class Meeting(TimeStampedModel):
             super().save(*args, **kwargs)
 
     def _generate_reference(self) -> str:
-        """
-        Génère la prochaine référence séquentielle du projet.
-
-        Exemples : MTG_001, MTG_002, MTG_003.
-        """
         normalized_prefix = normalize_code_part(
             MEETING_REFERENCE_PREFIX
         )
@@ -291,9 +295,6 @@ class Meeting(TimeStampedModel):
 class MeetingParticipant(TimeStampedModel):
     """
     Participant interne ou externe invité à une réunion.
-
-    Un participant est soit un utilisateur Easy Projet, soit une
-    personne externe décrite par son nom et éventuellement son email.
     """
 
     # ------------------------------------------------------------------
@@ -371,19 +372,16 @@ class MeetingParticipant(TimeStampedModel):
 
     @property
     def display_name(self) -> str:
-        """
-        Retourne le nom affichable du participant.
-        """
         if self.participant_id is not None:
             return str(self.participant)
 
-        return self.external_name
+        if self.external_name:
+            return self.external_name
+
+        return self.external_email
 
     @property
     def is_external(self) -> bool:
-        """
-        Indique si le participant est externe à Easy Projet.
-        """
         return self.participant_id is None
 
     # ------------------------------------------------------------------
@@ -391,10 +389,6 @@ class MeetingParticipant(TimeStampedModel):
     # ------------------------------------------------------------------
 
     def clean(self) -> None:
-        """
-        Vérifie qu'un participant est interne ou externe,
-        sans mélange des deux modes.
-        """
         super().clean()
 
         external_name = self.external_name.strip()
@@ -403,6 +397,7 @@ class MeetingParticipant(TimeStampedModel):
         has_internal_participant = (
             self.participant_id is not None
         )
+
         has_external_data = bool(
             external_name
             or external_email
@@ -413,31 +408,20 @@ class MeetingParticipant(TimeStampedModel):
             and has_external_data
         ):
             raise ValidationError(
-                {
-                    "participant": (
-                        "Un participant ne peut pas être à la fois "
-                        "interne et externe."
-                    ),
-                    "external_name": (
-                        "Laissez les informations externes vides "
-                        "pour un participant interne."
-                    ),
-                    "external_email": (
-                        "Laissez les informations externes vides "
-                        "pour un participant interne."
-                    ),
-                }
+                "Un participant ne peut pas être "
+                "à la fois interne et externe."
             )
 
         if (
             not has_internal_participant
             and not external_name
+            and not external_email
         ):
             raise ValidationError(
                 {
-                    "external_name": (
-                        "Le nom du participant externe "
-                        "est obligatoire."
+                    "external_email": (
+                        "Le nom ou l'adresse email du participant "
+                        "externe est obligatoire."
                     ),
                 }
             )
@@ -447,9 +431,6 @@ class MeetingParticipant(TimeStampedModel):
     # ------------------------------------------------------------------
 
     def save(self, *args, **kwargs) -> None:
-        """
-        Normalise les informations du participant externe.
-        """
         self.external_name = self.external_name.strip()
         self.external_email = (
             self.external_email.strip().lower()

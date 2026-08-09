@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from django import forms
+from django.forms import (
+    BaseInlineFormSet,
+    inlineformset_factory,
+)
 
 from apps.catalogs.models import CatalogValue
 from apps.projects.models import Project
@@ -12,13 +16,22 @@ from common.constants.meeting import (
     MEETING_DURATION_MAX_HOURS,
     MEETING_LOCATION_LENGTH,
     MEETING_PARTICIPANT_EXTERNAL_EMAIL_LENGTH,
-    MEETING_PARTICIPANT_EXTERNAL_NAME_LENGTH,
     MEETING_REFERENCE_LENGTH,
     MEETING_SUBJECT_LENGTH,
 )
 from common.forms.fields import CatalogModelChoiceField
 
 from .models import Meeting, MeetingParticipant
+
+
+PARTICIPANT_FIELD_CLASSES = (
+    "h-10 w-full rounded-lg border border-gray-300 "
+    "bg-white px-3 text-sm text-gray-900 "
+    "focus:border-axcio-light focus:outline-none "
+    "focus:ring-2 focus:ring-axcio-light/20 "
+    "dark:border-neutral-700 dark:bg-neutral-800 "
+    "dark:text-neutral-100"
+)
 
 
 class MeetingForm(forms.ModelForm):
@@ -37,29 +50,22 @@ class MeetingForm(forms.ModelForm):
         model = Meeting
 
         fields = (
-            # Rattachement
             "project",
             "organizer",
             "status",
-
-            # Identification
             "reference",
             "subject",
-
-            # Organisation
             "scheduled_at",
             "duration_hours",
             "location",
-
-            # Informations
+            "agenda",
             "notes",
             "comments",
-
-            # État
             "is_active",
         )
 
         labels = {
+            "agenda": "Ordre du jour",
             "notes": "Notes de convocation",
             "comments": "Commentaires internes",
             "is_active": "Réunion active",
@@ -71,7 +77,8 @@ class MeetingForm(forms.ModelForm):
                 "aux participants avec l'invitation."
             ),
             "comments": (
-                "Ces informations restent réservées à un usage interne."
+                "Ces informations restent réservées "
+                "à un usage interne."
             ),
         }
 
@@ -120,6 +127,16 @@ class MeetingForm(forms.ModelForm):
                     "data-trim": True,
                 }
             ),
+            "agenda": forms.Textarea(
+                attrs={
+                    "maxlength": MEETING_COMMENTS_LENGTH,
+                    "rows": 5,
+                    "placeholder": (
+                        "Points prévus à l'ordre du jour"
+                    ),
+                    "data-trim": True,
+                }
+            ),
             "notes": forms.Textarea(
                 attrs={
                     "maxlength": MEETING_COMMENTS_LENGTH,
@@ -136,7 +153,8 @@ class MeetingForm(forms.ModelForm):
                     "maxlength": MEETING_COMMENTS_LENGTH,
                     "rows": 4,
                     "placeholder": (
-                        "Commentaires réservés à l'organisation interne"
+                        "Commentaires réservés "
+                        "à l'organisation interne"
                     ),
                     "data-trim": True,
                 }
@@ -248,74 +266,22 @@ class MeetingForm(forms.ModelForm):
             self.initial[field_name] = default_value.pk
 
 
-class MeetingParticipantForm(forms.ModelForm):
+class InternalMeetingParticipantForm(forms.ModelForm):
     """
-    Formulaire de gestion d'un participant interne ou externe.
+    Participant Easy Projet.
     """
-
-    invitation_response = CatalogModelChoiceField(
-        queryset=CatalogValue.objects.none(),
-        catalog_code="MEETING_INVITATION_RESPONSE",
-        required=False,
-        label="Réponse à l'invitation",
-    )
 
     class Meta:
         model = MeetingParticipant
-
         fields = (
-            "meeting",
             "participant",
-            "external_name",
-            "external_email",
-            "invitation_response",
-            "is_active",
         )
-
-        labels = {
-            "participant": "Participant interne",
-            "external_name": "Nom du participant externe",
-            "external_email": "Email du participant externe",
-            "is_active": "Participation active",
-        }
-
-        help_texts = {
-            "participant": (
-                "Sélectionnez un utilisateur Easy Projet, "
-                "ou renseignez un participant externe."
-            ),
-            "external_name": (
-                "Obligatoire lorsqu'aucun participant interne "
-                "n'est sélectionné."
-            ),
-        }
-
-        widgets = {
-            "external_name": forms.TextInput(
-                attrs={
-                    "maxlength": (
-                        MEETING_PARTICIPANT_EXTERNAL_NAME_LENGTH
-                    ),
-                    "autocomplete": "name",
-                    "placeholder": "Nom du participant externe",
-                    "data-trim": True,
-                }
-            ),
-            "external_email": forms.EmailInput(
-                attrs={
-                    "maxlength": (
-                        MEETING_PARTICIPANT_EXTERNAL_EMAIL_LENGTH
-                    ),
-                    "autocomplete": "email",
-                    "inputmode": "email",
-                    "placeholder": "adresse@exemple.fr",
-                    "data-trim": True,
-                }
-            ),
-        }
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+
+        self.fields["participant"].required = True
+        self.fields["participant"].label = "Participant"
 
         self.fields["participant"].queryset = (
             User.objects
@@ -327,128 +293,165 @@ class MeetingParticipantForm(forms.ModelForm):
             )
         )
 
-        self._configure_catalog_field(
-            field_name="invitation_response",
-            catalog_code="MEETING_INVITATION_RESPONSE",
+        self.fields["participant"].widget.attrs.update(
+            {
+                "class": PARTICIPANT_FIELD_CLASSES,
+            }
         )
 
-        if not self.is_bound and not self.instance.pk:
-            self._apply_catalog_default(
-                "invitation_response"
-            )
 
-    def clean(self):
-        cleaned_data = super().clean()
+class ExternalMeetingParticipantForm(forms.ModelForm):
+    """
+    Participant externe identifié par son adresse email.
+    """
 
-        participant = cleaned_data.get("participant")
-        external_name = (
-            cleaned_data.get("external_name") or ""
-        ).strip()
-        external_email = (
-            cleaned_data.get("external_email") or ""
-        ).strip()
-
-        if participant is not None and (
-            external_name or external_email
-        ):
-            message = (
-                "Un participant ne peut pas être à la fois "
-                "interne et externe."
-            )
-
-            self.add_error(
-                "participant",
-                message,
-            )
-            self.add_error(
-                "external_name",
-                (
-                    "Laissez ce champ vide pour un "
-                    "participant interne."
-                ),
-            )
-            self.add_error(
-                "external_email",
-                (
-                    "Laissez ce champ vide pour un "
-                    "participant interne."
-                ),
-            )
-
-        if participant is None and not external_name:
-            self.add_error(
-                "external_name",
-                (
-                    "Le nom du participant externe "
-                    "est obligatoire."
-                ),
-            )
-
-        cleaned_data["external_name"] = external_name
-        cleaned_data["external_email"] = (
-            external_email.lower()
+    class Meta:
+        model = MeetingParticipant
+        fields = (
+            "external_email",
         )
 
-        return cleaned_data
+        widgets = {
+            "external_email": forms.EmailInput(
+                attrs={
+                    "maxlength": (
+                        MEETING_PARTICIPANT_EXTERNAL_EMAIL_LENGTH
+                    ),
+                    "autocomplete": "email",
+                    "inputmode": "email",
+                    "placeholder": "adresse@exemple.fr",
+                    "data-trim": True,
+                    "class": PARTICIPANT_FIELD_CLASSES,
+                }
+            ),
+        }
 
-    def _configure_catalog_field(
-        self,
-        *,
-        field_name: str,
-        catalog_code: str,
-    ) -> None:
-        catalog = (
-            CatalogValue.objects
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.fields["external_email"].required = True
+        self.fields["external_email"].label = "Adresse email"
+
+    def clean_external_email(self):
+        value = self.cleaned_data["external_email"]
+
+        return value.strip().lower()
+
+
+class InternalParticipantFormSet(BaseInlineFormSet):
+    """
+    Formset des participants internes.
+    """
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
             .filter(
-                catalog_type__code=catalog_code,
-                catalog_type__is_active=True,
-            )
-            .values(
-                "catalog_type__is_editable",
-                "catalog_type__is_incremental",
-            )
-            .first()
-        )
-
-        field = self.fields[field_name]
-
-        field.queryset = (
-            CatalogValue.objects
-            .filter(
-                catalog_type__code=catalog_code,
-                catalog_type__is_active=True,
+                participant__isnull=False,
                 is_active=True,
             )
-            .select_related("catalog_type")
-            .order_by(
-                "level",
-                "sort_order",
-                "label",
+            .select_related(
+                "participant",
+                "participant__company",
             )
         )
 
-        if catalog is None:
-            field.catalog_is_editable = False
-            field.catalog_is_incremental = False
+    def clean(self) -> None:
+        super().clean()
+
+        if any(self.errors):
             return
 
-        field.catalog_is_editable = (
-            catalog["catalog_type__is_editable"]
-        )
-        field.catalog_is_incremental = (
-            catalog["catalog_type__is_incremental"]
+        participant_ids = set()
+
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+
+            if form.cleaned_data.get("DELETE"):
+                continue
+
+            participant = form.cleaned_data.get(
+                "participant"
+            )
+
+            if participant is None:
+                continue
+
+            if participant.pk in participant_ids:
+                raise forms.ValidationError(
+                    "Un participant interne ne peut être "
+                    "ajouté qu'une seule fois."
+                )
+
+            participant_ids.add(participant.pk)
+
+
+class ExternalParticipantFormSet(BaseInlineFormSet):
+    """
+    Formset des participants externes.
+    """
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                participant__isnull=True,
+                is_active=True,
+            )
         )
 
-    def _apply_catalog_default(
-        self,
-        field_name: str,
-    ) -> None:
-        default_value = (
-            self.fields[field_name]
-            .queryset
-            .filter(is_default=True)
-            .first()
-        )
+    def clean(self) -> None:
+        super().clean()
 
-        if default_value is not None:
-            self.initial[field_name] = default_value.pk
+        if any(self.errors):
+            return
+
+        emails = set()
+
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+
+            if form.cleaned_data.get("DELETE"):
+                continue
+
+            email = (
+                form.cleaned_data.get(
+                    "external_email"
+                )
+                or ""
+            ).strip().lower()
+
+            if not email:
+                continue
+
+            if email in emails:
+                raise forms.ValidationError(
+                    "Une adresse email externe ne peut être "
+                    "ajoutée qu'une seule fois."
+                )
+
+            emails.add(email)
+
+
+InternalMeetingParticipantFormSet = inlineformset_factory(
+    Meeting,
+    MeetingParticipant,
+    form=InternalMeetingParticipantForm,
+    formset=InternalParticipantFormSet,
+    extra=0,
+    can_delete=True,
+)
+
+
+ExternalMeetingParticipantFormSet = inlineformset_factory(
+    Meeting,
+    MeetingParticipant,
+    form=ExternalMeetingParticipantForm,
+    formset=ExternalParticipantFormSet,
+    extra=0,
+    can_delete=True,
+)

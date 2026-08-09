@@ -13,7 +13,7 @@ MEETING_FORM_DEFINITION = FormDefinition(
     title="Réunion",
     sections=[
         SectionDefinition(
-            title="Rattachement",
+            title="Identification",
             fields=[
                 FieldDefinition(
                     name="project",
@@ -21,29 +21,15 @@ MEETING_FORM_DEFINITION = FormDefinition(
                 ),
                 FieldDefinition(
                     name="organizer",
-                    width=FieldWidth.FULL,
                 ),
                 FieldDefinition(
                     name="status",
-                    width=FieldWidth.FULL,
                 ),
-            ],
-        ),
-        SectionDefinition(
-            title="Identification",
-            fields=[
                 FieldDefinition(
                     name="reference",
                 ),
                 FieldDefinition(
                     name="subject",
-                ),
-                FieldDefinition(
-                    name="is_active",
-                    required=False,
-                    width=FieldWidth.FULL,
-                    checked_label="Active",
-                    unchecked_label="Inactive",
                 ),
             ],
         ),
@@ -63,6 +49,15 @@ MEETING_FORM_DEFINITION = FormDefinition(
             ],
         ),
         SectionDefinition(
+            title="Ordre du jour",
+            fields=[
+                FieldDefinition(
+                    name="agenda",
+                    width=FieldWidth.FULL,
+                ),
+            ],
+        ),
+        SectionDefinition(
             title="Informations",
             fields=[
                 FieldDefinition(
@@ -71,47 +66,6 @@ MEETING_FORM_DEFINITION = FormDefinition(
                 ),
                 FieldDefinition(
                     name="comments",
-                    width=FieldWidth.FULL,
-                ),
-            ],
-        ),
-    ],
-)
-
-
-MEETING_PARTICIPANT_FORM_DEFINITION = FormDefinition(
-    name="meeting_participant",
-    title="Participant à une réunion",
-    sections=[
-        SectionDefinition(
-            title="Rattachement",
-            fields=[
-                FieldDefinition(
-                    name="meeting",
-                    width=FieldWidth.FULL,
-                ),
-            ],
-        ),
-        SectionDefinition(
-            title="Participant",
-            fields=[
-                FieldDefinition(
-                    name="participant",
-                    width=FieldWidth.FULL,
-                ),
-                FieldDefinition(
-                    name="external_name",
-                ),
-                FieldDefinition(
-                    name="external_email",
-                ),
-            ],
-        ),
-        SectionDefinition(
-            title="Invitation",
-            fields=[
-                FieldDefinition(
-                    name="invitation_response",
                     width=FieldWidth.FULL,
                 ),
                 FieldDefinition(
