@@ -7,6 +7,8 @@ from uuid import uuid4
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from apps.core.models import ClientEnvironment
+from django.core.exceptions import ValidationError
 
 from apps.catalogs.models import CatalogValue
 from apps.companies.models import Company
@@ -66,6 +68,13 @@ class Project(TimeStampedModel):
         max_length=PROJECT_DESCRIPTION_LENGTH,
         blank=True,
         verbose_name="Description",
+    )
+
+    client_environment = models.ForeignKey(
+        ClientEnvironment,
+        on_delete=models.PROTECT,
+        related_name="projects",
+        verbose_name="Environnement client",
     )
 
     company = models.ForeignKey(
@@ -294,8 +303,33 @@ class Project(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         """
-        Normalise les principales valeurs textuelles avant enregistrement.
+        Normalise et sécurise le rattachement du projet.
         """
+
+        if self.company_id is None:
+            raise ValueError(
+                "La société responsable doit être renseignée."
+            )
+
+        try:
+            environment = self.company.client_environment
+        except ClientEnvironment.DoesNotExist as exc:
+            raise ValueError(
+                "La société responsable ne possède pas "
+                "d'environnement client."
+            ) from exc
+
+        if (
+            self.client_environment_id is not None
+            and self.client_environment_id != environment.pk
+        ):
+            raise ValueError(
+                "L'environnement client du projet ne correspond pas "
+                "à sa société responsable."
+            )
+
+        self.client_environment = environment
+
         self.reference = self.reference.strip().upper()
         self.name = self.name.strip()
         self.contract_reference = self.contract_reference.strip()
@@ -365,3 +399,89 @@ class Project(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.reference} - {self.name}"
+    
+    
+class ProjectMembership(TimeStampedModel):
+    """
+    Affectation d'un utilisateur à un projet.
+
+    Une affectation active matérialise l'appartenance de
+    l'utilisateur au projet. Le rôle doit appartenir au
+    catalogue USER_PROJECT_ROLE.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="memberships",
+        verbose_name="Projet",
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="project_memberships",
+        verbose_name="Utilisateur",
+    )
+
+    role = models.ForeignKey(
+        CatalogValue,
+        on_delete=models.PROTECT,
+        related_name="project_memberships",
+        verbose_name="Rôle sur le projet",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Actif",
+    )
+
+    class Meta:
+        db_table = "project_membership"
+        ordering = [
+            "project",
+            "user__last_name",
+            "user__first_name",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "project",
+                    "user",
+                ],
+                name="uq_project_membership_project_user",
+            ),
+        ]
+        verbose_name = "Affectation au projet"
+        verbose_name_plural = "Affectations aux projets"
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.role_id
+            and self.role.catalog_type.code
+            != "USER_PROJECT_ROLE"
+        ):
+            raise ValidationError(
+                {
+                    "role": (
+                        "Le rôle doit appartenir au catalogue "
+                        "USER_PROJECT_ROLE."
+                    ),
+                }
+            )
+
+    def __str__(self) -> str:
+        return (
+            f"{self.project.reference} - "
+            f"{self.user} - "
+            f"{self.role}"
+        )

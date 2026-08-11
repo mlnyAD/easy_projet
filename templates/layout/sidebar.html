@@ -11,6 +11,7 @@
 {% url "tasks:list" as tasks_url %}
 {% url "risks:list" as risks_url %}
 {% url "meetings:list" as meetings_url %}
+{% url "integrations:list" as integrations_url %}
 
 {% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-2 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2 text-sm text-axcio-text-secondary transition-colors hover:bg-axcio-surface-alt hover:text-axcio-text dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-surface-alt-dark dark:hover:text-axcio-text-dark" %}
 
@@ -34,15 +35,21 @@
     </div>
 
     <nav class="min-h-0 flex-1 overflow-y-auto px-3 py-4">
+
+        {# ============================================================ #}
+        {# Environnement                                                #}
+        {# ============================================================ #}
+
         <p
             class="px-3 text-xs font-semibold uppercase
                    tracking-wider text-axcio-text-muted
                    dark:text-axcio-text-muted-dark"
         >
-            Navigation
+            Environnement
         </p>
 
         <div class="mt-3 space-y-1">
+
             <a
                 href="{{ home_url }}"
                 class="
@@ -120,6 +127,56 @@
             </a>
 
             <a
+                href="#"
+                class="{{ inactive_classes }}"
+                aria-disabled="true"
+                title="Module à venir"
+            >
+                <i
+                    data-lucide="map-pinned"
+                    class="h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                ></i>
+
+                <span>Localisation des projets</span>
+            </a>
+
+            <a
+                href="{{ integrations_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'integrations' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
+            >
+                <i
+                    data-lucide="plug"
+                    class="h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                ></i>
+
+                <span>Intégrations externes</span>
+            </a>
+
+        </div>
+
+        {# ============================================================ #}
+        {# Mes projets                                                  #}
+        {# ============================================================ #}
+
+        <p
+            class="mt-7 px-3 text-xs font-semibold uppercase
+                   tracking-wider text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            Mes projets
+        </p>
+
+        <div class="mt-3 space-y-1">
+
+            <a
                 href="{{ projects_url }}"
                 class="
                     {% if request.resolver_match.namespace == 'projects' %}
@@ -137,6 +194,7 @@
 
                 <span>Projets</span>
             </a>
+
             <a
                 href="{{ work_url }}"
                 class="
@@ -155,6 +213,7 @@
 
                 <span>Lots de travaux</span>
             </a>
+
             <a
                 href="{{ tasks_url }}"
                 class="
@@ -173,6 +232,7 @@
 
                 <span>Tâches</span>
             </a>
+
             <a
                 href="{{ meetings_url }}"
                 class="
@@ -191,6 +251,7 @@
 
                 <span>Réunions</span>
             </a>
+
             <a
                 href="{{ risks_url }}"
                 class="
@@ -209,6 +270,7 @@
 
                 <span>Risques</span>
             </a>
+
             <a
                 href="#"
                 class="{{ inactive_classes }}"
@@ -223,7 +285,9 @@
 
                 <span>GED</span>
             </a>
+
         </div>
+
     </nav>
 
     <div

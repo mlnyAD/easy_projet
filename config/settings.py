@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.tasks",
     "apps.risks",
+    "apps.integrations.apps.IntegrationsConfig",
 ]
 
 MIDDLEWARE = [

@@ -25,4 +25,8 @@ urlpatterns = [
     path("tasks/", include("apps.tasks.urls")),
     path("risks/", include("apps.risks.urls")),
     path("meetings/", include("apps.meetings.urls")),
+    path(
+        "integrations/",
+        include("apps.integrations.urls"),
+    ),
 ]

@@ -19,10 +19,6 @@ MEETING_DICTIONARY = {
     },
 
     "fields": {
-        # ----------------------------------------------------------
-        # Identifiant
-        # ----------------------------------------------------------
-
         "id": {
             "label": "Identifiant",
             "data_type": "uuid",
@@ -30,20 +26,12 @@ MEETING_DICTIONARY = {
             "generated": True,
         },
 
-        # ----------------------------------------------------------
-        # Rattachement
-        # ----------------------------------------------------------
-
         "project": {
             "label": "Projet",
             "data_type": "uuid",
             "required": True,
             "reference": "project",
         },
-
-        # ----------------------------------------------------------
-        # Pilotage
-        # ----------------------------------------------------------
 
         "organizer": {
             "label": "Organisateur",
@@ -59,10 +47,6 @@ MEETING_DICTIONARY = {
             "catalog": "MEETING_STATUS",
         },
 
-        # ----------------------------------------------------------
-        # Identification
-        # ----------------------------------------------------------
-
         "reference": {
             "label": "Référence",
             "data_type": "string",
@@ -77,10 +61,6 @@ MEETING_DICTIONARY = {
             "required": True,
             "max_length": MEETING_SUBJECT_LENGTH,
         },
-
-        # ----------------------------------------------------------
-        # Organisation
-        # ----------------------------------------------------------
 
         "scheduled_at": {
             "label": "Date et heure",
@@ -100,7 +80,14 @@ MEETING_DICTIONARY = {
             "required": False,
             "max_length": MEETING_LOCATION_LENGTH,
         },
-        
+
+        "agenda": {
+            "label": "Ordre du jour",
+            "data_type": "text",
+            "required": False,
+            "max_length": MEETING_COMMENTS_LENGTH,
+        },
+
         "notes": {
             "label": "Notes de convocation",
             "data_type": "text",
@@ -115,20 +102,12 @@ MEETING_DICTIONARY = {
             "max_length": MEETING_COMMENTS_LENGTH,
         },
 
-        # ----------------------------------------------------------
-        # État
-        # ----------------------------------------------------------
-
         "is_active": {
             "label": "Actif",
             "data_type": "boolean",
             "required": True,
             "default": True,
         },
-
-        # ----------------------------------------------------------
-        # Traçabilité
-        # ----------------------------------------------------------
 
         "created_at": {
             "label": "Date de création",

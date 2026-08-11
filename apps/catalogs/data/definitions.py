@@ -25,7 +25,22 @@ CATALOG_DEFINITIONS = [
         code="DOCUMENT_STATUS",
         label="Statut d'un document",
     ),
+    
+    CatalogDefinition(
+        code="INTEGRATION_SERVICE_TYPE",
+        label="Type de service d'intégration",
+    ),
 
+    CatalogDefinition(
+        code="INTEGRATION_PROVIDER",
+        label="Fournisseur d'intégration",
+    ),
+
+    CatalogDefinition(
+        code="INTEGRATION_CONNECTION_STATUS",
+        label="État de connexion d'une intégration",
+    ),
+    
     CatalogDefinition(
         code="LICENSE_STATUS",
         label="Statut de la licence",

@@ -677,13 +677,6 @@ CATALOG_VALUE_DEFINITIONS = [
     ),
 
     CatalogValueDefinition(
-        catalog="USER_PROJECT_ROLE",
-        code="NONE",
-        label="Aucun",
-        sort_order=30,
-    ),
-
-    CatalogValueDefinition(
         catalog="USER_TEAM_ROLE",
         code="TEAM_LEADER",
         label="Chef d'équipe",
@@ -740,6 +733,185 @@ CATALOG_VALUE_DEFINITIONS = [
         sort_order=50,
     ),
     
+    # ========================================================================
+    # Intégrations - Types de service
+    # ========================================================================
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
+        code="MEETING",
+        label="Réunions et visioconférence",
+        sort_order=10,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
+        code="EMAIL",
+        label="Messagerie électronique",
+        sort_order=20,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
+        code="DOCUMENT_STORAGE",
+        label="Gestion documentaire",
+        sort_order=30,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
+        code="SIGNATURE",
+        label="Signature électronique",
+        sort_order=40,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
+        code="MESSAGING",
+        label="Messagerie instantanée",
+        sort_order=50,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
+        code="CAD_VIEWER",
+        label="Visualisation CAO",
+        sort_order=60,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
+        code="WORKFLOW",
+        label="Workflow",
+        sort_order=70,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
+        code="OFFICE",
+        label="Suite bureautique",
+        sort_order=80,
+    ),
     
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
+        code="MAPPING",
+        label="Cartographie et géolocalisation",
+        sort_order=90,
+    ),
+
+    # ========================================================================
+    # Intégrations - Fournisseurs
+    # ========================================================================
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="MICROSOFT_365",
+        label="Microsoft 365",
+        sort_order=10,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="GOOGLE_WORKSPACE",
+        label="Google Workspace",
+        sort_order=20,
+    ),
+    
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="GOOGLE_MAPS",
+        label="Google Maps",
+        sort_order=25,
+    ), 
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="SMTP",
+        label="Serveur SMTP",
+        sort_order=30,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="SHAREPOINT",
+        label="Microsoft SharePoint",
+        sort_order=40,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="NEXTCLOUD",
+        label="Nextcloud",
+        sort_order=50,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="DOCUSEAL",
+        label="DocuSeal",
+        sort_order=60,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="COLLABORA",
+        label="Collabora Online",
+        sort_order=70,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="ONLYOFFICE",
+        label="ONLYOFFICE",
+        sort_order=80,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="CADVIEWER",
+        label="CADViewer",
+        sort_order=90,
+    ),
+
+    # ========================================================================
+    # Intégrations - État de connexion
+    # ========================================================================
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_CONNECTION_STATUS",
+        code="NOT_CONFIGURED",
+        label="Non configurée",
+        sort_order=10,
+        is_default=True,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_CONNECTION_STATUS",
+        code="CONFIGURED",
+        label="Configurée",
+        sort_order=20,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_CONNECTION_STATUS",
+        code="CONNECTED",
+        label="Connectée",
+        sort_order=30,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_CONNECTION_STATUS",
+        code="ERROR",
+        label="Erreur",
+        sort_order=40,
+    ),
+
+    CatalogValueDefinition(
+        catalog="INTEGRATION_CONNECTION_STATUS",
+        code="DISABLED",
+        label="Désactivée",
+        sort_order=50,
+    ),    
     
 ]
