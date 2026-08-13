@@ -1,0 +1,285 @@
+
+
+{% extends "layout/base.html" %}
+
+
+{% block content %}
+
+<div class="space-y-6">
+
+    <div>
+        <h1
+            class="text-2xl font-semibold
+                   text-axcio-text
+                   dark:text-axcio-text-dark"
+        >
+            Localisation des projets
+        </h1>
+
+        <p
+            class="mt-1 text-sm
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            Localisation des projets auxquels vous avez accès.
+        </p>
+    </div>
+
+
+    {% if not google_maps_api_key %}
+
+        <div
+            class="rounded-lg border border-amber-300
+                   bg-amber-50 p-4 text-sm text-amber-800"
+        >
+            La clé Google Maps n'est pas configurée.
+        </div>
+
+    {% endif %}
+
+
+    {% if projects_data and google_maps_api_key %}
+
+        <div
+            class="overflow-hidden rounded-xl border
+                   border-axcio-border-light
+                   bg-axcio-surface
+                   dark:border-axcio-border-dark
+                   dark:bg-axcio-surface-dark"
+        >
+            <div
+                id="project-map"
+                class="w-full"
+                style="height: 650px; min-height: 650px;"
+            ></div>
+        </div>
+
+
+        {{ projects_data|json_script:"projects-location-data" }}
+
+
+        <script>
+            function escapeHtml(value) {
+                const element =
+                    document.createElement("div");
+
+                element.textContent = value ?? "";
+
+                return element.innerHTML;
+            }
+
+
+            function initProjectMap() {
+                const mapElement = document.getElementById(
+                    "project-map"
+                );
+
+                const dataElement = document.getElementById(
+                    "projects-location-data"
+                );
+
+                if (!mapElement || !dataElement) {
+                    return;
+                }
+
+                const projects = JSON.parse(
+                    dataElement.textContent
+                );
+
+                if (!projects.length) {
+                    return;
+                }
+
+                const firstProject = projects[0];
+
+                const map = new google.maps.Map(
+                    mapElement,
+                    {
+                        center: {
+                            lat: firstProject.latitude,
+                            lng: firstProject.longitude,
+                        },
+                        zoom: 14,
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                    }
+                );
+
+                const bounds =
+                    new google.maps.LatLngBounds();
+
+                projects.forEach((project) => {
+                    const position = {
+                        lat: project.latitude,
+                        lng: project.longitude,
+                    };
+
+                    const marker =
+                        new google.maps.Marker({
+                            map: map,
+                            position: position,
+                            title:
+                                project.reference
+                                + " — "
+                                + project.name,
+                        });
+
+                    const content = `
+                        <div style="min-width: 220px;">
+                            <strong>
+                                ${escapeHtml(project.reference)}
+                                —
+                                ${escapeHtml(project.name)}
+                            </strong>
+
+                            <div style="margin-top: 6px;">
+                                ${escapeHtml(project.company)}
+                            </div>
+
+                            <div style="margin-top: 4px;">
+                                ${escapeHtml(project.address)}
+                            </div>
+                        </div>
+                    `;
+
+                    const infoWindow =
+                        new google.maps.InfoWindow({
+                            content: content,
+                        });
+
+                    marker.addListener(
+                        "click",
+                        () => {
+                            infoWindow.open({
+                                map: map,
+                                anchor: marker,
+                            });
+                        }
+                    );
+
+                    bounds.extend(position);
+                });
+
+                if (projects.length > 1) {
+                    map.fitBounds(bounds);
+                }
+            }
+        </script>
+
+
+        <script
+            src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key|urlencode }}&callback=initProjectMap&loading=async"
+            async
+            defer
+        ></script>
+
+    {% elif not unlocalized_projects %}
+
+        <div
+            class="rounded-xl border
+                   border-axcio-border-light
+                   bg-axcio-surface p-6
+                   text-sm text-axcio-text-muted
+                   dark:border-axcio-border-dark
+                   dark:bg-axcio-surface-dark
+                   dark:text-axcio-text-muted-dark"
+        >
+            Aucun projet accessible à localiser.
+        </div>
+
+    {% endif %}
+
+
+    {% if unlocalized_projects %}
+
+        <div
+            class="rounded-xl border
+                   border-axcio-border-light
+                   bg-axcio-surface
+                   dark:border-axcio-border-dark
+                   dark:bg-axcio-surface-dark"
+        >
+            <div
+                class="border-b
+                       border-axcio-border-light
+                       p-4
+                       dark:border-axcio-border-dark"
+            >
+                <h2
+                    class="font-semibold
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    Projets non localisés
+                </h2>
+
+                <p
+                    class="mt-1 text-sm
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                >
+                    Ces projets sont accessibles mais leur
+                    localisation n'a pas pu être déterminée.
+                </p>
+            </div>
+
+            <div
+                class="divide-y
+                       divide-axcio-border-light
+                       dark:divide-axcio-border-dark"
+            >
+
+                {% for project in unlocalized_projects %}
+
+                    <div class="p-4">
+
+                        <div
+                            class="font-medium
+                                   text-axcio-text
+                                   dark:text-axcio-text-dark"
+                        >
+                            {{ project.reference }}
+                            —
+                            {{ project.name }}
+                        </div>
+
+                        <div
+                            class="mt-1 text-sm
+                                   text-axcio-text-secondary
+                                   dark:text-axcio-text-secondary-dark"
+                        >
+                            {{ project.company }}
+                        </div>
+
+                        {% if project.address %}
+
+                            <div
+                                class="mt-1 text-sm
+                                       text-axcio-text-muted
+                                       dark:text-axcio-text-muted-dark"
+                            >
+                                {{ project.address }}
+                            </div>
+
+                        {% endif %}
+
+                        <div
+                            class="mt-2 text-sm
+                                   text-amber-700
+                                   dark:text-amber-400"
+                        >
+                            {{ project.localization_error }}
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

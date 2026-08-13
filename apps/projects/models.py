@@ -29,6 +29,8 @@ from common.constants.project import (
     PROJECT_NAME_LENGTH,
     PROJECT_POSTAL_CODE_LENGTH,
     PROJECT_REFERENCE_LENGTH,
+    PROJECT_COORDINATE_MAX_DIGITS,
+    PROJECT_COORDINATE_DECIMAL_PLACES,
 )
 from common.models import TimeStampedModel
 
@@ -188,6 +190,24 @@ class Project(TimeStampedModel):
         verbose_name="Pays",
     )
 
+    latitude = models.DecimalField(
+        max_digits=PROJECT_COORDINATE_MAX_DIGITS,
+        decimal_places=PROJECT_COORDINATE_DECIMAL_PLACES,
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name= "Latitude",
+    )
+
+    longitude = models.DecimalField(
+        max_digits=PROJECT_COORDINATE_MAX_DIGITS,
+        decimal_places=PROJECT_COORDINATE_DECIMAL_PLACES,
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name= "Longitude",
+    )    
+
     # ------------------------------------------------------------------
     # Charge et planning
     # ------------------------------------------------------------------
@@ -304,6 +324,10 @@ class Project(TimeStampedModel):
     def save(self, *args, **kwargs):
         """
         Normalise et sécurise le rattachement du projet.
+
+        Si l'adresse d'un projet existant est modifiée,
+        les coordonnées géographiques sont invalidées.
+        Elles seront recalculées lors du prochain géocodage.
         """
 
         if self.company_id is None:
@@ -330,16 +354,74 @@ class Project(TimeStampedModel):
 
         self.client_environment = environment
 
+        # --------------------------------------------------------------
+        # Invalidation de la géolocalisation
+        # --------------------------------------------------------------
+
+        if self.pk:
+            previous = (
+                Project.objects
+                .filter(pk=self.pk)
+                .values(
+                    "address_1",
+                    "address_2",
+                    "address_3",
+                    "postal_code",
+                    "city",
+                    "country",
+                )
+                .first()
+            )
+
+            if previous is not None:
+                address_changed = any(
+                    (
+                        previous[field_name] or ""
+                    )
+                    != (
+                        getattr(self, field_name) or ""
+                    )
+                    for field_name in (
+                        "address_1",
+                        "address_2",
+                        "address_3",
+                        "postal_code",
+                        "city",
+                        "country",
+                    )
+                )
+
+                if address_changed:
+                    self.latitude = None
+                    self.longitude = None
+
+                    update_fields = kwargs.get("update_fields")
+
+                    if update_fields is not None:
+                        update_fields = set(update_fields)
+                        update_fields.update(
+                            {
+                                "latitude",
+                                "longitude",
+                            }
+                        )
+                        kwargs["update_fields"] = update_fields
+
+        # --------------------------------------------------------------
+        # Normalisation
+        # --------------------------------------------------------------
+
         self.reference = self.reference.strip().upper()
         self.name = self.name.strip()
         self.contract_reference = self.contract_reference.strip()
+
         self.currency = (
             self.currency.strip().upper()
             or PROJECT_DEFAULT_CURRENCY
         )
 
         super().save(*args, **kwargs)
-        
+                
     @property
     def effective_start_date(self):
         """

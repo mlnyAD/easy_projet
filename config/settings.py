@@ -13,8 +13,12 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from .env import load_local_environment
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_local_environment(BASE_DIR)
 
 
 # Quick-start development settings - unsuitable for production
@@ -167,5 +171,16 @@ DEV_AUTO_LOGIN = (
 
 DEV_AUTO_LOGIN_EMAIL = os.environ.get(
     "EASY_PROJET_DEV_AUTO_LOGIN_EMAIL",
+    "",
+)
+
+# ***********************************
+#
+# Google Maps
+#
+# ***********************************
+
+GOOGLE_MAPS_API_KEY = os.environ.get(
+    "EASY_PROJET_GOOGLE_MAPS_API_KEY",
     "",
 )

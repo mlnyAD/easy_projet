@@ -5,6 +5,7 @@ from django.urls import path
 from .views import (
     ProjectCreateView,
     ProjectListView,
+    ProjectLocationView,
     ProjectUpdateView,
     ProjectWorkspaceView,
 )
@@ -22,6 +23,11 @@ urlpatterns = [
         "new/",
         ProjectCreateView.as_view(),
         name="create",
+    ),
+    path(
+        "locations/",
+        ProjectLocationView.as_view(),
+        name="locations",
     ),
     path(
         "<uuid:pk>/",

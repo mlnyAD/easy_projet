@@ -1,0 +1,406 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    {% include "edf/form/header.html" %}
+
+    <nav
+        class="mb-6 flex gap-6 border-b
+               border-axcio-border-light
+               dark:border-axcio-border-dark"
+        aria-label="Gestion du projet"
+    >
+        <button
+            type="button"
+            class="project-tab border-b-2 px-1 pb-3
+                   text-sm font-medium"
+            data-project-tab="project"
+        >
+            Projet
+        </button>
+
+        <button
+            type="button"
+            class="project-tab border-b-2 px-1 pb-3
+                   text-sm font-medium"
+            data-project-tab="participants"
+        >
+            Participants
+        </button>
+    </nav>
+
+    <input
+        type="hidden"
+        id="id_active_tab"
+        name="active_tab"
+        value="{{ active_tab|default:'project' }}"
+    >
+
+    {{ membership_formset.management_form }}
+
+    <div data-project-panel="project">
+        {% include "edf/form/messages.html" %}
+        {% include "edf/form/sections.html" %}
+    </div>
+
+    <div
+        data-project-panel="participants"
+        class="hidden"
+    >
+        {% if membership_formset.non_form_errors %}
+            <div
+                class="mb-4 rounded-lg border border-red-200
+                       bg-red-50 p-3 text-sm text-red-700"
+            >
+                {{ membership_formset.non_form_errors }}
+            </div>
+        {% endif %}
+
+        <section
+            class="rounded-xl border
+                   border-axcio-border-light
+                   bg-axcio-surface p-5
+                   dark:border-axcio-border-dark
+                   dark:bg-axcio-surface-dark"
+        >
+            <div>
+                <h2
+                    class="text-base font-semibold
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    Participants du projet
+                </h2>
+
+                <p
+                    class="mt-1 text-sm
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                >
+                    Utilisateurs autorisés à accéder au projet
+                    et rôle exercé sur celui-ci.
+                </p>
+            </div>
+
+            <div
+                class="mt-5 space-y-3"
+                data-formset="memberships"
+            >
+                {% for form in membership_formset %}
+
+                    <div
+                        class="grid grid-cols-1 gap-3
+                               rounded-lg border
+                               border-axcio-border-light
+                               p-4
+                               md:grid-cols-[1fr_1fr_auto]
+                               dark:border-axcio-border-dark"
+                        data-form-row
+                    >
+                        {{ form.id }}
+
+                        <div>
+                            <label
+                                for="{{ form.user.id_for_label }}"
+                                class="mb-1 block text-sm font-medium
+                                       text-axcio-text
+                                       dark:text-axcio-text-dark"
+                            >
+                                Utilisateur
+                            </label>
+
+                            {{ form.user }}
+
+                            {% if form.user.errors %}
+                                <div class="mt-1 text-xs text-red-600">
+                                    {{ form.user.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label
+                                for="{{ form.role.id_for_label }}"
+                                class="mb-1 block text-sm font-medium
+                                       text-axcio-text
+                                       dark:text-axcio-text-dark"
+                            >
+                                Rôle sur le projet
+                            </label>
+
+                            {{ form.role }}
+
+                            {% if form.role.errors %}
+                                <div class="mt-1 text-xs text-red-600">
+                                    {{ form.role.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div
+                            class="flex items-end justify-end gap-3"
+                        >
+                            <div class="hidden">
+                                {{ form.is_active }}
+                                {{ form.DELETE }}
+                            </div>
+
+                            <button
+                                type="button"
+                                class="inline-flex h-9 w-9
+                                       items-center justify-center
+                                       rounded-md
+                                       text-axcio-text-muted
+                                       transition-colors
+                                       hover:bg-red-50
+                                       hover:text-red-600
+                                       dark:hover:bg-red-950/30"
+                                data-delete-row
+                                title="Supprimer"
+                                aria-label="Supprimer le participant"
+                            >
+                                <i
+                                    data-lucide="trash-2"
+                                    class="h-4 w-4"
+                                    aria-hidden="true"
+                                ></i>
+                            </button>
+                        </div>
+                    </div>
+
+                {% endfor %}
+            </div>
+
+            <template data-empty-form="memberships">
+                <div
+                    class="grid grid-cols-1 gap-3
+                           rounded-lg border
+                           border-axcio-border-light
+                           p-4
+                           md:grid-cols-[1fr_1fr_auto]
+                           dark:border-axcio-border-dark"
+                    data-form-row
+                >
+                    {{ membership_formset.empty_form.id }}
+
+                    <div>
+                        {{ membership_formset.empty_form.user }}
+                    </div>
+
+                    <div>
+                        {{ membership_formset.empty_form.role }}
+                    </div>
+
+                    <div class="flex items-end justify-end">
+                        <div class="hidden">
+                            {{ membership_formset.empty_form.is_active }}
+                            {{ membership_formset.empty_form.DELETE }}
+                        </div>
+
+                        <button
+                            type="button"
+                            class="inline-flex h-9 w-9
+                                   items-center justify-center
+                                   rounded-md
+                                   text-axcio-text-muted
+                                   hover:bg-red-50
+                                   hover:text-red-600"
+                            data-delete-row
+                            aria-label="Supprimer le participant"
+                        >
+                            <i
+                                data-lucide="trash-2"
+                                class="h-4 w-4"
+                                aria-hidden="true"
+                            ></i>
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <button
+                type="button"
+                class="mt-4 inline-flex items-center
+                       gap-2 text-sm font-medium
+                       text-axcio-light
+                       hover:text-axcio-light-hover"
+                data-add-row="memberships"
+            >
+                <i
+                    data-lucide="plus"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+
+                Ajouter un participant
+            </button>
+        </section>
+    </div>
+
+    <div class="mt-6">
+        {% include "edf/form/actions.html" %}
+    </div>
+
+</form>
+
+{% include "edf/catalogs/incremental_dialog.html" %}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const tabInput = document.querySelector(
+        "#id_active_tab"
+    );
+
+    const tabs = document.querySelectorAll(
+        "[data-project-tab]"
+    );
+
+    const panels = document.querySelectorAll(
+        "[data-project-panel]"
+    );
+
+    function activateTab(name) {
+        tabs.forEach((tab) => {
+            const active = (
+                tab.dataset.projectTab === name
+            );
+
+            tab.classList.toggle(
+                "border-axcio-light",
+                active
+            );
+
+            tab.classList.toggle(
+                "text-axcio-light",
+                active
+            );
+
+            tab.classList.toggle(
+                "border-transparent",
+                !active
+            );
+
+            tab.classList.toggle(
+                "text-axcio-text-secondary",
+                !active
+            );
+        });
+
+        panels.forEach((panel) => {
+            panel.classList.toggle(
+                "hidden",
+                panel.dataset.projectPanel !== name
+            );
+        });
+
+        if (tabInput) {
+            tabInput.value = name;
+        }
+    }
+
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+            activateTab(
+                tab.dataset.projectTab
+            );
+        });
+    });
+
+    activateTab(
+        tabInput?.value || "project"
+    );
+
+    function addFormRow(prefix) {
+        const container = document.querySelector(
+            `[data-formset="${prefix}"]`
+        );
+
+        const template = document.querySelector(
+            `[data-empty-form="${prefix}"]`
+        );
+
+        const totalForms = document.querySelector(
+            `#id_${prefix}-TOTAL_FORMS`
+        );
+
+        if (
+            !container
+            || !template
+            || !totalForms
+        ) {
+            return;
+        }
+
+        const index = Number(totalForms.value);
+
+        const html = template.innerHTML.replaceAll(
+            "__prefix__",
+            index
+        );
+
+        container.insertAdjacentHTML(
+            "beforeend",
+            html
+        );
+
+        totalForms.value = index + 1;
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    document
+        .querySelectorAll("[data-add-row]")
+        .forEach((button) => {
+            button.addEventListener(
+                "click",
+                () => {
+                    addFormRow(
+                        button.dataset.addRow
+                    );
+                }
+            );
+        });
+
+    document.addEventListener(
+        "click",
+        (event) => {
+            const button = event.target.closest(
+                "[data-delete-row]"
+            );
+
+            if (!button) {
+                return;
+            }
+
+            const row = button.closest(
+                "[data-form-row]"
+            );
+
+            if (!row) {
+                return;
+            }
+
+            const deleteInput = row.querySelector(
+                'input[name$="-DELETE"]'
+            );
+
+            if (deleteInput) {
+                deleteInput.checked = true;
+            }
+
+            row.classList.add("hidden");
+        }
+    );
+
+});
+</script>
+
+{% endblock %}

@@ -1,10 +1,11 @@
 
 
 from django.contrib import messages
-from django.urls import reverse_lazy
-from django.views.generic import DetailView, ListView
+from django.db import transaction
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.generic import DetailView, ListView
 
 from common.constants import (
     DEFAULT_PAGE_SIZE,
@@ -18,9 +19,18 @@ from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
 
 from .form_definition import PROJECT_FORM_DEFINITION
-from .forms import ProjectForm
+from .forms import (
+    ProjectForm,
+    ProjectMembershipFormSet,
+)
 from .lists import PROJECT_LIST_DEFINITION
 from .models import Project
+from .services.access import ProjectAccessService
+from django.conf import settings
+from .services.geocoding import (
+    ProjectGeocodingError,
+    ProjectGeocodingService,
+)
 
 
 class ProjectListView(ListView):
@@ -33,6 +43,8 @@ class ProjectListView(ListView):
         return (
             Project.objects
             .select_related(
+                "client_environment",
+                "client_environment__company",
                 "company",
                 "owner_company",
                 "project_manager",
@@ -81,7 +93,100 @@ class ProjectListView(ListView):
 
         return context
 
+class ProjectLocationView(ListView):
+    """
+    Localisation de tous les projets accessibles.
 
+    Les coordonnées déjà enregistrées sont utilisées directement.
+    Les projets sans coordonnées sont géocodés à la demande.
+    Les projets impossibles à géolocaliser restent visibles
+    dans une liste distincte.
+    """
+
+    model = Project
+    template_name = "projects/project_location.html"
+    context_object_name = "projects"
+
+    def get_queryset(self):
+        return (
+            ProjectAccessService
+            .get_accessible_projects(self.request.user)
+            .select_related(
+                "company",
+                "client_environment",
+                "client_environment__company",
+            )
+        )
+
+    @staticmethod
+    def build_project_data(project):
+        address_parts = [
+            project.address_1,
+            project.address_2,
+            project.address_3,
+            project.postal_code,
+            project.city,
+            project.country,
+        ]
+
+        full_address = ", ".join(
+            part.strip()
+            for part in address_parts
+            if part and part.strip()
+        )
+
+        return {
+            "id": str(project.pk),
+            "reference": project.reference,
+            "name": project.name,
+            "company": str(project.company),
+            "address": full_address,
+        }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        localized_projects = []
+        unlocalized_projects = []
+
+        for project in context["projects"]:
+            project_data = self.build_project_data(project)
+
+            if (
+                project.latitude is None
+                or project.longitude is None
+            ):
+                try:
+                    coordinates = (
+                        ProjectGeocodingService
+                        .geocode_and_save(project)
+                    )
+
+                except ProjectGeocodingError as exc:
+                    project_data["localization_error"] = str(exc)
+                    unlocalized_projects.append(project_data)
+                    continue
+
+                if coordinates is None:
+                    project_data["localization_error"] = (
+                        "Adresse non localisable."
+                    )
+                    unlocalized_projects.append(project_data)
+                    continue
+
+            project_data["latitude"] = float(project.latitude)
+            project_data["longitude"] = float(project.longitude)
+
+            localized_projects.append(project_data)
+
+        context["projects_data"] = localized_projects
+        context["unlocalized_projects"] = unlocalized_projects
+        context["google_maps_api_key"] = (
+            settings.GOOGLE_MAPS_API_KEY
+        )
+
+        return context
+        
 class ProjectWorkspaceView(DetailView):
     """
     Résumé et point d'entrée fonctionnel d'un projet.
@@ -97,6 +202,8 @@ class ProjectWorkspaceView(DetailView):
         return (
             Project.objects
             .select_related(
+                "client_environment",
+                "client_environment__company",
                 "company",
                 "owner_company",
                 "project_manager",
@@ -105,6 +212,10 @@ class ProjectWorkspaceView(DetailView):
             .prefetch_related(
                 "work_packages",
                 "work_packages__tasks",
+                "memberships",
+                "memberships__user",
+                "memberships__user__company",
+                "memberships__role",
             )
         )
 
@@ -114,9 +225,11 @@ class ProjectWorkspaceView(DetailView):
         project = self.object
 
         context["current_project"] = project
+
         context["work_package_count"] = (
             project.work_packages.count()
         )
+
         context["task_count"] = sum(
             work_package.tasks.count()
             for work_package in project.work_packages.all()
@@ -147,11 +260,38 @@ class ProjectCreateView(EPCreateView):
 
         return response
 
+
 class ProjectUpdateView(EPUpdateView):
+    """
+    Modification d'un projet et de ses participants.
+    """
+
     model = Project
     form_class = ProjectForm
     definition = PROJECT_FORM_DEFINITION
-    template_name = "edf/form/view.html"
+    template_name = "projects/project_form.html"
+
+    def get_queryset(self):
+        return (
+            Project.objects
+            .select_related(
+                "client_environment",
+                "client_environment__company",
+                "company",
+                "owner_company",
+                "designer_company",
+                "project_manager",
+                "status",
+                "project_type",
+            )
+            .prefetch_related(
+                "memberships",
+                "memberships__user",
+                "memberships__user__company",
+                "memberships__role",
+                "memberships__role__catalog_type",
+            )
+        )
 
     def get_return_url(self):
         candidate = self.request.GET.get("next")
@@ -174,12 +314,51 @@ class ProjectUpdateView(EPUpdateView):
     def get_cancel_url(self):
         return self.get_return_url()
 
+    def get_membership_formset(
+        self,
+        *,
+        data=None,
+    ):
+        return ProjectMembershipFormSet(
+            data=data,
+            instance=self.object,
+            prefix="memberships",
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if "membership_formset" not in context:
+            context["membership_formset"] = (
+                self.get_membership_formset()
+            )
+
+        return context
+
     def form_valid(self, form):
-        response = super().form_valid(form)
+        membership_formset = self.get_membership_formset(
+            data=self.request.POST,
+        )
+
+        if not membership_formset.is_valid():
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form,
+                    membership_formset=membership_formset,
+                )
+            )
+
+        with transaction.atomic():
+            self.object = form.save()
+
+            membership_formset.instance = self.object
+            membership_formset.save()
 
         messages.success(
             self.request,
             "Le projet a été modifié avec succès.",
         )
 
-        return response
+        return redirect(
+            self.get_success_url()
+        )

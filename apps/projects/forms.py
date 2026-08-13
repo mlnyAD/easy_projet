@@ -21,7 +21,7 @@ from common.constants.project import (
 )
 from common.forms.fields import CatalogModelChoiceField
 
-from .models import Project
+from .models import Project, ProjectMembership
 
 
 class ProjectForm(forms.ModelForm):
@@ -388,3 +388,73 @@ class ProjectForm(forms.ModelForm):
 
         if default_value is not None:
             self.initial[field_name] = default_value.pk
+            
+class ProjectMembershipForm(forms.ModelForm):
+    """
+    Affectation d'un utilisateur à un projet.
+    """
+
+    role = CatalogModelChoiceField(
+        queryset=CatalogValue.objects.none(),
+        catalog_code="USER_PROJECT_ROLE",
+        required=True,
+        label="Rôle sur le projet",
+    )
+
+    class Meta:
+        model = ProjectMembership
+        fields = (
+            "user",
+            "role",
+            "is_active",
+        )
+
+        labels = {
+            "user": "Utilisateur",
+            "is_active": "Actif",
+        }
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.fields["user"].queryset = (
+            User.objects
+            .filter(is_active=True)
+            .select_related("company")
+            .order_by(
+                "last_name",
+                "first_name",
+            )
+        )
+
+        self.fields["role"].queryset = (
+            CatalogValue.objects
+            .filter(
+                catalog_type__code="USER_PROJECT_ROLE",
+                catalog_type__is_active=True,
+                is_active=True,
+            )
+            .select_related("catalog_type")
+            .order_by(
+                "sort_order",
+                "label",
+            )
+        )
+
+        self.fields["role"].catalog_is_editable = False
+        self.fields["role"].catalog_is_incremental = False
+
+            
+ProjectMembershipFormSet = forms.inlineformset_factory(
+    Project,
+    ProjectMembership,
+    form=ProjectMembershipForm,
+    fields=(
+        "user",
+        "role",
+        "is_active",
+    ),
+    extra=1,
+    can_delete=True,
+)
+        

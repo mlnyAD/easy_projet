@@ -12,6 +12,7 @@
 {% url "risks:list" as risks_url %}
 {% url "meetings:list" as meetings_url %}
 {% url "integrations:list" as integrations_url %}
+{% url "projects:locations" as project_locations_url %}
 
 {% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-2 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2 text-sm text-axcio-text-secondary transition-colors hover:bg-axcio-surface-alt hover:text-axcio-text dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-surface-alt-dark dark:hover:text-axcio-text-dark" %}
 
@@ -127,10 +128,14 @@
             </a>
 
             <a
-                href="#"
-                class="{{ inactive_classes }}"
-                aria-disabled="true"
-                title="Module à venir"
+                href="{{ project_locations_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'projects' and request.resolver_match.url_name == 'locations' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
             >
                 <i
                     data-lucide="map-pinned"
@@ -140,7 +145,6 @@
 
                 <span>Localisation des projets</span>
             </a>
-
             <a
                 href="{{ integrations_url }}"
                 class="

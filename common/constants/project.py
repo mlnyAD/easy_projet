@@ -34,6 +34,9 @@ PROJECT_POSTAL_CODE_LENGTH = POSTAL_CODE_LENGTH
 PROJECT_CITY_LENGTH = CITY_LENGTH
 PROJECT_COUNTRY_LENGTH = COUNTRY_LENGTH
 
+PROJECT_COORDINATE_MAX_DIGITS = 9
+PROJECT_COORDINATE_DECIMAL_PLACES = 6
+
 # ------------------------------------------------------------------
 # Charge
 # ------------------------------------------------------------------
