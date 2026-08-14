@@ -1,0 +1,354 @@
+
+
+{# ================================================================ #}
+{# Intervenants externes                                            #}
+{# ================================================================ #}
+
+
+{% if external_participant_formset.non_form_errors %}
+    <div
+        class="rounded-lg border border-red-200
+               bg-red-50 p-3 text-sm text-red-700"
+    >
+        {{ external_participant_formset.non_form_errors }}
+    </div>
+{% endif %}
+
+
+<section
+    class="rounded-xl border
+           border-axcio-border-light
+           bg-axcio-surface
+           dark:border-axcio-border-dark
+           dark:bg-axcio-surface-dark"
+>
+    <div class="p-5">
+        <h2
+            class="text-base font-semibold
+                   text-axcio-text
+                   dark:text-axcio-text-dark"
+        >
+            Intervenants externes
+        </h2>
+
+        <p
+            class="mt-1 text-sm
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            Intervenants ponctuels ne disposant pas
+            d'un compte Easy Projet.
+        </p>
+    </div>
+
+
+    <div class="overflow-x-auto">
+
+        <table class="min-w-full text-sm">
+
+            <thead
+                class="border-y
+                       border-axcio-border-light
+                       bg-axcio-surface-alt
+                       dark:border-axcio-border-dark
+                       dark:bg-axcio-surface-alt-dark"
+            >
+                <tr
+                    class="text-left
+                           text-axcio-text-secondary
+                           dark:text-axcio-text-secondary-dark"
+                >
+                    <th class="px-3 py-3 font-medium">
+                        Nom
+                    </th>
+
+                    <th class="px-3 py-3 font-medium">
+                        Prénom
+                    </th>
+
+                    <th class="px-3 py-3 font-medium">
+                        Email
+                    </th>
+
+                    <th class="px-3 py-3 font-medium">
+                        Société
+                    </th>
+
+                    <th class="px-3 py-3 font-medium">
+                        Statut
+                    </th>
+
+                    <th class="px-3 py-3 font-medium">
+                        Niveau d'accès
+                    </th>
+
+                    <th class="px-3 py-3 text-center font-medium">
+                        Actif
+                    </th>
+
+                    <th class="w-12 px-3 py-3">
+                    </th>
+                </tr>
+            </thead>
+
+
+            <tbody
+                data-formset="external_participants"
+                class="divide-y
+                       divide-axcio-border-light
+                       dark:divide-axcio-border-dark"
+            >
+
+                {% for form in external_participant_formset %}
+
+                    <tr
+                        data-form-row
+                        class="align-top"
+                    >
+                        {{ form.id }}
+
+
+                        <td class="px-3 py-3">
+                            {{ form.last_name }}
+
+                            {% if form.last_name.errors %}
+                                <div
+                                    class="mt-1 text-xs
+                                           text-red-600"
+                                >
+                                    {{ form.last_name.errors }}
+                                </div>
+                            {% endif %}
+                        </td>
+
+
+                        <td class="px-3 py-3">
+                            {{ form.first_name }}
+
+                            {% if form.first_name.errors %}
+                                <div
+                                    class="mt-1 text-xs
+                                           text-red-600"
+                                >
+                                    {{ form.first_name.errors }}
+                                </div>
+                            {% endif %}
+                        </td>
+
+
+                        <td class="px-3 py-3">
+                            {{ form.email }}
+
+                            {% if form.email.errors %}
+                                <div
+                                    class="mt-1 text-xs
+                                           text-red-600"
+                                >
+                                    {{ form.email.errors }}
+                                </div>
+                            {% endif %}
+                        </td>
+
+
+                        <td class="px-3 py-3">
+                            {{ form.company_name }}
+
+                            {% if form.company_name.errors %}
+                                <div
+                                    class="mt-1 text-xs
+                                           text-red-600"
+                                >
+                                    {{ form.company_name.errors }}
+                                </div>
+                            {% endif %}
+                        </td>
+
+
+                        <td
+                            class="whitespace-nowrap
+                                   px-3 py-3
+                                   text-axcio-text-secondary
+                                   dark:text-axcio-text-secondary-dark"
+                        >
+                            Externe
+                        </td>
+
+
+                        <td class="px-3 py-3">
+                            {{ form.access_level }}
+
+                            {% if form.access_level.errors %}
+                                <div
+                                    class="mt-1 text-xs
+                                           text-red-600"
+                                >
+                                    {{ form.access_level.errors }}
+                                </div>
+                            {% endif %}
+                        </td>
+
+
+                        <td
+                            class="px-3 py-3 text-center"
+                        >
+                            {{ form.is_active }}
+
+                            {% if form.is_active.errors %}
+                                <div
+                                    class="mt-1 text-xs
+                                           text-red-600"
+                                >
+                                    {{ form.is_active.errors }}
+                                </div>
+                            {% endif %}
+                        </td>
+
+
+                        <td
+                            class="px-3 py-3 text-right"
+                        >
+                            <div class="hidden">
+                                {{ form.DELETE }}
+                            </div>
+
+                            <button
+                                type="button"
+                                class="inline-flex h-9 w-9
+                                       items-center justify-center
+                                       rounded-md
+                                       text-axcio-text-muted
+                                       transition-colors
+                                       hover:bg-red-50
+                                       hover:text-red-600
+                                       dark:hover:bg-red-950/30"
+                                data-delete-row
+                                title="Supprimer"
+                                aria-label="Supprimer l'intervenant externe"
+                            >
+                                <i
+                                    data-lucide="trash-2"
+                                    class="h-4 w-4"
+                                    aria-hidden="true"
+                                ></i>
+                            </button>
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {# ============================================================ #}
+    {# Modèle de ligne pour ajout dynamique                         #}
+    {# ============================================================ #}
+
+    <template data-empty-form="external_participants">
+
+        <tr
+            data-form-row
+            class="align-top"
+        >
+            {{ external_participant_formset.empty_form.id }}
+
+
+            <td class="px-3 py-3">
+                {{ external_participant_formset.empty_form.last_name }}
+            </td>
+
+
+            <td class="px-3 py-3">
+                {{ external_participant_formset.empty_form.first_name }}
+            </td>
+
+
+            <td class="px-3 py-3">
+                {{ external_participant_formset.empty_form.email }}
+            </td>
+
+
+            <td class="px-3 py-3">
+                {{ external_participant_formset.empty_form.company_name }}
+            </td>
+
+
+            <td
+                class="whitespace-nowrap
+                       px-3 py-3
+                       text-axcio-text-secondary
+                       dark:text-axcio-text-secondary-dark"
+            >
+                Externe
+            </td>
+
+
+            <td class="px-3 py-3">
+                {{ external_participant_formset.empty_form.access_level }}
+            </td>
+
+
+            <td class="px-3 py-3 text-center">
+                {{ external_participant_formset.empty_form.is_active }}
+            </td>
+
+
+            <td class="px-3 py-3 text-right">
+
+                <div class="hidden">
+                    {{ external_participant_formset.empty_form.DELETE }}
+                </div>
+
+                <button
+                    type="button"
+                    class="inline-flex h-9 w-9
+                           items-center justify-center
+                           rounded-md
+                           text-axcio-text-muted
+                           transition-colors
+                           hover:bg-red-50
+                           hover:text-red-600
+                           dark:hover:bg-red-950/30"
+                    data-delete-row
+                    title="Supprimer"
+                    aria-label="Supprimer l'intervenant externe"
+                >
+                    <i
+                        data-lucide="trash-2"
+                        class="h-4 w-4"
+                        aria-hidden="true"
+                    ></i>
+                </button>
+            </td>
+
+        </tr>
+
+    </template>
+
+
+    <div class="p-5">
+
+        <button
+            type="button"
+            class="inline-flex items-center
+                   gap-2 text-sm font-medium
+                   text-axcio-light
+                   hover:text-axcio-light-hover"
+            data-add-row="external_participants"
+        >
+            <i
+                data-lucide="plus"
+                class="h-4 w-4"
+                aria-hidden="true"
+            ></i>
+
+            Ajouter un intervenant externe
+        </button>
+
+    </div>
+
+</section>

@@ -33,7 +33,11 @@ from common.constants.project import (
     PROJECT_COORDINATE_DECIMAL_PLACES,
 )
 from common.models import TimeStampedModel
-
+from common.constants.user import (
+    USER_EMAIL_LENGTH,
+    USER_FIRST_NAME_LENGTH,
+    USER_LAST_NAME_LENGTH,
+)
 
 class Project(TimeStampedModel):
     """
@@ -566,4 +570,136 @@ class ProjectMembership(TimeStampedModel):
             f"{self.project.reference} - "
             f"{self.user} - "
             f"{self.role}"
+        )
+        
+class ProjectExternalParticipant(TimeStampedModel):
+    """
+    Intervenant externe ponctuel associé à un projet.
+
+    L'intervenant n'est pas nécessairement un utilisateur
+    Easy Projet.
+
+    Son niveau d'accès doit appartenir au catalogue
+    PROJECT_EXTERNAL_ACCESS.
+
+    Lorsqu'il est converti en utilisateur Easy Projet,
+    converted_user référence l'utilisateur créé.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="external_participants",
+        verbose_name="Projet",
+    )
+
+    last_name = models.CharField(
+        max_length=USER_LAST_NAME_LENGTH,
+        verbose_name="Nom",
+    )
+
+    first_name = models.CharField(
+        max_length=USER_FIRST_NAME_LENGTH,
+        verbose_name="Prénom",
+    )
+
+    email = models.EmailField(
+        max_length=USER_EMAIL_LENGTH,
+        verbose_name="Adresse électronique",
+    )
+
+    company_name = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name="Société",
+    )
+
+    access_level = models.ForeignKey(
+        CatalogValue,
+        on_delete=models.PROTECT,
+        related_name="project_external_participants",
+        verbose_name="Niveau d'accès",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Actif",
+    )
+
+    converted_user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="converted_external_participations",
+        null=True,
+        blank=True,
+        verbose_name="Utilisateur créé",
+    )
+
+    class Meta:
+        db_table = "project_external_participant"
+        ordering = [
+            "project",
+            "last_name",
+            "first_name",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "project",
+                    "email",
+                ],
+                name=(
+                    "uq_project_external_participant_"
+                    "project_email"
+                ),
+            ),
+        ]
+        verbose_name = "Intervenant externe au projet"
+        verbose_name_plural = (
+            "Intervenants externes aux projets"
+        )
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.access_level_id
+            and self.access_level.catalog_type.code
+            != "PROJECT_EXTERNAL_ACCESS"
+        ):
+            raise ValidationError(
+                {
+                    "access_level": (
+                        "Le niveau d'accès doit appartenir au "
+                        "catalogue PROJECT_EXTERNAL_ACCESS."
+                    ),
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        """
+        Normalise les informations avant enregistrement.
+        """
+
+        self.last_name = self.last_name.strip().upper()
+        self.first_name = self.first_name.strip()
+
+        if self.email:
+            self.email = self.email.strip().lower()
+
+        self.company_name = self.company_name.strip()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return (
+            f"{self.project.reference} - "
+            f"{self.last_name} {self.first_name}"
         )

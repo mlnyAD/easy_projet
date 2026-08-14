@@ -21,7 +21,11 @@ from common.constants.project import (
 )
 from common.forms.fields import CatalogModelChoiceField
 
-from .models import Project, ProjectMembership
+from .models import (
+    Project,
+    ProjectExternalParticipant,
+    ProjectMembership,
+)
 
 
 class ProjectForm(forms.ModelForm):
@@ -454,7 +458,123 @@ ProjectMembershipFormSet = forms.inlineformset_factory(
         "role",
         "is_active",
     ),
-    extra=1,
+    extra=0,
     can_delete=True,
 )
         
+class ProjectExternalParticipantForm(forms.ModelForm):
+    """
+    Intervenant externe ponctuel associé à un projet.
+    """
+
+    access_level = CatalogModelChoiceField(
+        queryset=CatalogValue.objects.none(),
+        catalog_code="PROJECT_EXTERNAL_ACCESS",
+        required=True,
+        label="Niveau d'accès",
+    )
+
+    class Meta:
+        model = ProjectExternalParticipant
+
+        fields = (
+            "last_name",
+            "first_name",
+            "email",
+            "company_name",
+            "access_level",
+            "is_active",
+        )
+
+        labels = {
+            "last_name": "Nom",
+            "first_name": "Prénom",
+            "email": "Adresse électronique",
+            "company_name": "Société",
+            "is_active": "Actif",
+        }
+
+        widgets = {
+            "last_name": forms.TextInput(
+                attrs={
+                    "autocomplete": "family-name",
+                    "data-uppercase": True,
+                    "data-trim": True,
+                }
+            ),
+            "first_name": forms.TextInput(
+                attrs={
+                    "autocomplete": "given-name",
+                    "data-trim": True,
+                }
+            ),
+            "email": forms.EmailInput(
+                attrs={
+                    "autocomplete": "email",
+                    "data-trim": True,
+                }
+            ),
+            "company_name": forms.TextInput(
+                attrs={
+                    "autocomplete": "organization",
+                    "data-trim": True,
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.fields["access_level"].queryset = (
+            CatalogValue.objects
+            .filter(
+                catalog_type__code="PROJECT_EXTERNAL_ACCESS",
+                catalog_type__is_active=True,
+                is_active=True,
+            )
+            .select_related("catalog_type")
+            .order_by(
+                "sort_order",
+                "label",
+            )
+        )
+
+        self.fields[
+            "access_level"
+        ].catalog_is_editable = False
+
+        self.fields[
+            "access_level"
+        ].catalog_is_incremental = False
+
+        if not self.is_bound and not self.instance.pk:
+            default_value = (
+                self.fields["access_level"]
+                .queryset
+                .filter(is_default=True)
+                .first()
+            )
+
+            if default_value is not None:
+                self.initial["access_level"] = (
+                    default_value.pk
+                )
+
+
+ProjectExternalParticipantFormSet = (
+    forms.inlineformset_factory(
+        Project,
+        ProjectExternalParticipant,
+        form=ProjectExternalParticipantForm,
+        fields=(
+            "last_name",
+            "first_name",
+            "email",
+            "company_name",
+            "access_level",
+            "is_active",
+        ),
+        extra=0,
+        can_delete=True,
+    )
+)

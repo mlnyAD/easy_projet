@@ -639,6 +639,21 @@ CATALOG_VALUE_DEFINITIONS = [
         label="Lecture seule",
         sort_order=30,
     ),
+    
+    CatalogValueDefinition(
+        catalog="PROJECT_EXTERNAL_ACCESS",
+        code="READ",
+        label="Lecture",
+        sort_order=10,
+        is_default=True,
+    ),
+
+    CatalogValueDefinition(
+        catalog="PROJECT_EXTERNAL_ACCESS",
+        code="READ_WRITE",
+        label="Lecture / écriture",
+        sort_order=20,
+    ),    
 
     CatalogValueDefinition(
         catalog="USER_GLOBAL_ROLE",
@@ -656,8 +671,8 @@ CATALOG_VALUE_DEFINITIONS = [
 
     CatalogValueDefinition(
         catalog="USER_GLOBAL_ROLE",
-        code="NONE",
-        label="Aucun",
+        code="USER",
+        label="Utilisateur",
         sort_order=30,
         is_default=True,
     ),

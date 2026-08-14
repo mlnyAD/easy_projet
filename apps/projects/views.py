@@ -20,6 +20,7 @@ from framework.viewmodel.builder import ListViewModelBuilder
 
 from .form_definition import PROJECT_FORM_DEFINITION
 from .forms import (
+    ProjectExternalParticipantFormSet,
     ProjectForm,
     ProjectMembershipFormSet,
 )
@@ -290,6 +291,9 @@ class ProjectUpdateView(EPUpdateView):
                 "memberships__user__company",
                 "memberships__role",
                 "memberships__role__catalog_type",
+                "external_participants",
+                "external_participants__access_level",
+                "external_participants__converted_user",
             )
         )
 
@@ -325,6 +329,17 @@ class ProjectUpdateView(EPUpdateView):
             prefix="memberships",
         )
 
+    def get_external_participant_formset(
+        self,
+        *,
+        data=None,
+    ):
+        return ProjectExternalParticipantFormSet(
+            data=data,
+            instance=self.object,
+            prefix="external_participants",
+        )
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -333,18 +348,41 @@ class ProjectUpdateView(EPUpdateView):
                 self.get_membership_formset()
             )
 
-        return context
+        if "external_participant_formset" not in context:
+            context["external_participant_formset"] = (
+                self.get_external_participant_formset()
+            )
 
+        return context
+    
     def form_valid(self, form):
         membership_formset = self.get_membership_formset(
             data=self.request.POST,
         )
 
-        if not membership_formset.is_valid():
+        external_participant_formset = (
+            self.get_external_participant_formset(
+                data=self.request.POST,
+            )
+        )
+
+        memberships_valid = membership_formset.is_valid()
+
+        external_participants_valid = (
+            external_participant_formset.is_valid()
+        )
+
+        if not (
+            memberships_valid
+            and external_participants_valid
+        ):
             return self.render_to_response(
                 self.get_context_data(
                     form=form,
                     membership_formset=membership_formset,
+                    external_participant_formset=(
+                        external_participant_formset
+                    ),
                 )
             )
 
@@ -353,6 +391,9 @@ class ProjectUpdateView(EPUpdateView):
 
             membership_formset.instance = self.object
             membership_formset.save()
+
+            external_participant_formset.instance = self.object
+            external_participant_formset.save()
 
         messages.success(
             self.request,

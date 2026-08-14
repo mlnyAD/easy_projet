@@ -60,6 +60,11 @@ CATALOG_DEFINITIONS = [
         code="PROJECT_TYPE",
         label="Type de projet",
     ),
+    
+    CatalogDefinition(
+        code="PROJECT_EXTERNAL_ACCESS",
+        label="Niveau d'accès d'un intervenant externe au projet",
+    ),    
 
     CatalogDefinition(
         code="RISK_CLASS",
