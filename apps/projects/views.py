@@ -32,6 +32,7 @@ from .services.geocoding import (
     ProjectGeocodingError,
     ProjectGeocodingService,
 )
+from apps.users.models import User
 
 
 class ProjectListView(ListView):
@@ -353,8 +354,35 @@ class ProjectUpdateView(EPUpdateView):
                 self.get_external_participant_formset()
             )
 
+        users = (
+            User.objects
+            .filter(is_active=True)
+            .select_related(
+                "company",
+                "global_role",
+                "access_level",
+            )
+            .order_by(
+                "last_name",
+                "first_name",
+            )
+        )
+
+        context["project_users_data"] = [
+            {
+                "id": str(user.pk),
+                "last_name": user.last_name,
+                "first_name": user.first_name,
+                "email": user.email,
+                "company": str(user.company),
+                "global_role": user.global_role.label,
+                "access_level": user.access_level.label,
+            }
+            for user in users
+        ]
+
         return context
-    
+   
     def form_valid(self, form):
         membership_formset = self.get_membership_formset(
             data=self.request.POST,

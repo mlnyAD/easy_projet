@@ -90,8 +90,7 @@
                         Actif
                     </th>
 
-                    <th class="w-12 px-3 py-3">
-                    </th>
+                    <th class="w-12 px-3 py-3"></th>
                 </tr>
             </thead>
 
@@ -102,22 +101,19 @@
                        divide-axcio-border-light
                        dark:divide-axcio-border-dark"
             >
-
                 {% for form in membership_formset %}
 
                     <tr
                         data-form-row
+                        data-membership-row
                         class="align-top"
                     >
                         {{ form.id }}
 
                         {% if form.instance.pk %}
 
-                            {# Utilisateur déjà affecté au projet #}
-
                             <td
-                                class="whitespace-nowrap
-                                       px-3 py-3
+                                class="whitespace-nowrap px-3 py-3
                                        text-axcio-text
                                        dark:text-axcio-text-dark"
                             >
@@ -128,96 +124,75 @@
                                 </div>
 
                                 {% if form.user.errors %}
-                                    <div
-                                        class="mt-1 text-xs
-                                               text-red-600"
-                                    >
+                                    <div class="mt-1 text-xs text-red-600">
                                         {{ form.user.errors }}
                                     </div>
                                 {% endif %}
                             </td>
 
-
-                            <td
-                                class="whitespace-nowrap
-                                       px-3 py-3
-                                       text-axcio-text
-                                       dark:text-axcio-text-dark"
-                            >
+                            <td class="whitespace-nowrap px-3 py-3">
                                 {{ form.instance.user.first_name }}
                             </td>
 
-
-                            <td
-                                class="whitespace-nowrap
-                                       px-3 py-3
-                                       text-axcio-text-secondary
-                                       dark:text-axcio-text-secondary-dark"
-                            >
+                            <td class="whitespace-nowrap px-3 py-3">
                                 {{ form.instance.user.email }}
                             </td>
 
-
-                            <td
-                                class="whitespace-nowrap
-                                       px-3 py-3
-                                       text-axcio-text-secondary
-                                       dark:text-axcio-text-secondary-dark"
-                            >
+                            <td class="whitespace-nowrap px-3 py-3">
                                 {{ form.instance.user.company }}
                             </td>
 
-
-                            <td
-                                class="whitespace-nowrap
-                                       px-3 py-3
-                                       text-axcio-text-secondary
-                                       dark:text-axcio-text-secondary-dark"
-                            >
+                            <td class="whitespace-nowrap px-3 py-3">
                                 {{ form.instance.user.global_role.label }}
                             </td>
 
-
-                            <td
-                                class="whitespace-nowrap
-                                       px-3 py-3
-                                       text-axcio-text-secondary
-                                       dark:text-axcio-text-secondary-dark"
-                            >
+                            <td class="whitespace-nowrap px-3 py-3">
                                 {{ form.instance.user.access_level.label }}
                             </td>
 
                         {% else %}
 
-                            {# Ligne destinée à l'ajout d'un utilisateur #}
+                            <td class="px-3 py-3">
+                                <div data-user-select-wrapper>
+                                    {{ form.user }}
+                                </div>
+
+                                <div
+                                    data-user-field="last_name"
+                                    class="mt-2 font-medium"
+                                ></div>
+
+                                {% if form.user.errors %}
+                                    <div class="mt-1 text-xs text-red-600">
+                                        {{ form.user.errors }}
+                                    </div>
+                                {% endif %}
+                            </td>
 
                             <td
-                                colspan="6"
                                 class="px-3 py-3"
-                            >
-                                <div class="max-w-md">
-                                    <label
-                                        for="{{ form.user.id_for_label }}"
-                                        class="mb-1 block
-                                               text-xs font-medium
-                                               text-axcio-text-muted
-                                               dark:text-axcio-text-muted-dark"
-                                    >
-                                        Utilisateur
-                                    </label>
+                                data-user-field="first_name"
+                            ></td>
 
-                                    {{ form.user }}
+                            <td
+                                class="px-3 py-3"
+                                data-user-field="email"
+                            ></td>
 
-                                    {% if form.user.errors %}
-                                        <div
-                                            class="mt-1 text-xs
-                                                   text-red-600"
-                                        >
-                                            {{ form.user.errors }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </td>
+                            <td
+                                class="px-3 py-3"
+                                data-user-field="company"
+                            ></td>
+
+                            <td
+                                class="px-3 py-3"
+                                data-user-field="global_role"
+                            ></td>
+
+                            <td
+                                class="px-3 py-3"
+                                data-user-field="access_level"
+                            ></td>
 
                         {% endif %}
 
@@ -226,35 +201,25 @@
                             {{ form.role }}
 
                             {% if form.role.errors %}
-                                <div
-                                    class="mt-1 text-xs
-                                           text-red-600"
-                                >
+                                <div class="mt-1 text-xs text-red-600">
                                     {{ form.role.errors }}
                                 </div>
                             {% endif %}
                         </td>
 
 
-                        <td
-                            class="px-3 py-3 text-center"
-                        >
+                        <td class="px-3 py-3 text-center">
                             {{ form.is_active }}
 
                             {% if form.is_active.errors %}
-                                <div
-                                    class="mt-1 text-xs
-                                           text-red-600"
-                                >
+                                <div class="mt-1 text-xs text-red-600">
                                     {{ form.is_active.errors }}
                                 </div>
                             {% endif %}
                         </td>
 
 
-                        <td
-                            class="px-3 py-3 text-right"
-                        >
+                        <td class="px-3 py-3 text-right">
                             <div class="hidden">
                                 {{ form.DELETE }}
                             </div>
@@ -284,7 +249,6 @@
                     </tr>
 
                 {% endfor %}
-
             </tbody>
 
         </table>
@@ -292,26 +256,52 @@
     </div>
 
 
-    {# ============================================================ #}
-    {# Modèle de ligne pour ajout dynamique                         #}
-    {# ============================================================ #}
-
     <template data-empty-form="memberships">
 
         <tr
             data-form-row
+            data-membership-row
             class="align-top"
         >
             {{ membership_formset.empty_form.id }}
 
-            <td
-                colspan="6"
-                class="px-3 py-3"
-            >
-                <div class="max-w-md">
+            <td class="px-3 py-3">
+
+                <div data-user-select-wrapper>
                     {{ membership_formset.empty_form.user }}
                 </div>
+
+                <div
+                    data-user-field="last_name"
+                    class="mt-2 font-medium"
+                ></div>
+
             </td>
+
+            <td
+                class="px-3 py-3"
+                data-user-field="first_name"
+            ></td>
+
+            <td
+                class="px-3 py-3"
+                data-user-field="email"
+            ></td>
+
+            <td
+                class="px-3 py-3"
+                data-user-field="company"
+            ></td>
+
+            <td
+                class="px-3 py-3"
+                data-user-field="global_role"
+            ></td>
+
+            <td
+                class="px-3 py-3"
+                data-user-field="access_level"
+            ></td>
 
             <td class="px-3 py-3">
                 {{ membership_formset.empty_form.role }}
@@ -347,6 +337,7 @@
                         aria-hidden="true"
                     ></i>
                 </button>
+
             </td>
 
         </tr>

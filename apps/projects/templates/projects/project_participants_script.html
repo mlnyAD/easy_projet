@@ -1,5 +1,8 @@
 
 
+{{ project_users_data|json_script:"project-users-data" }}
+
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -13,6 +16,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const panels = document.querySelectorAll(
         "[data-project-panel]"
+    );
+
+    const usersDataElement = document.getElementById(
+        "project-users-data"
+    );
+
+    const users = usersDataElement
+        ? JSON.parse(usersDataElement.textContent)
+        : [];
+
+    const usersById = new Map(
+        users.map(
+            (user) => [
+                String(user.id),
+                user,
+            ]
+        )
     );
 
 
@@ -87,7 +107,218 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =============================================================
-    // Ajout dynamique d'une ligne de formset
+    // Informations utilisateur
+    // =============================================================
+
+    function setUserField(
+        row,
+        fieldName,
+        value
+    ) {
+        const field = row.querySelector(
+            `[data-user-field="${fieldName}"]`
+        );
+
+        if (!field) {
+            return;
+        }
+
+        field.textContent = value ?? "";
+    }
+
+
+    function clearUserFields(row) {
+
+        [
+            "last_name",
+            "first_name",
+            "email",
+            "company",
+            "global_role",
+            "access_level",
+        ].forEach(
+            (fieldName) => {
+                setUserField(
+                    row,
+                    fieldName,
+                    ""
+                );
+            }
+        );
+
+    }
+
+
+    function populateUserRow(
+        row,
+        userId
+    ) {
+        const user = usersById.get(
+            String(userId)
+        );
+
+        if (!user) {
+            clearUserFields(row);
+            return;
+        }
+
+        setUserField(
+            row,
+            "last_name",
+            user.last_name
+        );
+
+        setUserField(
+            row,
+            "first_name",
+            user.first_name
+        );
+
+        setUserField(
+            row,
+            "email",
+            user.email
+        );
+
+        setUserField(
+            row,
+            "company",
+            user.company
+        );
+
+        setUserField(
+            row,
+            "global_role",
+            user.global_role
+        );
+
+        setUserField(
+            row,
+            "access_level",
+            user.access_level
+        );
+    }
+
+
+    // =============================================================
+    // Doublons utilisateurs
+    // =============================================================
+
+    function userAlreadySelected(
+        currentSelect,
+        userId
+    ) {
+        if (!userId) {
+            return false;
+        }
+
+        const selects = document.querySelectorAll(
+            '[data-formset="memberships"] select[name$="-user"]'
+        );
+
+        return Array.from(selects).some(
+            (select) => {
+
+                if (select === currentSelect) {
+                    return false;
+                }
+
+                const row = select.closest(
+                    "[data-form-row]"
+                );
+
+                const deleteInput = row?.querySelector(
+                    'input[name$="-DELETE"]'
+                );
+
+                if (
+                    deleteInput
+                    && deleteInput.checked
+                ) {
+                    return false;
+                }
+
+                return (
+                    String(select.value)
+                    === String(userId)
+                );
+            }
+        );
+    }
+
+
+    function configureMembershipRow(row) {
+
+        if (!row) {
+            return;
+        }
+
+        const select = row.querySelector(
+            'select[name$="-user"]'
+        );
+
+        if (!select) {
+            return;
+        }
+
+        if (select.dataset.userConfigured === "1") {
+            return;
+        }
+
+        select.dataset.userConfigured = "1";
+
+
+        select.addEventListener(
+            "change",
+            () => {
+
+                const userId = select.value;
+
+                if (
+                    userAlreadySelected(
+                        select,
+                        userId
+                    )
+                ) {
+                    window.alert(
+                        "Cet utilisateur est déjà affecté au projet."
+                    );
+
+                    select.value = "";
+
+                    clearUserFields(row);
+
+                    return;
+                }
+
+                populateUserRow(
+                    row,
+                    userId
+                );
+
+            }
+        );
+
+
+        if (select.value) {
+            populateUserRow(
+                row,
+                select.value
+            );
+        }
+
+    }
+
+
+    document
+        .querySelectorAll("[data-membership-row]")
+        .forEach(
+            configureMembershipRow
+        );
+
+
+    // =============================================================
+    // Ajout dynamique d'une ligne
     // =============================================================
 
     function addFormRow(prefix) {
@@ -132,6 +363,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         totalForms.value = index + 1;
+
+
+        const rows = container.querySelectorAll(
+            "[data-form-row]"
+        );
+
+        const newRow = rows[
+            rows.length - 1
+        ];
+
+
+        if (
+            prefix === "memberships"
+            && newRow
+        ) {
+            configureMembershipRow(
+                newRow
+            );
+        }
 
 
         if (window.lucide) {
