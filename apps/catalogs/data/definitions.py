@@ -115,6 +115,11 @@ CATALOG_DEFINITIONS = [
         code="TASK_STATUS",
         label="Statut de la tâche",
     ),
+    
+    CatalogDefinition(
+        code="TASK_MEMBER_ROLE",
+        label="Rôle de l'utilisateur sur la tâche",
+    ),
 
     CatalogDefinition(
         code="USER_EMPLOYMENT_TYPE",

@@ -19,10 +19,76 @@ from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
 
 from .form_definition import TASK_FORM_DEFINITION
-from .forms import TaskForm
+from .forms import (
+    TaskAssignmentFormSet,
+    TaskForm,
+)
 from .lists import TASK_LIST_DEFINITION
 from .models import Task
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect
+from apps.projects.models import ProjectMembership
 
+
+def build_task_assignment_context():
+    """
+    Prépare les données nécessaires à la sélection dynamique
+    des personnes affectables à une tâche.
+    """
+
+    memberships = (
+        ProjectMembership.objects
+        .filter(
+            is_active=True,
+            user__is_active=True,
+            project__is_active=True,
+        )
+        .select_related(
+            "project",
+            "user",
+            "user__company",
+            "user__job",
+        )
+        .order_by(
+            "project__reference",
+            "user__last_name",
+            "user__first_name",
+        )
+    )
+
+    users_data = [
+        {
+            "id": str(membership.user.pk),
+            "project_id": str(membership.project.pk),
+            "last_name": membership.user.last_name,
+            "first_name": membership.user.first_name,
+            "email": membership.user.email,
+            "company": str(membership.user.company),
+            "job": (
+                membership.user.job.label
+                if membership.user.job
+                else ""
+            ),
+        }
+        for membership in memberships
+    ]
+
+    work_packages_data = [
+        {
+            "id": str(work_package.pk),
+            "project_id": str(work_package.project_id),
+        }
+        for work_package in (
+            WorkPackage.objects
+            .filter(is_active=True)
+            .select_related("project")
+        )
+    ]
+
+    return {
+        "task_users_data": users_data,
+        "task_work_packages_data": work_packages_data,
+    }
 
 class TaskListView(ListView):
     """
@@ -145,7 +211,7 @@ class TaskCreateView(EPCreateView):
     model = Task
     form_class = TaskForm
     definition = TASK_FORM_DEFINITION
-    template_name = "edf/form/view.html"
+    template_name = "tasks/task_form.html"
 
     def get_return_url(self):
         candidate = self.request.GET.get("next")
@@ -171,7 +237,9 @@ class TaskCreateView(EPCreateView):
     def get_initial(self):
         initial = super().get_initial()
 
-        work_package_pk = self.request.GET.get("work_package")
+        work_package_pk = self.request.GET.get(
+            "work_package"
+        )
 
         if work_package_pk:
             work_package = (
@@ -180,6 +248,7 @@ class TaskCreateView(EPCreateView):
                     pk=work_package_pk,
                     is_active=True,
                 )
+                .select_related("project")
                 .first()
             )
 
@@ -188,22 +257,148 @@ class TaskCreateView(EPCreateView):
 
         return initial
 
+    def get_current_project(self, form=None):
+        """
+        Détermine le projet servant à filtrer les personnes
+        affectables à la tâche.
+        """
+
+        if (
+            form is not None
+            and hasattr(form, "cleaned_data")
+        ):
+            work_package = form.cleaned_data.get(
+                "work_package"
+            )
+
+            if work_package is not None:
+                return work_package.project
+
+        work_package_pk = (
+            self.request.POST.get("work_package")
+            or self.request.GET.get("work_package")
+        )
+
+        if not work_package_pk:
+            return None
+
+        work_package = (
+            WorkPackage.objects
+            .filter(
+                pk=work_package_pk,
+                is_active=True,
+            )
+            .select_related("project")
+            .first()
+        )
+
+        if work_package is None:
+            return None
+
+        return work_package.project
+
+    def get_assignment_formset(
+        self,
+        *,
+        data=None,
+        project=None,
+    ):
+        return TaskAssignmentFormSet(
+            data=data,
+            instance=self.object,
+            prefix="assignments",
+            project=project,
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        form = context.get("form")
+
+        project = self.get_current_project(
+            form=form
+        )
+
+        if "assignment_formset" not in context:
+            context["assignment_formset"] = (
+                self.get_assignment_formset(
+                    data=(
+                        self.request.POST
+                        if self.request.method == "POST"
+                        else None
+                    ),
+                    project=project,
+                )
+            )
+
+        context["current_project"] = project
+        
+        context.update(
+            build_task_assignment_context()
+        )
+        return context
+
     def form_valid(self, form):
-        response = super().form_valid(form)
+        project = self.get_current_project(
+            form=form
+        )
+
+        assignment_formset = (
+            self.get_assignment_formset(
+                data=self.request.POST,
+                project=project,
+            )
+        )
+
+        if not assignment_formset.is_valid():
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form,
+                    assignment_formset=(
+                        assignment_formset
+                    ),
+                )
+            )
+
+        with transaction.atomic():
+            self.object = form.save()
+
+            assignment_formset.instance = self.object
+            assignment_formset.save()
 
         messages.success(
             self.request,
             "La tâche a été créée avec succès.",
         )
 
-        return response
+        return redirect(
+            self.get_success_url()
+        )
 
 
 class TaskUpdateView(EPUpdateView):
     model = Task
     form_class = TaskForm
     definition = TASK_FORM_DEFINITION
-    template_name = "edf/form/view.html"
+    template_name = "tasks/task_form.html"
+
+    def get_queryset(self):
+        return (
+            Task.objects
+            .select_related(
+                "work_package",
+                "work_package__project",
+                "status",
+            )
+            .prefetch_related(
+                "assignments",
+                "assignments__user",
+                "assignments__user__company",
+                "assignments__user__job",
+                "assignments__role",
+                "assignments__role__catalog_type",
+            )
+        )
 
     def get_return_url(self):
         candidate = self.request.GET.get("next")
@@ -226,12 +421,100 @@ class TaskUpdateView(EPUpdateView):
     def get_cancel_url(self):
         return self.get_return_url()
 
+    def get_current_project(self, form=None):
+        """
+        Retourne le projet correspondant au lot actuellement
+        sélectionné dans le formulaire.
+        """
+
+        if (
+            form is not None
+            and hasattr(form, "cleaned_data")
+        ):
+            work_package = form.cleaned_data.get(
+                "work_package"
+            )
+
+            if work_package is not None:
+                return work_package.project
+
+        return self.object.work_package.project
+
+    def get_assignment_formset(
+        self,
+        *,
+        data=None,
+        project=None,
+    ):
+        return TaskAssignmentFormSet(
+            data=data,
+            instance=self.object,
+            prefix="assignments",
+            project=project,
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        form = context.get("form")
+
+        project = self.get_current_project(
+            form=form
+        )
+
+        if "assignment_formset" not in context:
+            context["assignment_formset"] = (
+                self.get_assignment_formset(
+                    data=(
+                        self.request.POST
+                        if self.request.method == "POST"
+                        else None
+                    ),
+                    project=project,
+                )
+            )
+
+        context["current_project"] = project
+
+        context.update(
+            build_task_assignment_context()
+        )
+
+        return context
+
     def form_valid(self, form):
-        response = super().form_valid(form)
+        project = self.get_current_project(
+            form=form
+        )
+
+        assignment_formset = (
+            self.get_assignment_formset(
+                data=self.request.POST,
+                project=project,
+            )
+        )
+
+        if not assignment_formset.is_valid():
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form,
+                    assignment_formset=(
+                        assignment_formset
+                    ),
+                )
+            )
+
+        with transaction.atomic():
+            self.object = form.save()
+
+            assignment_formset.instance = self.object
+            assignment_formset.save()
 
         messages.success(
             self.request,
             "La tâche a été modifiée avec succès.",
         )
 
-        return response
+        return redirect(
+            self.get_success_url()
+        )

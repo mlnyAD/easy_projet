@@ -5,6 +5,8 @@ from __future__ import annotations
 from django import forms
 
 from apps.catalogs.models import CatalogValue
+from apps.projects.models import ProjectMembership
+from apps.users.models import User
 from apps.work.models import WorkPackage
 from common.constants.task import (
     TASK_CODE_LENGTH,
@@ -15,7 +17,10 @@ from common.constants.task import (
 )
 from common.forms.fields import CatalogModelChoiceField
 
-from .models import Task
+from .models import (
+    Task,
+    TaskAssignment,
+)
 
 
 class TaskForm(forms.ModelForm):
@@ -208,3 +213,135 @@ class TaskForm(forms.ModelForm):
 
         if default_value is not None:
             self.initial[field_name] = default_value.pk
+
+
+class TaskAssignmentForm(forms.ModelForm):
+    """
+    Affectation individuelle d'un utilisateur à une tâche.
+    """
+
+    role = CatalogModelChoiceField(
+        queryset=CatalogValue.objects.none(),
+        catalog_code="TASK_MEMBER_ROLE",
+        required=True,
+        label="Rôle sur la tâche",
+    )
+
+    class Meta:
+        model = TaskAssignment
+
+        fields = (
+            "user",
+            "role",
+            "is_active",
+        )
+
+        labels = {
+            "user": "Utilisateur",
+            "is_active": "Actif",
+        }
+
+    def __init__(
+        self,
+        *args,
+        project=None,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.fields["user"].queryset = User.objects.none()
+
+        if project is not None:
+            self.fields["user"].queryset = (
+                User.objects
+                .filter(
+                    is_active=True,
+                    project_memberships__project=project,
+                    project_memberships__is_active=True,
+                )
+                .select_related(
+                    "company",
+                    "job",
+                    "global_role",
+                    "access_level",
+                )
+                .distinct()
+                .order_by(
+                    "last_name",
+                    "first_name",
+                )
+            )
+
+        self.fields["role"].queryset = (
+            CatalogValue.objects
+            .filter(
+                catalog_type__code="TASK_MEMBER_ROLE",
+                catalog_type__is_active=True,
+                is_active=True,
+            )
+            .select_related("catalog_type")
+            .order_by(
+                "sort_order",
+                "label",
+            )
+        )
+
+        self.fields["role"].catalog_is_editable = False
+        self.fields["role"].catalog_is_incremental = False
+
+        if not self.is_bound and not self.instance.pk:
+            default_value = (
+                self.fields["role"]
+                .queryset
+                .filter(is_default=True)
+                .first()
+            )
+
+            if default_value is not None:
+                self.initial["role"] = default_value.pk
+
+
+class BaseTaskAssignmentFormSet(
+    forms.BaseInlineFormSet
+):
+    """
+    Formset des personnes affectées à une tâche.
+    """
+
+    def __init__(
+        self,
+        *args,
+        project=None,
+        **kwargs,
+    ) -> None:
+        self.project = project
+
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
+    def get_form_kwargs(
+        self,
+        index,
+    ):
+        kwargs = super().get_form_kwargs(index)
+
+        kwargs["project"] = self.project
+
+        return kwargs
+
+
+TaskAssignmentFormSet = forms.inlineformset_factory(
+    Task,
+    TaskAssignment,
+    form=TaskAssignmentForm,
+    formset=BaseTaskAssignmentFormSet,
+    fields=(
+        "user",
+        "role",
+        "is_active",
+    ),
+    extra=0,
+    can_delete=True,
+)

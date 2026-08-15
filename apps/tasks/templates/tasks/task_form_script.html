@@ -1,0 +1,648 @@
+
+
+{{ task_users_data|json_script:"task-users-data" }}
+{{ task_work_packages_data|json_script:"task-work-packages-data" }}
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const tabInput = document.querySelector(
+        "#id_active_tab"
+    );
+
+    const tabs = document.querySelectorAll(
+        "[data-task-tab]"
+    );
+
+    const panels = document.querySelectorAll(
+        "[data-task-panel]"
+    );
+
+    const usersDataElement = document.getElementById(
+        "task-users-data"
+    );
+
+    const workPackagesDataElement = document.getElementById(
+        "task-work-packages-data"
+    );
+
+    const users = usersDataElement
+        ? JSON.parse(usersDataElement.textContent)
+        : [];
+
+    const workPackages = workPackagesDataElement
+        ? JSON.parse(workPackagesDataElement.textContent)
+        : [];
+
+
+    const usersById = new Map(
+        users.map(
+            (user) => [
+                String(user.id),
+                user,
+            ]
+        )
+    );
+
+
+    const projectByWorkPackage = new Map(
+        workPackages.map(
+            (workPackage) => [
+                String(workPackage.id),
+                String(workPackage.project_id),
+            ]
+        )
+    );
+
+
+    // =============================================================
+    // Onglets
+    // =============================================================
+
+    function activateTab(name) {
+
+        tabs.forEach((tab) => {
+
+            const active = (
+                tab.dataset.taskTab === name
+            );
+
+            tab.classList.toggle(
+                "border-axcio-light",
+                active
+            );
+
+            tab.classList.toggle(
+                "text-axcio-light",
+                active
+            );
+
+            tab.classList.toggle(
+                "border-transparent",
+                !active
+            );
+
+            tab.classList.toggle(
+                "text-axcio-text-secondary",
+                !active
+            );
+
+        });
+
+
+        panels.forEach((panel) => {
+
+            panel.classList.toggle(
+                "hidden",
+                panel.dataset.taskPanel !== name
+            );
+
+        });
+
+
+        if (tabInput) {
+            tabInput.value = name;
+        }
+    }
+
+
+    tabs.forEach((tab) => {
+
+        tab.addEventListener(
+            "click",
+            () => {
+                activateTab(
+                    tab.dataset.taskTab
+                );
+            }
+        );
+
+    });
+
+
+    activateTab(
+        tabInput?.value || "task"
+    );
+
+
+    // =============================================================
+    // Projet courant
+    // =============================================================
+
+    function getCurrentProjectId() {
+
+        const workPackageSelect = document.querySelector(
+            "#id_work_package"
+        );
+
+        if (!workPackageSelect) {
+            return null;
+        }
+
+        return (
+            projectByWorkPackage.get(
+                String(workPackageSelect.value)
+            )
+            || null
+        );
+    }
+
+
+    // =============================================================
+    // Utilisateurs disponibles
+    // =============================================================
+
+    function getAvailableUsers() {
+
+        const projectId = getCurrentProjectId();
+
+        if (!projectId) {
+            return [];
+        }
+
+        return users.filter(
+            (user) => (
+                String(user.project_id)
+                === String(projectId)
+            )
+        );
+    }
+
+
+    function refreshUserSelect(select) {
+
+        if (!select) {
+            return;
+        }
+
+        const currentValue = select.value;
+
+        const availableUsers = getAvailableUsers();
+
+        select.innerHTML = "";
+
+        const emptyOption = document.createElement(
+            "option"
+        );
+
+        emptyOption.value = "";
+        emptyOption.textContent = "---------";
+
+        select.appendChild(
+            emptyOption
+        );
+
+
+        availableUsers.forEach((user) => {
+
+            const option = document.createElement(
+                "option"
+            );
+
+            option.value = user.id;
+
+            option.textContent = (
+                `${user.last_name} ${user.first_name}`
+            );
+
+            if (
+                String(user.id)
+                === String(currentValue)
+            ) {
+                option.selected = true;
+            }
+
+            select.appendChild(
+                option
+            );
+
+        });
+
+    }
+
+
+    function refreshAllUserSelects() {
+
+        document
+            .querySelectorAll(
+                '[data-formset="assignments"] '
+                + 'select[name$="-user"]'
+            )
+            .forEach(
+                refreshUserSelect
+            );
+
+    }
+
+
+    // =============================================================
+    // Informations utilisateur
+    // =============================================================
+
+    function setUserField(
+        row,
+        fieldName,
+        value
+    ) {
+
+        const field = row.querySelector(
+            `[data-user-field="${fieldName}"]`
+        );
+
+        if (!field) {
+            return;
+        }
+
+        field.textContent = value ?? "";
+    }
+
+
+    function clearUserFields(row) {
+
+        [
+            "last_name",
+            "first_name",
+            "email",
+            "company",
+            "job",
+        ].forEach(
+            (fieldName) => {
+
+                setUserField(
+                    row,
+                    fieldName,
+                    ""
+                );
+
+            }
+        );
+
+    }
+
+
+    function populateUserRow(
+        row,
+        userId
+    ) {
+
+        const user = usersById.get(
+            String(userId)
+        );
+
+        if (!user) {
+            clearUserFields(row);
+            return;
+        }
+
+        setUserField(
+            row,
+            "last_name",
+            user.last_name
+        );
+
+        setUserField(
+            row,
+            "first_name",
+            user.first_name
+        );
+
+        setUserField(
+            row,
+            "email",
+            user.email
+        );
+
+        setUserField(
+            row,
+            "company",
+            user.company
+        );
+
+        setUserField(
+            row,
+            "job",
+            user.job
+        );
+
+    }
+
+
+    // =============================================================
+    // Doublons
+    // =============================================================
+
+    function userAlreadySelected(
+        currentSelect,
+        userId
+    ) {
+
+        if (!userId) {
+            return false;
+        }
+
+        const selects = document.querySelectorAll(
+            '[data-formset="assignments"] '
+            + 'select[name$="-user"]'
+        );
+
+        return Array.from(selects).some(
+            (select) => {
+
+                if (select === currentSelect) {
+                    return false;
+                }
+
+                const row = select.closest(
+                    "[data-form-row]"
+                );
+
+                const deleteInput = row?.querySelector(
+                    'input[name$="-DELETE"]'
+                );
+
+                if (
+                    deleteInput
+                    && deleteInput.checked
+                ) {
+                    return false;
+                }
+
+                return (
+                    String(select.value)
+                    === String(userId)
+                );
+
+            }
+        );
+
+    }
+
+
+    function configureAssignmentRow(row) {
+
+        if (!row) {
+            return;
+        }
+
+        const select = row.querySelector(
+            'select[name$="-user"]'
+        );
+
+        if (!select) {
+            return;
+        }
+
+        if (select.dataset.userConfigured === "1") {
+            return;
+        }
+
+        select.dataset.userConfigured = "1";
+
+        refreshUserSelect(
+            select
+        );
+
+
+        select.addEventListener(
+            "change",
+            () => {
+
+                const userId = select.value;
+
+                if (
+                    userAlreadySelected(
+                        select,
+                        userId
+                    )
+                ) {
+                    window.alert(
+                        "Cette personne est déjà affectée à la tâche."
+                    );
+
+                    select.value = "";
+
+                    clearUserFields(
+                        row
+                    );
+
+                    return;
+                }
+
+                populateUserRow(
+                    row,
+                    userId
+                );
+
+                if (userId) {
+                    const wrapper = row.querySelector(
+                        "[data-user-select-wrapper]"
+                    );
+
+                    if (wrapper) {
+                        wrapper.classList.add("hidden");
+                    }
+                }
+
+            }
+        );
+
+        if (select.value) {
+
+            populateUserRow(
+                row,
+                select.value
+            );
+
+            const wrapper = row.querySelector(
+                "[data-user-select-wrapper]"
+            );
+
+            if (wrapper) {
+                wrapper.classList.add("hidden");
+            }
+
+        }
+
+    }
+
+
+    document
+        .querySelectorAll("[data-assignment-row]")
+        .forEach(
+            configureAssignmentRow
+        );
+
+
+    // =============================================================
+    // Changement de lot de travaux
+    // =============================================================
+
+    const workPackageSelect = document.querySelector(
+        "#id_work_package"
+    );
+
+    if (workPackageSelect) {
+
+        workPackageSelect.addEventListener(
+            "change",
+            () => {
+
+                document
+                    .querySelectorAll(
+                        "[data-assignment-row]"
+                    )
+                    .forEach(
+                        (row) => {
+
+                            const select = row.querySelector(
+                                'select[name$="-user"]'
+                            );
+
+                            if (select) {
+                                select.value = "";
+                                refreshUserSelect(
+                                    select
+                                );
+                            }
+
+                            clearUserFields(
+                                row
+                            );
+
+                        }
+                    );
+
+            }
+        );
+
+    }
+
+
+    // =============================================================
+    // Ajout dynamique
+    // =============================================================
+
+    function addFormRow(prefix) {
+
+        const container = document.querySelector(
+            `[data-formset="${prefix}"]`
+        );
+
+        const template = document.querySelector(
+            `[data-empty-form="${prefix}"]`
+        );
+
+        const totalForms = document.querySelector(
+            `#id_${prefix}-TOTAL_FORMS`
+        );
+
+        if (
+            !container
+            || !template
+            || !totalForms
+        ) {
+            return;
+        }
+
+        const index = Number(
+            totalForms.value
+        );
+
+        const html = template.innerHTML.replaceAll(
+            "__prefix__",
+            index
+        );
+
+        container.insertAdjacentHTML(
+            "beforeend",
+            html
+        );
+
+        totalForms.value = index + 1;
+
+        const rows = container.querySelectorAll(
+            "[data-form-row]"
+        );
+
+        const newRow = rows[
+            rows.length - 1
+        ];
+
+        if (
+            prefix === "assignments"
+            && newRow
+        ) {
+            configureAssignmentRow(
+                newRow
+            );
+        }
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+
+    }
+
+
+    document
+        .querySelectorAll("[data-add-row]")
+        .forEach(
+            (button) => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        addFormRow(
+                            button.dataset.addRow
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    // =============================================================
+    // Suppression
+    // =============================================================
+
+    document.addEventListener(
+        "click",
+        (event) => {
+
+            const button = event.target.closest(
+                "[data-delete-row]"
+            );
+
+            if (!button) {
+                return;
+            }
+
+            const row = button.closest(
+                "[data-form-row]"
+            );
+
+            if (!row) {
+                return;
+            }
+
+            const deleteInput = row.querySelector(
+                'input[name$="-DELETE"]'
+            );
+
+            if (deleteInput) {
+                deleteInput.checked = true;
+            }
+
+            row.classList.add(
+                "hidden"
+            );
+
+        }
+    );
+
+});
+</script>

@@ -24,6 +24,7 @@ from common.services.code_generator import (
     generate_scoped_code,
     normalize_code_part,
 )
+from apps.users.models import User
 
 
 class Task(TimeStampedModel):
@@ -269,3 +270,69 @@ class Task(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.code} - {self.name}"
+    
+class TaskAssignment(TimeStampedModel):
+    """
+    Affectation individuelle d'un utilisateur à une tâche.
+
+    L'affectation est indépendante de toute notion d'équipe.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="assignments",
+        verbose_name="Tâche",
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="task_assignments",
+        verbose_name="Utilisateur",
+    )
+
+    role = models.ForeignKey(
+        CatalogValue,
+        on_delete=models.PROTECT,
+        related_name="task_assignment_roles",
+        verbose_name="Rôle sur la tâche",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Affectation active",
+    )
+
+    class Meta:
+        db_table = "task_assignment"
+        ordering = [
+            "task",
+            "user__last_name",
+            "user__first_name",
+        ]
+        verbose_name = "Affectation à une tâche"
+        verbose_name_plural = "Affectations aux tâches"
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "task",
+                    "user",
+                ],
+                name="uniq_task_assignment_user",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.task.code} - "
+            f"{self.user.last_name} "
+            f"{self.user.first_name}"
+        )

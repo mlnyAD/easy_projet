@@ -576,6 +576,21 @@ CATALOG_VALUE_DEFINITIONS = [
     ),
 
     CatalogValueDefinition(
+        catalog="TASK_MEMBER_ROLE",
+        code="TEAM_LEADER",
+        label="Chef d'équipe",
+        sort_order=10,
+    ),
+
+    CatalogValueDefinition(
+        catalog="TASK_MEMBER_ROLE",
+        code="MEMBER",
+        label="Équipier",
+        sort_order=20,
+        is_default=True,
+    ),
+
+    CatalogValueDefinition(
         catalog="USER_EMPLOYMENT_TYPE",
         code="EMPLOYEE",
         label="Employé",
