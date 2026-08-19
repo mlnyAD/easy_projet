@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "apps.tasks",
     "apps.risks",
     "apps.integrations.apps.IntegrationsConfig",
+    "apps.planning.apps.PlanningConfig",
 ]
 
 MIDDLEWARE = [

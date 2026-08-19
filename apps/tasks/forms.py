@@ -1,12 +1,16 @@
+
+
 from __future__ import annotations
 
 from django import forms
 
 from apps.catalogs.models import CatalogValue
-from apps.projects.models import ProjectMembership
 from apps.users.models import User
 from apps.work.models import WorkPackage
 from common.constants.task import (
+    TASK_ASSIGNMENT_DEFAULT_ALLOCATION_PERCENT,
+    TASK_ASSIGNMENT_MAX_ALLOCATION_PERCENT,
+    TASK_ASSIGNMENT_MIN_ALLOCATION_PERCENT,
     TASK_CODE_LENGTH,
     TASK_DESCRIPTION_LENGTH,
     TASK_MAX_PROGRESS_PERCENT,
@@ -200,6 +204,7 @@ class TaskForm(forms.ModelForm):
         field.catalog_is_editable = (
             catalog["catalog_type__is_editable"]
         )
+
         field.catalog_is_incremental = (
             catalog["catalog_type__is_incremental"]
         )
@@ -237,12 +242,29 @@ class TaskAssignmentForm(forms.ModelForm):
         fields = (
             "user",
             "role",
+            "allocation_percent",
             "is_active",
         )
 
         labels = {
             "user": "Utilisateur",
+            "allocation_percent": "Taux de charge (%)",
             "is_active": "Actif",
+        }
+
+        widgets = {
+            "allocation_percent": forms.NumberInput(
+                attrs={
+                    "min": (
+                        TASK_ASSIGNMENT_MIN_ALLOCATION_PERCENT
+                    ),
+                    "max": (
+                        TASK_ASSIGNMENT_MAX_ALLOCATION_PERCENT
+                    ),
+                    "step": 1,
+                    "inputmode": "numeric",
+                }
+            ),
         }
 
     def __init__(
@@ -253,7 +275,9 @@ class TaskAssignmentForm(forms.ModelForm):
     ) -> None:
         super().__init__(*args, **kwargs)
 
-        self.fields["user"].queryset = User.objects.none()
+        self.fields["user"].queryset = (
+            User.objects.none()
+        )
 
         if project is not None:
             self.fields["user"].queryset = (
@@ -304,6 +328,10 @@ class TaskAssignmentForm(forms.ModelForm):
             if default_value is not None:
                 self.initial["role"] = default_value.pk
 
+            self.initial["allocation_percent"] = (
+                TASK_ASSIGNMENT_DEFAULT_ALLOCATION_PERCENT
+            )
+
 
 class BaseTaskAssignmentFormSet(
     forms.BaseInlineFormSet
@@ -344,6 +372,7 @@ TaskAssignmentFormSet = forms.inlineformset_factory(
     fields=(
         "user",
         "role",
+        "allocation_percent",
         "is_active",
     ),
     extra=0,

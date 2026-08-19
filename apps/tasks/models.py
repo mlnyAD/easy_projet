@@ -11,6 +11,9 @@ from apps.catalogs.models import CatalogValue
 from apps.users.models import User
 from apps.work.models import WorkPackage
 from common.constants.task import (
+    TASK_ASSIGNMENT_DEFAULT_ALLOCATION_PERCENT,
+    TASK_ASSIGNMENT_MAX_ALLOCATION_PERCENT,
+    TASK_ASSIGNMENT_MIN_ALLOCATION_PERCENT,
     TASK_CODE_LENGTH,
     TASK_DEFAULT_PLANNED_WORKLOAD_HOURS,
     TASK_DEFAULT_PROGRESS_PERCENT,
@@ -291,6 +294,9 @@ class TaskAssignment(TimeStampedModel):
     Affectation individuelle d'un utilisateur à une tâche.
 
     L'affectation est indépendante de toute notion d'équipe.
+
+    Le taux de charge représente la part de capacité de la ressource
+    affectée à la tâche pendant sa période de planification.
     """
 
     id = models.UUIDField(
@@ -321,10 +327,37 @@ class TaskAssignment(TimeStampedModel):
         verbose_name="Rôle sur la tâche",
     )
 
+    allocation_percent = models.PositiveSmallIntegerField(
+        default=TASK_ASSIGNMENT_DEFAULT_ALLOCATION_PERCENT,
+        verbose_name="Taux de charge (%)",
+    )
+
     is_active = models.BooleanField(
         default=True,
         verbose_name="Affectation active",
     )
+
+    def clean(self) -> None:
+        """
+        Vérifie la cohérence de l'affectation.
+        """
+        super().clean()
+
+        if not (
+            TASK_ASSIGNMENT_MIN_ALLOCATION_PERCENT
+            <= self.allocation_percent
+            <= TASK_ASSIGNMENT_MAX_ALLOCATION_PERCENT
+        ):
+            raise ValidationError(
+                {
+                    "allocation_percent": (
+                        "Le taux de charge doit être compris entre "
+                        f"{TASK_ASSIGNMENT_MIN_ALLOCATION_PERCENT} "
+                        "et "
+                        f"{TASK_ASSIGNMENT_MAX_ALLOCATION_PERCENT} %."
+                    ),
+                }
+            )
 
     class Meta:
         db_table = "task_assignment"

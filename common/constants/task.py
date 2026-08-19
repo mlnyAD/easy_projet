@@ -31,3 +31,11 @@ TASK_DEFAULT_REMAINING_WORKLOAD_HOURS = 0
 TASK_DEFAULT_PROGRESS_PERCENT = 0
 TASK_MIN_PROGRESS_PERCENT = 0
 TASK_MAX_PROGRESS_PERCENT = 100
+
+# ----------------------------------------------------------------------
+# Affectation des ressources
+# ----------------------------------------------------------------------
+
+TASK_ASSIGNMENT_DEFAULT_ALLOCATION_PERCENT = 100
+TASK_ASSIGNMENT_MIN_ALLOCATION_PERCENT = 0
+TASK_ASSIGNMENT_MAX_ALLOCATION_PERCENT = 100

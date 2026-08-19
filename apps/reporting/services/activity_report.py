@@ -190,13 +190,8 @@ class ActivityReportPreparationService:
         automatiquement.
         """
 
-        task_start_date = (
-            task.effective_start_date
-        )
-
-        task_end_date = (
-            task.effective_end_date
-        )
+        task_start_date = task.start_date
+        task_end_date = task.end_date
 
         if (
             task_start_date is None

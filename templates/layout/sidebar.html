@@ -10,6 +10,7 @@
 {% url "projects:list" as projects_url %}
 {% url "work:list" as work_url %}
 {% url "tasks:list" as tasks_url %}
+{% url "planning:home" as planning_url %}
 {% url "reporting:week" as activity_report_url %}
 {% url "reporting:review-list" as activity_report_reviews_url %}
 {% url "risks:list" as risks_url %}
@@ -241,6 +242,25 @@
                 ></i>
 
                 <span>Tâches</span>
+            </a>
+
+            <a
+                href="{{ planning_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'planning' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
+            >
+                <i
+                    data-lucide="gantt-chart-square"
+                    class="h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                ></i>
+
+                <span>Planning</span>
             </a>
 
             <a
