@@ -97,28 +97,28 @@ PROJECT_FORM_DEFINITION = FormDefinition(
                     name="planned_workload_hours",
                 ),
                 FieldDefinition(
-                    name="contractual_start_date",
+                    name="initial_start_date",
                 ),
                 FieldDefinition(
-                    name="contractual_end_date",
+                    name="initial_end_date",
                 ),
                 FieldDefinition(
-                    name="start_date_review",
+                    name="start_date",
                 ),
                 FieldDefinition(
-                    name="end_date_review",
+                    name="end_date",
                 ),
                 FieldDefinition(
-                    name="receipt_date_init",
+                    name="initial_receipt_date",
                 ),
                 FieldDefinition(
-                    name="receipt_date_review",
+                    name="receipt_date",
                 ),
                 FieldDefinition(
-                    name="delivery_date_init",
+                    name="initial_delivery_date",
                 ),
                 FieldDefinition(
-                    name="delivery_date_review",
+                    name="delivery_date",
                 ),
             ],
         ),

@@ -1,0 +1,410 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Rapports d'activité
+{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6">
+
+    {# ============================================================ #}
+    {# En-tête                                                      #}
+    {# ============================================================ #}
+
+    <div class="flex flex-wrap items-center justify-between gap-4">
+
+        <div>
+            <h1
+                class="text-xl font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                Rapports d'activité
+            </h1>
+
+            <p
+                class="mt-1 text-sm
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                Activités projet transmises par les collaborateurs
+            </p>
+        </div>
+
+    </div>
+
+
+    {# ============================================================ #}
+    {# Filtres                                                      #}
+    {# ============================================================ #}
+
+    <div
+        class="rounded-xl border
+               border-axcio-border-light
+               bg-axcio-surface
+               p-4
+               dark:border-axcio-border-dark
+               dark:bg-axcio-surface-dark"
+    >
+
+        <form
+            method="get"
+            class="flex flex-wrap items-end gap-3"
+        >
+
+            <div class="min-w-48">
+
+                <label
+                    for="status"
+                    class="mb-1 block text-sm font-medium
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    État
+                </label>
+
+                <select
+                    id="status"
+                    name="status"
+                    class="w-full rounded-lg border
+                           border-axcio-border-light
+                           bg-axcio-surface
+                           px-3 py-2 text-sm
+                           text-axcio-text
+                           focus:border-axcio-light
+                           focus:outline-none
+                           focus:ring-1
+                           focus:ring-axcio-light
+                           dark:border-axcio-border-dark
+                           dark:bg-axcio-surface-dark
+                           dark:text-axcio-text-dark"
+                >
+
+                    <option value="">
+                        Tous
+                    </option>
+
+                    <option
+                        value="{{ pending_status }}"
+                        {% if selected_status == pending_status %}
+                            selected
+                        {% endif %}
+                    >
+                        À valider
+                    </option>
+
+                    <option
+                        value="{{ validated_status }}"
+                        {% if selected_status == validated_status %}
+                            selected
+                        {% endif %}
+                    >
+                        Validé
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="inline-flex items-center justify-center
+                       rounded-lg bg-axcio-light
+                       px-4 py-2 text-sm font-medium
+                       text-white
+                       transition-colors
+                       hover:bg-axcio-light-hover
+                       focus:outline-none
+                       focus:ring-2
+                       focus:ring-axcio-light"
+            >
+                Filtrer
+            </button>
+
+
+            {% if selected_status %}
+
+                <a
+                    href="{% url 'reporting:review-list' %}"
+                    class="inline-flex items-center justify-center
+                           rounded-lg border
+                           border-axcio-border-light
+                           px-4 py-2 text-sm font-medium
+                           text-axcio-text-secondary
+                           transition-colors
+                           hover:bg-axcio-surface-alt
+                           dark:border-axcio-border-dark
+                           dark:text-axcio-text-secondary-dark
+                           dark:hover:bg-axcio-surface-alt-dark"
+                >
+                    Réinitialiser
+                </a>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+
+    {# ============================================================ #}
+    {# Liste                                                        #}
+    {# ============================================================ #}
+
+    <div
+        class="overflow-hidden rounded-xl border
+               border-axcio-border-light
+               bg-axcio-surface
+               dark:border-axcio-border-dark
+               dark:bg-axcio-surface-dark"
+    >
+
+        <div class="overflow-x-auto">
+
+            <table class="min-w-full text-sm">
+
+                <thead
+                    class="border-b
+                           border-axcio-border-light
+                           bg-axcio-surface-alt
+                           dark:border-axcio-border-dark
+                           dark:bg-axcio-surface-alt-dark"
+                >
+
+                    <tr>
+
+                        <th
+                            class="px-4 py-3 text-left
+                                   text-xs font-semibold uppercase
+                                   tracking-wide
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            Semaine
+                        </th>
+
+                        <th
+                            class="px-4 py-3 text-left
+                                   text-xs font-semibold uppercase
+                                   tracking-wide
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            Projet
+                        </th>
+
+                        <th
+                            class="px-4 py-3 text-left
+                                   text-xs font-semibold uppercase
+                                   tracking-wide
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            Collaborateur
+                        </th>
+
+                        <th
+                            class="px-4 py-3 text-right
+                                   text-xs font-semibold uppercase
+                                   tracking-wide
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            Heures
+                        </th>
+
+                        <th
+                            class="px-4 py-3 text-right
+                                   text-xs font-semibold uppercase
+                                   tracking-wide
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            H. sup.
+                        </th>
+
+                        <th
+                            class="px-4 py-3 text-right
+                                   text-xs font-semibold uppercase
+                                   tracking-wide
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            Total
+                        </th>
+
+                        <th
+                            class="px-4 py-3 text-left
+                                   text-xs font-semibold uppercase
+                                   tracking-wide
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            État
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody
+                    class="divide-y
+                           divide-axcio-border-light
+                           dark:divide-axcio-border-dark"
+                >
+
+                    {% for review in reviews %}
+
+                        <tr
+                            class="transition-colors
+                                   hover:bg-axcio-surface-alt
+                                   dark:hover:bg-axcio-surface-alt-dark"
+                        >
+
+                            <td
+                                class="whitespace-nowrap
+                                       px-4 py-3
+                                       text-axcio-text-secondary
+                                       dark:text-axcio-text-secondary-dark"
+                            >
+                                {{ review.activity_report.period_start_date|date:"d/m/Y" }}
+                                -
+                                {{ review.activity_report.period_end_date|date:"d/m/Y" }}
+                            </td>
+
+
+                            <td class="px-4 py-3">
+
+                                <div
+                                    class="font-medium
+                                           text-axcio-text
+                                           dark:text-axcio-text-dark"
+                                >
+                                    {{ review.project.reference }}
+                                </div>
+
+                                <div
+                                    class="mt-0.5 text-xs
+                                           text-axcio-text-muted
+                                           dark:text-axcio-text-muted-dark"
+                                >
+                                    {{ review.project.name }}
+                                </div>
+
+                            </td>
+
+
+                            <td class="px-4 py-3">
+
+                                <a
+                                    href="{% url 'reporting:review-detail' review.pk %}"
+                                    class="font-medium
+                                           text-axcio-light
+                                           hover:underline"
+                                >
+                                    {{ review.activity_report.user }}
+                                </a>
+
+                            </td>
+
+
+                            <td
+                                class="whitespace-nowrap
+                                       px-4 py-3 text-right
+                                       text-axcio-text-secondary
+                                       dark:text-axcio-text-secondary-dark"
+                            >
+                                {{ review.regular_hours_total|floatformat:2 }}
+                            </td>
+
+
+                            <td
+                                class="whitespace-nowrap
+                                       px-4 py-3 text-right
+                                       text-axcio-text-secondary
+                                       dark:text-axcio-text-secondary-dark"
+                            >
+                                {{ review.overtime_hours_total|floatformat:2 }}
+                            </td>
+
+
+                            <td
+                                class="whitespace-nowrap
+                                       px-4 py-3 text-right
+                                       font-semibold
+                                       text-axcio-text
+                                       dark:text-axcio-text-dark"
+                            >
+                                {{ review.regular_hours_total|add:review.overtime_hours_total|floatformat:2 }}
+                            </td>
+
+
+                            <td class="px-4 py-3">
+
+                                {% if review.status == pending_status %}
+
+                                    <span
+                                        class="inline-flex items-center
+                                               rounded-full
+                                               bg-amber-100
+                                               px-2.5 py-1
+                                               text-xs font-medium
+                                               text-amber-700"
+                                    >
+                                        À valider
+                                    </span>
+
+                                {% else %}
+
+                                    <span
+                                        class="inline-flex items-center
+                                               rounded-full
+                                               bg-green-100
+                                               px-2.5 py-1
+                                               text-xs font-medium
+                                               text-green-700"
+                                    >
+                                        Validé
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="px-4 py-10 text-center
+                                       text-sm
+                                       text-axcio-text-muted
+                                       dark:text-axcio-text-muted-dark"
+                            >
+                                Aucun rapport d'activité à afficher.
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

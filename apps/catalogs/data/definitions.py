@@ -6,12 +6,12 @@ CATALOG_DEFINITIONS = [
 
     CatalogDefinition(
         code="ACTIVITY_REPORT",
-        label="Rapport d'activité",
+        label="Statut du rapport d'activité",
     ),
 
     CatalogDefinition(
         code="ACTIVITY_REPORT_LINE",
-        label="Détail rapport d'activité",
+        label="Type d'activité hors tâche",
     ),
 
     CatalogDefinition(

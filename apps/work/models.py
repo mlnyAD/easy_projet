@@ -29,6 +29,9 @@ class WorkPackage(TimeStampedModel):
 
     Le lot constitue une unité stable de pilotage et de communication.
     Les tâches portent l'organisation opérationnelle quotidienne.
+
+    Les dates initiales constituent la référence de planification.
+    Les dates courantes représentent le planning actuellement validé.
     """
 
     id = models.UUIDField(
@@ -91,7 +94,23 @@ class WorkPackage(TimeStampedModel):
     )
 
     # ------------------------------------------------------------------
-    # Planning
+    # Planning - dates initiales
+    # ------------------------------------------------------------------
+
+    initial_start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Début initial",
+    )
+
+    initial_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Fin initiale",
+    )
+
+    # ------------------------------------------------------------------
+    # Planning - dates courantes
     # ------------------------------------------------------------------
 
     start_date = models.DateField(
@@ -120,14 +139,33 @@ class WorkPackage(TimeStampedModel):
         verbose_name="Lot actif",
     )
 
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
     def clean(self) -> None:
         """
-        Vérifie uniquement la cohérence propre au lot.
+        Vérifie la cohérence intrinsèque des dates du lot.
 
-        Aucune date de projet, de tâche ou de rapport d'activité
-        n'est recalculée automatiquement.
+        La validation des impacts éventuels sur les dates du projet
+        sera prise en charge par le mécanisme de propagation du
+        planning, avec accord explicite de l'utilisateur.
         """
         super().clean()
+
+        if (
+            self.initial_start_date is not None
+            and self.initial_end_date is not None
+            and self.initial_end_date < self.initial_start_date
+        ):
+            raise ValidationError(
+                {
+                    "initial_end_date": (
+                        "La fin initiale ne peut pas être antérieure "
+                        "au début initial."
+                    ),
+                }
+            )
 
         if (
             self.start_date is not None
@@ -143,11 +181,44 @@ class WorkPackage(TimeStampedModel):
                 }
             )
 
+    # ------------------------------------------------------------------
+    # Persistance
+    # ------------------------------------------------------------------
+
     def save(self, *args, **kwargs) -> None:
         """
         Normalise ou génère le code avant l'enregistrement.
+
+        Lorsqu'une date courante n'est pas renseignée, elle est
+        initialisée avec la date initiale correspondante.
         """
         self.name = self.name.strip()
+
+        initialized_fields = set()
+
+        if (
+            self.start_date is None
+            and self.initial_start_date is not None
+        ):
+            self.start_date = self.initial_start_date
+            initialized_fields.add("start_date")
+
+        if (
+            self.end_date is None
+            and self.initial_end_date is not None
+        ):
+            self.end_date = self.initial_end_date
+            initialized_fields.add("end_date")
+
+        update_fields = kwargs.get("update_fields")
+
+        if (
+            update_fields is not None
+            and initialized_fields
+        ):
+            update_fields = set(update_fields)
+            update_fields.update(initialized_fields)
+            kwargs["update_fields"] = update_fields
 
         if self.code:
             self.code = normalize_code_part(self.code)

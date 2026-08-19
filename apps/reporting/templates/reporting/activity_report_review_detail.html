@@ -1,0 +1,519 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Rapport d'activité
+{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6">
+
+    <div class="flex flex-wrap items-center justify-between gap-4">
+
+        <div>
+            <h1
+                class="text-xl font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                Rapport d'activité
+            </h1>
+
+            <p
+                class="mt-1 text-sm
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                {{ report.user }}
+                —
+                semaine du
+                {{ week_start|date:"d/m/Y" }}
+                au
+                {{ week_end|date:"d/m/Y" }}
+            </p>
+        </div>
+
+        <a
+            href="{% url 'reporting:review-list' %}"
+            class="inline-flex items-center gap-2
+                   rounded-lg border
+                   border-axcio-border-light
+                   px-4 py-2 text-sm font-medium
+                   text-axcio-text-secondary
+                   transition-colors
+                   hover:bg-axcio-surface-alt
+                   dark:border-axcio-border-dark
+                   dark:text-axcio-text-secondary-dark
+                   dark:hover:bg-axcio-surface-alt-dark"
+        >
+            <i
+                data-lucide="arrow-left"
+                class="h-4 w-4"
+                aria-hidden="true"
+            ></i>
+
+            Retour
+        </a>
+
+    </div>
+
+
+    <div
+        class="rounded-xl border
+               border-axcio-border-light
+               bg-axcio-surface
+               dark:border-axcio-border-dark
+               dark:bg-axcio-surface-dark"
+    >
+
+        <div
+            class="flex flex-wrap items-center
+                   justify-between gap-4 p-5"
+        >
+
+            <div>
+
+                <div
+                    class="text-xs font-semibold uppercase
+                           tracking-wide
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                >
+                    Projet
+                </div>
+
+                <div
+                    class="mt-1 font-medium
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    {{ review.project.reference }}
+                    —
+                    {{ review.project.name }}
+                </div>
+
+            </div>
+
+
+            <div>
+
+                {% if is_validated %}
+
+                    <span
+                        class="inline-flex items-center
+                               rounded-full bg-green-100
+                               px-3 py-1
+                               text-xs font-medium
+                               text-green-700"
+                    >
+                        Validé
+                    </span>
+
+                {% else %}
+
+                    <span
+                        class="inline-flex items-center
+                               rounded-full bg-amber-100
+                               px-3 py-1
+                               text-xs font-medium
+                               text-amber-700"
+                    >
+                        À valider
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <div class="overflow-x-auto">
+
+            <table class="min-w-full text-sm">
+
+                <thead
+                    class="border-y
+                           border-axcio-border-light
+                           bg-axcio-surface-alt
+                           dark:border-axcio-border-dark
+                           dark:bg-axcio-surface-alt-dark"
+                >
+
+                    <tr>
+
+                        <th
+                            class="min-w-72 px-4 py-3
+                                   text-left text-xs
+                                   font-semibold uppercase
+                                   tracking-wide
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            Activité
+                        </th>
+
+
+                        {% for day in days %}
+
+                            <th
+                                class="min-w-20 px-2 py-3
+                                       text-center text-xs
+                                       font-semibold uppercase
+                                       tracking-wide
+                                       text-axcio-text-muted
+                                       dark:text-axcio-text-muted-dark"
+                            >
+                                <div>
+                                    {{ day|date:"D" }}
+                                </div>
+
+                                <div
+                                    class="mt-1 font-normal normal-case"
+                                >
+                                    {{ day|date:"d/m" }}
+                                </div>
+                            </th>
+
+                        {% endfor %}
+
+
+                        <th
+                            class="min-w-20 px-4 py-3
+                                   text-center text-xs
+                                   font-semibold uppercase
+                                   tracking-wide
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            Total
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody
+                    class="divide-y
+                           divide-axcio-border-light
+                           dark:divide-axcio-border-dark"
+                >
+
+                    {% for row in report_rows %}
+
+                        <tr
+                            class="
+                                transition-colors
+                                {% if row.is_review_project %}
+                                    bg-axcio-light/5
+                                {% elif row.kind == 'activity' %}
+                                    bg-amber-50/60
+                                    dark:bg-amber-950/10
+                                {% endif %}
+                            "
+                        >
+
+                            <td class="px-4 py-3">
+
+                                <div
+                                    class="font-medium
+                                           text-axcio-text
+                                           dark:text-axcio-text-dark"
+                                >
+                                    {{ row.label }}
+                                </div>
+
+
+                                {% if row.project_label %}
+
+                                    <div
+                                        class="mt-1 flex flex-wrap
+                                               items-center gap-2
+                                               text-xs
+                                               text-axcio-text-muted
+                                               dark:text-axcio-text-muted-dark"
+                                    >
+                                        <span>
+                                            {{ row.project_label }}
+                                        </span>
+
+                                        {% if row.is_review_project %}
+
+                                            {% if is_validated %}
+
+                                                <span
+                                                    class="inline-flex
+                                                           rounded-full
+                                                           bg-green-100
+                                                           px-2 py-0.5
+                                                           font-medium
+                                                           text-green-700"
+                                                >
+                                                    Projet validé
+                                                </span>
+
+                                            {% else %}
+
+                                                <span
+                                                    class="inline-flex
+                                                           rounded-full
+                                                           bg-amber-100
+                                                           px-2 py-0.5
+                                                           font-medium
+                                                           text-amber-700"
+                                                >
+                                                    Projet à valider
+                                                </span>
+
+                                            {% endif %}
+
+                                        {% endif %}
+                                    </div>
+
+                                {% else %}
+
+                                    <div
+                                        class="mt-1 text-xs
+                                               text-amber-700
+                                               dark:text-amber-400"
+                                    >
+                                        Activité transverse
+                                    </div>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            {% for entry in row.entries %}
+
+                                <td
+                                    class="px-2 py-3 text-center
+                                           text-axcio-text-secondary
+                                           dark:text-axcio-text-secondary-dark"
+                                >
+
+                                    <div>
+                                        {{ entry.regular_hours|floatformat:2 }}
+                                    </div>
+
+                                    {% if entry.overtime_hours %}
+
+                                        <div
+                                            class="mt-1 text-xs
+                                                   text-axcio-text-muted
+                                                   dark:text-axcio-text-muted-dark"
+                                        >
+                                            + {{ entry.overtime_hours|floatformat:2 }} HS
+                                        </div>
+
+                                    {% endif %}
+
+                                </td>
+
+                            {% endfor %}
+
+
+                            <td
+                                class="px-4 py-3
+                                       text-center font-semibold
+                                       text-axcio-text
+                                       dark:text-axcio-text-dark"
+                            >
+                                {{ row.total|floatformat:2 }}
+                            </td>
+
+                        </tr>
+
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td
+                                colspan="9"
+                                class="px-4 py-10 text-center
+                                       text-sm
+                                       text-axcio-text-muted
+                                       dark:text-axcio-text-muted-dark"
+                            >
+                                Aucune activité à afficher.
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+
+                {% if report_rows %}
+
+                    <tfoot
+                        class="border-t
+                               border-axcio-border-light
+                               bg-axcio-surface-alt
+                               dark:border-axcio-border-dark
+                               dark:bg-axcio-surface-alt-dark"
+                    >
+
+                        <tr>
+
+                            <td
+                                class="px-4 py-3
+                                       text-right text-sm
+                                       font-semibold
+                                       text-axcio-text
+                                       dark:text-axcio-text-dark"
+                            >
+                                Total jour
+                            </td>
+
+
+                            {% for total in day_totals %}
+
+                                <td
+                                    class="px-2 py-3
+                                           text-center font-semibold
+                                           text-axcio-text
+                                           dark:text-axcio-text-dark"
+                                >
+                                    {{ total|floatformat:2 }}
+                                </td>
+
+                            {% endfor %}
+
+
+                            <td
+                                class="px-4 py-3
+                                       text-center font-semibold
+                                       text-axcio-text
+                                       dark:text-axcio-text-dark"
+                            >
+                                {{ week_total|floatformat:2 }}
+                            </td>
+
+                        </tr>
+
+                    </tfoot>
+
+                {% endif %}
+
+            </table>
+
+        </div>
+
+
+        {% if report.global_comment %}
+
+            <div
+                class="border-t
+                       border-axcio-border-light
+                       p-5
+                       dark:border-axcio-border-dark"
+            >
+
+                <div
+                    class="text-xs font-semibold uppercase
+                           tracking-wide
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                >
+                    Commentaire
+                </div>
+
+                <div
+                    class="mt-2 text-sm
+                           text-axcio-text-secondary
+                           dark:text-axcio-text-secondary-dark"
+                >
+                    {{ report.global_comment }}
+                </div>
+
+            </div>
+
+        {% endif %}
+
+
+        <div
+            class="flex flex-wrap items-center
+                   justify-between gap-4
+                   border-t
+                   border-axcio-border-light
+                   p-5
+                   dark:border-axcio-border-dark"
+        >
+
+            <div
+                class="text-sm
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+
+                {% if is_validated %}
+
+                    Validé par
+                    <span
+                        class="font-medium
+                               text-axcio-text
+                               dark:text-axcio-text-dark"
+                    >
+                        {{ review.reviewed_by }}
+                    </span>
+
+                    le
+                    {{ review.reviewed_at|date:"d/m/Y H:i" }}
+
+                {% else %}
+
+                    Rapport à valider pour ce projet.
+
+                {% endif %}
+
+            </div>
+
+
+            {% if can_validate %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="validate"
+                        class="inline-flex items-center
+                               justify-center rounded-lg
+                               bg-axcio-light
+                               px-4 py-2
+                               text-sm font-medium
+                               text-white
+                               transition-colors
+                               hover:bg-axcio-light-hover
+                               focus:outline-none
+                               focus:ring-2
+                               focus:ring-axcio-light"
+                    >
+                        <i
+                            data-lucide="check"
+                            class="mr-2 h-4 w-4"
+                            aria-hidden="true"
+                        ></i>
+
+                        Valider
+                    </button>
+
+                </form>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -147,6 +147,11 @@ class User(
         default=True,
         verbose_name=_("Actif"),
     )
+    
+    is_staff = models.BooleanField(
+        default=False,
+        verbose_name=_("Accès à l'administration"),
+    )
     # ------------------------------------------------------------------
     # Préférences
     # ------------------------------------------------------------------

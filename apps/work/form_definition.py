@@ -58,6 +58,12 @@ WORK_PACKAGE_FORM_DEFINITION = FormDefinition(
             title="Planning",
             fields=[
                 FieldDefinition(
+                    name="initial_start_date",
+                ),
+                FieldDefinition(
+                    name="initial_end_date",
+                ),
+                FieldDefinition(
                     name="start_date",
                 ),
                 FieldDefinition(

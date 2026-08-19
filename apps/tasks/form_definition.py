@@ -47,16 +47,16 @@ TASK_FORM_DEFINITION = FormDefinition(
             title="Planning",
             fields=[
                 FieldDefinition(
-                    name="planned_start_date",
+                    name="initial_start_date",
                 ),
                 FieldDefinition(
-                    name="planned_end_date",
+                    name="initial_end_date",
                 ),
                 FieldDefinition(
-                    name="updated_start_date",
+                    name="start_date",
                 ),
                 FieldDefinition(
-                    name="updated_end_date",
+                    name="end_date",
                 ),
                 FieldDefinition(
                     name="planned_workload_hours",

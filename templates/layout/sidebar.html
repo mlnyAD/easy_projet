@@ -1,6 +1,7 @@
 
 
 {% load static %}
+{% load reporting_permissions %}
 
 {% url "home" as home_url %}
 {% url "companies:list" as companies_url %}
@@ -9,10 +10,14 @@
 {% url "projects:list" as projects_url %}
 {% url "work:list" as work_url %}
 {% url "tasks:list" as tasks_url %}
+{% url "reporting:week" as activity_report_url %}
+{% url "reporting:review-list" as activity_report_reviews_url %}
 {% url "risks:list" as risks_url %}
 {% url "meetings:list" as meetings_url %}
 {% url "integrations:list" as integrations_url %}
 {% url "projects:locations" as project_locations_url %}
+
+{% can_review_reports request.user as can_review_reports %}
 
 {% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-2 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2 text-sm text-axcio-text-secondary transition-colors hover:bg-axcio-surface-alt hover:text-axcio-text dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-surface-alt-dark dark:hover:text-axcio-text-dark" %}
 
@@ -145,6 +150,7 @@
 
                 <span>Localisation des projets</span>
             </a>
+
             <a
                 href="{{ integrations_url }}"
                 class="
@@ -236,6 +242,46 @@
 
                 <span>Tâches</span>
             </a>
+
+            <a
+                href="{{ activity_report_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'reporting' and request.resolver_match.url_name == 'week' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
+            >
+                <i
+                    data-lucide="clipboard-list"
+                    class="h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                ></i>
+
+                <span>Mon rapport d'activité</span>
+            </a>
+
+            {% if can_review_reports %}
+                <a
+                    href="{{ activity_report_reviews_url }}"
+                    class="
+                        {% if request.resolver_match.namespace == 'reporting' and request.resolver_match.url_name != 'week' %}
+                            {{ active_classes }}
+                        {% else %}
+                            {{ inactive_classes }}
+                        {% endif %}
+                    "
+                >
+                    <i
+                        data-lucide="clipboard-check"
+                        class="h-5 w-5 shrink-0"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>Validation des rapports</span>
+                </a>
+            {% endif %}
 
             <a
                 href="{{ meetings_url }}"

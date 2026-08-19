@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 
 from apps.catalogs.models import CatalogValue
+from apps.users.models import User
 from apps.work.models import WorkPackage
 from common.constants.task import (
     TASK_CODE_LENGTH,
@@ -24,7 +25,6 @@ from common.services.code_generator import (
     generate_scoped_code,
     normalize_code_part,
 )
-from apps.users.models import User
 
 
 class Task(TimeStampedModel):
@@ -32,6 +32,9 @@ class Task(TimeStampedModel):
     Tâche opérationnelle d'un lot de travaux.
 
     La tâche constitue le niveau de pilotage quotidien.
+
+    Les dates initiales constituent la référence de planification.
+    Les dates courantes représentent le planning actuellement validé.
     """
 
     id = models.UUIDField(
@@ -81,31 +84,35 @@ class Task(TimeStampedModel):
     )
 
     # ------------------------------------------------------------------
-    # Planning
+    # Planning - dates initiales
     # ------------------------------------------------------------------
 
-    planned_start_date = models.DateField(
+    initial_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Début planifié",
+        verbose_name="Début initial",
     )
 
-    planned_end_date = models.DateField(
+    initial_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Fin planifiée",
+        verbose_name="Fin initiale",
     )
 
-    updated_start_date = models.DateField(
+    # ------------------------------------------------------------------
+    # Planning - dates courantes
+    # ------------------------------------------------------------------
+
+    start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Début révisé",
+        verbose_name="Début",
     )
 
-    updated_end_date = models.DateField(
+    end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Fin révisée",
+        verbose_name="Fin",
     )
 
     planned_workload_hours = models.PositiveIntegerField(
@@ -133,65 +140,43 @@ class Task(TimeStampedModel):
     )
 
     # ------------------------------------------------------------------
-    # Propriétés calculées
-    # ------------------------------------------------------------------
-
-    @property
-    def effective_start_date(self):
-        """
-        Retourne la date de début actuellement retenue.
-        """
-        return (
-            self.updated_start_date
-            or self.planned_start_date
-        )
-
-    @property
-    def effective_end_date(self):
-        """
-        Retourne la date de fin actuellement retenue.
-        """
-        return (
-            self.updated_end_date
-            or self.planned_end_date
-        )
-
-    # ------------------------------------------------------------------
     # Validation
     # ------------------------------------------------------------------
 
     def clean(self) -> None:
         """
-        Vérifie uniquement la cohérence propre à la tâche.
+        Vérifie la cohérence intrinsèque de la tâche.
+
+        Les éventuels impacts des dates de la tâche sur les dates
+        du lot de travaux seront traités par le mécanisme de
+        propagation du planning, après validation de l'utilisateur.
         """
         super().clean()
 
         if (
-            self.planned_start_date is not None
-            and self.planned_end_date is not None
-            and self.planned_end_date
-            < self.planned_start_date
+            self.initial_start_date is not None
+            and self.initial_end_date is not None
+            and self.initial_end_date < self.initial_start_date
         ):
             raise ValidationError(
                 {
-                    "planned_end_date": (
-                        "La date de fin planifiée ne peut pas être "
-                        "antérieure à la date de début planifiée."
+                    "initial_end_date": (
+                        "La fin initiale ne peut pas être antérieure "
+                        "au début initial."
                     ),
                 }
             )
 
         if (
-            self.updated_start_date is not None
-            and self.updated_end_date is not None
-            and self.updated_end_date
-            < self.updated_start_date
+            self.start_date is not None
+            and self.end_date is not None
+            and self.end_date < self.start_date
         ):
             raise ValidationError(
                 {
-                    "updated_end_date": (
-                        "La date de fin actualisée ne peut pas être "
-                        "antérieure à la date de début actualisée."
+                    "end_date": (
+                        "La date de fin ne peut pas être antérieure "
+                        "à la date de début."
                     ),
                 }
             )
@@ -218,8 +203,37 @@ class Task(TimeStampedModel):
     def save(self, *args, **kwargs) -> None:
         """
         Normalise ou génère le code avant l'enregistrement.
+
+        Lorsqu'une date courante n'est pas renseignée, elle est
+        initialisée avec la date initiale correspondante.
         """
         self.name = self.name.strip()
+
+        initialized_fields = set()
+
+        if (
+            self.start_date is None
+            and self.initial_start_date is not None
+        ):
+            self.start_date = self.initial_start_date
+            initialized_fields.add("start_date")
+
+        if (
+            self.end_date is None
+            and self.initial_end_date is not None
+        ):
+            self.end_date = self.initial_end_date
+            initialized_fields.add("end_date")
+
+        update_fields = kwargs.get("update_fields")
+
+        if (
+            update_fields is not None
+            and initialized_fields
+        ):
+            update_fields = set(update_fields)
+            update_fields.update(initialized_fields)
+            kwargs["update_fields"] = update_fields
 
         if self.code:
             self.code = normalize_code_part(self.code)
@@ -270,7 +284,8 @@ class Task(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.code} - {self.name}"
-    
+
+
 class TaskAssignment(TimeStampedModel):
     """
     Affectation individuelle d'un utilisateur à une tâche.

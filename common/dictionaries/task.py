@@ -26,7 +26,7 @@ TASK_DICTIONARY = {
 
     "fields": {
         # ------------------------------------------------------------------
-        # Identification
+        # Identification technique
         # ------------------------------------------------------------------
 
         "id": {
@@ -35,6 +35,10 @@ TASK_DICTIONARY = {
             "identifier": True,
             "generated": True,
         },
+
+        # ------------------------------------------------------------------
+        # Rattachement
+        # ------------------------------------------------------------------
 
         "work_package": {
             "label": "Lot de travaux",
@@ -49,6 +53,10 @@ TASK_DICTIONARY = {
             "required": True,
             "catalog": "TASK_STATUS",
         },
+
+        # ------------------------------------------------------------------
+        # Identification
+        # ------------------------------------------------------------------
 
         "code": {
             "label": "Code",
@@ -73,46 +81,40 @@ TASK_DICTIONARY = {
         },
 
         # ------------------------------------------------------------------
-        # Planning
+        # Planning - dates initiales
         # ------------------------------------------------------------------
 
-        "planned_start_date": {
-            "label": "Début planifié",
+        "initial_start_date": {
+            "label": "Début initial",
             "data_type": "date",
             "required": False,
         },
 
-        "planned_end_date": {
-            "label": "Fin planifiée",
+        "initial_end_date": {
+            "label": "Fin initiale",
             "data_type": "date",
             "required": False,
         },
 
-        "updated_start_date": {
-            "label": "Début actualisé",
-            "data_type": "date",
-            "required": False,
-        },
+        # ------------------------------------------------------------------
+        # Planning - dates courantes
+        # ------------------------------------------------------------------
 
-        "updated_end_date": {
-            "label": "Fin actualisée",
-            "data_type": "date",
-            "required": False,
-        },
-
-        "effective_start_date": {
+        "start_date": {
             "label": "Début",
             "data_type": "date",
             "required": False,
-            "generated": True,
         },
 
-        "effective_end_date": {
+        "end_date": {
             "label": "Fin",
             "data_type": "date",
             "required": False,
-            "generated": True,
         },
+
+        # ------------------------------------------------------------------
+        # Charge et avancement
+        # ------------------------------------------------------------------
 
         "planned_workload_hours": {
             "label": "Charge planifiée (h)",

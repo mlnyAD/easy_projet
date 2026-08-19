@@ -191,80 +191,68 @@ PROJECT_DICTIONARY = {
             "default": PROJECT_DEFAULT_WORKLOAD_HOURS,
         },
 
-        "contractual_start_date": {
-            "label": "Date contractuelle de début",
+        # ------------------------------------------------------------------
+        # Dates initiales
+        # ------------------------------------------------------------------
+
+        "initial_start_date": {
+            "label": "Début initial",
             "data_type": "date",
             "required": False,
         },
 
-        "contractual_end_date": {
-            "label": "Date contractuelle de fin",
+        "initial_end_date": {
+            "label": "Fin initiale",
             "data_type": "date",
             "required": False,
         },
 
-        "start_date_review": {
-            "label": "Date révisée de début",
-            "data_type": "date",
-            "required": False,
-        },
+        # ------------------------------------------------------------------
+        # Dates courantes
+        # ------------------------------------------------------------------
 
-        "end_date_review": {
-            "label": "Date révisée de fin",
-            "data_type": "date",
-            "required": False,
-        },
-
-        "receipt_date_init": {
-            "label": "Date initiale de réception",
-            "data_type": "date",
-            "required": False,
-        },
-
-        "receipt_date_review": {
-            "label": "Date révisée de réception",
-            "data_type": "date",
-            "required": False,
-        },
-
-        "delivery_date_init": {
-            "label": "Date initiale de livraison",
-            "data_type": "date",
-            "required": False,
-        },
-
-        "delivery_date_review": {
-            "label": "Date révisée de livraison",
-            "data_type": "date",
-            "required": False,
-        },
-
-        "effective_start_date": {
+        "start_date": {
             "label": "Début",
             "data_type": "date",
             "required": False,
-            "generated": True,
         },
 
-        "effective_end_date": {
+        "end_date": {
             "label": "Fin",
             "data_type": "date",
             "required": False,
-            "generated": True,
         },
-        
-        "effective_receipt_date": {
+
+        # ------------------------------------------------------------------
+        # Jalons - réception
+        # ------------------------------------------------------------------
+
+        "initial_receipt_date": {
+            "label": "Réception initiale",
+            "data_type": "date",
+            "required": False,
+        },
+
+        "receipt_date": {
             "label": "Réception",
             "data_type": "date",
             "required": False,
-            "generated": True,
         },
 
-        "effective_delivery_date": {
+        # ------------------------------------------------------------------
+        # Jalons - livraison
+        # ------------------------------------------------------------------
+
+        "initial_delivery_date": {
+            "label": "Livraison initiale",
+            "data_type": "date",
+            "required": False,
+        },
+
+        "delivery_date": {
             "label": "Livraison",
             "data_type": "date",
             "required": False,
-            "generated": True,
         },
 
         # ------------------------------------------------------------------

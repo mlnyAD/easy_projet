@@ -1,0 +1,511 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Rapport d'activité
+{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6">
+
+    <div
+        class="flex flex-wrap items-center
+               justify-between gap-4"
+    >
+        <div>
+            <h1
+                class="text-xl font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                Rapport d'activité
+            </h1>
+
+            <p
+                class="mt-1 text-sm
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                Semaine du
+                {{ week_start|date:"d/m/Y" }}
+                au
+                {{ week_end|date:"d/m/Y" }}
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+
+            <a
+                href="{% url 'reporting:activity-report' %}?week={{ previous_week|date:'Y-m-d' }}"
+                class="inline-flex h-9 w-9
+                       items-center justify-center
+                       rounded-md border
+                       border-axcio-border-light
+                       text-axcio-text-secondary
+                       hover:bg-axcio-surface-alt
+                       dark:border-axcio-border-dark
+                       dark:text-axcio-text-secondary-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
+                title="Semaine précédente"
+            >
+                <i
+                    data-lucide="chevron-left"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+            </a>
+
+            <a
+                href="{% url 'reporting:activity-report' %}"
+                class="inline-flex items-center
+                       rounded-md border
+                       border-axcio-border-light
+                       px-3 py-2 text-sm
+                       text-axcio-text-secondary
+                       hover:bg-axcio-surface-alt
+                       dark:border-axcio-border-dark
+                       dark:text-axcio-text-secondary-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
+            >
+                Semaine courante
+            </a>
+
+            <a
+                href="{% url 'reporting:activity-report' %}?week={{ next_week|date:'Y-m-d' }}"
+                class="inline-flex h-9 w-9
+                       items-center justify-center
+                       rounded-md border
+                       border-axcio-border-light
+                       text-axcio-text-secondary
+                       hover:bg-axcio-surface-alt
+                       dark:border-axcio-border-dark
+                       dark:text-axcio-text-secondary-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
+                title="Semaine suivante"
+            >
+                <i
+                    data-lucide="chevron-right"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+            </a>
+
+        </div>
+    </div>
+
+
+    {% if messages %}
+        {% for message in messages %}
+            <div
+                class="rounded-lg border px-4 py-3 text-sm
+                       {% if message.tags == 'success' %}
+                           border-green-200 bg-green-50 text-green-700
+                       {% elif message.tags == 'error' %}
+                           border-red-200 bg-red-50 text-red-700
+                       {% else %}
+                           border-amber-200 bg-amber-50 text-amber-700
+                       {% endif %}"
+            >
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+
+    <div
+        class="rounded-xl border
+               border-axcio-border-light
+               bg-axcio-surface
+               dark:border-axcio-border-dark
+               dark:bg-axcio-surface-dark"
+    >
+
+        <div
+            class="flex flex-wrap items-center
+                   justify-between gap-3 p-5"
+        >
+            <div>
+                <div
+                    class="text-sm font-medium
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    {{ report.user }}
+                </div>
+
+                <div
+                    class="mt-1 text-xs
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                >
+                    Statut :
+                    {{ report.status.label }}
+                </div>
+            </div>
+
+            {% if is_submitted %}
+                <span
+                    class="rounded-full
+                           bg-green-100 px-3 py-1
+                           text-xs font-medium
+                           text-green-700"
+                >
+                    Transmis
+                </span>
+            {% else %}
+                <span
+                    class="rounded-full
+                           bg-amber-100 px-3 py-1
+                           text-xs font-medium
+                           text-amber-700"
+                >
+                    Brouillon
+                </span>
+            {% endif %}
+        </div>
+
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {{ entry_formset.management_form }}
+
+
+            <div class="overflow-x-auto">
+
+                <table
+                    class="min-w-full text-sm"
+                    data-activity-report-table
+                >
+
+                    <thead
+                        class="border-y
+                               border-axcio-border-light
+                               bg-axcio-surface-alt
+                               dark:border-axcio-border-dark
+                               dark:bg-axcio-surface-alt-dark"
+                    >
+                        <tr>
+                            <th
+                                class="min-w-72 px-3 py-3
+                                       text-left font-medium"
+                            >
+                                Activité
+                            </th>
+
+                            {% for day in days %}
+                                <th
+                                    class="min-w-24 px-2 py-3
+                                           text-center font-medium"
+                                >
+                                    <div>
+                                        {{ day|date:"D" }}
+                                    </div>
+
+                                    <div
+                                        class="mt-1 text-xs
+                                               font-normal
+                                               text-axcio-text-muted
+                                               dark:text-axcio-text-muted-dark"
+                                    >
+                                        {{ day|date:"d/m" }}
+                                    </div>
+                                </th>
+                            {% endfor %}
+
+                            <th
+                                class="min-w-20 px-3 py-3
+                                       text-center font-medium"
+                            >
+                                Total
+                            </th>
+                        </tr>
+                    </thead>
+
+
+                    <tbody
+                        class="divide-y
+                               divide-axcio-border-light
+                               dark:divide-axcio-border-dark"
+                    >
+
+                        {% for row in report_rows %}
+
+                            <tr
+                                data-activity-row
+                                class="align-top"
+                            >
+
+                                <td
+                                    class="px-3 py-3"
+                                    rowspan="2"
+                                >
+                                    <div
+                                        class="font-medium
+                                               text-axcio-text
+                                               dark:text-axcio-text-dark"
+                                    >
+                                        {{ row.label }}
+                                    </div>
+
+                                    {% if row.project_label %}
+                                        <div
+                                            class="mt-1 text-xs
+                                                   text-axcio-text-muted
+                                                   dark:text-axcio-text-muted-dark"
+                                        >
+                                            {{ row.project_label }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+
+
+                                {% for form in row.forms %}
+                                    <td class="px-2 pt-3 text-center">
+
+                                        {{ form.id }}
+
+                                        {% if not is_submitted %}
+                                            {{ form.regular_hours }}
+                                        {% else %}
+                                            <span
+                                                data-hour-value="{{ form.instance.regular_hours }}"
+                                            >
+                                                {{ form.instance.regular_hours }}
+                                            </span>
+                                        {% endif %}
+
+                                        {% if form.regular_hours.errors %}
+                                            <div
+                                                class="mt-1 text-xs
+                                                       text-red-600"
+                                            >
+                                                {{ form.regular_hours.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+
+                                <td
+                                    class="px-3 pt-3
+                                           text-center font-medium"
+                                    data-row-regular-total
+                                >
+                                    0.00
+                                </td>
+
+                            </tr>
+
+
+                            <tr
+                                data-activity-row-overtime
+                                class="bg-axcio-surface-alt/40
+                                       dark:bg-axcio-surface-alt-dark/40"
+                            >
+
+                                {% for form in row.forms %}
+                                    <td class="px-2 pb-3 text-center">
+
+                                        {% if not is_submitted %}
+                                            {{ form.overtime_hours }}
+                                        {% else %}
+                                            <span
+                                                data-hour-value="{{ form.instance.overtime_hours }}"
+                                            >
+                                                {{ form.instance.overtime_hours }}
+                                            </span>
+                                        {% endif %}
+
+                                        {% if form.overtime_hours.errors %}
+                                            <div
+                                                class="mt-1 text-xs
+                                                       text-red-600"
+                                            >
+                                                {{ form.overtime_hours.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+
+                                <td
+                                    class="px-3 pb-3
+                                           text-center font-medium"
+                                    data-row-overtime-total
+                                >
+                                    0.00
+                                </td>
+
+                            </tr>
+
+
+                            <tr
+                                class="border-b
+                                       border-axcio-border-light
+                                       dark:border-axcio-border-dark"
+                            >
+                                <td
+                                    class="px-3 pb-2
+                                           text-xs italic
+                                           text-axcio-text-muted
+                                           dark:text-axcio-text-muted-dark"
+                                >
+                                    Heures normales / heures supplémentaires
+                                </td>
+
+                                <td colspan="8"></td>
+                            </tr>
+
+                        {% empty %}
+
+                            <tr>
+                                <td
+                                    colspan="9"
+                                    class="px-4 py-8 text-center
+                                           text-sm
+                                           text-axcio-text-muted
+                                           dark:text-axcio-text-muted-dark"
+                                >
+                                    Aucune tâche planifiée pour cette semaine.
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+
+                    {% if report_rows %}
+                        <tfoot
+                            class="border-t
+                                   border-axcio-border-light
+                                   bg-axcio-surface-alt
+                                   font-medium
+                                   dark:border-axcio-border-dark
+                                   dark:bg-axcio-surface-alt-dark"
+                        >
+                            <tr>
+
+                                <td class="px-3 py-3">
+                                    Total jour
+                                </td>
+
+                                {% for day in days %}
+                                    <td
+                                        class="px-2 py-3 text-center"
+                                        data-day-total="{{ forloop.counter0 }}"
+                                    >
+                                        0.00
+                                    </td>
+                                {% endfor %}
+
+                                <td
+                                    class="px-3 py-3 text-center"
+                                    data-week-total
+                                >
+                                    0.00
+                                </td>
+
+                            </tr>
+                        </tfoot>
+                    {% endif %}
+
+                </table>
+
+            </div>
+
+
+            <div
+                class="border-t
+                       border-axcio-border-light
+                       p-5
+                       dark:border-axcio-border-dark"
+            >
+
+                <label
+                    for="id_global_comment"
+                    class="block text-sm font-medium
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    Commentaire
+                </label>
+
+                <textarea
+                    id="id_global_comment"
+                    name="global_comment"
+                    rows="3"
+                    maxlength="250"
+                    {% if is_submitted %}disabled{% endif %}
+                    class="mt-2 w-full rounded-lg border
+                           border-axcio-border-light
+                           bg-axcio-surface px-3 py-2
+                           text-sm text-axcio-text
+                           focus:border-axcio-light
+                           focus:outline-none focus:ring-1
+                           focus:ring-axcio-light
+                           dark:border-axcio-border-dark
+                           dark:bg-axcio-surface-dark
+                           dark:text-axcio-text-dark"
+                    placeholder="Commentaire éventuel..."
+                >{{ report.global_comment }}</textarea>
+
+            </div>
+
+
+            {% if not is_submitted %}
+
+                <div
+                    class="flex flex-wrap items-center
+                           justify-end gap-3
+                           border-t
+                           border-axcio-border-light
+                           p-5
+                           dark:border-axcio-border-dark"
+                >
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="save"
+                        class="inline-flex items-center
+                               rounded-lg border
+                               border-axcio-border-light
+                               px-4 py-2 text-sm font-medium
+                               text-axcio-text-secondary
+                               hover:bg-axcio-surface-alt
+                               dark:border-axcio-border-dark
+                               dark:text-axcio-text-secondary-dark
+                               dark:hover:bg-axcio-surface-alt-dark"
+                    >
+                        Enregistrer
+                    </button>
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="submit"
+                        class="inline-flex items-center
+                               rounded-lg bg-axcio-light
+                               px-4 py-2 text-sm font-medium
+                               text-white
+                               hover:bg-axcio-light-hover"
+                    >
+                        Transmettre
+                    </button>
+
+                </div>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+</div>
+
+
+{% include "reporting/activity_report_script.html" %}
+
+{% endblock %}

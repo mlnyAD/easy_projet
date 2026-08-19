@@ -61,19 +61,17 @@ TASK_LIST_DEFINITION = ListDefinition(
         ),
         ColumnDefinition(
             field=TASK_ENTITY_DEFINITION.get_field(
-                "effective_start_date"
+                "start_date"
             ),
             label="Début",
-            sortable=False,
             width="sm",
             order=50,
         ),
         ColumnDefinition(
             field=TASK_ENTITY_DEFINITION.get_field(
-                "effective_end_date"
+                "end_date"
             ),
             label="Fin",
-            sortable=False,
             width="sm",
             order=60,
         ),

@@ -1,5 +1,3 @@
-
-
 from __future__ import annotations
 
 from django import forms
@@ -44,10 +42,10 @@ class TaskForm(forms.ModelForm):
             "code",
             "name",
             "description",
-            "planned_start_date",
-            "planned_end_date",
-            "updated_start_date",
-            "updated_end_date",
+            "initial_start_date",
+            "initial_end_date",
+            "start_date",
+            "end_date",
             "planned_workload_hours",
             "remaining_workload_hours",
             "progress_percent",
@@ -55,6 +53,10 @@ class TaskForm(forms.ModelForm):
         )
 
         labels = {
+            "initial_start_date": "Début initial",
+            "initial_end_date": "Fin initiale",
+            "start_date": "Début",
+            "end_date": "Fin",
             "is_active": "Tâche active",
         }
 
@@ -63,7 +65,9 @@ class TaskForm(forms.ModelForm):
                 attrs={
                     "maxlength": TASK_CODE_LENGTH,
                     "autocomplete": "off",
-                    "placeholder": "Généré automatiquement si vide",
+                    "placeholder": (
+                        "Généré automatiquement si vide"
+                    ),
                     "data-uppercase": True,
                     "data-trim": True,
                 }
@@ -84,22 +88,22 @@ class TaskForm(forms.ModelForm):
                     "data-trim": True,
                 }
             ),
-            "planned_start_date": forms.DateInput(
+            "initial_start_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "planned_end_date": forms.DateInput(
+            "initial_end_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "updated_start_date": forms.DateInput(
+            "start_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "updated_end_date": forms.DateInput(
+            "end_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }

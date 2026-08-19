@@ -67,37 +67,33 @@ PROJECT_LIST_DEFINITION = ListDefinition(
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
-                "effective_start_date"
+                "start_date"
             ),
             label="Début",
-            sortable=False,
             width="sm",
             order=60,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
-                "effective_end_date"
+                "end_date"
             ),
             label="Fin",
-            sortable=False,
             width="sm",
             order=70,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
-                "effective_receipt_date"
+                "receipt_date"
             ),
             label="Réception",
-            sortable=False,
             width="sm",
             order=80,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
-                "effective_delivery_date"
+                "delivery_date"
             ),
             label="Livraison",
-            sortable=False,
             width="sm",
             order=90,
         ),

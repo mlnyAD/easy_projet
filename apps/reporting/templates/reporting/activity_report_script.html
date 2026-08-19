@@ -1,0 +1,254 @@
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const table = document.querySelector(
+        "[data-activity-report-table]"
+    );
+
+    if (!table) {
+        return;
+    }
+
+
+    // =============================================================
+    // Lecture d'une valeur horaire
+    // =============================================================
+
+    function numericValue(element) {
+
+        if (!element) {
+            return 0;
+        }
+
+        const rawValue = (
+            element.dataset.hourValue
+            ?? element.value
+            ?? "0"
+        );
+
+        const value = parseFloat(
+            String(rawValue)
+                .replace(",", ".")
+        );
+
+        return Number.isFinite(value)
+            ? value
+            : 0;
+    }
+
+
+    function formatHours(value) {
+        return value.toFixed(2);
+    }
+
+
+    // =============================================================
+    // Calcul des totaux
+    // =============================================================
+
+    function calculateTotals() {
+
+        const dayTotals = [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ];
+
+        let weekTotal = 0;
+
+
+        const regularRows = table.querySelectorAll(
+            "[data-activity-row]"
+        );
+
+
+        regularRows.forEach((regularRow) => {
+
+            const overtimeRow =
+                regularRow.nextElementSibling;
+
+            if (!overtimeRow) {
+                return;
+            }
+
+
+            const regularValues =
+                regularRow.querySelectorAll(
+                    'input[name$="-regular_hours"], '
+                    + '[data-hour-value]'
+                );
+
+
+            const overtimeValues =
+                overtimeRow.querySelectorAll(
+                    'input[name$="-overtime_hours"], '
+                    + '[data-hour-value]'
+                );
+
+
+            let regularTotal = 0;
+            let overtimeTotal = 0;
+
+
+            // -----------------------------------------------------
+            // Heures normales
+            // -----------------------------------------------------
+
+            regularValues.forEach(
+                (element, index) => {
+
+                    const value =
+                        numericValue(element);
+
+                    regularTotal += value;
+
+                    if (
+                        index
+                        < dayTotals.length
+                    ) {
+                        dayTotals[index] += value;
+                    }
+
+                }
+            );
+
+
+            // -----------------------------------------------------
+            // Heures supplémentaires
+            // -----------------------------------------------------
+
+            overtimeValues.forEach(
+                (element, index) => {
+
+                    const value =
+                        numericValue(element);
+
+                    overtimeTotal += value;
+
+                    if (
+                        index
+                        < dayTotals.length
+                    ) {
+                        dayTotals[index] += value;
+                    }
+
+                }
+            );
+
+
+            // -----------------------------------------------------
+            // Totaux de ligne
+            // -----------------------------------------------------
+
+            const regularTotalElement =
+                regularRow.querySelector(
+                    "[data-row-regular-total]"
+                );
+
+
+            const overtimeTotalElement =
+                overtimeRow.querySelector(
+                    "[data-row-overtime-total]"
+                );
+
+
+            if (regularTotalElement) {
+                regularTotalElement.textContent =
+                    formatHours(
+                        regularTotal
+                    );
+            }
+
+
+            if (overtimeTotalElement) {
+                overtimeTotalElement.textContent =
+                    formatHours(
+                        overtimeTotal
+                    );
+            }
+
+
+            weekTotal += (
+                regularTotal
+                + overtimeTotal
+            );
+
+        });
+
+
+        // =========================================================
+        // Totaux par jour
+        // =========================================================
+
+        dayTotals.forEach(
+            (total, index) => {
+
+                const element =
+                    table.querySelector(
+                        `[data-day-total="${index}"]`
+                    );
+
+                if (element) {
+                    element.textContent =
+                        formatHours(total);
+                }
+
+            }
+        );
+
+
+        // =========================================================
+        // Total semaine
+        // =========================================================
+
+        const weekTotalElement =
+            table.querySelector(
+                "[data-week-total]"
+            );
+
+
+        if (weekTotalElement) {
+            weekTotalElement.textContent =
+                formatHours(
+                    weekTotal
+                );
+        }
+
+    }
+
+
+    // =============================================================
+    // Recalcul pendant la saisie
+    // =============================================================
+
+    table.addEventListener(
+        "input",
+        (event) => {
+
+            if (
+                event.target.matches(
+                    'input[name$="-regular_hours"], '
+                    + 'input[name$="-overtime_hours"]'
+                )
+            ) {
+                calculateTotals();
+            }
+
+        }
+    );
+
+
+    // =============================================================
+    // Calcul initial
+    // =============================================================
+
+    calculateTotals();
+
+});
+</script>

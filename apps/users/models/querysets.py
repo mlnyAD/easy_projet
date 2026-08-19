@@ -38,6 +38,5 @@ class UserQuerySet(models.QuerySet):
         return self.filter(
             models.Q(first_name__icontains=value)
             | models.Q(last_name__icontains=value)
-            | models.Q(preferred_name__icontains=value)
             | models.Q(email__icontains=value)
         )

@@ -1,17 +1,17 @@
 
-
+        
 from __future__ import annotations
 
 from decimal import Decimal
 from uuid import uuid4
 
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from apps.core.models import ClientEnvironment
-from django.core.exceptions import ValidationError
 
 from apps.catalogs.models import CatalogValue
 from apps.companies.models import Company
+from apps.core.models import ClientEnvironment
 from apps.users.models import User
 from common.constants.project import (
     PROJECT_ADDRESS_LENGTH,
@@ -20,6 +20,8 @@ from common.constants.project import (
     PROJECT_CITY_LENGTH,
     PROJECT_COMMENT_LENGTH,
     PROJECT_CONTRACT_REFERENCE_LENGTH,
+    PROJECT_COORDINATE_DECIMAL_PLACES,
+    PROJECT_COORDINATE_MAX_DIGITS,
     PROJECT_COUNTRY_LENGTH,
     PROJECT_CURRENCY_LENGTH,
     PROJECT_DEFAULT_AMOUNT,
@@ -29,15 +31,14 @@ from common.constants.project import (
     PROJECT_NAME_LENGTH,
     PROJECT_POSTAL_CODE_LENGTH,
     PROJECT_REFERENCE_LENGTH,
-    PROJECT_COORDINATE_MAX_DIGITS,
-    PROJECT_COORDINATE_DECIMAL_PLACES,
 )
-from common.models import TimeStampedModel
 from common.constants.user import (
     USER_EMAIL_LENGTH,
     USER_FIRST_NAME_LENGTH,
     USER_LAST_NAME_LENGTH,
 )
+from common.models import TimeStampedModel
+
 
 class Project(TimeStampedModel):
     """
@@ -46,6 +47,9 @@ class Project(TimeStampedModel):
     Le projet décrit ce qui a été vendu et accepté par le client.
     Les coûts internes, prix de revient et marges relèvent du module
     financier et ne sont pas stockés dans ce modèle.
+
+    Les dates initiales constituent la référence de planification.
+    Les dates courantes représentent le planning actuellement validé.
     """
 
     id = models.UUIDField(
@@ -200,7 +204,7 @@ class Project(TimeStampedModel):
         null=True,
         blank=True,
         editable=False,
-        verbose_name= "Latitude",
+        verbose_name="Latitude",
     )
 
     longitude = models.DecimalField(
@@ -209,8 +213,8 @@ class Project(TimeStampedModel):
         null=True,
         blank=True,
         editable=False,
-        verbose_name= "Longitude",
-    )    
+        verbose_name="Longitude",
+    )
 
     # ------------------------------------------------------------------
     # Charge et planning
@@ -221,52 +225,68 @@ class Project(TimeStampedModel):
         verbose_name="Charge prévisionnelle (h)",
     )
 
-    contractual_start_date = models.DateField(
+    # ------------------------------------------------------------------
+    # Dates de référence
+    # ------------------------------------------------------------------
+
+    initial_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date contractuelle de début",
+        verbose_name="Début initial",
     )
 
-    contractual_end_date = models.DateField(
+    initial_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date contractuelle de fin",
+        verbose_name="Fin initiale",
     )
 
-    start_date_review = models.DateField(
+    # ------------------------------------------------------------------
+    # Dates courantes
+    # ------------------------------------------------------------------
+
+    start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date révisée de début",
+        verbose_name="Début",
     )
 
-    end_date_review = models.DateField(
+    end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date révisée de fin",
+        verbose_name="Fin",
     )
 
-    receipt_date_init = models.DateField(
+    # ------------------------------------------------------------------
+    # Jalons - réception
+    # ------------------------------------------------------------------
+
+    initial_receipt_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date initiale de réception",
+        verbose_name="Réception initiale",
     )
 
-    receipt_date_review = models.DateField(
+    receipt_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date révisée de réception",
+        verbose_name="Réception",
     )
 
-    delivery_date_init = models.DateField(
+    # ------------------------------------------------------------------
+    # Jalons - livraison
+    # ------------------------------------------------------------------
+
+    initial_delivery_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date initiale de livraison",
+        verbose_name="Livraison initiale",
     )
 
-    delivery_date_review = models.DateField(
+    delivery_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date révisée de livraison",
+        verbose_name="Livraison",
     )
 
     # ------------------------------------------------------------------
@@ -325,15 +345,62 @@ class Project(TimeStampedModel):
         verbose_name="Commentaires budgétaires",
     )
 
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    def clean(self) -> None:
+        """
+        Vérifie la cohérence intrinsèque des dates du projet.
+
+        Les dates initiales et les dates courantes constituent deux
+        couples indépendants. Les dates initiales servent de référence,
+        tandis que les dates courantes portent le planning validé.
+        """
+        super().clean()
+
+        if (
+            self.initial_start_date is not None
+            and self.initial_end_date is not None
+            and self.initial_end_date < self.initial_start_date
+        ):
+            raise ValidationError(
+                {
+                    "initial_end_date": (
+                        "La fin initiale ne peut pas être antérieure "
+                        "au début initial."
+                    ),
+                }
+            )
+
+        if (
+            self.start_date is not None
+            and self.end_date is not None
+            and self.end_date < self.start_date
+        ):
+            raise ValidationError(
+                {
+                    "end_date": (
+                        "La date de fin ne peut pas être antérieure "
+                        "à la date de début."
+                    ),
+                }
+            )
+
+    # ------------------------------------------------------------------
+    # Persistance
+    # ------------------------------------------------------------------
+
     def save(self, *args, **kwargs):
         """
         Normalise et sécurise le rattachement du projet.
 
-        Si l'adresse d'un projet existant est modifiée,
-        les coordonnées géographiques sont invalidées.
-        Elles seront recalculées lors du prochain géocodage.
-        """
+        Lorsqu'une date courante n'est pas renseignée, elle est
+        initialisée avec la date initiale correspondante.
 
+        Si l'adresse d'un projet existant est modifiée, les coordonnées
+        géographiques sont invalidées.
+        """
         if self.company_id is None:
             raise ValueError(
                 "La société responsable doit être renseignée."
@@ -357,6 +424,40 @@ class Project(TimeStampedModel):
             )
 
         self.client_environment = environment
+
+        # --------------------------------------------------------------
+        # Initialisation des dates courantes
+        # --------------------------------------------------------------
+
+        initialized_fields = set()
+
+        if (
+            self.start_date is None
+            and self.initial_start_date is not None
+        ):
+            self.start_date = self.initial_start_date
+            initialized_fields.add("start_date")
+
+        if (
+            self.end_date is None
+            and self.initial_end_date is not None
+        ):
+            self.end_date = self.initial_end_date
+            initialized_fields.add("end_date")
+
+        if (
+            self.receipt_date is None
+            and self.initial_receipt_date is not None
+        ):
+            self.receipt_date = self.initial_receipt_date
+            initialized_fields.add("receipt_date")
+
+        if (
+            self.delivery_date is None
+            and self.initial_delivery_date is not None
+        ):
+            self.delivery_date = self.initial_delivery_date
+            initialized_fields.add("delivery_date")
 
         # --------------------------------------------------------------
         # Invalidation de la géolocalisation
@@ -399,17 +500,26 @@ class Project(TimeStampedModel):
                     self.latitude = None
                     self.longitude = None
 
-                    update_fields = kwargs.get("update_fields")
+                    initialized_fields.update(
+                        {
+                            "latitude",
+                            "longitude",
+                        }
+                    )
 
-                    if update_fields is not None:
-                        update_fields = set(update_fields)
-                        update_fields.update(
-                            {
-                                "latitude",
-                                "longitude",
-                            }
-                        )
-                        kwargs["update_fields"] = update_fields
+        # --------------------------------------------------------------
+        # update_fields
+        # --------------------------------------------------------------
+
+        update_fields = kwargs.get("update_fields")
+
+        if (
+            update_fields is not None
+            and initialized_fields
+        ):
+            update_fields = set(update_fields)
+            update_fields.update(initialized_fields)
+            kwargs["update_fields"] = update_fields
 
         # --------------------------------------------------------------
         # Normalisation
@@ -425,54 +535,6 @@ class Project(TimeStampedModel):
         )
 
         super().save(*args, **kwargs)
-                
-    @property
-    def effective_start_date(self):
-        """
-        Retourne la date de début actuellement retenue.
-
-        La date révisée prévaut sur la date contractuelle.
-        """
-        return (
-            self.start_date_review
-            or self.contractual_start_date
-        )
-
-    @property
-    def effective_end_date(self):
-        """
-        Retourne la date de fin actuellement retenue.
-
-        La date révisée prévaut sur la date contractuelle.
-        """
-        return (
-            self.end_date_review
-            or self.contractual_end_date
-        )
-
-    @property
-    def effective_receipt_date(self):
-        """
-        Retourne la date de réception actuellement retenue.
-
-        La date révisée prévaut sur la date initiale.
-        """
-        return (
-            self.receipt_date_review
-            or self.receipt_date_init
-        )
-
-    @property
-    def effective_delivery_date(self):
-        """
-        Retourne la date de livraison actuellement retenue.
-
-        La date révisée prévaut sur la date initiale.
-        """
-        return (
-            self.delivery_date_review
-            or self.delivery_date_init
-        )
 
     class Meta:
         db_table = "project"
@@ -485,8 +547,8 @@ class Project(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.reference} - {self.name}"
-    
-    
+
+
 class ProjectMembership(TimeStampedModel):
     """
     Affectation d'un utilisateur à un projet.
@@ -571,7 +633,8 @@ class ProjectMembership(TimeStampedModel):
             f"{self.user} - "
             f"{self.role}"
         )
-        
+
+
 class ProjectExternalParticipant(TimeStampedModel):
     """
     Intervenant externe ponctuel associé à un projet.
@@ -687,7 +750,6 @@ class ProjectExternalParticipant(TimeStampedModel):
         """
         Normalise les informations avant enregistrement.
         """
-
         self.last_name = self.last_name.strip().upper()
         self.first_name = self.first_name.strip()
 

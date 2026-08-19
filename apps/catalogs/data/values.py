@@ -6,22 +6,23 @@ CATALOG_VALUE_DEFINITIONS = [
 
     CatalogValueDefinition(
         catalog="ACTIVITY_REPORT",
-        code="COMPLETED",
-        label="Renseigné",
+        code="DRAFT",
+        label="Brouillon",
         sort_order=10,
+        is_default=True,
     ),
 
     CatalogValueDefinition(
         catalog="ACTIVITY_REPORT",
-        code="VALID",
-        label="Validé",
+        code="SUBMITTED",
+        label="Transmis",
         sort_order=20,
     ),
 
     CatalogValueDefinition(
         catalog="ACTIVITY_REPORT_LINE",
-        code="WORK",
-        label="Travail",
+        code="LEAVE",
+        label="Congé",
         sort_order=10,
     ),
 
@@ -34,37 +35,16 @@ CATALOG_VALUE_DEFINITIONS = [
 
     CatalogValueDefinition(
         catalog="ACTIVITY_REPORT_LINE",
-        code="URGENCY",
-        label="Urgence",
-        sort_order=30,
-    ),
-
-    CatalogValueDefinition(
-        catalog="ACTIVITY_REPORT_LINE",
-        code="WEATHER",
-        label="Météo",
-        sort_order=40,
-    ),
-
-    CatalogValueDefinition(
-        catalog="ACTIVITY_REPORT_LINE",
-        code="WAITING",
-        label="En attente",
-        sort_order=50,
-    ),
-
-    CatalogValueDefinition(
-        catalog="ACTIVITY_REPORT_LINE",
         code="TRAINING",
-        label="En formation",
-        sort_order=60,
+        label="Formation",
+        sort_order=30,
     ),
 
     CatalogValueDefinition(
         catalog="ACTIVITY_REPORT_LINE",
         code="OTHER",
         label="Autre",
-        sort_order=70,
+        sort_order=40,
     ),
 
     CatalogValueDefinition(

@@ -77,14 +77,14 @@ class ProjectForm(forms.ModelForm):
 
             # Charge et planning
             "planned_workload_hours",
-            "contractual_start_date",
-            "contractual_end_date",
-            "start_date_review",
-            "end_date_review",
-            "receipt_date_init",
-            "receipt_date_review",
-            "delivery_date_init",
-            "delivery_date_review",
+            "initial_start_date",
+            "initial_end_date",
+            "start_date",
+            "end_date",
+            "initial_receipt_date",
+            "receipt_date",
+            "initial_delivery_date",
+            "delivery_date",
 
             # Données commerciales
             "amount_quote_ht",
@@ -97,6 +97,14 @@ class ProjectForm(forms.ModelForm):
 
         labels = {
             "is_active": "Projet actif",
+            "initial_start_date": "Début initial",
+            "initial_end_date": "Fin initiale",
+            "start_date": "Début",
+            "end_date": "Fin",
+            "initial_receipt_date": "Réception initiale",
+            "receipt_date": "Réception",
+            "initial_delivery_date": "Livraison initiale",
+            "delivery_date": "Livraison",
         }
 
         widgets = {
@@ -203,42 +211,42 @@ class ProjectForm(forms.ModelForm):
                     "inputmode": "numeric",
                 }
             ),
-            "contractual_start_date": forms.DateInput(
+            "initial_start_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "contractual_end_date": forms.DateInput(
+            "initial_end_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "start_date_review": forms.DateInput(
+            "start_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "end_date_review": forms.DateInput(
+            "end_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "receipt_date_init": forms.DateInput(
+            "initial_receipt_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "receipt_date_review": forms.DateInput(
+            "receipt_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "delivery_date_init": forms.DateInput(
+            "initial_delivery_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
             ),
-            "delivery_date_review": forms.DateInput(
+            "delivery_date": forms.DateInput(
                 attrs={
                     "type": "date",
                 }
@@ -392,7 +400,8 @@ class ProjectForm(forms.ModelForm):
 
         if default_value is not None:
             self.initial[field_name] = default_value.pk
-            
+
+
 class ProjectMembershipForm(forms.ModelForm):
     """
     Affectation d'un utilisateur à un projet.
@@ -448,7 +457,7 @@ class ProjectMembershipForm(forms.ModelForm):
         self.fields["role"].catalog_is_editable = False
         self.fields["role"].catalog_is_incremental = False
 
-            
+
 ProjectMembershipFormSet = forms.inlineformset_factory(
     Project,
     ProjectMembership,
@@ -461,7 +470,8 @@ ProjectMembershipFormSet = forms.inlineformset_factory(
     extra=0,
     can_delete=True,
 )
-        
+
+
 class ProjectExternalParticipantForm(forms.ModelForm):
     """
     Intervenant externe ponctuel associé à un projet.

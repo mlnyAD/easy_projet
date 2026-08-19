@@ -39,6 +39,8 @@ class WorkPackageForm(forms.ModelForm):
             "description",
             "status",
             "manager",
+            "initial_start_date",
+            "initial_end_date",
             "start_date",
             "end_date",
             "planned_workload_hours",
@@ -46,6 +48,10 @@ class WorkPackageForm(forms.ModelForm):
         )
 
         labels = {
+            "initial_start_date": "Début initial",
+            "initial_end_date": "Fin initiale",
+            "start_date": "Début",
+            "end_date": "Fin",
             "is_active": "Lot actif",
         }
 
@@ -54,7 +60,9 @@ class WorkPackageForm(forms.ModelForm):
                 attrs={
                     "maxlength": WORK_PACKAGE_CODE_LENGTH,
                     "autocomplete": "off",
-                    "placeholder": "Généré automatiquement si vide",
+                    "placeholder": (
+                        "Généré automatiquement si vide"
+                    ),
                     "data-uppercase": True,
                     "data-trim": True,
                 }
@@ -75,6 +83,16 @@ class WorkPackageForm(forms.ModelForm):
                         "Description générale du lot de travaux"
                     ),
                     "data-trim": True,
+                }
+            ),
+            "initial_start_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                }
+            ),
+            "initial_end_date": forms.DateInput(
+                attrs={
+                    "type": "date",
                 }
             ),
             "start_date": forms.DateInput(
@@ -98,7 +116,7 @@ class WorkPackageForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        
+
         self.fields["code"].required = False
 
         self.fields["project"].queryset = (
