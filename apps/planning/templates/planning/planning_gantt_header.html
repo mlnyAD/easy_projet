@@ -1,0 +1,137 @@
+
+
+<div
+    class="
+        grid border-b
+        border-axcio-border-light
+        dark:border-axcio-border-dark
+    "
+    style="grid-template-columns: 460px 1fr;"
+>
+
+    <div
+        class="
+            border-r px-4 py-3
+            border-axcio-border-light
+            bg-white
+            dark:border-axcio-border-dark
+            dark:bg-axcio-surface-dark
+        "
+    >
+        <div class="font-medium">
+            Élément
+        </div>
+    </div>
+
+
+    <div
+        class="
+            relative
+            bg-white
+            dark:bg-axcio-surface-dark
+        "
+    >
+
+        <div
+            class="
+                relative h-8 border-b
+                border-axcio-border-light
+                dark:border-axcio-border-dark
+            "
+        >
+
+            {% for month in planning.months %}
+
+                <div
+                    class="
+                        absolute
+                        flex items-center justify-center
+                        overflow-hidden
+                        border-r
+                        border-axcio-border-light
+                        px-2 text-xs font-medium
+                        dark:border-axcio-border-dark
+                    "
+                    style="
+                        top: 0;
+                        bottom: 0;
+                    "
+                    data-gantt-segment
+                    data-left="{{ month.left_percent }}"
+                    data-width="{{ month.width_percent }}"
+                >
+                    {{ month.label }}
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <div class="relative h-8">
+
+            {% for week in planning.weeks %}
+
+                <div
+                    class="
+                        absolute
+                        flex items-center justify-center
+                        overflow-hidden
+                        border-r
+                        border-axcio-border-light
+                        px-1 text-xs
+                        text-axcio-text-muted
+                        dark:border-axcio-border-dark
+                    "
+                    style="
+                        top: 0;
+                        bottom: 0;
+                    "
+                    data-gantt-segment
+                    data-left="{{ week.left_percent }}"
+                    data-width="{{ week.width_percent }}"
+                >
+                    {{ week.label }}
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        {% if planning.state_date_percent != None %}
+
+            <div
+                class="
+                    absolute z-50
+                    cursor-help
+                "
+                style="
+                    top: 0;
+                    bottom: 0;
+                    width: 16px;
+                    transform: translateX(-8px);
+                "
+                data-gantt-state-marker
+                data-left="{{ planning.state_date_percent }}"
+                title="Date de situation : {{ period.state_date|date:'d/m/Y' }}"
+            >
+
+                <div
+                    class="absolute"
+                    style="
+                        top: 0;
+                        bottom: 0;
+                        left: 7px;
+                        width: 3px;
+                        background-color: #DC2626;
+                    "
+                ></div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>

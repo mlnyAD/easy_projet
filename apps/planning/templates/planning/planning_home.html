@@ -7,825 +7,132 @@
 
 <div class="space-y-6">
 
-    {# ============================================================ #}
-    {# En-tête                                                      #}
-    {# ============================================================ #}
-
     <div>
         <h1 class="text-2xl font-semibold">
             Planning
         </h1>
 
         <p class="mt-1 text-sm text-axcio-text-muted">
-            Planning consolidé des projets, lots de travaux et tâches.
+            Planning consolidé, plan de charge,
+            planning des ressources et calendrier.
         </p>
     </div>
 
 
-    {# ============================================================ #}
-    {# Filtres                                                      #}
-    {# ============================================================ #}
-
-    <form
-        method="get"
+    <nav
         class="
-            grid grid-cols-1 gap-4 rounded-lg border p-4
-            border-axcio-border-light
-            dark:border-axcio-border-dark
-            md:grid-cols-2
-            xl:grid-cols-5
-        "
-    >
-
-        <div>
-            <label
-                for="id_project"
-                class="mb-1 block text-sm font-medium"
-            >
-                Projet
-            </label>
-
-            <select
-                id="id_project"
-                name="project"
-                class="
-                    w-full rounded-md border px-3 py-2
-                    border-axcio-border-light
-                    bg-white
-                    dark:border-axcio-border-dark
-                    dark:bg-axcio-surface-dark
-                "
-            >
-                <option value="">
-                    Tous les projets
-                </option>
-
-                {% for project in projects %}
-                    <option
-                        value="{{ project.pk }}"
-                        {% if selected_project and selected_project.pk == project.pk %}
-                            selected
-                        {% endif %}
-                    >
-                        {{ project.reference }} - {{ project.name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-
-
-        <div>
-            <label
-                for="id_state_date"
-                class="mb-1 block text-sm font-medium"
-            >
-                Date de situation
-            </label>
-
-            <input
-                id="id_state_date"
-                type="date"
-                name="state_date"
-                value="{{ period.state_date|date:'Y-m-d' }}"
-                class="
-                    w-full rounded-md border px-3 py-2
-                    border-axcio-border-light
-                    bg-white
-                    dark:border-axcio-border-dark
-                    dark:bg-axcio-surface-dark
-                "
-            >
-        </div>
-
-
-        <div>
-            <label
-                for="id_date_from"
-                class="mb-1 block text-sm font-medium"
-            >
-                Début de période
-            </label>
-
-            <input
-                id="id_date_from"
-                type="date"
-                name="date_from"
-                value="{{ period.date_from|date:'Y-m-d' }}"
-                class="
-                    w-full rounded-md border px-3 py-2
-                    border-axcio-border-light
-                    bg-white
-                    dark:border-axcio-border-dark
-                    dark:bg-axcio-surface-dark
-                "
-            >
-        </div>
-
-
-        <div>
-            <label
-                for="id_date_to"
-                class="mb-1 block text-sm font-medium"
-            >
-                Fin de période
-            </label>
-
-            <input
-                id="id_date_to"
-                type="date"
-                name="date_to"
-                value="{{ period.date_to|date:'Y-m-d' }}"
-                class="
-                    w-full rounded-md border px-3 py-2
-                    border-axcio-border-light
-                    bg-white
-                    dark:border-axcio-border-dark
-                    dark:bg-axcio-surface-dark
-                "
-            >
-        </div>
-
-
-        <div class="flex items-end">
-            <button
-                type="submit"
-                class="
-                    w-full rounded-md px-4 py-2
-                    bg-axcio-dark text-white
-                    hover:bg-axcio-light-hover
-                "
-            >
-                Actualiser
-            </button>
-        </div>
-
-    </form>
-
-
-    {# ============================================================ #}
-    {# Informations de situation                                    #}
-    {# ============================================================ #}
-
-    <div
-        class="
-            rounded-lg border p-4
+            flex gap-6 border-b
             border-axcio-border-light
             dark:border-axcio-border-dark
         "
+        aria-label="Représentation du planning"
     >
-        <div
+
+        <a
+            href="?view={{ view_gantt }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}"
             class="
-                flex flex-col gap-2 text-sm
-                md:flex-row md:items-center md:justify-between
+                border-b-2 px-1 pb-3
+                text-sm font-medium
+                {% if selected_view == view_gantt %}
+                    border-axcio-light
+                    text-axcio-dark
+                    dark:text-axcio-light
+                {% else %}
+                    border-transparent
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                {% endif %}
             "
         >
-            <div>
-                <span class="font-medium">
-                    Date de situation :
-                </span>
-
-                {{ period.state_date|date:"d/m/Y" }}
-            </div>
-
-            <div>
-                <span class="font-medium">
-                    Période affichée :
-                </span>
-
-                {{ period.date_from|date:"d/m/Y" }}
-                →
-                {{ period.date_to|date:"d/m/Y" }}
-            </div>
-        </div>
-    </div>
-
-
-    {# ============================================================ #}
-    {# Planning                                                     #}
-    {# ============================================================ #}
-
-    <div
-        class="
-            overflow-hidden rounded-lg border
-            border-axcio-border-light
-            dark:border-axcio-border-dark
-        "
-    >
-
-        <div class="overflow-x-auto">
-
-            <div class="min-w-275">
-
-                {# ================================================= #}
-                {# En-tête                                           #}
-                {# ================================================= #}
-
-                <div
-                    class="
-                        grid border-b
-                        border-axcio-border-light
-                        dark:border-axcio-border-dark
-                    "
-                    style="grid-template-columns: 460px 1fr;"
-                >
-
-                    <div
-                        class="
-                            border-r px-4 py-3
-                            border-axcio-border-light
-                            bg-white
-                            dark:border-axcio-border-dark
-                            dark:bg-axcio-surface-dark
-                        "
-                    >
-                        <div class="font-medium">
-                            Élément
-                        </div>
-                    </div>
-
-
-                    <div
-                        class="
-                            relative
-                            bg-white
-                            dark:bg-axcio-surface-dark
-                        "
-                    >
-
-                        {# Mois #}
-
-                        <div
-                            class="
-                                relative h-8 border-b
-                                border-axcio-border-light
-                                dark:border-axcio-border-dark
-                            "
-                        >
-                            {% for month in planning.months %}
-                                <div
-                                    class="
-                                        absolute
-                                        flex items-center justify-center
-                                        overflow-hidden
-                                        border-r
-                                        border-axcio-border-light
-                                        px-2 text-xs font-medium
-                                        dark:border-axcio-border-dark
-                                    "
-                                    style="
-                                        top: 0;
-                                        bottom: 0;
-                                    "
-                                    data-gantt-segment
-                                    data-left="{{ month.left_percent }}"
-                                    data-width="{{ month.width_percent }}"
-                                >
-                                    {{ month.label }}
-                                </div>
-                            {% endfor %}
-                        </div>
-
-
-                        {# Semaines #}
-
-                        <div class="relative h-8">
-
-                            {% for week in planning.weeks %}
-                                <div
-                                    class="
-                                        absolute
-                                        flex items-center justify-center
-                                        overflow-hidden
-                                        border-r
-                                        border-axcio-border-light
-                                        px-1 text-xs
-                                        text-axcio-text-muted
-                                        dark:border-axcio-border-dark
-                                    "
-                                    style="
-                                        top: 0;
-                                        bottom: 0;
-                                    "
-                                    data-gantt-segment
-                                    data-left="{{ week.left_percent }}"
-                                    data-width="{{ week.width_percent }}"
-                                >
-                                    {{ week.label }}
-                                </div>
-                            {% endfor %}
-
-                        </div>
-
-
-                        {# Ligne de situation dans l'en-tête #}
-
-                        {% if planning.state_date_percent != None %}
-                            <div
-                                class="
-                                    absolute z-50
-                                    cursor-help
-                                "
-                                style="
-                                    top: 0;
-                                    bottom: 0;
-                                    width: 16px;
-                                    transform: translateX(-8px);
-                                "
-                                data-gantt-state-marker
-                                data-left="{{ planning.state_date_percent }}"
-                                title="Date de situation : {{ period.state_date|date:'d/m/Y' }}"
-                            >
-                                <div
-                                    class="absolute"
-                                    style="
-                                        top: 0;
-                                        bottom: 0;
-                                        left: 7px;
-                                        width: 3px;
-                                        background-color: #DC2626;
-                                    "
-                                ></div>
-                            </div>
-                        {% endif %}
-
-                    </div>
-
-                </div>
-
-
-                {# ================================================= #}
-                {# Lignes                                            #}
-                {# ================================================= #}
-
-                {% for item in planning.items %}
-
-                    <div
-                        class="
-                            grid border-b
-                            border-axcio-border-light
-                            dark:border-axcio-border-dark
-                        "
-                        style="grid-template-columns: 460px 1fr;"
-                    >
-
-                        {# Colonne descriptive #}
-
-                        <div
-                            class="
-                                border-r px-4 py-3
-                                border-axcio-border-light
-                                bg-white
-                                dark:border-axcio-border-dark
-                                dark:bg-axcio-surface-dark
-                            "
-                        >
-
-                            <div
-                                class="
-                                    min-w-0
-                                    {% if item.level == 1 %}
-                                        pl-6
-                                    {% elif item.level == 2 %}
-                                        pl-12
-                                    {% endif %}
-                                "
-                            >
-
-                                {% if item.level == 0 %}
-                                    <div class="font-semibold">
-                                {% elif item.level == 1 %}
-                                    <div class="font-medium">
-                                {% else %}
-                                    <div>
-                                {% endif %}
-
-                                    {% if item.code %}
-                                        {{ item.code }} -
-                                    {% endif %}
-
-                                    {{ item.name }}
-
-                                </div>
-
-
-                                <div
-                                    class="
-                                        mt-1 flex flex-wrap
-                                        items-center gap-x-3 gap-y-1
-                                        text-xs text-axcio-text-muted
-                                    "
-                                >
-                                    <span>
-                                        {% if item.start_date %}
-                                            {{ item.start_date|date:"d/m/Y" }}
-                                        {% else %}
-                                            —
-                                        {% endif %}
-
-                                        →
-
-                                        {% if item.end_date %}
-                                            {{ item.end_date|date:"d/m/Y" }}
-                                        {% else %}
-                                            —
-                                        {% endif %}
-                                    </span>
-
-                                    <span>
-                                        Prévu :
-                                        {{ item.planned_workload_hours }} h
-                                    </span>
-
-                                    <span>
-                                        Réalisé :
-                                        {{ item.actual_hours|floatformat:2 }} h
-                                    </span>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        {# Zone graphique #}
-
-                        <div
-                            class="
-                                relative
-                                bg-white
-                                dark:bg-axcio-surface-dark
-                            "
-                            style="min-height: 56px;"
-                        >
-
-                            {# Grille hebdomadaire #}
-
-                            {% for week in planning.weeks %}
-                                <div
-                                    class="
-                                        pointer-events-none
-                                        absolute
-                                        border-r
-                                        border-axcio-border-light
-                                        dark:border-axcio-border-dark
-                                    "
-                                    style="
-                                        top: 0;
-                                        bottom: 0;
-                                    "
-                                    data-gantt-segment
-                                    data-left="{{ week.left_percent }}"
-                                    data-width="{{ week.width_percent }}"
-                                ></div>
-                            {% endfor %}
-
-
-                            {# Ligne rouge de situation #}
-
-                            {% if planning.state_date_percent != None %}
-                                <div
-                                    class="
-                                        absolute z-50
-                                        cursor-help
-                                    "
-                                    style="
-                                        top: 0;
-                                        bottom: 0;
-                                        width: 16px;
-                                        transform: translateX(-8px);
-                                    "
-                                    data-gantt-state-marker
-                                    data-left="{{ planning.state_date_percent }}"
-                                    title="Date de situation : {{ period.state_date|date:'d/m/Y' }}"
-                                >
-                                    <div
-                                        class="absolute"
-                                        style="
-                                            top: 0;
-                                            bottom: 0;
-                                            left: 7px;
-                                            width: 3px;
-                                            background-color: #DC2626;
-                                        "
-                                    ></div>
-                                </div>
-                            {% endif %}
-
-
-                            {# Barre Gantt #}
-
-                            {% if item.gantt_left_percent != None and item.gantt_width_percent != None %}
-
-                                <div
-                                    class="
-                                        absolute z-30
-                                    "
-                                    style="
-                                        top: 50%;
-                                        transform: translateY(-50%);
-                                    "
-                                    data-gantt-bar
-                                    data-left="{{ item.gantt_left_percent }}"
-                                    data-width="{{ item.gantt_width_percent }}"
-                                    title="{{ item.code }} - {{ item.name }} | {{ item.start_date|date:'d/m/Y' }} → {{ item.end_date|date:'d/m/Y' }}"
-                                >
-
-                                    {% if item.level == 0 %}
-
-                                        <div
-                                            class="
-                                                relative overflow-hidden rounded
-                                            "
-                                            style="
-                                                height: 20px;
-                                                border: 1px solid #2563EB;
-                                            "
-                                        >
-
-                                    {% elif item.level == 1 %}
-
-                                        <div
-                                            class="
-                                                relative overflow-hidden rounded
-                                            "
-                                            style="
-                                                height: 16px;
-                                                border: 1px solid #2563EB;
-                                            "
-                                        >
-
-                                    {% else %}
-
-                                        <div
-                                            class="
-                                                relative overflow-hidden rounded
-                                            "
-                                            style="
-                                                height: 12px;
-                                                border: 1px solid #2563EB;
-                                            "
-                                        >
-
-                                    {% endif %}
-
-
-                                            {# Avant date de situation #}
-
-                                            <div
-                                                class="absolute"
-                                                style="
-                                                    top: 0;
-                                                    bottom: 0;
-                                                    left: 0;
-                                                    background-color: #2563EB;
-                                                "
-                                                data-gantt-part
-                                                data-width="{{ item.realized_width_percent }}"
-                                            ></div>
-
-
-                                            {# Prévisionnel #}
-
-                                            <div
-                                                class="absolute"
-                                                style="
-                                                    top: 0;
-                                                    bottom: 0;
-                                                    right: 0;
-                                                    background-color: #93C5FD;
-                                                "
-                                                data-gantt-part
-                                                data-width="{{ item.forecast_width_percent }}"
-                                            ></div>
-
-                                        </div>
-
-                                </div>
-
-                            {% endif %}
-
-                        </div>
-
-                    </div>
-
-                {% empty %}
-
-                    <div
-                        class="
-                            px-4 py-10 text-center
-                            text-axcio-text-muted
-                        "
-                    >
-                        Aucun élément à afficher sur cette période.
-                    </div>
-
-                {% endfor %}
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    {# ============================================================ #}
-    {# Légende                                                      #}
-    {# ============================================================ #}
-
-    <div
-        class="
-            flex flex-wrap items-center
-            gap-x-6 gap-y-2
-            px-2 text-xs text-axcio-text-muted
-        "
-    >
-
-        <div class="flex items-center gap-2">
-
-            <span
-                class="inline-block rounded-sm"
-                style="
-                    width: 20px;
-                    height: 12px;
-                    background-color: #2563EB;
-                "
-            ></span>
-
-            <span>
-                Avant date de situation
-            </span>
-
-        </div>
-
-
-        <div class="flex items-center gap-2">
-
-            <span
-                class="inline-block rounded-sm"
-                style="
-                    width: 20px;
-                    height: 12px;
-                    background-color: #93C5FD;
-                "
-            ></span>
-
-            <span>
-                Prévisionnel
-            </span>
-
-        </div>
-
-
-        <div class="flex items-center gap-2">
-
-            <span
-                class="inline-block"
-                style="
-                    width: 3px;
-                    height: 16px;
-                    background-color: #DC2626;
-                "
-            ></span>
-
-            <span>
-                Date de situation
-            </span>
-
-        </div>
-
-    </div>
+            Gantt
+        </a>
+
+
+        <a
+            href="?view={{ view_workload }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}"
+            class="
+                border-b-2 px-1 pb-3
+                text-sm font-medium
+                {% if selected_view == view_workload %}
+                    border-axcio-light
+                    text-axcio-dark
+                    dark:text-axcio-light
+                {% else %}
+                    border-transparent
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                {% endif %}
+            "
+        >
+            Plan de charge
+        </a>
+
+
+        <a
+            href="?view={{ view_resources }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}"
+            class="
+                border-b-2 px-1 pb-3
+                text-sm font-medium
+                {% if selected_view == view_resources %}
+                    border-axcio-light
+                    text-axcio-dark
+                    dark:text-axcio-light
+                {% else %}
+                    border-transparent
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                {% endif %}
+            "
+        >
+            Planning ressources
+        </a>
+
+
+        <a
+            href="?view={{ view_calendar }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}&calendar_year={{ calendar.year }}&calendar_month={{ calendar.month }}"
+            class="
+                border-b-2 px-1 pb-3
+                text-sm font-medium
+                {% if selected_view == view_calendar %}
+                    border-axcio-light
+                    text-axcio-dark
+                    dark:text-axcio-light
+                {% else %}
+                    border-transparent
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                {% endif %}
+            "
+        >
+            Calendrier
+        </a>
+
+    </nav>
+
+
+    {% include "planning/planning_filters.html" %}
+
+    {% include "planning/planning_period_summary.html" %}
+
+
+    {% if selected_view == view_gantt %}
+
+        {% include "planning/planning_gantt.html" %}
+
+    {% elif selected_view == view_workload %}
+
+        {% include "planning/planning_workload.html" %}
+
+    {% elif selected_view == view_resources %}
+
+        {% include "planning/planning_resources.html" %}
+
+    {% elif selected_view == view_calendar %}
+
+        {% include "planning/planning_calendar.html" %}
+
+    {% endif %}
 
 </div>
-
-
-<script>
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-            /*
-             * ------------------------------------------------------
-             * Segments temporels
-             * ------------------------------------------------------
-             */
-
-            document
-                .querySelectorAll(
-                    "[data-gantt-segment]"
-                )
-                .forEach(
-                    function (element) {
-
-                        const left = parseFloat(
-                            element.dataset.left
-                        );
-
-                        const width = parseFloat(
-                            element.dataset.width
-                        );
-
-                        if (!Number.isNaN(left)) {
-                            element.style.left =
-                                `${left}%`;
-                        }
-
-                        if (!Number.isNaN(width)) {
-                            element.style.width =
-                                `${width}%`;
-                        }
-
-                    }
-                );
-
-
-            /*
-             * ------------------------------------------------------
-             * Date de situation
-             * ------------------------------------------------------
-             */
-
-            document
-                .querySelectorAll(
-                    "[data-gantt-state-marker]"
-                )
-                .forEach(
-                    function (element) {
-
-                        const left = parseFloat(
-                            element.dataset.left
-                        );
-
-                        if (!Number.isNaN(left)) {
-                            element.style.left =
-                                `${left}%`;
-                        }
-
-                    }
-                );
-
-
-            /*
-             * ------------------------------------------------------
-             * Barres
-             * ------------------------------------------------------
-             */
-
-            document
-                .querySelectorAll(
-                    "[data-gantt-bar]"
-                )
-                .forEach(
-                    function (element) {
-
-                        const left = parseFloat(
-                            element.dataset.left
-                        );
-
-                        const width = parseFloat(
-                            element.dataset.width
-                        );
-
-                        if (!Number.isNaN(left)) {
-                            element.style.left =
-                                `${left}%`;
-                        }
-
-                        if (!Number.isNaN(width)) {
-                            element.style.width =
-                                `${width}%`;
-                        }
-
-                    }
-                );
-
-
-            /*
-             * ------------------------------------------------------
-             * Parties des barres
-             * ------------------------------------------------------
-             */
-
-            document
-                .querySelectorAll(
-                    "[data-gantt-part]"
-                )
-                .forEach(
-                    function (element) {
-
-                        const width = parseFloat(
-                            element.dataset.width
-                        );
-
-                        if (!Number.isNaN(width)) {
-                            element.style.width =
-                                `${width}%`;
-                        }
-
-                    }
-                );
-
-        }
-    );
-</script>
 
 {% endblock %}

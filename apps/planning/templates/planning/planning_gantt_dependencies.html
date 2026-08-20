@@ -1,0 +1,26 @@
+
+
+<div
+    class="hidden"
+    data-gantt-dependencies
+>
+
+    {% for dependency in planning.dependencies %}
+
+        <span
+            data-gantt-dependency
+            data-dependency-id="{{ dependency.dependency_id }}"
+            data-predecessor-id="{{ dependency.predecessor_id }}"
+            data-predecessor-code="{{ dependency.predecessor_code }}"
+            data-predecessor-name="{{ dependency.predecessor_name }}"
+            data-successor-id="{{ dependency.successor_id }}"
+            data-successor-code="{{ dependency.successor_code }}"
+            data-successor-name="{{ dependency.successor_name }}"
+            data-dependency-type="{{ dependency.dependency_type }}"
+            data-dependency-label="{{ dependency.dependency_type_label }}"
+            data-lag-days="{{ dependency.lag_days }}"
+        ></span>
+
+    {% endfor %}
+
+</div>

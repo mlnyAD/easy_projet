@@ -384,3 +384,274 @@ class TaskAssignment(TimeStampedModel):
             f"{self.user.last_name} "
             f"{self.user.first_name}"
         )
+
+
+class TaskDependency(TimeStampedModel):
+    """
+    Dépendance d'ordonnancement entre deux tâches.
+
+    Une dépendance relie une tâche antécédente à une tâche
+    successeure.
+
+    Types supportés :
+    - FS : Fin -> Début ;
+    - SS : Début -> Début ;
+    - FF : Fin -> Fin ;
+    - SF : Début -> Fin.
+
+    Le décalage est exprimé en jours calendaires.
+
+    Un décalage positif crée une attente.
+    Un décalage négatif autorise un chevauchement.
+    """
+
+    class DependencyType(models.TextChoices):
+        FINISH_TO_START = (
+            "FS",
+            "Fin → Début",
+        )
+        START_TO_START = (
+            "SS",
+            "Début → Début",
+        )
+        FINISH_TO_FINISH = (
+            "FF",
+            "Fin → Fin",
+        )
+        START_TO_FINISH = (
+            "SF",
+            "Début → Fin",
+        )
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    predecessor = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="successor_dependencies",
+        verbose_name="Tâche antécédente",
+    )
+
+    successor = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="predecessor_dependencies",
+        verbose_name="Tâche successeure",
+    )
+
+    dependency_type = models.CharField(
+        max_length=2,
+        choices=DependencyType.choices,
+        default=DependencyType.FINISH_TO_START,
+        verbose_name="Type de dépendance",
+    )
+
+    lag_days = models.IntegerField(
+        default=0,
+        verbose_name="Décalage (jours)",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Dépendance active",
+    )
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    def clean(self) -> None:
+        """
+        Vérifie la cohérence métier de la dépendance.
+
+        Règles :
+        - une tâche ne peut pas dépendre d'elle-même ;
+        - les deux tâches doivent appartenir au même projet ;
+        - une dépendance active ne doit pas créer de cycle.
+        """
+        super().clean()
+
+        if (
+            self.predecessor_id is None
+            or self.successor_id is None
+        ):
+            return
+
+        if self.predecessor_id == self.successor_id:
+            raise ValidationError(
+                {
+                    "predecessor": (
+                        "Une tâche ne peut pas dépendre "
+                        "d'elle-même."
+                    ),
+                }
+            )
+
+        predecessor_project_id = (
+            self.predecessor
+            .work_package
+            .project_id
+        )
+
+        successor_project_id = (
+            self.successor
+            .work_package
+            .project_id
+        )
+
+        if (
+            predecessor_project_id
+            != successor_project_id
+        ):
+            raise ValidationError(
+                {
+                    "predecessor": (
+                        "Les tâches d'une dépendance doivent "
+                        "appartenir au même projet."
+                    ),
+                }
+            )
+
+        if (
+            self.is_active
+            and self._would_create_cycle()
+        ):
+            raise ValidationError(
+                {
+                    "predecessor": (
+                        "Cette dépendance créerait une boucle "
+                        "dans l'enchaînement des tâches."
+                    ),
+                }
+            )
+    
+    def _would_create_cycle(
+        self,
+    ) -> bool:
+        """
+        Indique si la dépendance courante créerait un cycle.
+
+        Pour ajouter :
+
+            predecessor -> successor
+
+        il ne doit pas déjà exister de chemin actif :
+
+            successor -> ... -> predecessor
+        """
+
+        dependencies = (
+            TaskDependency.objects
+            .filter(is_active=True)
+        )
+
+        if self.pk:
+            dependencies = dependencies.exclude(
+                pk=self.pk
+            )
+
+        adjacency: dict[
+            object,
+            set,
+        ] = {}
+
+        for (
+            predecessor_id,
+            successor_id,
+        ) in dependencies.values_list(
+            "predecessor_id",
+            "successor_id",
+        ):
+            adjacency.setdefault(
+                predecessor_id,
+                set(),
+            ).add(
+                successor_id
+            )
+
+        target_id = self.predecessor_id
+
+        pending = [
+            self.successor_id
+        ]
+
+        visited = set()
+
+        while pending:
+            task_id = pending.pop()
+
+            if task_id == target_id:
+                return True
+
+            if task_id in visited:
+                continue
+
+            visited.add(
+                task_id
+            )
+
+            pending.extend(
+                adjacency.get(
+                    task_id,
+                    ()
+                )
+            )
+
+        return False
+
+    class Meta:
+        db_table = "task_dependency"
+
+        ordering = [
+            "predecessor__work_package",
+            "predecessor__code",
+            "successor__code",
+        ]
+
+        verbose_name = "Dépendance de tâche"
+        verbose_name_plural = "Dépendances de tâches"
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "predecessor",
+                    "successor",
+                ],
+                name=(
+                    "uniq_task_dependency_"
+                    "predecessor_successor"
+                ),
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(
+                    predecessor=models.F(
+                        "successor"
+                    )
+                ),
+                name=(
+                    "task_dependency_"
+                    "predecessor_not_successor"
+                ),
+            ),
+        ]
+
+    def __str__(self) -> str:
+        lag = ""
+
+        if self.lag_days > 0:
+            lag = f" +{self.lag_days} j"
+
+        elif self.lag_days < 0:
+            lag = f" {self.lag_days} j"
+
+        return (
+            f"{self.predecessor.code} "
+            f"→ "
+            f"{self.successor.code} "
+            f"({self.dependency_type}{lag})"
+        )

@@ -19,3 +19,14 @@ planification.
 
 
 comme fonction transversale de workflow / file d’actions
+
+
+### Planning
+Faire du Master/détail quand c'est possible
+tous les projets
+  tous les lots
+    toutes les âches
+
+### Planning
+Rendre les barres de tâche sélectionnables
+

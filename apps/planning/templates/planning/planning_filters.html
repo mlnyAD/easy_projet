@@ -1,0 +1,146 @@
+
+
+<form
+    method="get"
+    class="
+        grid grid-cols-1 gap-4 rounded-lg border p-4
+        border-axcio-border-light
+        dark:border-axcio-border-dark
+        md:grid-cols-2
+        xl:grid-cols-5
+    "
+>
+
+    <input
+        type="hidden"
+        name="view"
+        value="{{ selected_view }}"
+    >
+
+
+    <div>
+        <label
+            for="id_project"
+            class="mb-1 block text-sm font-medium"
+        >
+            Projet
+        </label>
+
+        <select
+            id="id_project"
+            name="project"
+            class="
+                w-full rounded-md border px-3 py-2
+                border-axcio-border-light
+                bg-white
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-dark
+            "
+        >
+            <option value="">
+                Tous les projets
+            </option>
+
+            {% for project in projects %}
+                <option
+                    value="{{ project.pk }}"
+                    {% if selected_project and selected_project.pk == project.pk %}
+                        selected
+                    {% endif %}
+                >
+                    {{ project.reference }} - {{ project.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+
+    <div>
+        <label
+            for="id_state_date"
+            class="mb-1 block text-sm font-medium"
+        >
+            Date de situation
+        </label>
+
+        <input
+            id="id_state_date"
+            type="date"
+            name="state_date"
+            value="{{ period.state_date|date:'Y-m-d' }}"
+            class="
+                w-full rounded-md border px-3 py-2
+                border-axcio-border-light
+                bg-white
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-dark
+            "
+        >
+    </div>
+
+
+    <div>
+        <label
+            for="id_date_from"
+            class="mb-1 block text-sm font-medium"
+        >
+            Début de période
+        </label>
+
+        <input
+            id="id_date_from"
+            type="date"
+            name="date_from"
+            value="{{ period.date_from|date:'Y-m-d' }}"
+            class="
+                w-full rounded-md border px-3 py-2
+                border-axcio-border-light
+                bg-white
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-dark
+            "
+        >
+    </div>
+
+
+    <div>
+        <label
+            for="id_date_to"
+            class="mb-1 block text-sm font-medium"
+        >
+            Fin de période
+        </label>
+
+        <input
+            id="id_date_to"
+            type="date"
+            name="date_to"
+            value="{{ period.date_to|date:'Y-m-d' }}"
+            class="
+                w-full rounded-md border px-3 py-2
+                border-axcio-border-light
+                bg-white
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-dark
+            "
+        >
+    </div>
+
+
+    <div class="flex items-end">
+        <button
+            type="submit"
+            class="
+                w-full rounded-md px-4 py-2
+                font-medium text-white
+                transition-colors
+            "
+            style="background-color: #0D5262;"
+            onmouseover="this.style.backgroundColor='#1E7477'"
+            onmouseout="this.style.backgroundColor='#0D5262'"
+        >
+            Actualiser
+        </button>
+    </div>
+
+</form>

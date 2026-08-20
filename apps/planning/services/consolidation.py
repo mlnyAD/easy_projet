@@ -20,7 +20,10 @@ from apps.reporting.models import (
     ActivityReportEntry,
     ActivityReportProjectReviewStatus,
 )
-from apps.tasks.models import Task
+from apps.tasks.models import (
+    Task,
+    TaskDependency,
+)
 from apps.work.models import WorkPackage
 
 
@@ -111,7 +114,27 @@ class PlanningItem:
     realized_width_percent: float = 0.0
     forecast_width_percent: float = 100.0
 
+@dataclass(frozen=True)
+class PlanningDependency:
+    """
+    Dépendance entre deux tâches visibles dans le Gantt.
+    """
 
+    dependency_id: str
+
+    predecessor_id: str
+    predecessor_code: str
+    predecessor_name: str
+
+    successor_id: str
+    successor_code: str
+    successor_name: str
+
+    dependency_type: str
+    dependency_type_label: str
+
+    lag_days: int
+    
 @dataclass(frozen=True)
 class PlanningData:
     """
@@ -135,8 +158,13 @@ class PlanningData:
         ...
     ]
 
-    state_date_percent: float | None
+    dependencies: tuple[
+        PlanningDependency,
+        ...
+    ]
 
+    state_date_percent: float | None
+    
 
 class PlanningConsolidationService:
     """
@@ -261,6 +289,16 @@ class PlanningConsolidationService:
         )
 
         # --------------------------------------------------------------
+        # Dépendances entre tâches visibles
+        # --------------------------------------------------------------
+
+        dependencies = (
+            self._get_dependencies(
+                task_ids=task_ids,
+            )
+        )
+
+        # --------------------------------------------------------------
         # Deuxième passe :
         # création des PlanningItem
         # --------------------------------------------------------------
@@ -357,13 +395,14 @@ class PlanningConsolidationService:
             weeks=self._build_week_segments(
                 period
             ),
+            dependencies=dependencies,
             state_date_percent=(
                 self._get_state_date_percent(
                     period
                 )
             ),
         )
-
+    
     # ------------------------------------------------------------------
     # Sélection
     # ------------------------------------------------------------------
@@ -463,6 +502,12 @@ class PlanningConsolidationService:
                 "status"
             )
             .order_by(
+                F("start_date").asc(
+                    nulls_last=True
+                ),
+                F("end_date").asc(
+                    nulls_last=True
+                ),
                 "code",
                 "name",
             )
@@ -477,7 +522,84 @@ class PlanningConsolidationService:
                 period=period,
             )
         ]
+    
+# ------------------------------------------------------------------
+# Dépendances
+# ------------------------------------------------------------------
 
+    def _get_dependencies(
+        self,
+        *,
+        task_ids,
+    ) -> tuple[
+        PlanningDependency,
+        ...
+    ]:
+        """
+        Retourne les dépendances actives reliant deux tâches
+        actuellement visibles dans le Gantt.
+
+        Une dépendance dont l'une des deux tâches est hors période
+        n'est pas représentée graphiquement.
+        """
+
+        if not task_ids:
+            return ()
+
+        queryset = (
+            TaskDependency.objects
+            .filter(
+                is_active=True,
+                predecessor_id__in=task_ids,
+                successor_id__in=task_ids,
+                predecessor__is_active=True,
+                successor__is_active=True,
+            )
+            .select_related(
+                "predecessor",
+                "successor",
+            )
+            .order_by(
+                "predecessor__code",
+                "successor__code",
+            )
+        )
+
+        return tuple(
+            PlanningDependency(
+                dependency_id=str(
+                    dependency.pk
+                ),
+                predecessor_id=str(
+                    dependency.predecessor_id
+                ),
+                predecessor_code=(
+                    dependency.predecessor.code
+                ),
+                predecessor_name=(
+                    dependency.predecessor.name
+                ),
+                successor_id=str(
+                    dependency.successor_id
+                ),
+                successor_code=(
+                    dependency.successor.code
+                ),
+                successor_name=(
+                    dependency.successor.name
+                ),
+                dependency_type=(
+                    dependency.dependency_type
+                ),
+                dependency_type_label=(
+                    dependency
+                    .get_dependency_type_display()
+                ),
+                lag_days=dependency.lag_days,
+            )
+            for dependency in queryset
+        )
+        
     # ------------------------------------------------------------------
     # Réalisé issu des rapports d'activité
     # ------------------------------------------------------------------

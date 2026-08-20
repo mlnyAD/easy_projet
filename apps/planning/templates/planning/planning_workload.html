@@ -1,0 +1,246 @@
+
+
+<div
+    class="
+        overflow-hidden rounded-lg border
+        border-axcio-border-light
+        bg-axcio-surface
+        dark:border-axcio-border-dark
+        dark:bg-axcio-surface-dark
+    "
+>
+
+    <div
+        class="
+            border-b p-4
+            border-axcio-border-light
+            dark:border-axcio-border-dark
+        "
+    >
+        <h2 class="text-base font-semibold">
+            Plan de charge hebdomadaire
+        </h2>
+
+        <p
+            class="
+                mt-1 text-sm
+                text-axcio-text-muted
+                dark:text-axcio-text-muted-dark
+            "
+        >
+            Charge calculée à partir des affectations actives
+            et des jours ouvrés couverts par chaque tâche.
+        </p>
+    </div>
+
+
+    <div class="overflow-x-auto">
+
+        <table class="min-w-full text-sm">
+
+            <thead
+                class="
+                    border-b
+                    border-axcio-border-light
+                    bg-axcio-surface-alt
+                    dark:border-axcio-border-dark
+                    dark:bg-axcio-surface-alt-dark
+                "
+            >
+
+                <tr>
+
+                    <th
+                        class="
+                            sticky left-0 z-20
+                            min-w-64 border-r
+                            border-axcio-border-light
+                            bg-axcio-surface-alt
+                            px-4 py-3 text-left
+                            font-medium
+                            dark:border-axcio-border-dark
+                            dark:bg-axcio-surface-alt-dark
+                        "
+                    >
+                        Ressource
+                    </th>
+
+
+                    {% for week in workload.weeks %}
+
+                        <th
+                            class="
+                                min-w-24 border-r
+                                border-axcio-border-light
+                                px-3 py-3 text-center
+                                font-medium
+                                dark:border-axcio-border-dark
+                            "
+                            title="{{ week.start_date|date:'d/m/Y' }} → {{ week.end_date|date:'d/m/Y' }}"
+                        >
+                            <div>
+                                {{ week.label }}
+                            </div>
+
+                            <div
+                                class="
+                                    mt-1 text-[10px]
+                                    font-normal
+                                    text-axcio-text-muted
+                                    dark:text-axcio-text-muted-dark
+                                "
+                            >
+                                {{ week.start_date|date:"d/m" }}
+                                →
+                                {{ week.end_date|date:"d/m" }}
+                            </div>
+
+                        </th>
+
+                    {% endfor %}
+
+                </tr>
+
+            </thead>
+
+
+            <tbody
+                class="
+                    divide-y
+                    divide-axcio-border-light
+                    dark:divide-axcio-border-dark
+                "
+            >
+
+                {% for resource in workload.resources %}
+
+                    <tr>
+
+                        <td
+                            class="
+                                sticky left-0 z-10
+                                border-r
+                                border-axcio-border-light
+                                bg-white
+                                px-4 py-3
+                                dark:border-axcio-border-dark
+                                dark:bg-axcio-surface-dark
+                            "
+                        >
+                            <div class="font-medium">
+                                {{ resource.last_name }}
+                                {{ resource.first_name }}
+                            </div>
+                        </td>
+
+
+                        {% for cell in resource.cells %}
+
+                            <td
+                                class="
+                                    border-r
+                                    border-axcio-border-light
+                                    px-2 py-2
+                                    text-center
+                                    dark:border-axcio-border-dark
+                                "
+                            >
+
+                                <div
+                                    class="
+                                        cursor-help rounded-md
+                                        border px-2 py-3
+                                        font-semibold
+
+                                        {% if cell.status == "overload" %}
+                                            border-red-300
+                                            bg-red-100
+                                            text-red-800
+                                            dark:border-red-800
+                                            dark:bg-red-950/40
+                                            dark:text-red-300
+
+                                        {% elif cell.status == "nominal" %}
+                                            border-green-300
+                                            bg-green-100
+                                            text-green-800
+                                            dark:border-green-800
+                                            dark:bg-green-950/40
+                                            dark:text-green-800
+
+                                        {% elif cell.status == "available" %}
+                                            border-blue-300
+                                            bg-blue-100
+                                            text-blue-800
+                                            dark:border-blue-800
+                                            dark:bg-blue-950/40
+                                            dark:text-blue-300
+
+                                        {% else %}
+                                            border-axcio-border-light
+                                            bg-axcio-surface-alt
+                                            text-axcio-text-muted
+                                            dark:border-axcio-border-dark
+                                            dark:bg-axcio-surface-alt-dark
+                                            dark:text-axcio-text-muted-dark
+                                        {% endif %}
+                                    "
+                                    title="{% for detail in cell.details %}{{ detail.project_reference }} / {{ detail.task_code }} - {{ detail.workload_percent|floatformat:'-2' }} %{% if not forloop.last %}&#10;{% endif %}{% endfor %}"
+                                >
+                                    {{ cell.workload_percent|floatformat:"-2" }} %
+                                </div>
+
+                            </td>
+
+                        {% endfor %}
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td
+                            colspan="{{ workload.weeks|length|add:'1' }}"
+                            class="
+                                px-4 py-10 text-center
+                                text-axcio-text-muted
+                            "
+                        >
+                            Aucune ressource affectée
+                            sur cette période.
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<div
+    class="
+        rounded-lg border p-4
+        border-axcio-border-light
+        text-sm
+        dark:border-axcio-border-dark
+    "
+>
+    <p class="font-medium">
+        Règle de calcul
+    </p>
+
+    <p
+        class="
+            mt-1 text-axcio-text-muted
+            dark:text-axcio-text-muted-dark
+        "
+    >
+        Taux d'affectation × jours ouvrés couverts par la tâche
+        ÷ jours ouvrés de la semaine.
+    </p>
+</div>

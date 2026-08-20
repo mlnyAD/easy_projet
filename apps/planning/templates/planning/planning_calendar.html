@@ -1,0 +1,461 @@
+
+
+<div class="space-y-4">
+
+    {# ============================================================ #}
+    {# Navigation mensuelle                                         #}
+    {# ============================================================ #}
+
+    <div
+        class="
+            flex flex-col gap-4 rounded-lg border p-4
+            border-axcio-border-light
+            bg-axcio-surface
+            dark:border-axcio-border-dark
+            dark:bg-axcio-surface-dark
+            md:flex-row md:items-center md:justify-between
+        "
+    >
+
+        <a
+            href="?view={{ view_calendar }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}&calendar_year={{ calendar.previous_year }}&calendar_month={{ calendar.previous_month }}"
+            class="
+                inline-flex items-center gap-2
+                rounded-md border px-3 py-2
+                text-sm font-medium
+                border-axcio-border-light
+                text-axcio-text
+                hover:bg-axcio-surface-alt
+                dark:border-axcio-border-dark
+                dark:text-axcio-text-dark
+                dark:hover:bg-axcio-surface-alt-dark
+            "
+        >
+            <span aria-hidden="true">
+                ←
+            </span>
+
+            Mois précédent
+        </a>
+
+
+        <div class="text-center">
+
+            <h2
+                class="
+                    text-lg font-semibold
+                    text-axcio-text
+                    dark:text-axcio-text-dark
+                "
+            >
+                {{ calendar.month_label }}
+            </h2>
+
+            {% if selected_project %}
+                <div
+                    class="
+                        mt-1 text-xs
+                        text-axcio-text-muted
+                        dark:text-axcio-text-muted-dark
+                    "
+                >
+                    {{ selected_project.reference }}
+                    —
+                    {{ selected_project.name }}
+                </div>
+            {% endif %}
+
+        </div>
+
+
+        <a
+            href="?view={{ view_calendar }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}&calendar_year={{ calendar.next_year }}&calendar_month={{ calendar.next_month }}"
+            class="
+                inline-flex items-center justify-end gap-2
+                rounded-md border px-3 py-2
+                text-sm font-medium
+                border-axcio-border-light
+                text-axcio-text
+                hover:bg-axcio-surface-alt
+                dark:border-axcio-border-dark
+                dark:text-axcio-text-dark
+                dark:hover:bg-axcio-surface-alt-dark
+            "
+        >
+            Mois suivant
+
+            <span aria-hidden="true">
+                →
+            </span>
+        </a>
+
+    </div>
+
+
+    {# ============================================================ #}
+    {# Calendrier                                                   #}
+    {# ============================================================ #}
+
+    <div
+        class="
+            overflow-hidden rounded-lg border
+            border-axcio-border-light
+            bg-axcio-surface
+            dark:border-axcio-border-dark
+            dark:bg-axcio-surface-dark
+        "
+    >
+
+        <div class="overflow-x-auto">
+
+            <div style="min-width: 980px;">
+
+                {# ------------------------------------------------ #}
+                {# Jours de semaine                                #}
+                {# ------------------------------------------------ #}
+
+                <div
+                    class="
+                        grid
+                        border-b
+                        border-axcio-border-light
+                        dark:border-axcio-border-dark
+                    "
+                    style="grid-template-columns: repeat(7, minmax(0, 1fr));"
+                >
+
+                    <div
+                        class="
+                            border-r px-3 py-3
+                            text-center text-sm font-medium
+                            border-axcio-border-light
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        Lundi
+                    </div>
+
+                    <div
+                        class="
+                            border-r px-3 py-3
+                            text-center text-sm font-medium
+                            border-axcio-border-light
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        Mardi
+                    </div>
+
+                    <div
+                        class="
+                            border-r px-3 py-3
+                            text-center text-sm font-medium
+                            border-axcio-border-light
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        Mercredi
+                    </div>
+
+                    <div
+                        class="
+                            border-r px-3 py-3
+                            text-center text-sm font-medium
+                            border-axcio-border-light
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        Jeudi
+                    </div>
+
+                    <div
+                        class="
+                            border-r px-3 py-3
+                            text-center text-sm font-medium
+                            border-axcio-border-light
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        Vendredi
+                    </div>
+
+                    <div
+                        class="
+                            border-r px-3 py-3
+                            text-center text-sm font-medium
+                            border-axcio-border-light
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        Samedi
+                    </div>
+
+                    <div
+                        class="
+                            px-3 py-3
+                            text-center text-sm font-medium
+                        "
+                    >
+                        Dimanche
+                    </div>
+
+                </div>
+
+
+                {# ------------------------------------------------ #}
+                {# Semaines du mois                                 #}
+                {# ------------------------------------------------ #}
+
+                {% for week in calendar.weeks %}
+
+                    <div
+                        class="
+                            grid
+                            border-b
+                            border-axcio-border-light
+                            bg-axcio-surface-alt
+                            dark:border-axcio-border-dark
+                            dark:bg-axcio-surface-alt-dark
+                        "
+                        style="grid-template-columns: repeat(7, minmax(0, 1fr));"
+                    >
+
+                        {% for day in week.days %}
+
+                            <div
+                                class="
+                                    min-h-36 border-r p-2
+                                    border-axcio-border-light
+                                    dark:border-axcio-border-dark
+
+                                    {% if not day.is_current_month %}
+                                        bg-axcio-surface-alt
+                                        dark:bg-axcio-surface-alt-dark
+                                    {% else %}
+                                        bg-white
+                                        dark:bg-axcio-surface-dark
+                                    {% endif %}
+                                "
+                            >
+
+                                {# Date #}
+
+                                <div
+                                    class="
+                                        mb-2 flex items-center
+                                        justify-between
+                                    "
+                                >
+
+                                    <span
+                                        class="
+                                            inline-flex h-7 w-7
+                                            items-center justify-center
+                                            rounded-full text-sm font-medium
+
+                                            {% if day.day == period.state_date %}
+                                                text-white
+                                            {% elif not day.is_current_month %}
+                                                text-axcio-text-muted
+                                                dark:text-axcio-text-muted-dark
+                                            {% else %}
+                                                text-axcio-text
+                                                dark:text-axcio-text-dark
+                                            {% endif %}
+                                        "
+                                        {% if day.day == period.state_date %}
+                                            style="
+                                                background-color: #DC2626;
+                                            "
+                                            title="Date de situation"
+                                        {% endif %}
+                                    >
+                                        {{ day.day.day }}
+                                    </span>
+
+                                    {% if day.events %}
+                                        <span
+                                            class="
+                                                text-[10px]
+                                                text-axcio-text-muted
+                                                dark:text-axcio-text-muted-dark
+                                            "
+                                        >
+                                            {{ day.events|length }}
+                                        </span>
+                                    {% endif %}
+
+                                </div>
+
+
+                                {# Événements #}
+
+                                <div class="space-y-1">
+
+                                    {% for event in day.events %}
+
+                                        <div
+                                            class="
+                                                cursor-help
+                                                overflow-hidden rounded
+                                                border px-2 py-1
+                                                text-xs
+                                            "
+
+                                            {% if event.object_type == "project" %}
+                                                style="
+                                                    border-color: #0D5262;
+                                                    background-color: #E8F3F3;
+                                                    color: #0D5262;
+                                                "
+
+                                            {% elif event.object_type == "work_package" %}
+                                                style="
+                                                    border-color: #2563EB;
+                                                    background-color: #EFF6FF;
+                                                    color: #1E40AF;
+                                                "
+
+                                            {% else %}
+                                                style="
+                                                    border-color: #93C5FD;
+                                                    background-color: #DBEAFE;
+                                                    color: #1E3A8A;
+                                                "
+                                            {% endif %}
+
+                                            title="{{ event.title }}&#10;{{ event.subtitle }}&#10;Projet : {{ event.project_reference }} - {{ event.project_name }}"
+                                        >
+
+                                            <div
+                                                class="
+                                                    truncate
+                                                    font-medium
+                                                "
+                                            >
+                                                {{ event.title }}
+                                            </div>
+
+                                            {% if event.subtitle %}
+                                                <div
+                                                    class="
+                                                        mt-0.5 truncate
+                                                        opacity-80
+                                                    "
+                                                >
+                                                    {{ event.subtitle }}
+                                                </div>
+                                            {% endif %}
+
+                                        </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {# ============================================================ #}
+    {# Légende                                                      #}
+    {# ============================================================ #}
+
+    <div
+        class="
+            flex flex-wrap items-center
+            gap-x-6 gap-y-2
+            px-2 text-xs
+            text-axcio-text-muted
+            dark:text-axcio-text-muted-dark
+        "
+    >
+
+        <div class="flex items-center gap-2">
+
+            <span
+                class="inline-block rounded-sm"
+                style="
+                    width: 18px;
+                    height: 12px;
+                    background-color: #E8F3F3;
+                    border: 1px solid #0D5262;
+                "
+            ></span>
+
+            <span>
+                Projet
+            </span>
+
+        </div>
+
+
+        <div class="flex items-center gap-2">
+
+            <span
+                class="inline-block rounded-sm"
+                style="
+                    width: 18px;
+                    height: 12px;
+                    background-color: #EFF6FF;
+                    border: 1px solid #2563EB;
+                "
+            ></span>
+
+            <span>
+                Lot de travaux
+            </span>
+
+        </div>
+
+
+        <div class="flex items-center gap-2">
+
+            <span
+                class="inline-block rounded-sm"
+                style="
+                    width: 18px;
+                    height: 12px;
+                    background-color: #DBEAFE;
+                    border: 1px solid #93C5FD;
+                "
+            ></span>
+
+            <span>
+                Tâche
+            </span>
+
+        </div>
+
+
+        <div class="flex items-center gap-2">
+
+            <span
+                class="inline-block rounded-full"
+                style="
+                    width: 14px;
+                    height: 14px;
+                    background-color: #DC2626;
+                "
+            ></span>
+
+            <span>
+                Date de situation
+            </span>
+
+        </div>
+
+    </div>
+
+</div>

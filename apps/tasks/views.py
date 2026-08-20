@@ -21,6 +21,7 @@ from framework.viewmodel.builder import ListViewModelBuilder
 from .form_definition import TASK_FORM_DEFINITION
 from .forms import (
     TaskAssignmentFormSet,
+    TaskDependencyFormSet,
     TaskForm,
 )
 from .lists import TASK_LIST_DEFINITION
@@ -259,8 +260,9 @@ class TaskCreateView(EPCreateView):
 
     def get_current_project(self, form=None):
         """
-        Détermine le projet servant à filtrer les personnes
-        affectables à la tâche.
+        Détermine le projet servant à filtrer :
+        - les personnes affectables ;
+        - les tâches pouvant être antécédentes.
         """
 
         if (
@@ -310,6 +312,27 @@ class TaskCreateView(EPCreateView):
             project=project,
         )
 
+    def get_dependency_formset(
+        self,
+        *,
+        data=None,
+        project=None,
+    ):
+        """
+        Retourne le formset des antécédents.
+
+        Lors de la création, la tâche n'est pas encore persistée.
+        Le formset sera rattaché à la tâche après son enregistrement.
+        """
+
+        return TaskDependencyFormSet(
+            data=data,
+            instance=self.object,
+            prefix="dependencies",
+            task=self.object,
+            project=project,
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -319,23 +342,34 @@ class TaskCreateView(EPCreateView):
             form=form
         )
 
+        data = (
+            self.request.POST
+            if self.request.method == "POST"
+            else None
+        )
+
         if "assignment_formset" not in context:
             context["assignment_formset"] = (
                 self.get_assignment_formset(
-                    data=(
-                        self.request.POST
-                        if self.request.method == "POST"
-                        else None
-                    ),
+                    data=data,
+                    project=project,
+                )
+            )
+
+        if "dependency_formset" not in context:
+            context["dependency_formset"] = (
+                self.get_dependency_formset(
+                    data=data,
                     project=project,
                 )
             )
 
         context["current_project"] = project
-        
+
         context.update(
             build_task_assignment_context()
         )
+
         return context
 
     def form_valid(self, form):
@@ -350,21 +384,53 @@ class TaskCreateView(EPCreateView):
             )
         )
 
-        if not assignment_formset.is_valid():
+        dependency_formset = (
+            self.get_dependency_formset(
+                data=self.request.POST,
+                project=project,
+            )
+        )
+
+        assignment_is_valid = (
+            assignment_formset.is_valid()
+        )
+
+        dependency_is_valid = (
+            dependency_formset.is_valid()
+        )
+
+        if not (
+            assignment_is_valid
+            and dependency_is_valid
+        ):
+            if not dependency_is_valid:
+                active_tab = "dependencies"
+            elif not assignment_is_valid:
+                active_tab = "assignments"
+            else:
+                active_tab = "task"
+
             return self.render_to_response(
                 self.get_context_data(
                     form=form,
                     assignment_formset=(
                         assignment_formset
                     ),
+                    dependency_formset=(
+                        dependency_formset
+                    ),
+                    active_tab=active_tab,
                 )
             )
-
+    
         with transaction.atomic():
             self.object = form.save()
 
             assignment_formset.instance = self.object
             assignment_formset.save()
+
+            dependency_formset.instance = self.object
+            dependency_formset.save()
 
         messages.success(
             self.request,
@@ -374,7 +440,6 @@ class TaskCreateView(EPCreateView):
         return redirect(
             self.get_success_url()
         )
-
 
 class TaskUpdateView(EPUpdateView):
     model = Task
@@ -397,6 +462,19 @@ class TaskUpdateView(EPUpdateView):
                 "assignments__user__job",
                 "assignments__role",
                 "assignments__role__catalog_type",
+                "predecessor_dependencies",
+                (
+                    "predecessor_dependencies__"
+                    "predecessor"
+                ),
+                (
+                    "predecessor_dependencies__"
+                    "predecessor__work_package"
+                ),
+                (
+                    "predecessor_dependencies__"
+                    "predecessor__work_package__project"
+                ),
             )
         )
 
@@ -453,6 +531,20 @@ class TaskUpdateView(EPUpdateView):
             project=project,
         )
 
+    def get_dependency_formset(
+        self,
+        *,
+        data=None,
+        project=None,
+    ):
+        return TaskDependencyFormSet(
+            data=data,
+            instance=self.object,
+            prefix="dependencies",
+            task=self.object,
+            project=project,
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -462,14 +554,24 @@ class TaskUpdateView(EPUpdateView):
             form=form
         )
 
+        data = (
+            self.request.POST
+            if self.request.method == "POST"
+            else None
+        )
+
         if "assignment_formset" not in context:
             context["assignment_formset"] = (
                 self.get_assignment_formset(
-                    data=(
-                        self.request.POST
-                        if self.request.method == "POST"
-                        else None
-                    ),
+                    data=data,
+                    project=project,
+                )
+            )
+
+        if "dependency_formset" not in context:
+            context["dependency_formset"] = (
+                self.get_dependency_formset(
+                    data=data,
                     project=project,
                 )
             )
@@ -494,21 +596,53 @@ class TaskUpdateView(EPUpdateView):
             )
         )
 
-        if not assignment_formset.is_valid():
+        dependency_formset = (
+            self.get_dependency_formset(
+                data=self.request.POST,
+                project=project,
+            )
+        )
+
+        assignment_is_valid = (
+            assignment_formset.is_valid()
+        )
+
+        dependency_is_valid = (
+            dependency_formset.is_valid()
+        )
+
+        if not (
+            assignment_is_valid
+            and dependency_is_valid
+        ):
+            if not dependency_is_valid:
+                active_tab = "dependencies"
+            elif not assignment_is_valid:
+                active_tab = "assignments"
+            else:
+                active_tab = "task"
+
             return self.render_to_response(
                 self.get_context_data(
                     form=form,
                     assignment_formset=(
                         assignment_formset
                     ),
+                    dependency_formset=(
+                        dependency_formset
+                    ),
+                    active_tab=active_tab,
                 )
             )
-
+    
         with transaction.atomic():
             self.object = form.save()
 
             assignment_formset.instance = self.object
             assignment_formset.save()
+
+            dependency_formset.instance = self.object
+            dependency_formset.save()
 
         messages.success(
             self.request,

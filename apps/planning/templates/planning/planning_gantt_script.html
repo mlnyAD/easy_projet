@@ -1,0 +1,1761 @@
+
+
+<script>
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const SVG_NAMESPACE =
+            "http://www.w3.org/2000/svg";
+
+        const DEPENDENCY_COLOR =
+            "#6B7280";
+
+        const DEPENDENCY_WIDTH =
+            2;
+
+        const DEPENDENCY_HOVER_WIDTH =
+            3;
+
+        const DEPENDENCY_CLEARANCE =
+            14;
+
+
+        // =========================================================
+        // Positionnement du Gantt
+        // =========================================================
+
+        function applyPosition(
+            element,
+            options = {}
+        ) {
+
+            const useWidth = (
+                options.useWidth !== false
+            );
+
+
+            const left = parseFloat(
+                element.dataset.left
+            );
+
+            if (!Number.isNaN(left)) {
+                element.style.left =
+                    `${left}%`;
+            }
+
+
+            if (!useWidth) {
+                return;
+            }
+
+
+            const width = parseFloat(
+                element.dataset.width
+            );
+
+            if (!Number.isNaN(width)) {
+                element.style.width =
+                    `${width}%`;
+            }
+
+        }
+
+        document
+            .querySelectorAll(
+                "[data-gantt-segment]"
+            )
+            .forEach(
+                function (element) {
+                    applyPosition(
+                        element
+                    );
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                "[data-gantt-state-marker]"
+            )
+            .forEach(
+                function (element) {
+                    applyPosition(
+                        element,
+                        {
+                            useWidth: false,
+                        }
+                    );
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                "[data-gantt-bar]"
+            )
+            .forEach(
+                function (element) {
+                    applyPosition(
+                        element
+                    );
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                "[data-gantt-part]"
+            )
+            .forEach(
+                function (element) {
+
+                    const width = parseFloat(
+                        element.dataset.width
+                    );
+
+                    if (!Number.isNaN(width)) {
+                        element.style.width =
+                            `${width}%`;
+                    }
+
+                }
+            );
+
+
+        // =========================================================
+        // Données des dépendances
+        // =========================================================
+
+        const dependencies = Array.from(
+            document.querySelectorAll(
+                "[data-gantt-dependency]"
+            )
+        ).map(
+            function (element) {
+
+                return {
+                    dependencyId:
+                        element.dataset.dependencyId,
+
+                    predecessorId:
+                        element.dataset.predecessorId,
+
+                    predecessorCode:
+                        element.dataset.predecessorCode,
+
+                    predecessorName:
+                        element.dataset.predecessorName,
+
+                    successorId:
+                        element.dataset.successorId,
+
+                    successorCode:
+                        element.dataset.successorCode,
+
+                    successorName:
+                        element.dataset.successorName,
+
+                    type:
+                        element.dataset.dependencyType,
+
+                    label:
+                        element.dataset.dependencyLabel,
+
+                    lagDays:
+                        Number(
+                            element.dataset.lagDays
+                            || 0
+                        ),
+                };
+
+            }
+        );
+
+
+        // =========================================================
+        // SVG
+        // =========================================================
+
+        function createSvgElement(
+            name
+        ) {
+            return document.createElementNS(
+                SVG_NAMESPACE,
+                name
+            );
+        }
+
+
+        function applyDependencyPathStyle(
+            path
+        ) {
+
+            path.setAttribute(
+                "fill",
+                "none"
+            );
+
+            path.setAttribute(
+                "stroke",
+                DEPENDENCY_COLOR
+            );
+
+            path.setAttribute(
+                "stroke-width",
+                String(
+                    DEPENDENCY_WIDTH
+                )
+            );
+
+            path.setAttribute(
+                "stroke-linejoin",
+                "round"
+            );
+
+            path.setAttribute(
+                "stroke-linecap",
+                "round"
+            );
+
+        }
+
+
+        function createDependencyArrowMarker(
+            svg
+        ) {
+
+            const defs = createSvgElement(
+                "defs"
+            );
+
+            const marker = createSvgElement(
+                "marker"
+            );
+
+            marker.setAttribute(
+                "id",
+                "gantt-dependency-arrow"
+            );
+
+            marker.setAttribute(
+                "markerWidth",
+                "8"
+            );
+
+            marker.setAttribute(
+                "markerHeight",
+                "8"
+            );
+
+            marker.setAttribute(
+                "refX",
+                "7"
+            );
+
+            marker.setAttribute(
+                "refY",
+                "4"
+            );
+
+            marker.setAttribute(
+                "orient",
+                "auto"
+            );
+
+            marker.setAttribute(
+                "markerUnits",
+                "strokeWidth"
+            );
+
+
+            const markerPath = createSvgElement(
+                "path"
+            );
+
+            markerPath.setAttribute(
+                "d",
+                "M 0 0 L 8 4 L 0 8 Z"
+            );
+
+            markerPath.setAttribute(
+                "fill",
+                DEPENDENCY_COLOR
+            );
+
+
+            marker.appendChild(
+                markerPath
+            );
+
+            defs.appendChild(
+                marker
+            );
+
+            svg.appendChild(
+                defs
+            );
+
+        }
+
+
+        // =========================================================
+        // Décalage
+        // =========================================================
+
+        function createLagLabel(
+            svg,
+            dependency,
+            x,
+            y
+        ) {
+
+            if (dependency.lagDays === 0) {
+                return;
+            }
+
+
+            const group = createSvgElement(
+                "g"
+            );
+
+            const text = createSvgElement(
+                "text"
+            );
+
+
+            const sign = (
+                dependency.lagDays > 0
+                ? "+"
+                : ""
+            );
+
+
+            text.textContent = (
+                `${sign}${dependency.lagDays} j`
+            );
+
+            text.setAttribute(
+                "x",
+                String(x)
+            );
+
+            text.setAttribute(
+                "y",
+                String(y)
+            );
+
+            text.setAttribute(
+                "text-anchor",
+                "middle"
+            );
+
+            text.setAttribute(
+                "dominant-baseline",
+                "middle"
+            );
+
+            text.setAttribute(
+                "font-size",
+                "10"
+            );
+
+            text.setAttribute(
+                "font-family",
+                "sans-serif"
+            );
+
+            text.setAttribute(
+                "font-weight",
+                "600"
+            );
+
+            text.setAttribute(
+                "fill",
+                "#374151"
+            );
+
+
+            group.appendChild(
+                text
+            );
+
+            svg.appendChild(
+                group
+            );
+
+
+            const box =
+                text.getBBox();
+
+            const paddingX = 4;
+            const paddingY = 2;
+
+
+            const background =
+                createSvgElement(
+                    "rect"
+                );
+
+            background.setAttribute(
+                "x",
+                String(
+                    box.x - paddingX
+                )
+            );
+
+            background.setAttribute(
+                "y",
+                String(
+                    box.y - paddingY
+                )
+            );
+
+            background.setAttribute(
+                "width",
+                String(
+                    box.width
+                    + paddingX * 2
+                )
+            );
+
+            background.setAttribute(
+                "height",
+                String(
+                    box.height
+                    + paddingY * 2
+                )
+            );
+
+            background.setAttribute(
+                "rx",
+                "3"
+            );
+
+            background.setAttribute(
+                "fill",
+                "#FFFFFF"
+            );
+
+            background.setAttribute(
+                "stroke",
+                "#D1D5DB"
+            );
+
+            background.setAttribute(
+                "stroke-width",
+                "1"
+            );
+
+
+            group.insertBefore(
+                background,
+                text
+            );
+
+        }
+
+
+        // =========================================================
+        // Ancrages
+        // =========================================================
+
+        function getDependencyAnchors(
+            dependency,
+            predecessorRect,
+            successorRect,
+            svgRect
+        ) {
+
+            const predecessorLeft = (
+                predecessorRect.left
+                - svgRect.left
+            );
+
+            const predecessorRight = (
+                predecessorRect.right
+                - svgRect.left
+            );
+
+            const predecessorY = (
+                predecessorRect.top
+                + predecessorRect.height / 2
+                - svgRect.top
+            );
+
+
+            const successorLeft = (
+                successorRect.left
+                - svgRect.left
+            );
+
+            const successorRight = (
+                successorRect.right
+                - svgRect.left
+            );
+
+            const successorY = (
+                successorRect.top
+                + successorRect.height / 2
+                - svgRect.top
+            );
+
+
+            switch (dependency.type) {
+
+                case "FS":
+                    return {
+                        startX:
+                            predecessorRight,
+                        startY:
+                            predecessorY,
+                        endX:
+                            successorLeft,
+                        endY:
+                            successorY,
+                        startSide:
+                            "right",
+                        endSide:
+                            "left",
+                    };
+
+
+                case "SS":
+                    return {
+                        startX:
+                            predecessorLeft,
+                        startY:
+                            predecessorY,
+                        endX:
+                            successorLeft,
+                        endY:
+                            successorY,
+                        startSide:
+                            "left",
+                        endSide:
+                            "left",
+                    };
+
+
+                case "FF":
+                    return {
+                        startX:
+                            predecessorRight,
+                        startY:
+                            predecessorY,
+                        endX:
+                            successorRight,
+                        endY:
+                            successorY,
+                        startSide:
+                            "right",
+                        endSide:
+                            "right",
+                    };
+
+
+                case "SF":
+                    return {
+                        startX:
+                            predecessorLeft,
+                        startY:
+                            predecessorY,
+                        endX:
+                            successorRight,
+                        endY:
+                            successorY,
+                        startSide:
+                            "left",
+                        endSide:
+                            "right",
+                    };
+
+
+                default:
+                    return null;
+            }
+
+        }
+
+
+        // =========================================================
+        // Routage individuel
+        // =========================================================
+
+        function routeFinishToStart(
+            anchors
+        ) {
+
+            const {
+                startX,
+                startY,
+                endX,
+                endY,
+            } = anchors;
+
+
+            const horizontalGap =
+                endX - startX;
+
+
+            let pathData;
+            let labelX;
+            let labelY;
+
+
+            if (
+                horizontalGap
+                >= DEPENDENCY_CLEARANCE * 2
+            ) {
+
+                const middleX = (
+                    startX
+                    + horizontalGap / 2
+                );
+
+                pathData = [
+                    `M ${startX} ${startY}`,
+                    `L ${middleX} ${startY}`,
+                    `L ${middleX} ${endY}`,
+                    `L ${endX} ${endY}`,
+                ].join(" ");
+
+                labelX = middleX;
+
+                labelY = (
+                    startY
+                    + (
+                        endY - startY
+                    ) / 2
+                );
+
+            } else if (
+                horizontalGap >= 0
+            ) {
+
+                const connectionX = (
+                    startX
+                    + horizontalGap / 2
+                );
+
+                pathData = [
+                    `M ${startX} ${startY}`,
+                    `L ${connectionX} ${startY}`,
+                    `L ${connectionX} ${endY}`,
+                    `L ${endX} ${endY}`,
+                ].join(" ");
+
+                labelX =
+                    connectionX + 16;
+
+                labelY = (
+                    startY
+                    + (
+                        endY - startY
+                    ) / 2
+                );
+
+            } else {
+
+                const exitX = (
+                    startX
+                    + DEPENDENCY_CLEARANCE
+                );
+
+                const approachX = (
+                    endX
+                    - DEPENDENCY_CLEARANCE
+                );
+
+                const middleY = (
+                    startY
+                    + (
+                        endY - startY
+                    ) / 2
+                );
+
+                pathData = [
+                    `M ${startX} ${startY}`,
+                    `L ${exitX} ${startY}`,
+                    `L ${exitX} ${middleY}`,
+                    `L ${approachX} ${middleY}`,
+                    `L ${approachX} ${endY}`,
+                    `L ${endX} ${endY}`,
+                ].join(" ");
+
+                labelX = (
+                    exitX
+                    + (
+                        approachX - exitX
+                    ) / 2
+                );
+
+                labelY =
+                    middleY - 9;
+
+            }
+
+
+            return {
+                pathData,
+                labelX,
+                labelY,
+            };
+
+        }
+
+
+        function routeStartToStart(
+            anchors
+        ) {
+
+            const {
+                startX,
+                startY,
+                endX,
+                endY,
+            } = anchors;
+
+
+            const routeX = (
+                Math.min(
+                    startX,
+                    endX
+                )
+                - DEPENDENCY_CLEARANCE
+            );
+
+
+            return {
+                pathData: [
+                    `M ${startX} ${startY}`,
+                    `L ${routeX} ${startY}`,
+                    `L ${routeX} ${endY}`,
+                    `L ${endX} ${endY}`,
+                ].join(" "),
+
+                labelX:
+                    routeX - 16,
+
+                labelY: (
+                    startY
+                    + (
+                        endY - startY
+                    ) / 2
+                ),
+            };
+
+        }
+
+
+        function routeFinishToFinish(
+            anchors
+        ) {
+
+            const {
+                startX,
+                startY,
+                endX,
+                endY,
+            } = anchors;
+
+
+            const routeX = (
+                Math.max(
+                    startX,
+                    endX
+                )
+                + DEPENDENCY_CLEARANCE
+            );
+
+
+            return {
+                pathData: [
+                    `M ${startX} ${startY}`,
+                    `L ${routeX} ${startY}`,
+                    `L ${routeX} ${endY}`,
+                    `L ${endX} ${endY}`,
+                ].join(" "),
+
+                labelX:
+                    routeX + 16,
+
+                labelY: (
+                    startY
+                    + (
+                        endY - startY
+                    ) / 2
+                ),
+            };
+
+        }
+
+
+        function routeStartToFinish(
+            anchors
+        ) {
+
+            const {
+                startX,
+                startY,
+                endX,
+                endY,
+            } = anchors;
+
+
+            const exitX = (
+                startX
+                - DEPENDENCY_CLEARANCE
+            );
+
+            const approachX = (
+                endX
+                + DEPENDENCY_CLEARANCE
+            );
+
+            const middleY = (
+                startY
+                + (
+                    endY - startY
+                ) / 2
+            );
+
+
+            return {
+                pathData: [
+                    `M ${startX} ${startY}`,
+                    `L ${exitX} ${startY}`,
+                    `L ${exitX} ${middleY}`,
+                    `L ${approachX} ${middleY}`,
+                    `L ${approachX} ${endY}`,
+                    `L ${endX} ${endY}`,
+                ].join(" "),
+
+                labelX: (
+                    exitX
+                    + (
+                        approachX - exitX
+                    ) / 2
+                ),
+
+                labelY:
+                    middleY - 9,
+            };
+
+        }
+
+
+        function routeDependency(
+            dependency,
+            anchors
+        ) {
+
+            switch (dependency.type) {
+
+                case "FS":
+                    return routeFinishToStart(
+                        anchors
+                    );
+
+                case "SS":
+                    return routeStartToStart(
+                        anchors
+                    );
+
+                case "FF":
+                    return routeFinishToFinish(
+                        anchors
+                    );
+
+                case "SF":
+                    return routeStartToFinish(
+                        anchors
+                    );
+
+                default:
+                    return null;
+            }
+
+        }
+
+
+        // =========================================================
+        // Tooltip
+        // =========================================================
+
+        const tooltip =
+            document.getElementById(
+                "gantt-dependency-tooltip"
+            );
+
+
+        function buildTooltipText(
+            dependency
+        ) {
+
+            const lines = [
+                (
+                    `${dependency.predecessorName} `
+                    + `→ `
+                    + `${dependency.successorName}`
+                ),
+                dependency.label,
+            ];
+
+
+            if (
+                dependency.lagDays !== 0
+            ) {
+
+                const sign = (
+                    dependency.lagDays > 0
+                    ? "+"
+                    : ""
+                );
+
+                lines.push(
+                    (
+                        `Décalage : `
+                        + `${sign}`
+                        + `${dependency.lagDays} jours`
+                    )
+                );
+
+            }
+
+
+            return lines.join("\n");
+
+        }
+
+
+        function showTooltip(
+            dependency,
+            clientX,
+            clientY
+        ) {
+
+            if (!tooltip) {
+                return;
+            }
+
+
+            const container =
+                document.querySelector(
+                    "[data-gantt-container]"
+                );
+
+            if (!container) {
+                return;
+            }
+
+
+            const containerRect =
+                container.getBoundingClientRect();
+
+
+            tooltip.textContent =
+                buildTooltipText(
+                    dependency
+                );
+
+            tooltip.classList.remove(
+                "hidden"
+            );
+
+
+            const tooltipRect =
+                tooltip.getBoundingClientRect();
+
+
+            let left = (
+                clientX
+                - containerRect.left
+                + 14
+            );
+
+            let top = (
+                clientY
+                - containerRect.top
+                - tooltipRect.height
+                - 14
+            );
+
+
+            if (top < 8) {
+
+                top = (
+                    clientY
+                    - containerRect.top
+                    + 14
+                );
+
+            }
+
+
+            const maxLeft = (
+                container.clientWidth
+                - tooltipRect.width
+                - 8
+            );
+
+            const maxTop = (
+                container.clientHeight
+                - tooltipRect.height
+                - 8
+            );
+
+
+            left = Math.max(
+                8,
+                Math.min(
+                    left,
+                    maxLeft
+                )
+            );
+
+            top = Math.max(
+                8,
+                Math.min(
+                    top,
+                    maxTop
+                )
+            );
+
+
+            tooltip.style.left =
+                `${left}px`;
+
+            tooltip.style.top =
+                `${top}px`;
+
+        }
+
+
+        function hideTooltip() {
+
+            if (!tooltip) {
+                return;
+            }
+
+            tooltip.classList.add(
+                "hidden"
+            );
+
+        }
+
+
+        // =========================================================
+        // Interactivité d'une liaison
+        // =========================================================
+
+        function configureInteractivePath(
+            path,
+            dependency
+        ) {
+
+            path.style.pointerEvents =
+                "stroke";
+
+            path.style.cursor =
+                "help";
+
+
+            path.addEventListener(
+                "mouseenter",
+                function (event) {
+
+                    path.setAttribute(
+                        "stroke-width",
+                        String(
+                            DEPENDENCY_HOVER_WIDTH
+                        )
+                    );
+
+                    showTooltip(
+                        dependency,
+                        event.clientX,
+                        event.clientY
+                    );
+
+                }
+            );
+
+
+            path.addEventListener(
+                "mousemove",
+                function (event) {
+
+                    showTooltip(
+                        dependency,
+                        event.clientX,
+                        event.clientY
+                    );
+
+                }
+            );
+
+
+            path.addEventListener(
+                "mouseleave",
+                function () {
+
+                    path.setAttribute(
+                        "stroke-width",
+                        String(
+                            DEPENDENCY_WIDTH
+                        )
+                    );
+
+                    hideTooltip();
+
+                }
+            );
+
+        }
+
+
+        // =========================================================
+        // Liaison individuelle
+        // =========================================================
+
+        function drawSingleDependency(
+            svg,
+            dependency,
+            svgRect
+        ) {
+
+            const predecessor =
+                document.querySelector(
+                    `[data-task-id="${dependency.predecessorId}"]`
+                );
+
+            const successor =
+                document.querySelector(
+                    `[data-task-id="${dependency.successorId}"]`
+                );
+
+
+            if (
+                !predecessor
+                || !successor
+            ) {
+                return;
+            }
+
+
+            const predecessorRect =
+                predecessor
+                .getBoundingClientRect();
+
+            const successorRect =
+                successor
+                .getBoundingClientRect();
+
+
+            const anchors =
+                getDependencyAnchors(
+                    dependency,
+                    predecessorRect,
+                    successorRect,
+                    svgRect
+                );
+
+
+            if (!anchors) {
+                return;
+            }
+
+
+            const route =
+                routeDependency(
+                    dependency,
+                    anchors
+                );
+
+
+            if (!route) {
+                return;
+            }
+
+
+            const path =
+                createSvgElement(
+                    "path"
+                );
+
+            path.setAttribute(
+                "d",
+                route.pathData
+            );
+
+            applyDependencyPathStyle(
+                path
+            );
+
+            path.setAttribute(
+                "marker-end",
+                "url(#gantt-dependency-arrow)"
+            );
+
+
+            configureInteractivePath(
+                path,
+                dependency
+            );
+
+
+            svg.appendChild(
+                path
+            );
+
+
+            createLagLabel(
+                svg,
+                dependency,
+                route.labelX,
+                route.labelY
+            );
+
+        }
+
+
+        // =========================================================
+        // Fusion des FS convergentes
+        // =========================================================
+
+        function groupFinishToStartDependencies() {
+
+            const groups =
+                new Map();
+
+
+            dependencies.forEach(
+                function (dependency) {
+
+                    if (
+                        dependency.type
+                        !== "FS"
+                    ) {
+                        return;
+                    }
+
+
+                    const key =
+                        dependency.successorId;
+
+
+                    if (!groups.has(key)) {
+
+                        groups.set(
+                            key,
+                            []
+                        );
+
+                    }
+
+
+                    groups
+                        .get(key)
+                        .push(
+                            dependency
+                        );
+
+                }
+            );
+
+
+            return groups;
+
+        }
+
+
+        function canMergeFinishToStartGroup(
+            dependencyGroup,
+            svgRect
+        ) {
+
+            if (
+                dependencyGroup.length < 2
+            ) {
+                return false;
+            }
+
+
+            const successor =
+                document.querySelector(
+                    `[data-task-id="${dependencyGroup[0].successorId}"]`
+                );
+
+
+            if (!successor) {
+                return false;
+            }
+
+
+            const successorRect =
+                successor
+                .getBoundingClientRect();
+
+            const successorLeft = (
+                successorRect.left
+                - svgRect.left
+            );
+
+            const trunkX = (
+                successorLeft
+                - DEPENDENCY_CLEARANCE
+            );
+
+
+            return dependencyGroup.every(
+                function (dependency) {
+
+                    const predecessor =
+                        document.querySelector(
+                            `[data-task-id="${dependency.predecessorId}"]`
+                        );
+
+
+                    if (!predecessor) {
+                        return false;
+                    }
+
+
+                    const predecessorRect =
+                        predecessor
+                        .getBoundingClientRect();
+
+                    const predecessorRight = (
+                        predecessorRect.right
+                        - svgRect.left
+                    );
+
+
+                    /*
+                     * Fusion uniquement si chaque branche
+                     * peut rejoindre naturellement le tronc
+                     * depuis la droite de l'antécédent.
+                     */
+
+                    return (
+                        predecessorRight
+                        <= trunkX
+                    );
+
+                }
+            );
+
+        }
+
+
+        function drawMergedFinishToStartGroup(
+            svg,
+            dependencyGroup,
+            svgRect
+        ) {
+
+            const successor =
+                document.querySelector(
+                    `[data-task-id="${dependencyGroup[0].successorId}"]`
+                );
+
+
+            if (!successor) {
+                return;
+            }
+
+
+            const successorRect =
+                successor
+                .getBoundingClientRect();
+
+            const successorLeft = (
+                successorRect.left
+                - svgRect.left
+            );
+
+            const successorY = (
+                successorRect.top
+                + successorRect.height / 2
+                - svgRect.top
+            );
+
+
+            const trunkX = (
+                successorLeft
+                - DEPENDENCY_CLEARANCE
+            );
+
+
+            const branches = [];
+
+
+            dependencyGroup.forEach(
+                function (dependency) {
+
+                    const predecessor =
+                        document.querySelector(
+                            `[data-task-id="${dependency.predecessorId}"]`
+                        );
+
+
+                    if (!predecessor) {
+                        return;
+                    }
+
+
+                    const predecessorRect =
+                        predecessor
+                        .getBoundingClientRect();
+
+
+                    const startX = (
+                        predecessorRect.right
+                        - svgRect.left
+                    );
+
+                    const startY = (
+                        predecessorRect.top
+                        + predecessorRect.height / 2
+                        - svgRect.top
+                    );
+
+
+                    branches.push(
+                        {
+                            dependency,
+                            startX,
+                            startY,
+                        }
+                    );
+
+                }
+            );
+
+
+            if (branches.length < 2) {
+
+                branches.forEach(
+                    function (branch) {
+
+                        drawSingleDependency(
+                            svg,
+                            branch.dependency,
+                            svgRect
+                        );
+
+                    }
+                );
+
+                return;
+            }
+
+
+            const allY = [
+                successorY,
+                ...branches.map(
+                    function (branch) {
+                        return branch.startY;
+                    }
+                ),
+            ];
+
+
+            const trunkTop =
+                Math.min(...allY);
+
+            const trunkBottom =
+                Math.max(...allY);
+
+
+            // -----------------------------------------------------
+            // Tronc vertical commun
+            // -----------------------------------------------------
+
+            const trunk =
+                createSvgElement(
+                    "path"
+                );
+
+            trunk.setAttribute(
+                "d",
+                [
+                    `M ${trunkX} ${trunkTop}`,
+                    `L ${trunkX} ${trunkBottom}`,
+                ].join(" ")
+            );
+
+            applyDependencyPathStyle(
+                trunk
+            );
+
+            svg.appendChild(
+                trunk
+            );
+
+
+            // -----------------------------------------------------
+            // Branches provenant des antécédents
+            // -----------------------------------------------------
+
+            branches.forEach(
+                function (branch) {
+
+                    const branchPath =
+                        createSvgElement(
+                            "path"
+                        );
+
+
+                    branchPath.setAttribute(
+                        "d",
+                        [
+                            (
+                                `M ${branch.startX} `
+                                + `${branch.startY}`
+                            ),
+                            (
+                                `L ${trunkX} `
+                                + `${branch.startY}`
+                            ),
+                        ].join(" ")
+                    );
+
+
+                    applyDependencyPathStyle(
+                        branchPath
+                    );
+
+
+                    configureInteractivePath(
+                        branchPath,
+                        branch.dependency
+                    );
+
+
+                    svg.appendChild(
+                        branchPath
+                    );
+
+
+                    createLagLabel(
+                        svg,
+                        branch.dependency,
+                        (
+                            branch.startX
+                            + trunkX
+                        ) / 2,
+                        branch.startY - 10
+                    );
+
+                }
+            );
+
+
+            // -----------------------------------------------------
+            // Sortie commune vers le successeur
+            // -----------------------------------------------------
+
+            const finalPath =
+                createSvgElement(
+                    "path"
+                );
+
+
+            finalPath.setAttribute(
+                "d",
+                [
+                    (
+                        `M ${trunkX} `
+                        + `${successorY}`
+                    ),
+                    (
+                        `L ${successorLeft} `
+                        + `${successorY}`
+                    ),
+                ].join(" ")
+            );
+
+
+            applyDependencyPathStyle(
+                finalPath
+            );
+
+            finalPath.setAttribute(
+                "marker-end",
+                "url(#gantt-dependency-arrow)"
+            );
+
+
+            svg.appendChild(
+                finalPath
+            );
+
+        }
+
+
+        // =========================================================
+        // Tracé général
+        // =========================================================
+
+        function drawGanttDependencies() {
+
+            const svg =
+                document.getElementById(
+                    "gantt-dependency-layer"
+                );
+
+
+            if (!svg) {
+                return;
+            }
+
+
+            hideTooltip();
+
+            svg.innerHTML = "";
+
+
+            createDependencyArrowMarker(
+                svg
+            );
+
+
+            const svgRect =
+                svg.getBoundingClientRect();
+
+
+            const mergedDependencyIds =
+                new Set();
+
+
+            const fsGroups =
+                groupFinishToStartDependencies();
+
+
+            fsGroups.forEach(
+                function (dependencyGroup) {
+
+                    if (
+                        !canMergeFinishToStartGroup(
+                            dependencyGroup,
+                            svgRect
+                        )
+                    ) {
+                        return;
+                    }
+
+
+                    drawMergedFinishToStartGroup(
+                        svg,
+                        dependencyGroup,
+                        svgRect
+                    );
+
+
+                    dependencyGroup.forEach(
+                        function (dependency) {
+
+                            mergedDependencyIds.add(
+                                dependency.dependencyId
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+
+            /*
+             * Toutes les dépendances non fusionnées
+             * conservent le moteur individuel :
+             * FS, SS, FF et SF.
+             */
+
+            dependencies.forEach(
+                function (dependency) {
+
+                    if (
+                        mergedDependencyIds.has(
+                            dependency.dependencyId
+                        )
+                    ) {
+                        return;
+                    }
+
+
+                    drawSingleDependency(
+                        svg,
+                        dependency,
+                        svgRect
+                    );
+
+                }
+            );
+
+        }
+
+
+        // =========================================================
+        // Activation
+        // =========================================================
+
+        const dependencyLayer =
+            document.getElementById(
+                "gantt-dependency-layer"
+            );
+
+
+        if (dependencyLayer) {
+
+            dependencyLayer.style.pointerEvents =
+                "auto";
+
+        }
+
+
+        window.requestAnimationFrame(
+            drawGanttDependencies
+        );
+
+
+        let resizeFrame = null;
+
+
+        window.addEventListener(
+            "resize",
+            function () {
+
+                hideTooltip();
+
+
+                if (
+                    resizeFrame !== null
+                ) {
+
+                    window.cancelAnimationFrame(
+                        resizeFrame
+                    );
+
+                }
+
+
+                resizeFrame =
+                    window.requestAnimationFrame(
+                        function () {
+
+                            drawGanttDependencies();
+
+                            resizeFrame = null;
+
+                        }
+                    );
+
+            }
+        );
+
+    }
+);
+</script>

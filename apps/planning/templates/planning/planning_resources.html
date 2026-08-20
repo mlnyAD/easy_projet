@@ -1,0 +1,452 @@
+
+
+<div
+    class="
+        overflow-hidden rounded-lg border
+        border-axcio-border-light
+        dark:border-axcio-border-dark
+    "
+>
+
+    <div class="overflow-x-auto">
+
+        <div class="min-w-275">
+
+            {# ===================================================== #}
+            {# En-tête                                              #}
+            {# ===================================================== #}
+
+            <div
+                class="
+                    grid border-b
+                    border-axcio-border-light
+                    dark:border-axcio-border-dark
+                "
+                style="grid-template-columns: 460px 1fr;"
+            >
+
+                <div
+                    class="
+                        border-r px-4 py-3
+                        border-axcio-border-light
+                        bg-white
+                        dark:border-axcio-border-dark
+                        dark:bg-axcio-surface-dark
+                    "
+                >
+                    <div class="font-medium">
+                        Ressource / affectation
+                    </div>
+                </div>
+
+
+                <div
+                    class="
+                        relative
+                        bg-white
+                        dark:bg-axcio-surface-dark
+                    "
+                >
+
+                    <div class="relative h-8">
+
+                        {% for week in planning.weeks %}
+                            <div
+                                class="
+                                    absolute
+                                    flex items-center justify-center
+                                    overflow-hidden
+                                    border-r
+                                    border-axcio-border-light
+                                    px-1 text-xs
+                                    text-axcio-text-muted
+                                    dark:border-axcio-border-dark
+                                "
+                                style="
+                                    top: 0;
+                                    bottom: 0;
+                                "
+                                data-resource-segment
+                                data-left="{{ week.left_percent }}"
+                                data-width="{{ week.width_percent }}"
+                            >
+                                {{ week.label }}
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
+
+                    {% if planning.state_date_percent != None %}
+                        <div
+                            class="
+                                absolute z-50
+                                cursor-help
+                            "
+                            style="
+                                top: 0;
+                                bottom: 0;
+                                width: 16px;
+                                transform: translateX(-8px);
+                            "
+                            data-resource-state
+                            data-left="{{ planning.state_date_percent }}"
+                            title="Date de situation : {{ period.state_date|date:'d/m/Y' }}"
+                        >
+                            <div
+                                class="absolute"
+                                style="
+                                    top: 0;
+                                    bottom: 0;
+                                    left: 7px;
+                                    width: 3px;
+                                    background-color: #DC2626;
+                                "
+                            ></div>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            {# ===================================================== #}
+            {# Ressources                                           #}
+            {# ===================================================== #}
+
+            {% for resource in resource_schedule.resources %}
+
+                <div
+                    class="
+                        grid border-b
+                        border-axcio-border-light
+                        bg-axcio-surface-alt
+                        dark:border-axcio-border-dark
+                        dark:bg-axcio-surface-alt-dark
+                    "
+                    style="grid-template-columns: 460px 1fr;"
+                >
+
+                    <div
+                        class="
+                            border-r px-4 py-3
+                            border-axcio-border-light
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        <div class="font-semibold">
+                            {{ resource.last_name }}
+                            {{ resource.first_name }}
+                        </div>
+
+                        <div
+                            class="
+                                mt-1 text-xs
+                                text-axcio-text-muted
+                            "
+                        >
+                            {{ resource.email }}
+                        </div>
+                    </div>
+
+
+                    <div
+                        class="
+                            relative
+                            dark:bg-axcio-surface-alt-dark
+                        "
+                        style="min-height: 48px;"
+                    >
+
+                        {% for week in planning.weeks %}
+                            <div
+                                class="
+                                    pointer-events-none
+                                    absolute
+                                    border-r
+                                    border-axcio-border-light
+                                    dark:border-axcio-border-dark
+                                "
+                                style="
+                                    top: 0;
+                                    bottom: 0;
+                                "
+                                data-resource-segment
+                                data-left="{{ week.left_percent }}"
+                                data-width="{{ week.width_percent }}"
+                            ></div>
+                        {% endfor %}
+
+
+                        {% if planning.state_date_percent != None %}
+                            <div
+                                class="
+                                    absolute z-50
+                                    cursor-help
+                                "
+                                style="
+                                    top: 0;
+                                    bottom: 0;
+                                    width: 16px;
+                                    transform: translateX(-8px);
+                                "
+                                data-resource-state
+                                data-left="{{ planning.state_date_percent }}"
+                                title="Date de situation : {{ period.state_date|date:'d/m/Y' }}"
+                            >
+                                <div
+                                    class="absolute"
+                                    style="
+                                        top: 0;
+                                        bottom: 0;
+                                        left: 7px;
+                                        width: 3px;
+                                        background-color: #DC2626;
+                                    "
+                                ></div>
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                {% for assignment in resource.assignments %}
+
+                    <div
+                        class="
+                            grid border-b
+                            border-axcio-border-light
+                            dark:border-axcio-border-dark
+                        "
+                        style="grid-template-columns: 460px 1fr;"
+                    >
+
+                        <div
+                            class="
+                                border-r px-4 py-3 pl-10
+                                border-axcio-border-light
+                                bg-white
+                                dark:border-axcio-border-dark
+                                dark:bg-axcio-surface-dark
+                            "
+                        >
+
+                            <div class="font-medium">
+                                {{ assignment.task_code }}
+                                -
+                                {{ assignment.task_name }}
+                            </div>
+
+
+                            <div
+                                class="
+                                    mt-1 text-xs
+                                    text-axcio-text-muted
+                                "
+                            >
+                                {{ assignment.project_reference }}
+                                ·
+                                {{ assignment.work_package_code }}
+                                ·
+                                {{ assignment.allocation_percent }} %
+                            </div>
+
+
+                            <div
+                                class="
+                                    mt-1 text-xs
+                                    text-axcio-text-muted
+                                "
+                            >
+                                {{ assignment.start_date|date:"d/m/Y" }}
+                                →
+                                {{ assignment.end_date|date:"d/m/Y" }}
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="
+                                relative bg-white
+                                dark:bg-axcio-surface-dark
+                            "
+                            style="min-height: 56px;"
+                        >
+
+                            {% for week in planning.weeks %}
+                                <div
+                                    class="
+                                        pointer-events-none
+                                        absolute
+                                        border-r
+                                        border-axcio-border-light
+                                        dark:border-axcio-border-dark
+                                    "
+                                    style="
+                                        top: 0;
+                                        bottom: 0;
+                                    "
+                                    data-resource-segment
+                                    data-left="{{ week.left_percent }}"
+                                    data-width="{{ week.width_percent }}"
+                                ></div>
+                            {% endfor %}
+
+
+                            {% if planning.state_date_percent != None %}
+                                <div
+                                    class="
+                                        absolute z-50
+                                        cursor-help
+                                    "
+                                    style="
+                                        top: 0;
+                                        bottom: 0;
+                                        width: 16px;
+                                        transform: translateX(-8px);
+                                    "
+                                    data-resource-state
+                                    data-left="{{ planning.state_date_percent }}"
+                                    title="Date de situation : {{ period.state_date|date:'d/m/Y' }}"
+                                >
+                                    <div
+                                        class="absolute"
+                                        style="
+                                            top: 0;
+                                            bottom: 0;
+                                            left: 7px;
+                                            width: 3px;
+                                            background-color: #DC2626;
+                                        "
+                                    ></div>
+                                </div>
+                            {% endif %}
+
+
+                            <div
+                                class="absolute z-30"
+                                style="
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                "
+                                data-resource-bar
+                                data-left="{{ assignment.left_percent }}"
+                                data-width="{{ assignment.width_percent }}"
+                                title="{{ assignment.project_reference }} / {{ assignment.task_code }} - {{ assignment.allocation_percent }} %"
+                            >
+
+                                <div
+                                    class="
+                                        flex items-center
+                                        overflow-hidden rounded
+                                        px-2 text-xs font-medium
+                                        text-white
+                                    "
+                                    style="
+                                        height: 18px;
+                                        background-color: #2563EB;
+                                    "
+                                >
+                                    {{ assignment.allocation_percent }} %
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            {% empty %}
+
+                <div
+                    class="
+                        px-4 py-10 text-center
+                        text-axcio-text-muted
+                    "
+                >
+                    Aucune ressource affectée sur cette période.
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            document
+                .querySelectorAll(
+                    "[data-resource-segment]"
+                )
+                .forEach(function (element) {
+                    const left = parseFloat(
+                        element.dataset.left
+                    );
+
+                    const width = parseFloat(
+                        element.dataset.width
+                    );
+
+                    if (!Number.isNaN(left)) {
+                        element.style.left = `${left}%`;
+                    }
+
+                    if (!Number.isNaN(width)) {
+                        element.style.width = `${width}%`;
+                    }
+                });
+
+
+            document
+                .querySelectorAll(
+                    "[data-resource-state]"
+                )
+                .forEach(function (element) {
+                    const left = parseFloat(
+                        element.dataset.left
+                    );
+
+                    if (!Number.isNaN(left)) {
+                        element.style.left = `${left}%`;
+                    }
+                });
+
+
+            document
+                .querySelectorAll(
+                    "[data-resource-bar]"
+                )
+                .forEach(function (element) {
+                    const left = parseFloat(
+                        element.dataset.left
+                    );
+
+                    const width = parseFloat(
+                        element.dataset.width
+                    );
+
+                    if (!Number.isNaN(left)) {
+                        element.style.left = `${left}%`;
+                    }
+
+                    if (!Number.isNaN(width)) {
+                        element.style.width = `${width}%`;
+                    }
+                });
+
+        }
+    );
+</script>

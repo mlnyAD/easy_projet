@@ -33,7 +33,17 @@
         >
             Personnel
         </button>
+
+        <button
+            type="button"
+            class="task-tab border-b-2 px-1 pb-3
+                   text-sm font-medium"
+            data-task-tab="dependencies"
+        >
+            Enchaînements
+        </button>
     </nav>
+
 
     <input
         type="hidden"
@@ -42,7 +52,10 @@
         value="{{ active_tab|default:'task' }}"
     >
 
+
     {{ assignment_formset.management_form }}
+
+    {{ dependency_formset.management_form }}
 
 
     {# ============================================================ #}
@@ -50,8 +63,11 @@
     {# ============================================================ #}
 
     <div data-task-panel="task">
+
         {% include "edf/form/messages.html" %}
+
         {% include "edf/form/sections.html" %}
+
     </div>
 
 
@@ -64,6 +80,18 @@
         class="hidden"
     >
         {% include "tasks/task_assignments.html" %}
+    </div>
+
+
+    {# ============================================================ #}
+    {# Enchaînements                                                #}
+    {# ============================================================ #}
+
+    <div
+        data-task-panel="dependencies"
+        class="hidden"
+    >
+        {% include "tasks/task_dependencies.html" %}
     </div>
 
 
