@@ -31,4 +31,8 @@ urlpatterns = [
         "integrations/",
         include("apps.integrations.urls"),
     ),
+    path(
+        "documents/",
+        include("apps.documents.urls"),
+    ),
 ]

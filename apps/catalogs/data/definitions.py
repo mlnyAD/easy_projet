@@ -27,6 +27,11 @@ CATALOG_DEFINITIONS = [
     ),
     
     CatalogDefinition(
+        code="DOCUMENT_LIFECYCLE",
+        label="État GED du document",
+    ),
+    
+    CatalogDefinition(
         code="INTEGRATION_SERVICE_TYPE",
         label="Type de service d'intégration",
     ),

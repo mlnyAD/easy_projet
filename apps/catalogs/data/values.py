@@ -46,6 +46,28 @@ CATALOG_VALUE_DEFINITIONS = [
         label="Autre",
         sort_order=40,
     ),
+    
+    CatalogValueDefinition(
+        catalog="DOCUMENT_LIFECYCLE",
+        code="ACTIVE",
+        label="Actif",
+        sort_order=10,
+        is_default=True,
+    ),
+
+    CatalogValueDefinition(
+        catalog="DOCUMENT_LIFECYCLE",
+        code="ARCHIVED",
+        label="Archivé",
+        sort_order=20,
+    ),
+
+    CatalogValueDefinition(
+        catalog="DOCUMENT_LIFECYCLE",
+        code="TRASHED",
+        label="Corbeille",
+        sort_order=30,
+    ),
 
     CatalogValueDefinition(
         catalog="DOCUMENT_TYPE",
@@ -77,16 +99,59 @@ CATALOG_VALUE_DEFINITIONS = [
 
     CatalogValueDefinition(
         catalog="DOCUMENT_TYPE",
-        code="RAPPORT_VISITE",
-        label="Rapport de visite",
+        code="DEVIS",
+        label="Devis",
         sort_order=50,
     ),
 
+    CatalogValueDefinition(
+        catalog="DOCUMENT_TYPE",
+        code="FACTURE",
+        label="Facture",
+        sort_order=60,
+    ),
+
+    CatalogValueDefinition(
+        catalog="DOCUMENT_TYPE",
+        code="BON_COMMANDE",
+        label="Bon de commande",
+        sort_order=70,
+    ),
+
+    CatalogValueDefinition(
+        catalog="DOCUMENT_TYPE",
+        code="RAPPORT_VISITE",
+        label="Rapport de visite",
+        sort_order=80,
+    ),
+
+    CatalogValueDefinition(
+        catalog="DOCUMENT_TYPE",
+        code="COURRIER",
+        label="Courrier",
+        sort_order=90,
+    ),
+
+    CatalogValueDefinition(
+        catalog="DOCUMENT_TYPE",
+        code="CONTRAT",
+        label="Contrat",
+        sort_order=100,
+    ),
+
+    CatalogValueDefinition(
+        catalog="DOCUMENT_TYPE",
+        code="RAPPORT_EXPERTISE",
+        label="Rapport d'expertise",
+        sort_order=110,
+    ),
+    
     CatalogValueDefinition(
         catalog="DOCUMENT_STATUS",
         code="TO_BE_DRAFTED",
         label="A rédiger",
         sort_order=10,
+        is_default=True,
     ),
 
     CatalogValueDefinition(
@@ -112,23 +177,16 @@ CATALOG_VALUE_DEFINITIONS = [
 
     CatalogValueDefinition(
         catalog="DOCUMENT_STATUS",
-        code="ABANDONNED",
+        code="ABANDONED",
         label="Abandonné",
         sort_order=50,
     ),
 
     CatalogValueDefinition(
         catalog="DOCUMENT_STATUS",
-        code="DELETED",
-        label="Supprimé",
-        sort_order=60,
-    ),
-
-    CatalogValueDefinition(
-        catalog="DOCUMENT_STATUS",
         code="OBSOLETE",
         label="Obsolète",
-        sort_order=70,
+        sort_order=60,
     ),
 
     CatalogValueDefinition(

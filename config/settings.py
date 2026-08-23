@@ -162,6 +162,17 @@ STATICFILES_DIRS = [
 
 #***********************************
 #
+# Stockage documents - test
+#
+#***********************************
+DOCUMENT_STORAGE_ROOT = (
+    BASE_DIR
+    / "var"
+    / "documents"
+)
+
+#***********************************
+#
 # Authentification
 #
 #***********************************
@@ -184,4 +195,24 @@ DEV_AUTO_LOGIN_EMAIL = os.environ.get(
 GOOGLE_MAPS_API_KEY = os.environ.get(
     "EASY_PROJET_GOOGLE_MAPS_API_KEY",
     "",
+)
+
+# ***********************************
+#
+# OnlyOffice
+#
+# ***********************************
+ONLYOFFICE_URL = os.environ.get(
+    "ONLYOFFICE_URL",
+    default="",
+)
+
+EASY_PROJET_PUBLIC_URL = os.environ.get(
+    "EASY_PROJET_PUBLIC_URL",
+    "",
+)
+
+ONLYOFFICE_JWT_SECRET = os.environ.get(
+    "ONLYOFFICE_JWT_SECRET",
+    default="",
 )

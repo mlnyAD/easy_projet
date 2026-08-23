@@ -8,6 +8,7 @@
 {% url "users:list" as users_url %}
 {% url "licenses:list" as licenses_url %}
 {% url "projects:list" as projects_url %}
+{% url "documents:favorites" as document_favorites_url %}
 {% url "work:list" as work_url %}
 {% url "tasks:list" as tasks_url %}
 {% url "planning:home" as planning_url %}
@@ -204,6 +205,25 @@
                 ></i>
 
                 <span>Projets</span>
+            </a>
+
+            <a
+                href="{{ document_favorites_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'documents' and request.resolver_match.url_name == 'favorites' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
+            >
+                <i
+                    data-lucide="star"
+                    class="h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                ></i>
+
+                <span>Favoris</span>
             </a>
 
             <a

@@ -1,0 +1,70 @@
+
+
+<div>
+
+    <a
+        href="{% url 'documents:folder' project.pk folder.pk %}"
+
+        data-folder-context
+        data-folder-id="{{ folder.pk }}"
+        data-folder-name="{{ folder.name }}"
+        data-folder-create-url="{% url 'documents:folder-create' project.pk %}"
+        data-folder-rename-url="{% url 'documents:folder-rename' project.pk folder.pk %}"
+        data-folder-delete-url="{% url 'documents:folder-delete' project.pk folder.pk %}"
+
+        class="
+            flex h-8 items-center gap-2
+            rounded-md px-2 text-sm
+            hover:bg-axcio-surface-alt
+            dark:hover:bg-axcio-surface-alt-dark
+
+            {% if current_folder and folder.pk == current_folder.pk %}
+                bg-axcio-dark text-white font-medium
+                dark:bg-axcio-light dark:text-white
+            {% else %}
+                text-axcio-text
+                dark:text-axcio-text-dark
+            {% endif %}
+        "
+    >
+        {% if folder.children.all %}
+            <i
+                data-lucide="{% if folder.pk in open_folder_ids %}chevron-down{% else %}chevron-right{% endif %}"
+                class="h-3.5 w-3.5 shrink-0
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            ></i>
+        {% else %}
+            <span class="w-3.5 shrink-0"></span>
+        {% endif %}
+
+        <i
+            data-lucide="folder"
+            class="h-4 w-4 shrink-0"
+        ></i>
+
+        <span class="truncate">
+            {{ folder.name }}
+        </span>
+    </a>
+
+
+    {% if folder.pk in open_folder_ids %}
+
+        <div style="margin-left: 24px;">
+
+            {% for child in folder.children.all %}
+
+                {% if child.is_active %}
+
+                    {% include "documents/explorer/folder_tree_node.html" with folder=child %}
+
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+</div>

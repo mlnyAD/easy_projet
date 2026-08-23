@@ -1,0 +1,288 @@
+
+
+<main
+    id="document-content"
+
+    data-content-context
+    data-folder-create-url="{% url 'documents:folder-create' project.pk %}"
+    data-current-folder-id="{% if current_folder %}{{ current_folder.pk }}{% endif %}"
+    data-folder-import-url="{% if current_folder %}{% url 'documents:import' project.pk current_folder.pk %}{% endif %}"
+
+    class="min-w-0 overflow-auto
+           bg-axcio-page
+           text-axcio-text
+           dark:bg-axcio-page-dark
+           dark:text-axcio-text-dark"
+>
+    {# -------------------------------------------------------------- #}
+    {# En-tête des colonnes                                           #}
+    {# -------------------------------------------------------------- #}
+
+    {% if child_folders or documents %}
+
+        <div
+            class="grid min-h-9
+                   items-center border-b
+                   border-axcio-border-light
+                   px-3 text-xs font-semibold
+                   text-axcio-text-muted
+                   dark:border-axcio-border-dark
+                   dark:text-axcio-text-muted-dark"
+            style="grid-template-columns: 2rem minmax(0, 1fr) 12rem 7rem 10rem;"
+        >
+            <span></span>
+
+            <span>
+                Nom
+            </span>
+
+            <span>
+                Type
+            </span>
+
+            <span>
+                Version
+            </span>
+
+            <span class="text-right">
+                Modifié le
+            </span>
+        </div>
+
+    {% endif %}
+
+
+    {# -------------------------------------------------------------- #}
+    {# Dossiers                                                       #}
+    {# -------------------------------------------------------------- #}
+
+    {% for folder in child_folders %}
+
+        <a
+            href="{% url 'documents:folder' project.pk folder.pk %}"
+
+            data-folder-context
+            data-folder-id="{{ folder.pk }}"
+            data-folder-name="{{ folder.name }}"
+            data-folder-create-url="{% url 'documents:folder-create' project.pk %}"
+            data-folder-rename-url="{% url 'documents:folder-rename' project.pk folder.pk %}"
+            data-folder-delete-url="{% url 'documents:folder-delete' project.pk folder.pk %}"
+
+            class="grid min-h-9
+                   items-center border-b
+                   border-axcio-border-light
+                   px-3 text-sm
+                   hover:bg-axcio-surface-alt
+                   dark:border-axcio-border-dark
+                   dark:hover:bg-axcio-surface-alt-dark"
+            style="grid-template-columns: 2rem minmax(0, 1fr) 12rem 7rem 10rem;"       
+        >
+            <i
+                data-lucide="folder"
+                class="h-4 w-4 text-amber-500"
+            ></i>
+
+            <span class="truncate font-medium">
+                {{ folder.name }}
+            </span>
+
+            <span
+                class="text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                Dossier
+            </span>
+
+            <span
+                class="text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                —
+            </span>
+
+            <span
+                class="text-right text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                {{ folder.updated_at|date:"d/m/Y H:i" }}
+            </span>
+        </a>
+
+    {% endfor %}
+
+
+    {# -------------------------------------------------------------- #}
+    {# Documents                                                      #}
+    {# -------------------------------------------------------------- #}
+
+    {% for document in documents %}
+
+        <div
+            data-document-row
+            data-document-id="{{ document.pk }}"
+            data-document-title="{{ document.title }}"
+            data-document-folder-id="{{ document.folder_id }}"
+
+            data-document-rename-url="{% url 'documents:document-rename' project.pk document.pk %}"
+            data-document-move-url="{% url 'documents:document-move' project.pk document.pk %}"
+            data-document-copy-url="{% url 'documents:document-copy' project.pk document.pk %}"
+            data-document-delete-url="{% url 'documents:document-delete' project.pk document.pk %}"
+
+            data-document-favorite-add-url="{% url 'documents:document-favorite-add' project.pk document.pk %}"
+            data-document-favorite-remove-url="{% url 'documents:document-favorite-remove' project.pk document.pk %}"
+
+            {% if document.pk in favorite_document_ids %}
+                data-document-favorite="true"
+            {% else %}
+                data-document-favorite="false"
+            {% endif %}
+
+            {% if document.current_version %}
+                data-document-open-url="{% url 'documents:version-view' document.current_version.pk %}"
+                data-document-download-url="{% url 'documents:version-download' document.current_version.pk %}"
+            {% endif %}
+
+            class="grid min-h-9 cursor-default
+                   items-center border-b
+                   border-axcio-border-light
+                   px-3 text-sm
+                   hover:bg-axcio-surface-alt
+                   dark:border-axcio-border-dark
+                   dark:hover:bg-axcio-surface-alt-dark"
+            style="grid-template-columns: 2rem minmax(0, 1fr) 12rem 7rem 10rem;"
+        >
+            {% if document.current_version %}
+
+                {% if document.current_version.mime_type == "application/pdf" %}
+
+                    <i
+                        data-lucide="file-text"
+                        class="h-4 w-4
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    ></i>
+
+                {% elif document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" %}
+
+                    <i
+                        data-lucide="file-text"
+                        class="h-4 w-4
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    ></i>
+
+                {% elif document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" %}
+
+                    <i
+                        data-lucide="sheet"
+                        class="h-4 w-4
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    ></i>
+
+                {% elif document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.presentationml.presentation" %}
+
+                    <i
+                        data-lucide="presentation"
+                        class="h-4 w-4
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    ></i>
+
+                {% elif "image/" in document.current_version.mime_type %}
+
+                    <i
+                        data-lucide="image"
+                        class="h-4 w-4
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    ></i>
+
+                {% elif "video/" in document.current_version.mime_type %}
+
+                    <i
+                        data-lucide="film"
+                        class="h-4 w-4
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    ></i>
+
+                {% else %}
+
+                    <i
+                        data-lucide="file"
+                        class="h-4 w-4
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    ></i>
+
+                {% endif %}
+
+            {% else %}
+
+                <i
+                    data-lucide="file"
+                    class="h-4 w-4
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                ></i>
+
+            {% endif %}
+
+            <span class="truncate">
+                {{ document.title }}
+            </span>
+
+            <span
+                class="truncate text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                {{ document.document_type.label }}
+            </span>
+
+            <span
+                class="text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                {% if document.current_version %}
+                    V{{ document.current_version.version_number }}
+                {% else %}
+                    —
+                {% endif %}
+            </span>
+
+            <span
+                class="text-right text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                {{ document.updated_at|date:"d/m/Y H:i" }}
+            </span>
+        </div>
+
+    {% endfor %}
+
+
+    {# -------------------------------------------------------------- #}
+    {# Dossier vide                                                   #}
+    {# -------------------------------------------------------------- #}
+
+    {% if not child_folders and not documents %}
+
+        <div
+            class="flex h-40 items-center
+                   justify-center
+                   text-sm
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            Ce dossier est vide.
+        </div>
+
+    {% endif %}
+</main>

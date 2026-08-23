@@ -1,0 +1,49 @@
+
+
+<aside
+    class="min-w-0 overflow-auto border-r
+           border-axcio-border-light
+           bg-axcio-page
+           p-2
+           text-axcio-text
+           dark:border-axcio-border-dark
+           dark:bg-axcio-page-dark
+           dark:text-axcio-text-dark"
+>
+    <a
+        href="{% url 'documents:explorer' project.pk %}"
+        class="flex h-8 items-center gap-2
+               rounded-md px-2 text-sm font-medium
+               hover:bg-axcio-surface-alt
+               dark:hover:bg-axcio-surface-alt-dark"
+    >
+        <i
+            data-lucide="folder-root"
+            class="h-4 w-4"
+        ></i>
+
+        <span class="truncate">
+            Documents
+        </span>
+    </a>
+
+    <div class="mt-1">
+
+        {% for folder in root_folders %}
+
+            {% include "documents/explorer/folder_tree_node.html" with folder=folder %}
+
+        {% empty %}
+
+            <p
+                class="px-2 py-3 text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                Aucun dossier.
+            </p>
+
+        {% endfor %}
+
+    </div>
+</aside>

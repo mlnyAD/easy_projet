@@ -30,3 +30,13 @@ tous les projets
 ### Planning
 Rendre les barres de tâche sélectionnables
 
+### Document
+Fonction de recherche des orphelins 
+Pourquoi télécharger le document l'ouvre automatiquement sur le poste client?
+Mettre les fichiers supprimés dans une corbeille lors de la suppression initiale
+Implémenter Partager et Permissions
+
+### CSS
+Revoir les définition de bg-axcio-dark et bg-axcio-light
+Nettoyage des couleurs en dur dans le code
+Faut-il conserver tailwind?

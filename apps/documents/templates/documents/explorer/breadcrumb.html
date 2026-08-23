@@ -1,0 +1,36 @@
+
+
+<nav
+    class="mb-2 flex min-h-8 items-center
+           gap-1 overflow-x-auto text-sm"
+    aria-label="Fil d'Ariane"
+>
+    <a
+        href="{% url 'documents:explorer' project.pk %}"
+        class="whitespace-nowrap
+               text-axcio-light hover:underline"
+    >
+        Documents
+    </a>
+
+    {% for folder in breadcrumbs %}
+
+        <span class="text-gray-400">
+            /
+        </span>
+
+        <a
+            href="{% url 'documents:folder' project.pk folder.pk %}"
+            class="whitespace-nowrap
+                   {% if folder.pk == current_folder.pk %}
+                       font-medium text-axcio-text
+                       dark:text-axcio-text-dark
+                   {% else %}
+                       text-axcio-light hover:underline
+                   {% endif %}"
+        >
+            {{ folder.name }}
+        </a>
+
+    {% endfor %}
+</nav>

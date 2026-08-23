@@ -1,0 +1,44 @@
+
+
+{% extends "layout/base.html" %}
+{% load static %}
+
+
+{% block title %}
+Documentation - {{ project.name }}
+{% endblock %}
+
+
+{% block content %}
+
+<div class="flex h-[calc(100vh-7rem)] flex-col">
+
+    {% include "documents/explorer/header.html" %}
+
+    {% include "documents/explorer/breadcrumb.html" %}
+
+    <div
+        class="grid min-h-0 flex-1
+               overflow-hidden rounded-lg border
+               border-gray-200
+               dark:border-gray-700"
+        style="grid-template-columns: 280px minmax(0, 1fr);"
+    >
+        {% include "documents/explorer/tree.html" %}
+
+        {% include "documents/explorer/content.html" %}
+    </div>
+
+</div>
+
+
+{% include "documents/explorer/context_menu.html" %}
+
+{% include "documents/explorer/folder_dialog.html" %}
+
+
+<script
+    src="{% static 'documents/js/explorer.js' %}"
+></script>
+
+{% endblock %}

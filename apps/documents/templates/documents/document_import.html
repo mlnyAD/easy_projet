@@ -1,0 +1,109 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+Importer un PDF
+{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-2xl">
+
+    <div class="mb-4">
+
+        <h1
+            class="text-xl font-semibold
+                   text-axcio-text
+                   dark:text-axcio-text-dark"
+        >
+            Importer un PDF
+        </h1>
+
+        <p
+            class="mt-1 text-sm
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            {{ project.name }}
+            —
+            {{ folder.name }}
+        </p>
+
+    </div>
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+        class="space-y-4"
+    >
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        {% for field in form %}
+
+            <div>
+
+                <label
+                    for="{{ field.id_for_label }}"
+                    class="mb-1 block text-sm font-medium
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    {{ field.label }}
+                </label>
+
+                {{ field }}
+
+                {% if field.help_text %}
+                    <p
+                        class="mt-1 text-xs
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    >
+                        {{ field.help_text }}
+                    </p>
+                {% endif %}
+
+                {% for error in field.errors %}
+                    <p class="mt-1 text-sm text-red-600">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+
+            </div>
+
+        {% endfor %}
+
+        <div class="flex justify-end gap-2 pt-2">
+
+            <a
+                href="{% url 'documents:folder' project.pk folder.pk %}"
+                class="rounded-md px-3 py-2
+                       text-sm
+                       text-axcio-text
+                       hover:bg-axcio-surface-alt
+                       dark:text-axcio-text-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
+            >
+                Annuler
+            </a>
+
+            <button
+                type="submit"
+                class="rounded-md bg-axcio-light
+                       px-4 py-2 text-sm font-medium
+                       text-white
+                       hover:opacity-90"
+            >
+                Importer
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
