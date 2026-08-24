@@ -15,12 +15,11 @@ from apps.documents.models import (
     Document,
     DocumentFolder,
 )
-from apps.documents.services import DocumentService
-from apps.projects.models import Project
 from apps.documents.services import (
     DocumentFavoriteService,
     DocumentService,
 )
+from apps.projects.models import Project
 
 
 class DocumentRenameView(
@@ -81,7 +80,8 @@ class DocumentRenameView(
             project_id=project.pk,
             folder_id=document.folder_id,
         )
-        
+
+
 class DocumentMoveView(
     LoginRequiredMixin,
     View,
@@ -154,6 +154,7 @@ class DocumentMoveView(
             project_id=project.pk,
             folder_id=destination.pk,
         )
+
 
 class DocumentCopyView(
     LoginRequiredMixin,
@@ -230,9 +231,8 @@ class DocumentCopyView(
         messages.success(
             request,
             (
-                f'Le document '
-                f'"{copied_document.title}" '
-                f'a été copié.'
+                f'Le document "{copied_document.title}" '
+                "a été copié."
             ),
         )
 
@@ -241,7 +241,8 @@ class DocumentCopyView(
             project_id=project.pk,
             folder_id=destination.pk,
         )
-        
+
+
 class DocumentFavoriteAddView(
     LoginRequiredMixin,
     View,
@@ -330,7 +331,8 @@ class DocumentFavoriteRemoveView(
             project_id=project.pk,
             folder_id=document.folder_id,
         )
-        
+
+
 class DocumentDeleteView(
     LoginRequiredMixin,
     View,

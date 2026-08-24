@@ -10,25 +10,34 @@
            dark:bg-axcio-page-dark
            dark:text-axcio-text-dark"
 >
-    <a
-        href="{% url 'documents:explorer' project.pk %}"
-        class="flex h-8 items-center gap-2
-               rounded-md px-2 text-sm font-medium
+    <button
+        type="button"
+        id="root-create-folder"
+        class="flex h-8 w-full items-center gap-2
+               rounded-md px-2 text-left text-sm font-medium
+               text-axcio-dark
                hover:bg-axcio-surface-alt
+               dark:text-axcio-light
                dark:hover:bg-axcio-surface-alt-dark"
     >
         <i
-            data-lucide="folder-root"
-            class="h-4 w-4"
+            data-lucide="folder-plus"
+            class="h-4 w-4 shrink-0"
+            aria-hidden="true"
         ></i>
 
         <span class="truncate">
-            Documents
+            Insérer un répertoire
         </span>
-    </a>
+    </button>
 
-    <div class="mt-1">
+    <div
+        class="my-2 border-t
+               border-axcio-border-light
+               dark:border-axcio-border-dark"
+    ></div>
 
+    <div>
         {% for folder in root_folders %}
 
             {% include "documents/explorer/folder_tree_node.html" with folder=folder %}
@@ -40,10 +49,9 @@
                        text-axcio-text-muted
                        dark:text-axcio-text-muted-dark"
             >
-                Aucun dossier.
+                Aucun répertoire.
             </p>
 
         {% endfor %}
-
     </div>
 </aside>

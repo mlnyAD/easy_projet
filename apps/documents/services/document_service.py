@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import BinaryIO
 
 from django.db import transaction
@@ -19,9 +20,10 @@ from apps.users.models import User
 
 from .version_service import DocumentVersionService
 from .template_service import DocumentTemplateService
-import logging
+
 
 logger = logging.getLogger(__name__)
+
 
 class DocumentService:
     """

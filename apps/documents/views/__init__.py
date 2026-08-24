@@ -13,6 +13,7 @@ from .folder import (
     DocumentFolderCreateView,
     DocumentFolderDeleteView,
     DocumentFolderRenameView,
+    DocumentFolderMoveView,
 )
 from .import_view import DocumentImportView
 from .document import (
@@ -45,4 +46,5 @@ __all__ = [
     "DocumentFavoriteRemoveView",
     "DocumentFavoriteListView",
     "DocumentDeleteView",
+    "DocumentFolderMoveView",
 ]

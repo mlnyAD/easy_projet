@@ -12,11 +12,11 @@ from common.forms.fields import CatalogModelChoiceField
 
 class DocumentImportForm(forms.Form):
     """
-    Import d'un document PDF dans la GED.
+    Import d'un fichier dans la GED.
     """
 
     file = forms.FileField(
-        label="Fichier PDF",
+        label="Fichier",
         required=True,
     )
 
@@ -40,13 +40,6 @@ class DocumentImportForm(forms.Form):
         queryset=CatalogValue.objects.none(),
         catalog_code="DOCUMENT_STATUS",
         label="Statut",
-        required=True,
-    )
-
-    lifecycle = CatalogModelChoiceField(
-        queryset=CatalogValue.objects.none(),
-        catalog_code="DOCUMENT_LIFECYCLE",
-        label="État GED",
         required=True,
     )
 
@@ -75,57 +68,10 @@ class DocumentImportForm(forms.Form):
             "DOCUMENT_STATUS",
         )
 
-        self._configure_catalog_field(
-            "lifecycle",
-            "DOCUMENT_LIFECYCLE",
-        )
-
         if not self.is_bound:
             self._apply_default(
                 "status"
             )
-
-            self._apply_default(
-                "lifecycle"
-            )
-
-    def clean_file(self):
-        uploaded_file = self.cleaned_data[
-            "file"
-        ]
-
-        filename = uploaded_file.name
-
-        extension = (
-            Path(filename)
-            .suffix
-            .lower()
-        )
-
-        if extension != ".pdf":
-            raise forms.ValidationError(
-                "Seuls les fichiers PDF sont acceptés."
-            )
-
-        content_type = (
-            getattr(
-                uploaded_file,
-                "content_type",
-                "",
-            )
-            or ""
-        )
-
-        if (
-            content_type
-            and content_type
-            != "application/pdf"
-        ):
-            raise forms.ValidationError(
-                "Le fichier sélectionné n'est pas un PDF valide."
-            )
-
-        return uploaded_file
 
     def clean_title(self):
         title = (
@@ -154,6 +100,19 @@ class DocumentImportForm(forms.Form):
         field_name: str,
         catalog_code: str,
     ) -> None:
+        catalog = (
+            CatalogValue.objects
+            .filter(
+                catalog_type__code=catalog_code,
+                catalog_type__is_active=True,
+            )
+            .values(
+                "catalog_type__is_editable",
+                "catalog_type__is_incremental",
+            )
+            .first()
+        )
+
         field = self.fields[
             field_name
         ]
@@ -173,6 +132,23 @@ class DocumentImportForm(forms.Form):
                 "sort_order",
                 "label",
             )
+        )
+
+        if catalog is None:
+            field.catalog_is_editable = False
+            field.catalog_is_incremental = False
+            return
+
+        field.catalog_is_editable = (
+            catalog[
+                "catalog_type__is_editable"
+            ]
+        )
+
+        field.catalog_is_incremental = (
+            catalog[
+                "catalog_type__is_incremental"
+            ]
         )
 
     def _apply_default(

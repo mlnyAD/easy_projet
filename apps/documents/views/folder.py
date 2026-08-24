@@ -18,6 +18,7 @@ from apps.documents.models import DocumentFolder
 from apps.documents.services import DocumentFolderService
 from apps.projects.models import Project
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 
 
 class DocumentFolderCreateView(
@@ -194,4 +195,82 @@ class DocumentFolderDeleteView(
         return redirect(
             "documents:explorer",
             project_id=project.pk,
+        )
+    
+    
+       
+class DocumentFolderMoveView(
+    LoginRequiredMixin,
+    View,
+):
+    """
+    Déplacement d'un dossier dans le même projet.
+    """
+
+    def post(
+        self,
+        request: HttpRequest,
+        *,
+        project_id,
+        folder_id,
+    ) -> HttpResponse:
+        project = get_object_or_404(
+            Project,
+            pk=project_id,
+        )
+
+        folder = get_object_or_404(
+            DocumentFolder.objects.select_related(
+                "parent",
+            ),
+            pk=folder_id,
+            project=project,
+            is_active=True,
+        )
+
+        destination_id = request.POST.get(
+            "destination_id",
+            "",
+        )
+
+        destination = None
+
+        if destination_id:
+            destination = get_object_or_404(
+                DocumentFolder,
+                pk=destination_id,
+                project=project,
+                is_active=True,
+            )
+
+        try:
+            DocumentFolderService.move_folder(
+                folder=folder,
+                destination=destination,
+            )
+
+        except (
+            ValueError,
+            ValidationError,
+        ) as exc:
+            messages.error(
+                request,
+                str(exc),
+            )
+
+            return redirect(
+                "documents:folder",
+                project_id=project.pk,
+                folder_id=folder.pk,
+            )
+
+        messages.success(
+            request,
+            "Le répertoire a été déplacé.",
+        )
+
+        return redirect(
+            "documents:folder",
+            project_id=project.pk,
+            folder_id=folder.pk,
         )

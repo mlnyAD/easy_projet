@@ -1,5 +1,5 @@
 
-
+        
 from __future__ import annotations
 
 from django.contrib import messages
@@ -11,6 +11,7 @@ from django.shortcuts import (
 )
 from django.views import View
 
+from apps.catalogs.models import CatalogValue
 from apps.documents.forms_import import (
     DocumentImportForm,
 )
@@ -24,7 +25,7 @@ class DocumentImportView(
     View,
 ):
     """
-    Import d'un PDF dans un dossier documentaire.
+    Import d'un fichier dans un dossier documentaire.
     """
 
     template_name = (
@@ -104,6 +105,23 @@ class DocumentImportView(
             form.cleaned_data["file"]
         )
 
+        lifecycle = get_object_or_404(
+            CatalogValue,
+            catalog_type__code="DOCUMENT_LIFECYCLE",
+            catalog_type__is_active=True,
+            code="ACTIVE",
+            is_active=True,
+        )
+
+        mime_type = (
+            getattr(
+                uploaded_file,
+                "content_type",
+                "",
+            )
+            or "application/octet-stream"
+        )
+
         DocumentService().import_document(
             project=project,
             folder=folder,
@@ -116,14 +134,12 @@ class DocumentImportView(
             status=form.cleaned_data[
                 "status"
             ],
-            lifecycle=form.cleaned_data[
-                "lifecycle"
-            ],
+            lifecycle=lifecycle,
             content=uploaded_file,
             original_filename=(
                 uploaded_file.name
             ),
-            mime_type="application/pdf",
+            mime_type=mime_type,
             user=request.user,
             is_doe=form.cleaned_data[
                 "is_doe"
@@ -132,11 +148,11 @@ class DocumentImportView(
 
         messages.success(
             request,
-            "Le document PDF a été importé.",
+            "Le fichier a été importé.",
         )
 
         return redirect(
             "documents:folder",
             project_id=project.pk,
             folder_id=folder.pk,
-        )
+        )        

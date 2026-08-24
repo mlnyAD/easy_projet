@@ -42,11 +42,11 @@ document.addEventListener("DOMContentLoaded", () => {
         "folder-delete-form"
     );
 
-    const contentCreateFolder =
+    const rootCreateFolder =
         document.getElementById(
-            "content-create-folder"
-        );
-
+            "root-create-folder"
+    );
+    
     const contentImportDocument =
         document.getElementById(
             "content-import-document"
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const documentRenameCancel =
         document.getElementById(
             "document-rename-cancel"
-        );    
+        );
 
     const documentMoveDialog =
         document.getElementById(
@@ -135,351 +135,57 @@ document.addEventListener("DOMContentLoaded", () => {
             "[data-document-favorite-icon]"
         );
 
+    const folderMoveDialog =
+        document.getElementById(
+            "folder-move-dialog"
+        );
+
+    const folderMoveForm =
+        document.getElementById(
+            "folder-move-form"
+        );
+
+    const folderMoveDestination =
+        document.getElementById(
+            "folder-move-destination"
+        );
+
+    const folderMoveCancel =
+        document.getElementById(
+            "folder-move-cancel"
+        );
+
+    const documentContentActions =
+        document.getElementById(
+            "document-content-actions"
+        );
+
+    const documentViewIcons =
+        document.getElementById(
+            "document-view-icons"
+        );
+
+    const documentViewList =
+        document.getElementById(
+            "document-view-list"
+        );
+
+    const documentListHeader =
+        document.querySelector(
+            "[data-document-list-header]"
+        );
+
+    const documentListItems =
+        document.querySelectorAll(
+            "[data-document-list-item]"
+        );
+
     let selectedDocumentRow = null;
-
-
-    documentRows.forEach((row) => {
-
-        row.addEventListener(
-            "click",
-            () => {
-
-                if (selectedDocumentRow) {
-                    selectedDocumentRow.classList.remove(
-                        "bg-axcio-surface-alt",
-                        "dark:bg-axcio-surface-alt-dark"
-                    );
-                }
-
-                selectedDocumentRow = row;
-
-                selectedDocumentRow.classList.add(
-                    "bg-axcio-surface-alt",
-                    "dark:bg-axcio-surface-alt-dark"
-                );
-            }
-        );
-
-
-        row.addEventListener(
-            "dblclick",
-            () => {
-                openDocument(row);
-            }
-        );
-
-        row.addEventListener(
-            "contextmenu",
-            (event) => {
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                hideMenus();
-
-                selectedDocumentRow = row;
-
-                const isFavorite =
-                    row.dataset.documentFavorite === "true";
-
-                if (documentFavoriteLabel) {
-                    documentFavoriteLabel.textContent =
-                        isFavorite
-                            ? "Retirer des favoris"
-                            : "Ajouter aux favoris";
-                }
-
-                if (documentFavoriteIcon) {
-                    documentFavoriteIcon.setAttribute(
-                        "data-lucide",
-                        isFavorite
-                            ? "star-off"
-                            : "star"
-                    );
-                }
-
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
-
-                documentMenu.classList.remove(
-                    "hidden"
-                );
-
-                positionMenu(
-                    documentMenu,
-                    event.clientX,
-                    event.clientY
-                );
-            }
-        );
-
-    });
-
-    documentMenu
-        .querySelectorAll(
-            "[data-document-action]"
-        )
-        .forEach((button) => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    if (!selectedDocumentRow) {
-                        return;
-                    }
-
-                    const action =
-                        button.dataset.documentAction;
-
-                    hideMenus();
-
-                    if (action === "open") {
-                        openDocument(
-                            selectedDocumentRow
-                        );
-                        return;
-                    }
-
-                    if (action === "download") {
-
-                        const downloadUrl =
-                            selectedDocumentRow.dataset
-                                .documentDownloadUrl;
-
-                        if (!downloadUrl) {
-                            return;
-                        }
-
-                        const link =
-                            document.createElement("a");
-
-                        link.href = downloadUrl;
-                        link.download = "";
-
-                        document.body.appendChild(link);
-
-                        link.click();
-
-                        link.remove();
-
-                        return;
-                    }
-
-                    if (action === "rename") {
-
-                        const renameUrl =
-                            selectedDocumentRow.dataset
-                                .documentRenameUrl;
-
-                        const currentTitle =
-                            selectedDocumentRow.dataset
-                                .documentTitle;
-
-                        if (!renameUrl) {
-                            return;
-                        }
-
-                        documentRenameForm.action =
-                            renameUrl;
-
-                        documentRenameTitle.value =
-                            currentTitle || "";
-
-                        documentRenameDialog.showModal();
-
-                        documentRenameTitle.focus();
-                        documentRenameTitle.select();
-
-                        return;
-                    }
-
-                    if (action === "move") {
-
-                        const moveUrl =
-                            selectedDocumentRow.dataset
-                                .documentMoveUrl;
-
-                        const currentFolderId =
-                            selectedDocumentRow.dataset
-                                .documentFolderId;
-
-                        if (!moveUrl) {
-                            return;
-                        }
-
-                        documentMoveForm.action =
-                            moveUrl;
-
-                        documentMoveDestination.value =
-                            currentFolderId || "";
-
-                        documentMoveDialog.showModal();
-
-                        documentMoveDestination.focus();
-
-                        return;
-                    }
-
-                if (action === "copy") {
-
-                    const copyUrl =
-                        selectedDocumentRow.dataset
-                            .documentCopyUrl;
-
-                    const currentTitle =
-                        selectedDocumentRow.dataset
-                            .documentTitle;
-
-                    const currentFolderId =
-                        selectedDocumentRow.dataset
-                            .documentFolderId;
-
-                    if (!copyUrl) {
-                        return;
-                    }
-
-                    documentCopyForm.action =
-                        copyUrl;
-
-                    documentCopyTitle.value =
-                        currentTitle || "";
-
-                    documentCopyDestination.value =
-                        currentFolderId || "";
-
-                    documentCopyDialog.showModal();
-
-                    documentCopyTitle.focus();
-                    documentCopyTitle.select();
-
-                    return;
-                }    
-
-                if (action === "favorite") {
-
-                    const isFavorite =
-                        selectedDocumentRow.dataset
-                            .documentFavorite === "true";
-
-                    const favoriteUrl =
-                        isFavorite
-                            ? selectedDocumentRow.dataset
-                                .documentFavoriteRemoveUrl
-                            : selectedDocumentRow.dataset
-                                .documentFavoriteAddUrl;
-
-                    if (!favoriteUrl) {
-                        return;
-                    }
-
-                    const form =
-                        document.createElement("form");
-
-                    form.method = "post";
-                    form.action = favoriteUrl;
-
-                    const csrfToken =
-                        document.querySelector(
-                            "[name=csrfmiddlewaretoken]"
-                        );
-
-                    if (!csrfToken) {
-                        return;
-                    }
-
-                    const csrfInput =
-                        document.createElement("input");
-
-                    csrfInput.type = "hidden";
-                    csrfInput.name = "csrfmiddlewaretoken";
-                    csrfInput.value = csrfToken.value;
-
-                    form.appendChild(
-                        csrfInput
-                    );
-
-                    document.body.appendChild(
-                        form
-                    );
-
-                    form.submit();
-
-                    return;
-                }
-
-                if (action === "delete") {
-
-                    const deleteUrl =
-                        selectedDocumentRow.dataset
-                            .documentDeleteUrl;
-
-                    const title =
-                        selectedDocumentRow.dataset
-                            .documentTitle;
-
-                    if (!deleteUrl) {
-                        return;
-                    }
-
-                    const confirmed =
-                        window.confirm(
-                            `Supprimer définitivement le document `
-                            + `"${title}" et toutes ses versions ?`
-                        );
-
-                    if (!confirmed) {
-                        return;
-                    }
-
-                    const form =
-                        document.createElement("form");
-
-                    form.method = "post";
-                    form.action = deleteUrl;
-
-                    const csrfToken =
-                        document.querySelector(
-                            "[name=csrfmiddlewaretoken]"
-                        );
-
-                    if (!csrfToken) {
-                        return;
-                    }
-
-                    const csrfInput =
-                        document.createElement("input");
-
-                    csrfInput.type = "hidden";
-                    csrfInput.name = "csrfmiddlewaretoken";
-                    csrfInput.value = csrfToken.value;
-
-                    form.appendChild(
-                        csrfInput
-                    );
-
-                    document.body.appendChild(
-                        form
-                    );
-
-                    form.submit();
-
-                    return;
-                }
-
-                }
-
-                
-        );
-
-    });
-
     let selectedFolder = null;
 
 
     // -----------------------------------------------------------------
-    // Menus contextuels
+    // Fonctions communes
     // -----------------------------------------------------------------
 
     function hideMenus() {
@@ -569,6 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+
     function openDocument(row) {
 
         const openUrl =
@@ -585,6 +292,535 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+
+    function submitPost(url) {
+
+        if (!url) {
+            return;
+        }
+
+        const csrfToken =
+            document.querySelector(
+                "[name=csrfmiddlewaretoken]"
+            );
+
+        if (!csrfToken) {
+            return;
+        }
+
+        const form =
+            document.createElement("form");
+
+        form.method = "post";
+        form.action = url;
+
+        const csrfInput =
+            document.createElement("input");
+
+        csrfInput.type = "hidden";
+        csrfInput.name = "csrfmiddlewaretoken";
+        csrfInput.value = csrfToken.value;
+
+        form.appendChild(
+            csrfInput
+        );
+
+        document.body.appendChild(
+            form
+        );
+
+        form.submit();
+    }
+
+    function setDocumentViewMode(mode) {
+
+        const documentNames =
+            document.querySelectorAll(
+                "[data-document-name]"
+            );
+
+        const iconMode =
+            mode === "icons";
+
+        if (documentListHeader) {
+            documentListHeader.classList.toggle(
+                "hidden",
+                iconMode
+            );
+        }
+
+        documentListItems.forEach((item) => {
+
+            if (iconMode) {
+
+                item.classList.remove(
+                    "grid",
+                    "min-h-9",
+                    "items-center",
+                    "border-b",
+                    "px-3",
+                    "text-sm"
+                );
+
+                item.classList.add(
+                    "inline-flex",
+                    "h-28",
+                    "w-32",
+                    "m-2",
+                    "flex-col",
+                    "items-center",
+                    "justify-center",
+                    "gap-2",
+                    "rounded-lg",
+                    "border",
+                    "border-axcio-border-light",
+                    "p-3",
+                    "text-center",
+                    "dark:border-axcio-border-dark"
+                );
+                
+                documentNames.forEach((nameElement) => {
+
+                    const fullName =
+                        nameElement.getAttribute(
+                            "title"
+                        )
+                        || nameElement.textContent.trim();
+
+                    if (iconMode) {
+
+                        nameElement.textContent =
+                            fullName.length > 15
+                                ? `${fullName.slice(0, 15)}...`
+                                : fullName;
+
+                        nameElement.classList.add(
+                            "max-w-full",
+                            "truncate"
+                        );
+
+                    } else {
+
+                        nameElement.textContent =
+                            fullName;
+
+                        nameElement.classList.remove(
+                            "max-w-full",
+                            "truncate"
+                        );
+                    }
+                });
+                item.style.gridTemplateColumns = "";
+
+            } else {
+
+                item.classList.remove(
+                    "inline-flex",
+                    "h-28",
+                    "w-32",
+                    "m-2",
+                    "flex-col",
+                    "items-center",
+                    "justify-center",
+                    "gap-2",
+                    "rounded-lg",
+                    "border",
+                    "p-3",
+                    "text-center"
+                );
+
+                item.classList.add(
+                    "grid",
+                    "min-h-9",
+                    "items-center",
+                    "border-b",
+                    "px-3",
+                    "text-sm"
+                );
+
+                item.style.gridTemplateColumns =
+                    "2rem minmax(0, 1fr) 12rem 7rem 10rem";
+            }
+        });
+
+        documentViewIcons.classList.toggle(
+            "bg-axcio-surface-alt",
+            iconMode
+        );
+
+        documentViewList.classList.toggle(
+            "bg-axcio-surface-alt",
+            !iconMode
+        );
+
+        localStorage.setItem(
+            "easy-projet-document-view-mode",
+            mode
+        );
+    }    
+
+    // -----------------------------------------------------------------
+    // Mode d'affichage des documents
+    // -----------------------------------------------------------------
+
+    if (documentViewIcons) {
+        documentViewIcons.addEventListener(
+            "click",
+            () => {
+                setDocumentViewMode(
+                    "icons"
+                );
+            }
+        );
+    }
+
+    if (documentViewList) {
+        documentViewList.addEventListener(
+            "click",
+            () => {
+                setDocumentViewMode(
+                    "list"
+                );
+            }
+        );
+    }
+
+    const savedDocumentViewMode =
+        localStorage.getItem(
+            "easy-projet-document-view-mode"
+        )
+        || "list";
+
+    setDocumentViewMode(
+        savedDocumentViewMode
+    );    
+
+    // -----------------------------------------------------------------
+    // Documents
+    // -----------------------------------------------------------------
+
+    documentRows.forEach((row) => {
+
+        row.addEventListener(
+            "click",
+            () => {
+
+                if (selectedDocumentRow) {
+                    selectedDocumentRow.classList.remove(
+                        "bg-axcio-surface-alt",
+                        "dark:bg-axcio-surface-alt-dark"
+                    );
+                }
+
+                selectedDocumentRow = row;
+
+                selectedDocumentRow.classList.add(
+                    "bg-axcio-surface-alt",
+                    "dark:bg-axcio-surface-alt-dark"
+                );
+            }
+        );
+
+
+        row.addEventListener(
+            "dblclick",
+            () => {
+                openDocument(
+                    row
+                );
+            }
+        );
+
+
+        row.addEventListener(
+            "contextmenu",
+            (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                hideMenus();
+
+                selectedDocumentRow = row;
+
+                const isFavorite =
+                    row.dataset.documentFavorite
+                    === "true";
+
+                if (documentFavoriteLabel) {
+                    documentFavoriteLabel.textContent =
+                        isFavorite
+                            ? "Retirer des favoris"
+                            : "Ajouter aux favoris";
+                }
+
+                if (documentFavoriteIcon) {
+                    documentFavoriteIcon.setAttribute(
+                        "data-lucide",
+                        isFavorite
+                            ? "star-off"
+                            : "star"
+                    );
+                }
+
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+
+                documentMenu.classList.remove(
+                    "hidden"
+                );
+
+                positionMenu(
+                    documentMenu,
+                    event.clientX,
+                    event.clientY
+                );
+            }
+        );
+
+    });
+
+
+    documentMenu
+        .querySelectorAll(
+            "[data-document-action]"
+        )
+        .forEach((button) => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    if (!selectedDocumentRow) {
+                        return;
+                    }
+
+                    const action =
+                        button.dataset.documentAction;
+
+                    hideMenus();
+
+
+                    // -------------------------------------------------
+                    // Ouvrir
+                    // -------------------------------------------------
+
+                    if (action === "open") {
+
+                        openDocument(
+                            selectedDocumentRow
+                        );
+
+                        return;
+                    }
+
+
+                    // -------------------------------------------------
+                    // Télécharger
+                    // -------------------------------------------------
+
+                    if (action === "download") {
+
+                        const downloadUrl =
+                            selectedDocumentRow.dataset
+                                .documentDownloadUrl;
+
+                        if (!downloadUrl) {
+                            return;
+                        }
+
+                        const link =
+                            document.createElement("a");
+
+                        link.href = downloadUrl;
+                        link.download = "";
+
+                        document.body.appendChild(
+                            link
+                        );
+
+                        link.click();
+
+                        link.remove();
+
+                        return;
+                    }
+
+
+                    // -------------------------------------------------
+                    // Renommer
+                    // -------------------------------------------------
+
+                    if (action === "rename") {
+
+                        const renameUrl =
+                            selectedDocumentRow.dataset
+                                .documentRenameUrl;
+
+                        const currentTitle =
+                            selectedDocumentRow.dataset
+                                .documentTitle;
+
+                        if (!renameUrl) {
+                            return;
+                        }
+
+                        documentRenameForm.action =
+                            renameUrl;
+
+                        documentRenameTitle.value =
+                            currentTitle || "";
+
+                        documentRenameDialog.showModal();
+
+                        documentRenameTitle.focus();
+                        documentRenameTitle.select();
+
+                        return;
+                    }
+
+
+                    // -------------------------------------------------
+                    // Déplacer
+                    // -------------------------------------------------
+
+                    if (action === "move") {
+
+                        const moveUrl =
+                            selectedDocumentRow.dataset
+                                .documentMoveUrl;
+
+                        const currentFolderId =
+                            selectedDocumentRow.dataset
+                                .documentFolderId;
+
+                        if (!moveUrl) {
+                            return;
+                        }
+
+                        documentMoveForm.action =
+                            moveUrl;
+
+                        documentMoveDestination.value =
+                            currentFolderId || "";
+
+                        documentMoveDialog.showModal();
+
+                        documentMoveDestination.focus();
+
+                        return;
+                    }
+
+
+                    // -------------------------------------------------
+                    // Copier
+                    // -------------------------------------------------
+
+                    if (action === "copy") {
+
+                        const copyUrl =
+                            selectedDocumentRow.dataset
+                                .documentCopyUrl;
+
+                        const currentTitle =
+                            selectedDocumentRow.dataset
+                                .documentTitle;
+
+                        const currentFolderId =
+                            selectedDocumentRow.dataset
+                                .documentFolderId;
+
+                        if (!copyUrl) {
+                            return;
+                        }
+
+                        documentCopyForm.action =
+                            copyUrl;
+
+                        documentCopyTitle.value =
+                            currentTitle || "";
+
+                        documentCopyDestination.value =
+                            currentFolderId || "";
+
+                        documentCopyDialog.showModal();
+
+                        documentCopyTitle.focus();
+                        documentCopyTitle.select();
+
+                        return;
+                    }
+
+
+                    // -------------------------------------------------
+                    // Favoris
+                    // -------------------------------------------------
+
+                    if (action === "favorite") {
+
+                        const isFavorite =
+                            selectedDocumentRow.dataset
+                                .documentFavorite
+                            === "true";
+
+                        const favoriteUrl =
+                            isFavorite
+                                ? selectedDocumentRow.dataset
+                                    .documentFavoriteRemoveUrl
+                                : selectedDocumentRow.dataset
+                                    .documentFavoriteAddUrl;
+
+                        submitPost(
+                            favoriteUrl
+                        );
+
+                        return;
+                    }
+
+
+                    // -------------------------------------------------
+                    // Supprimer
+                    // -------------------------------------------------
+
+                    if (action === "delete") {
+
+                        const deleteUrl =
+                            selectedDocumentRow.dataset
+                                .documentDeleteUrl;
+
+                        const title =
+                            selectedDocumentRow.dataset
+                                .documentTitle;
+
+                        if (!deleteUrl) {
+                            return;
+                        }
+
+                        const confirmed =
+                            window.confirm(
+                                `Supprimer définitivement `
+                                + `le document "${title}" `
+                                + `et toutes ses versions ?`
+                            );
+
+                        if (!confirmed) {
+                            return;
+                        }
+
+                        submitPost(
+                            deleteUrl
+                        );
+
+                        return;
+                    }
+
+                }
+            );
+
+        });
+
+
     // -----------------------------------------------------------------
     // Clic droit sur dossier
     // -----------------------------------------------------------------
@@ -598,6 +834,7 @@ document.addEventListener("DOMContentLoaded", () => {
             element.addEventListener(
                 "contextmenu",
                 (event) => {
+
                     showFolderMenu(
                         event,
                         element
@@ -617,13 +854,15 @@ document.addEventListener("DOMContentLoaded", () => {
         (event) => {
 
             /*
-             * Si le clic droit concerne déjà
-             * un dossier, son menu spécifique
-             * doit rester prioritaire.
+             * Les dossiers et les documents possèdent
+             * leur propre menu contextuel.
              */
             if (
                 event.target.closest(
                     "[data-folder-context]"
+                )
+                || event.target.closest(
+                    "[data-document-row]"
                 )
             ) {
                 return;
@@ -635,24 +874,62 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     );
 
-    contentImportDocument.addEventListener(
-        "click",
-        () => {
+    if (documentContentActions) {
 
-            hideMenus();
+        documentContentActions.addEventListener(
+            "click",
+            (event) => {
 
-            const importUrl =
-                documentContent.dataset
-                    .folderImportUrl;
+                event.stopPropagation();
 
-            if (!importUrl) {
-                return;
+                hideMenus();
+
+                contentMenu.classList.remove(
+                    "hidden"
+                );
+
+                const rect =
+                    documentContentActions
+                        .getBoundingClientRect();
+
+                positionMenu(
+                    contentMenu,
+                    rect.left,
+                    rect.bottom + 4
+                );
             }
+        );
+    }
+    
+    // -----------------------------------------------------------------
+    // Import document
+    // -----------------------------------------------------------------
 
-            window.location.href =
-                importUrl.trim();
-        }
-    );
+    if (contentImportDocument) {
+
+        contentImportDocument.addEventListener(
+            "click",
+            () => {
+
+                hideMenus();
+
+                const importUrl =
+                    documentContent.dataset
+                        .folderImportUrl;
+
+                if (!importUrl) {
+                    return;
+                }
+
+                window.location.href =
+                    importUrl.trim();
+            }
+        );
+    }
+
+    // -----------------------------------------------------------------
+    // Fermeture des boîtes document
+    // -----------------------------------------------------------------
 
     documentRenameCancel.addEventListener(
         "click",
@@ -661,6 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     );
 
+
     documentMoveCancel.addEventListener(
         "click",
         () => {
@@ -668,12 +946,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     );
 
+
     documentCopyCancel.addEventListener(
         "click",
         () => {
             documentCopyDialog.close();
         }
     );
+
 
     // -----------------------------------------------------------------
     // Fermeture des menus
@@ -693,9 +973,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     event.target
                 );
 
+            const clickInsideDocumentMenu =
+                documentMenu.contains(
+                    event.target
+                );
+
             if (
                 !clickInsideFolderMenu
                 && !clickInsideContentMenu
+                && !clickInsideDocumentMenu
             ) {
                 hideMenus();
             }
@@ -740,7 +1026,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                     // -------------------------------------------------
-                    // Nouveau répertoire sous le dossier sélectionné
+                    // Nouveau répertoire
                     // -------------------------------------------------
 
                     if (action === "create") {
@@ -818,18 +1104,42 @@ document.addEventListener("DOMContentLoaded", () => {
                                 .folderDeleteUrl;
 
                         deleteForm.submit();
+
+                        return;
                     }
+
+                    if (action === "move") {
+
+                        const moveUrl =
+                            selectedFolder.dataset
+                                .folderMoveUrl;
+
+                        if (!moveUrl) {
+                            return;
+                        }
+
+                        folderMoveForm.action =
+                            moveUrl;
+
+                        folderMoveDestination.value = "";
+
+                        folderMoveDialog.showModal();
+
+                        folderMoveDestination.focus();
+
+                        return;
+                    }
+
                 }
             );
 
         });
 
-
     // -----------------------------------------------------------------
-    // Nouveau répertoire depuis la zone documentaire
+    // Nouveau répertoire de niveau 1
     // -----------------------------------------------------------------
 
-    contentCreateFolder.addEventListener(
+    rootCreateFolder.addEventListener(
         "click",
         () => {
 
@@ -842,9 +1152,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 documentContent.dataset
                     .folderCreateUrl;
 
-            parentInput.value =
-                documentContent.dataset
-                    .currentFolderId || "";
+            /*
+            * parent_id vide = dossier racine
+            * du projet.
+            */
+            parentInput.value = "";
 
             nameInput.value = "";
 
@@ -854,9 +1166,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     );
 
+    // -----------------------------------------------------------------
+    // Nouveau répertoire depuis la zone documentaire
+    // -----------------------------------------------------------------
+
+    folderMoveCancel.addEventListener(
+        "click",
+        () => {
+            folderMoveDialog.close();
+        }
+    );
 
     // -----------------------------------------------------------------
-    // Annulation boîte de dialogue
+    // Annulation boîte dossier
     // -----------------------------------------------------------------
 
     cancelButton.addEventListener(

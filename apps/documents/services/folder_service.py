@@ -175,3 +175,56 @@ class DocumentFolderService:
             )
 
         return normalized_name
+
+    @staticmethod
+    @transaction.atomic
+    def move_folder(
+        *,
+        folder: DocumentFolder,
+        destination: DocumentFolder | None,
+    ) -> DocumentFolder:
+        """
+        Déplace un dossier dans l'arborescence documentaire.
+
+        destination=None signifie :
+        déplacement à la racine du projet.
+        """
+
+        if (
+            destination is not None
+            and destination.project_id
+            != folder.project_id
+        ):
+            raise ValueError(
+                "Le dossier de destination doit "
+                "appartenir au même projet."
+            )
+
+        if (
+            destination is not None
+            and destination.pk == folder.pk
+        ):
+            raise ValueError(
+                "Un dossier ne peut pas être "
+                "déplacé dans lui-même."
+            )
+
+        if folder.parent_id == (
+            destination.pk
+            if destination is not None
+            else None
+        ):
+            return folder
+
+        folder.parent = destination
+
+        folder.full_clean()
+
+        folder.save(
+            update_fields=[
+                "parent",
+                "updated_at",
+            ]
+        )
+
+        return folder

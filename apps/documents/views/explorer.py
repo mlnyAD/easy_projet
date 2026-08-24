@@ -3,19 +3,16 @@
 from __future__ import annotations
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 
 from apps.documents.models import (
     Document,
-    DocumentFolder,
-)
-from apps.projects.models import Project
-from apps.documents.models import (
     DocumentFavorite,
     DocumentFolder,
 )
+from apps.projects.models import Project
+
 
 class DocumentExplorerView(
     LoginRequiredMixin,
@@ -76,7 +73,7 @@ class DocumentExplorerView(
                 project
             )
         )
-        
+
         destination_folders = (
             DocumentFolder.objects
             .filter(
@@ -110,7 +107,7 @@ class DocumentExplorerView(
                 "name",
             )
         )
-        
+
         open_folder_ids = set()
 
         current = current_folder
@@ -120,14 +117,15 @@ class DocumentExplorerView(
                 current.pk
             )
             current = current.parent
-    
+
         # --------------------------------------------------------------
         # Contenu du panneau droit
         # --------------------------------------------------------------
 
+        favorite_document_ids = set()
+
         if current_folder is None:
             child_folders = root_folders
-
             documents = Document.objects.none()
 
         else:
@@ -160,7 +158,7 @@ class DocumentExplorerView(
                     "title"
                 )
             )
-            
+
             favorite_document_ids = set(
                 DocumentFavorite.objects
                 .filter(
@@ -171,20 +169,14 @@ class DocumentExplorerView(
                     "document_id",
                     flat=True,
                 )
-            )           
+            )
 
         context.update(
             {
                 "project": project,
-                "current_folder": (
-                    current_folder
-                ),
-                "root_folders": (
-                    root_folders
-                ),
-                "child_folders": (
-                    child_folders
-                ),
+                "current_folder": current_folder,
+                "root_folders": root_folders,
+                "child_folders": child_folders,
                 "documents": documents,
                 "breadcrumbs": (
                     self.build_breadcrumbs(
@@ -192,8 +184,12 @@ class DocumentExplorerView(
                     )
                 ),
                 "open_folder_ids": open_folder_ids,
-                "destination_folders": destination_folders,
-                "favorite_document_ids": favorite_document_ids,
+                "destination_folders": (
+                    destination_folders
+                ),
+                "favorite_document_ids": (
+                    favorite_document_ids
+                ),
             }
         )
 

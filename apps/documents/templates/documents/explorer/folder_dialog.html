@@ -347,3 +347,76 @@
 
     </form>
 </dialog>
+
+<dialog
+    id="folder-move-dialog"
+    class="m-auto w-full max-w-md
+           rounded-lg border
+           border-axcio-border-light
+           bg-axcio-page p-0 shadow-xl
+           backdrop:bg-black/30
+           dark:border-axcio-border-dark
+           dark:bg-axcio-page-dark"
+>
+    <form
+        id="folder-move-form"
+        method="post"
+        class="p-5"
+    >
+        {% csrf_token %}
+
+        <h2 class="mb-4 text-lg font-semibold">
+            Déplacer le répertoire
+        </h2>
+
+        <label
+            for="folder-move-destination"
+            class="mb-1 block text-sm font-medium"
+        >
+            Destination
+        </label>
+
+        <select
+            id="folder-move-destination"
+            name="destination_id"
+            class="block w-full rounded-md border
+                   border-axcio-border-light
+                   bg-axcio-page px-3 py-2 text-sm
+                   dark:border-axcio-border-dark
+                   dark:bg-axcio-page-dark"
+        >
+            <option value="">
+                Racine du projet
+            </option>
+
+            {% for folder in destination_folders %}
+                <option value="{{ folder.pk }}">
+                    {{ folder.full_path }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <div class="mt-5 flex justify-end gap-2">
+
+            <button
+                id="folder-move-cancel"
+                type="button"
+                class="rounded-md px-3 py-2 text-sm
+                       hover:bg-axcio-surface-alt
+                       dark:hover:bg-axcio-surface-alt-dark"
+            >
+                Annuler
+            </button>
+
+            <button
+                type="submit"
+                class="rounded-md bg-axcio-light
+                       px-3 py-2 text-sm font-medium
+                       text-white"
+            >
+                Déplacer
+            </button>
+
+        </div>
+    </form>
+</dialog>

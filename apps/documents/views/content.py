@@ -13,6 +13,8 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404
 from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.documents.integrations.providers import (
     OnlyOfficeCallbackError,
@@ -97,6 +99,10 @@ class DocumentVersionContentView(View):
         return response
 
 
+@method_decorator(
+    csrf_exempt,
+    name="dispatch",
+)
 class DocumentVersionCallbackView(View):
     """
     Point de retour ONLYOFFICE pour une version documentaire.
@@ -127,36 +133,6 @@ class DocumentVersionCallbackView(View):
         )
 
         # --------------------------------------------------------------
-        # Authentification JWT ONLYOFFICE
-        # --------------------------------------------------------------
-
-        token = self._get_token(
-            request
-        )
-
-        if not token:
-            return JsonResponse(
-                {
-                    "error": 1,
-                },
-                status=403,
-            )
-
-        jwt_payload = (
-            OnlyOfficeJwtService.try_decode(
-                token
-            )
-        )
-
-        if jwt_payload is None:
-            return JsonResponse(
-                {
-                    "error": 1,
-                },
-                status=403,
-            )
-
-        # --------------------------------------------------------------
         # Lecture du payload ONLYOFFICE
         # --------------------------------------------------------------
 
@@ -181,7 +157,64 @@ class DocumentVersionCallbackView(View):
             )
 
         # --------------------------------------------------------------
-        # Validation minimale
+        # Authentification JWT ONLYOFFICE
+        # --------------------------------------------------------------
+
+        token = self._get_token(
+            request
+        )
+
+        if not token:
+            body_token = payload.get(
+                "token",
+                "",
+            )
+
+            if isinstance(
+                body_token,
+                str,
+            ):
+                token = body_token.strip()
+
+        print(
+            "ONLYOFFICE payload keys:",
+            list(payload.keys()),
+        )
+
+        print(
+            "ONLYOFFICE token présent:",
+            bool(token),
+        )
+
+        if not token:
+            return JsonResponse(
+                {
+                    "error": 1,
+                },
+                status=403,
+            )
+
+        jwt_payload = (
+            OnlyOfficeJwtService.try_decode(
+                token
+            )
+        )
+
+        print(
+            "ONLYOFFICE JWT valide:",
+            jwt_payload is not None,
+        )
+
+        if jwt_payload is None:
+            return JsonResponse(
+                {
+                    "error": 1,
+                },
+                status=403,
+            )
+
+        # --------------------------------------------------------------
+        # Validation minimale du payload
         # --------------------------------------------------------------
 
         status = payload.get(

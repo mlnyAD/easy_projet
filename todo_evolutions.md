@@ -40,3 +40,17 @@ Implémenter Partager et Permissions
 Revoir les définition de bg-axcio-dark et bg-axcio-light
 Nettoyage des couleurs en dur dans le code
 Faut-il conserver tailwind?
+
+### Ergonomie
+Fonction disponible → affichage normal et action active.
+Fonction prévue mais non implémentée → grisée + italique + désactivée + infobulle « Fonction à venir ».
+
+### Boites de dialogue
+Adopter une position géographique commune pour toutes les modales.
+En haut au milieu me parait bien
+
+### Intégrations externes
+Libellés trop proche Gestion docuementaire et Suite bureautique
+
+### Affichage des répertoires
+Faut-il fermer automatiquement un répertoire ouvert lorsqu'on en sélectionne un autre?

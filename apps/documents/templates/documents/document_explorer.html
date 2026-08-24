@@ -13,7 +13,9 @@ Documentation - {{ project.name }}
 
 <div class="flex h-[calc(100vh-7rem)] flex-col">
 
-    {% include "documents/explorer/header.html" %}
+    {% include "documents/explorer/folder_context_menu.html" %}
+
+    {% include "documents/explorer/document_context_menu.html" %}
 
     {% include "documents/explorer/breadcrumb.html" %}
 
@@ -32,7 +34,9 @@ Documentation - {{ project.name }}
 </div>
 
 
-{% include "documents/explorer/context_menu.html" %}
+{% include "documents/explorer/folder_context_menu.html" %}
+
+{% include "documents/explorer/document_context_menu.html" %}
 
 {% include "documents/explorer/folder_dialog.html" %}
 

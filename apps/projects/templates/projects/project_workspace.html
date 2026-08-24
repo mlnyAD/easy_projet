@@ -280,7 +280,20 @@
 
                     <span>Risques</span>
                 </a>
-                {% include "projects/project_workspace_action_disabled.html" with icon="folder-open" label="Documentation" %}
+
+                <a
+                    href="{% url 'documents:explorer' project.pk %}"
+                    class="project-action-card"
+                >
+                    <i
+                        data-lucide="folder-open"
+                        class="h-6 w-6"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>Documentation</span>
+                </a>
+
                 {% include "projects/project_workspace_action_disabled.html" with icon="image-plus" label="Photo" %}
             </div>
         </section>

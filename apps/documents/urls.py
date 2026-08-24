@@ -21,6 +21,7 @@ from apps.documents.views import (
     DocumentFavoriteRemoveView,
     DocumentFavoriteListView,
     DocumentDeleteView,
+    DocumentFolderMoveView,
 )
 
 
@@ -33,7 +34,6 @@ urlpatterns = [
         DocumentExplorerView.as_view(),
         name="explorer",
     ),
-
     path(
         (
             "projects/<uuid:project_id>/"
@@ -42,13 +42,11 @@ urlpatterns = [
         DocumentExplorerView.as_view(),
         name="folder",
     ),
-
     path(
         "projects/<uuid:project_id>/new/",
         DocumentCreateView.as_view(),
         name="create",
     ),
-
     path(
         (
             "projects/<uuid:project_id>/"
@@ -57,7 +55,6 @@ urlpatterns = [
         DocumentFolderCreateView.as_view(),
         name="folder-create",
     ),
-
     path(
         (
             "projects/<uuid:project_id>/"
@@ -66,7 +63,6 @@ urlpatterns = [
         DocumentFolderRenameView.as_view(),
         name="folder-rename",
     ),
-
     path(
         (
             "projects/<uuid:project_id>/"
@@ -75,19 +71,16 @@ urlpatterns = [
         DocumentFolderDeleteView.as_view(),
         name="folder-delete",
     ),
-
     path(
         "versions/<uuid:version_id>/edit/",
         DocumentEditorView.as_view(),
         name="version-edit",
     ),
-
     path(
         "versions/<uuid:version_id>/content/",
         DocumentVersionContentView.as_view(),
         name="version-content",
     ),
-
     path(
         "versions/<uuid:version_id>/callback/",
         DocumentVersionCallbackView.as_view(),
@@ -106,7 +99,6 @@ urlpatterns = [
         DocumentVersionView.as_view(),
         name="version-view",
     ),
-
     path(
         "versions/<uuid:version_id>/download/",
         DocumentVersionDownloadView.as_view(),
@@ -144,7 +136,6 @@ urlpatterns = [
         DocumentFavoriteAddView.as_view(),
         name="document-favorite-add",
     ),
-
     path(
         (
             "projects/<uuid:project_id>/"
@@ -165,5 +156,13 @@ urlpatterns = [
         ),
         DocumentDeleteView.as_view(),
         name="document-delete",
+    ),
+    path(
+        (
+            "projects/<uuid:project_id>/"
+            "folders/<uuid:folder_id>/move/"
+        ),
+        DocumentFolderMoveView.as_view(),
+        name="folder-move",
     ),
 ]

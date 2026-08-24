@@ -29,6 +29,19 @@ class CatalogModelChoiceField(forms.ModelChoiceField):
         self.catalog_is_editable = catalog_is_editable
         self.catalog_is_incremental = catalog_is_incremental
 
+    @property
+    def allows_catalog_increment(self) -> bool:
+        """
+        Indique si l'utilisateur peut ajouter
+        une nouvelle valeur au catalogue.
+        """
+
+        return (
+            self.catalog_is_editable
+            and self.catalog_is_incremental
+            and not self.disabled
+        )
+
     def label_from_instance(
         self,
         obj: CatalogValue,

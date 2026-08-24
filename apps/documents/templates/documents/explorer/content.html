@@ -14,13 +14,83 @@
            dark:bg-axcio-page-dark
            dark:text-axcio-text-dark"
 >
+
+    <div
+        class="flex min-h-10 items-center justify-between gap-3
+            border-b border-axcio-border-light
+            px-3
+            dark:border-axcio-border-dark"
+    >
+        <button
+            type="button"
+            id="document-content-actions"
+            class="inline-flex items-center gap-2
+                rounded-md px-2 py-1.5
+                text-sm font-medium
+                text-axcio-dark
+                hover:bg-axcio-surface-alt
+                dark:text-axcio-light
+                dark:hover:bg-axcio-surface-alt-dark"
+        >
+            <i
+                data-lucide="file-plus-2"
+                class="h-4 w-4"
+                aria-hidden="true"
+            ></i>
+
+            <span>
+                Insérer des documents
+            </span>
+        </button>
+
+        <div class="flex items-center gap-1">
+
+            <button
+                type="button"
+                id="document-view-icons"
+                title="Mode icône"
+                aria-label="Mode icône"
+                class="inline-flex h-8 w-8 items-center
+                    justify-center rounded-md
+                    text-axcio-text-muted
+                    hover:bg-axcio-surface-alt
+                    dark:text-axcio-text-muted-dark
+                    dark:hover:bg-axcio-surface-alt-dark"
+            >
+                <i
+                    data-lucide="grid-2x2"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+            </button>
+
+            <button
+                type="button"
+                id="document-view-list"
+                title="Mode ligne"
+                aria-label="Mode ligne"
+                class="inline-flex h-8 w-8 items-center
+                    justify-center rounded-md"
+            >
+                <i
+                    data-lucide="list"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+            </button>
+
+        </div>
+    </div>
+
     {# -------------------------------------------------------------- #}
     {# En-tête des colonnes                                           #}
     {# -------------------------------------------------------------- #}
 
-    {% if child_folders or documents %}
+    {% if documents %}
 
         <div
+            data-document-list-header
+
             class="grid min-h-9
                    items-center border-b
                    border-axcio-border-light
@@ -51,69 +121,6 @@
 
     {% endif %}
 
-
-    {# -------------------------------------------------------------- #}
-    {# Dossiers                                                       #}
-    {# -------------------------------------------------------------- #}
-
-    {% for folder in child_folders %}
-
-        <a
-            href="{% url 'documents:folder' project.pk folder.pk %}"
-
-            data-folder-context
-            data-folder-id="{{ folder.pk }}"
-            data-folder-name="{{ folder.name }}"
-            data-folder-create-url="{% url 'documents:folder-create' project.pk %}"
-            data-folder-rename-url="{% url 'documents:folder-rename' project.pk folder.pk %}"
-            data-folder-delete-url="{% url 'documents:folder-delete' project.pk folder.pk %}"
-
-            class="grid min-h-9
-                   items-center border-b
-                   border-axcio-border-light
-                   px-3 text-sm
-                   hover:bg-axcio-surface-alt
-                   dark:border-axcio-border-dark
-                   dark:hover:bg-axcio-surface-alt-dark"
-            style="grid-template-columns: 2rem minmax(0, 1fr) 12rem 7rem 10rem;"       
-        >
-            <i
-                data-lucide="folder"
-                class="h-4 w-4 text-amber-500"
-            ></i>
-
-            <span class="truncate font-medium">
-                {{ folder.name }}
-            </span>
-
-            <span
-                class="text-xs
-                       text-axcio-text-muted
-                       dark:text-axcio-text-muted-dark"
-            >
-                Dossier
-            </span>
-
-            <span
-                class="text-xs
-                       text-axcio-text-muted
-                       dark:text-axcio-text-muted-dark"
-            >
-                —
-            </span>
-
-            <span
-                class="text-right text-xs
-                       text-axcio-text-muted
-                       dark:text-axcio-text-muted-dark"
-            >
-                {{ folder.updated_at|date:"d/m/Y H:i" }}
-            </span>
-        </a>
-
-    {% endfor %}
-
-
     {# -------------------------------------------------------------- #}
     {# Documents                                                      #}
     {# -------------------------------------------------------------- #}
@@ -122,6 +129,9 @@
 
         <div
             data-document-row
+            data-document-list-item
+
+            data-document-item-kind="document"
             data-document-id="{{ document.pk }}"
             data-document-title="{{ document.title }}"
             data-document-folder-id="{{ document.folder_id }}"
@@ -232,10 +242,16 @@
 
             {% endif %}
 
-            <span class="truncate">
-                {{ document.title }}
-            </span>
-
+            <span
+                data-document-name
+                title="{% if document.current_version %}{{ document.current_version.original_filename }}{% else %}{{ document.title }}{% endif %}"
+            >
+                {% if document.current_version %}
+                    {{ document.current_version.original_filename }}
+                {% else %}
+                    {{ document.title }}
+                {% endif %}
+            </span>            
             <span
                 class="truncate text-xs
                        text-axcio-text-muted
@@ -272,7 +288,7 @@
     {# Dossier vide                                                   #}
     {# -------------------------------------------------------------- #}
 
-    {% if not child_folders and not documents %}
+    {% if not documents %}
 
         <div
             class="flex h-40 items-center

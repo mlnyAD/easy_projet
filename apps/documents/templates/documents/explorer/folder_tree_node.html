@@ -11,6 +11,7 @@
         data-folder-create-url="{% url 'documents:folder-create' project.pk %}"
         data-folder-rename-url="{% url 'documents:folder-rename' project.pk folder.pk %}"
         data-folder-delete-url="{% url 'documents:folder-delete' project.pk folder.pk %}"
+        data-folder-move-url="{% url 'documents:folder-move' project.pk folder.pk %}"
 
         class="
             flex h-8 items-center gap-2
@@ -19,7 +20,7 @@
             dark:hover:bg-axcio-surface-alt-dark
 
             {% if current_folder and folder.pk == current_folder.pk %}
-                bg-axcio-dark text-white font-medium
+                bg-axcio-light text-white font-medium
                 dark:bg-axcio-light dark:text-white
             {% else %}
                 text-axcio-text
@@ -31,23 +32,31 @@
             <i
                 data-lucide="{% if folder.pk in open_folder_ids %}chevron-down{% else %}chevron-right{% endif %}"
                 class="h-3.5 w-3.5 shrink-0
-                       text-axcio-text-muted
-                       dark:text-axcio-text-muted-dark"
+                       {% if current_folder and folder.pk == current_folder.pk %}
+                           text-current
+                       {% else %}
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark
+                       {% endif %}"
             ></i>
         {% else %}
             <span class="w-3.5 shrink-0"></span>
         {% endif %}
 
         <i
-            data-lucide="folder"
-            class="h-4 w-4 shrink-0"
+            data-lucide="{% if folder.pk in open_folder_ids %}folder-open{% else %}folder{% endif %}"
+            class="h-4 w-4 shrink-0
+                {% if current_folder and folder.pk == current_folder.pk %}
+                    text-current
+                {% else %}
+                    text-axcio-text
+                    dark:text-axcio-text-dark
+                {% endif %}"
         ></i>
-
         <span class="truncate">
             {{ folder.name }}
         </span>
     </a>
-
 
     {% if folder.pk in open_folder_ids %}
 

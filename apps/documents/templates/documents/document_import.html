@@ -1,9 +1,10 @@
 
 
 {% extends "layout/base.html" %}
+{% load ep_forms %}
 
 {% block title %}
-Importer un PDF
+Importer un fichier
 {% endblock %}
 
 {% block content %}
@@ -17,7 +18,7 @@ Importer un PDF
                    text-axcio-text
                    dark:text-axcio-text-dark"
         >
-            Importer un PDF
+            Importer un fichier
         </h1>
 
         <p
@@ -54,7 +55,54 @@ Importer un PDF
                     {{ field.label }}
                 </label>
 
-                {{ field }}
+                {% if field.name == "file" %}
+
+                    <div>
+                        <input
+                            id="{{ field.id_for_label }}"
+                            type="file"
+                            name="{{ field.html_name }}"
+                            required
+                            class="sr-only"
+                            data-document-file-input
+                        >
+
+                        <label
+                            for="{{ field.id_for_label }}"
+                            class="inline-flex cursor-pointer items-center gap-2
+                                rounded-md border
+                                border-axcio-border-light
+                                bg-axcio-surface-alt
+                                px-3 py-2 text-sm font-medium
+                                text-axcio-text
+                                hover:bg-axcio-border-light
+                                dark:border-axcio-border-dark
+                                dark:bg-axcio-surface-alt-dark
+                                dark:text-axcio-text-dark
+                                dark:hover:bg-axcio-border-dark"
+                        >
+                            Choisir un fichier
+                        </label>
+
+                        <p
+                            class="mt-2 break-all text-sm
+                                text-axcio-text-muted
+                                dark:text-axcio-text-muted-dark"
+                            data-document-file-name
+                        >
+                            Aucun fichier sélectionné
+                        </p>
+                    </div>
+
+                {% elif field.name == "document_type" or field.name == "status" %}
+
+                    {% include "edf/form/fields/select.html" with bound_field=field field=field.field %}
+
+                {% else %}
+
+                    {{ field }}
+
+                {% endif %}
 
                 {% if field.help_text %}
                     <p
@@ -104,6 +152,80 @@ Importer un PDF
 
     </form>
 
+    {% include "edf/catalogs/incremental_dialog.html" %}
+
 </div>
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+
+            const fileInput =
+                document.querySelector(
+                    "[data-document-file-input]"
+                );
+
+            const fileName =
+                document.querySelector(
+                    "[data-document-file-name]"
+                );
+
+            if (!fileInput || !fileName) {
+                return;
+            }
+
+            fileInput.addEventListener(
+                "change",
+                () => {
+
+                    const file =
+                        fileInput.files[0];
+
+                    fileName.textContent =
+                        file
+                            ? file.name
+                            : "Aucun fichier sélectionné";
+                }
+            );
+        }
+    );
+</script>
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+
+            const fileInput =
+                document.querySelector(
+                    "[data-document-file-input]"
+                );
+
+            const fileName =
+                document.querySelector(
+                    "[data-document-file-name]"
+                );
+
+            if (!fileInput || !fileName) {
+                return;
+            }
+
+            fileInput.addEventListener(
+                "change",
+                () => {
+
+                    const file =
+                        fileInput.files[0];
+
+                    fileName.textContent =
+                        file
+                            ? file.name
+                            : "Aucun fichier sélectionné";
+                }
+            );
+        }
+    );
+</script>
 
 {% endblock %}

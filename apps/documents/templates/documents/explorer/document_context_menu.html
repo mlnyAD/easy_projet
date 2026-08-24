@@ -1,0 +1,260 @@
+
+
+<div
+    id="content-context-menu"
+    class="fixed z-50 hidden min-w-60
+           rounded-lg border
+           border-axcio-border-light
+           bg-axcio-page py-1 shadow-lg
+           dark:border-axcio-border-dark
+           dark:bg-axcio-page-dark"
+>
+    {% if current_folder %}
+
+        <button
+            type="button"
+            id="content-import-document"
+            class="flex w-full items-center gap-2
+                   px-3 py-2 text-left text-sm
+                   text-axcio-text
+                   hover:bg-axcio-surface-alt
+                   dark:text-axcio-text-dark
+                   dark:hover:bg-axcio-surface-alt-dark"
+        >
+            <i
+                data-lucide="upload"
+                class="h-4 w-4"
+            ></i>
+
+            Importer un fichier
+        </button>
+
+    {% else %}
+
+        <button
+            type="button"
+            disabled
+            title="Sélectionnez d'abord un répertoire"
+            class="flex w-full cursor-not-allowed items-center gap-2
+                   px-3 py-2 text-left text-sm italic
+                   text-axcio-text-muted opacity-50
+                   dark:text-axcio-text-muted-dark"
+        >
+            <i
+                data-lucide="upload"
+                class="h-4 w-4"
+            ></i>
+
+            Importer un fichier
+        </button>
+
+    {% endif %}
+
+    <div
+        class="my-1 border-t
+               border-axcio-border-light
+               dark:border-axcio-border-dark"
+    ></div>
+
+    <button
+        type="button"
+        disabled
+        title="Fonction à venir"
+        class="flex w-full cursor-not-allowed items-center gap-2
+               px-3 py-2 text-left text-sm italic
+               text-axcio-text-muted opacity-50
+               dark:text-axcio-text-muted-dark"
+    >
+        <i
+            data-lucide="file-text"
+            class="h-4 w-4"
+        ></i>
+
+        Nouveau document Word
+    </button>
+
+    <button
+        type="button"
+        disabled
+        title="Fonction à venir"
+        class="flex w-full cursor-not-allowed items-center gap-2
+               px-3 py-2 text-left text-sm italic
+               text-axcio-text-muted opacity-50
+               dark:text-axcio-text-muted-dark"
+    >
+        <i
+            data-lucide="sheet"
+            class="h-4 w-4"
+        ></i>
+
+        Nouveau classeur Excel
+    </button>
+
+    <button
+        type="button"
+        disabled
+        title="Fonction à venir"
+        class="flex w-full cursor-not-allowed items-center gap-2
+               px-3 py-2 text-left text-sm italic
+               text-axcio-text-muted opacity-50
+               dark:text-axcio-text-muted-dark"
+    >
+        <i
+            data-lucide="presentation"
+            class="h-4 w-4"
+        ></i>
+
+        Nouvelle présentation PowerPoint
+    </button>
+</div>
+
+
+<div
+    id="document-context-menu"
+    class="fixed z-50 hidden min-w-52
+           rounded-lg border
+           border-axcio-border-light
+           bg-axcio-page py-1 shadow-lg
+           dark:border-axcio-border-dark
+           dark:bg-axcio-page-dark"
+>
+    <button
+        type="button"
+        data-document-action="open"
+        class="flex w-full items-center gap-2
+               px-3 py-2 text-left text-sm
+               text-axcio-text
+               hover:bg-axcio-surface-alt
+               dark:text-axcio-text-dark
+               dark:hover:bg-axcio-surface-alt-dark"
+    >
+        <i
+            data-lucide="external-link"
+            class="h-4 w-4"
+        ></i>
+
+        Ouvrir
+    </button>
+
+    <button
+        type="button"
+        data-document-action="download"
+        class="flex w-full items-center gap-2
+               px-3 py-2 text-left text-sm
+               text-axcio-text
+               hover:bg-axcio-surface-alt
+               dark:text-axcio-text-dark
+               dark:hover:bg-axcio-surface-alt-dark"
+    >
+        <i
+            data-lucide="download"
+            class="h-4 w-4"
+        ></i>
+
+        Télécharger
+    </button>
+
+    <button
+        type="button"
+        data-document-action="rename"
+        class="flex w-full items-center gap-2
+               px-3 py-2 text-left text-sm
+               text-axcio-text
+               hover:bg-axcio-surface-alt
+               dark:text-axcio-text-dark
+               dark:hover:bg-axcio-surface-alt-dark"
+    >
+        <i
+            data-lucide="pencil"
+            class="h-4 w-4"
+        ></i>
+
+        Renommer
+    </button>
+
+    <button
+        type="button"
+        data-document-action="copy"
+        class="flex w-full items-center gap-2
+               px-3 py-2 text-left text-sm
+               text-axcio-text
+               hover:bg-axcio-surface-alt
+               dark:text-axcio-text-dark
+               dark:hover:bg-axcio-surface-alt-dark"
+    >
+        <i
+            data-lucide="copy"
+            class="h-4 w-4"
+        ></i>
+
+        Copier
+    </button>
+
+    <button
+        type="button"
+        data-document-action="move"
+        class="flex w-full items-center gap-2
+               px-3 py-2 text-left text-sm
+               text-axcio-text
+               hover:bg-axcio-surface-alt
+               dark:text-axcio-text-dark
+               dark:hover:bg-axcio-surface-alt-dark"
+    >
+        <i
+            data-lucide="folder-input"
+            class="h-4 w-4"
+        ></i>
+
+        Déplacer
+    </button>
+
+    <div
+        class="my-1 border-t
+               border-axcio-border-light
+               dark:border-axcio-border-dark"
+    ></div>
+
+    <button
+        type="button"
+        data-document-action="favorite"
+        class="flex w-full items-center gap-2
+               px-3 py-2 text-left text-sm
+               text-axcio-text
+               hover:bg-axcio-surface-alt
+               dark:text-axcio-text-dark
+               dark:hover:bg-axcio-surface-alt-dark"
+    >
+        <i
+            data-document-favorite-icon
+            data-lucide="star"
+            class="h-4 w-4"
+        ></i>
+
+        <span data-document-favorite-label>
+            Ajouter aux favoris
+        </span>
+    </button>
+
+    <div
+        class="my-1 border-t
+               border-axcio-border-light
+               dark:border-axcio-border-dark"
+    ></div>
+
+    <button
+        type="button"
+        data-document-action="delete"
+        class="flex w-full items-center gap-2
+               px-3 py-2 text-left text-sm
+               text-red-600
+               hover:bg-red-50
+               dark:hover:bg-red-950/30"
+    >
+        <i
+            data-lucide="trash-2"
+            class="h-4 w-4"
+        ></i>
+
+        Supprimer
+    </button>
+</div>
