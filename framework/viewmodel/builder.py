@@ -121,6 +121,11 @@ class ListViewModelBuilder:
         return ViewRow(
             cells=cells,
             source_object=source_object,
+            css_class=getattr(
+                source_object,
+                "row_css_class",
+                "",
+            ),
         )
 
     def _build_cell(

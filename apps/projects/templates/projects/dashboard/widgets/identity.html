@@ -1,0 +1,135 @@
+
+
+<div
+    class="flex h-full min-h-40 flex-col
+           rounded-xl border
+           border-axcio-border-light
+           bg-axcio-surface p-3
+           shadow-sm
+           dark:border-axcio-border-dark
+           dark:bg-axcio-surface-dark"
+>
+    <h2
+        class="mb-2 text-sm font-semibold
+               text-axcio-text
+               dark:text-axcio-text-dark"
+    >
+        Identité projet
+    </h2>
+
+    <div class="flex min-w-0 gap-3">
+
+        <a
+            href="{% url 'projects:workspace' project.pk %}"
+            title="Afficher le projet"
+            class="group h-16 w-20 shrink-0
+                   overflow-hidden rounded-lg border
+                   border-axcio-border-light
+                   bg-axcio-surface-alt
+                   dark:border-axcio-border-dark
+                   dark:bg-axcio-surface-alt-dark"
+        >
+            {% if project.project_photo %}
+
+                <img
+                    src="{{ project.project_photo.url }}"
+                    alt="{{ project.name }}"
+                    class="h-full w-full object-cover
+                           transition-transform
+                           group-hover:scale-105"
+                >
+
+            {% else %}
+
+                <div
+                    class="flex h-full w-full
+                           items-center justify-center"
+                >
+                    <i
+                        data-lucide="image"
+                        class="h-5 w-5
+                               text-axcio-text-muted
+                               dark:text-axcio-text-muted-dark"
+                    ></i>
+                </div>
+
+            {% endif %}
+        </a>
+
+
+        <div class="min-w-0 flex-1">
+
+            <div
+                class="truncate text-sm font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+                title="{{ project.name }}"
+            >
+                {{ project.name }}
+            </div>
+
+            <div
+                class="truncate text-xs
+                       text-axcio-text-secondary
+                       dark:text-axcio-text-secondary-dark"
+                title="{{ project.owner_company }}"
+            >
+                {{ project.owner_company|default:"Client non renseigné" }}
+            </div>
+
+            <div
+                class="truncate text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                {% if project.city %}
+                    {{ project.postal_code }}
+                    {{ project.city }}
+                {% else %}
+                    Adresse non renseignée
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="mt-3 space-y-1 text-xs
+               text-axcio-text-secondary
+               dark:text-axcio-text-secondary-dark"
+    >
+
+        <div class="truncate">
+            {% if project.start_date %}
+                {{ project.start_date|date:"d/m/Y" }}
+            {% else %}
+                —
+            {% endif %}
+
+            <span class="mx-1">→</span>
+
+            {% if project.end_date %}
+                {{ project.end_date|date:"d/m/Y" }}
+            {% else %}
+                —
+            {% endif %}
+        </div>
+
+        <div class="flex min-w-0 gap-3">
+
+            <span class="truncate">
+                {{ project.status.label|default:"Statut non renseigné" }}
+            </span>
+
+            <span class="truncate">
+                CP :
+                {{ project.project_manager|default:"—" }}
+            </span>
+
+        </div>
+
+    </div>
+
+</div>

@@ -14,12 +14,19 @@
     const labelInput = dialog.querySelector(
         "[data-catalog-dialog-label]"
     );
+
     const submitButton = dialog.querySelector(
         "[data-catalog-dialog-submit]"
     );
+
+    const submitLabel = dialog.querySelector(
+        "[data-catalog-dialog-submit-label]"
+    );
+
     const catalogCodeElement = dialog.querySelector(
         "[data-catalog-dialog-code]"
     );
+
     const errorElement = dialog.querySelector(
         "[data-catalog-dialog-error]"
     );
@@ -31,24 +38,42 @@
     let catalogCode = null;
     let isSubmitting = false;
 
+
+    /*
+     * Retourne le jeton CSRF du formulaire courant.
+     */
     function getCsrfToken() {
         const tokenInput = document.querySelector(
             '[name="csrfmiddlewaretoken"]'
         );
 
-        return tokenInput ? tokenInput.value : "";
+        return tokenInput
+            ? tokenInput.value
+            : "";
     }
 
+
+    /*
+     * Masque et réinitialise le message d'erreur.
+     */
     function clearError() {
         errorElement.textContent = "";
-        errorElement.classList.add("hidden");
+        errorElement.hidden = true;
     }
 
+
+    /*
+     * Affiche un message d'erreur dans le dialogue.
+     */
     function showError(message) {
         errorElement.textContent = message;
-        errorElement.classList.remove("hidden");
+        errorElement.hidden = false;
     }
 
+
+    /*
+     * Active ou désactive le bouton de création.
+     */
     function updateSubmitState() {
         submitButton.disabled = (
             isSubmitting
@@ -56,47 +81,106 @@
         );
     }
 
-    function openDialog(button) {
-        catalogCode = button.dataset.catalogCode || "";
-        sourceFieldId = button.dataset.targetField || "";
-        sourceButton = button;
 
-        catalogCodeElement.textContent = catalogCode;
-        labelInput.value = "";
-
-        clearError();
-
-        isSubmitting = false;
-        updateSubmitState();
-
-        dialog.classList.remove("hidden");
-        dialog.classList.add("flex");
-        dialog.setAttribute("aria-hidden", "false");
-
-        document.body.classList.add("overflow-hidden");
-
-        window.setTimeout(function () {
-            labelInput.focus();
-        }, 0);
+    /*
+     * Modifie uniquement le libellé du bouton.
+     *
+     * La structure HTML du composant ep-button reste intacte.
+     */
+    function setSubmitLabel(label) {
+        if (submitLabel) {
+            submitLabel.textContent = label;
+        }
     }
 
-    function closeDialog(options = {}) {
-        const restoreFocus = options.restoreFocus !== false;
 
-        dialog.classList.add("hidden");
-        dialog.classList.remove("flex");
-        dialog.setAttribute("aria-hidden", "true");
+    /*
+     * Ouvre le dialogue pour le catalogue demandé.
+     */
+    function openDialog(button) {
+        catalogCode = (
+            button.dataset.catalogCode
+            || ""
+        );
 
-        document.body.classList.remove("overflow-hidden");
+        sourceFieldId = (
+            button.dataset.targetField
+            || ""
+        );
+
+        sourceButton = button;
+
+        catalogCodeElement.textContent = (
+            catalogCode
+        );
 
         labelInput.value = "";
+
         clearError();
 
         isSubmitting = false;
-        submitButton.textContent = "Créer";
+
+        setSubmitLabel("Créer");
         updateSubmitState();
 
-        if (restoreFocus && sourceButton) {
+        dialog.classList.add(
+            "is-open"
+        );
+
+        dialog.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+        document.body.classList.add(
+            "ep-dialog-open"
+        );
+
+        window.setTimeout(
+            function () {
+                labelInput.focus();
+            },
+            0
+        );
+    }
+
+
+    /*
+     * Ferme le dialogue et réinitialise son état.
+     */
+    function closeDialog(
+        options = {}
+    ) {
+        const restoreFocus = (
+            options.restoreFocus !== false
+        );
+
+        dialog.classList.remove(
+            "is-open"
+        );
+
+        dialog.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        document.body.classList.remove(
+            "ep-dialog-open"
+        );
+
+        labelInput.value = "";
+
+        clearError();
+
+        isSubmitting = false;
+
+        setSubmitLabel("Créer");
+        updateSubmitState();
+
+        if (
+            restoreFocus
+            && sourceButton
+        ) {
             sourceButton.focus();
         }
 
@@ -105,6 +189,11 @@
         sourceButton = null;
     }
 
+
+    /*
+     * Ajoute la nouvelle valeur au select d'origine
+     * puis la sélectionne.
+     */
     function appendAndSelectValue(value) {
         const select = document.getElementById(
             sourceFieldId
@@ -118,9 +207,14 @@
 
         const existingOption = Array.from(
             select.options
-        ).find(function (option) {
-            return option.value === value.id;
-        });
+        ).find(
+            function (option) {
+                return (
+                    option.value
+                    === value.id
+                );
+            }
+        );
 
         if (existingOption) {
             existingOption.selected = true;
@@ -136,20 +230,36 @@
         }
 
         select.dispatchEvent(
-            new Event("change", {
-                bubbles: true,
-            })
+            new Event(
+                "change",
+                {
+                    bubbles: true,
+                }
+            )
         );
 
         return select;
     }
 
-    async function readJsonResponse(response) {
-        const contentType = response.headers.get(
-            "content-type"
-        ) || "";
 
-        if (!contentType.includes("application/json")) {
+    /*
+     * Vérifie que la réponse serveur contient du JSON.
+     */
+    async function readJsonResponse(
+        response
+    ) {
+        const contentType = (
+            response.headers.get(
+                "content-type"
+            )
+            || ""
+        );
+
+        if (
+            !contentType.includes(
+                "application/json"
+            )
+        ) {
             throw new Error(
                 "Le serveur a retourné une réponse inattendue."
             );
@@ -158,8 +268,14 @@
         return response.json();
     }
 
+
+    /*
+     * Crée une nouvelle valeur de catalogue.
+     */
     async function createValue() {
-        const label = labelInput.value.trim();
+        const label = (
+            labelInput.value.trim()
+        );
 
         if (
             !label
@@ -172,7 +288,11 @@
         clearError();
 
         isSubmitting = true;
-        submitButton.textContent = "Création…";
+
+        setSubmitLabel(
+            "Création…"
+        );
+
         updateSubmitState();
 
         try {
@@ -182,30 +302,45 @@
                     method: "POST",
                     mode: "same-origin",
                     credentials: "same-origin",
+
                     headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": getCsrfToken(),
+                        "Content-Type": (
+                            "application/json"
+                        ),
+                        "X-CSRFToken": (
+                            getCsrfToken()
+                        ),
                     },
+
                     body: JSON.stringify({
-                        catalog_code: catalogCode,
+                        catalog_code: (
+                            catalogCode
+                        ),
                         label: label,
                     }),
                 }
             );
 
-            const payload = await readJsonResponse(
-                response
+            const payload = (
+                await readJsonResponse(
+                    response
+                )
             );
 
-            if (!response.ok || !payload.success) {
+            if (
+                !response.ok
+                || !payload.success
+            ) {
                 throw new Error(
                     payload.error
                     || "La création a échoué."
                 );
             }
 
-            const select = appendAndSelectValue(
-                payload.value
+            const select = (
+                appendAndSelectValue(
+                    payload.value
+                )
             );
 
             closeDialog({
@@ -213,39 +348,61 @@
             });
 
             select.focus();
+
         } catch (error) {
             showError(
                 error instanceof Error
                     ? error.message
-                    : "Une erreur inattendue est survenue."
+                    : (
+                        "Une erreur inattendue "
+                        + "est survenue."
+                    )
             );
+
         } finally {
             isSubmitting = false;
-            submitButton.textContent = "Créer";
+
+            setSubmitLabel(
+                "Créer"
+            );
+
             updateSubmitState();
         }
     }
 
+
+    /*
+     * Ouverture et fermeture depuis les boutons
+     * portant les attributs data-* EDF.
+     */
     document.addEventListener(
         "click",
         function (event) {
             const target = event.target;
 
-            if (!(target instanceof Element)) {
+            if (
+                !(target instanceof Element)
+            ) {
                 return;
             }
 
-            const openButton = target.closest(
-                "[data-catalog-increment-button]"
+            const openButton = (
+                target.closest(
+                    "[data-catalog-increment-button]"
+                )
             );
 
             if (openButton) {
-                openDialog(openButton);
+                openDialog(
+                    openButton
+                );
                 return;
             }
 
-            const closeButton = target.closest(
-                "[data-catalog-dialog-close]"
+            const closeButton = (
+                target.closest(
+                    "[data-catalog-dialog-close]"
+                )
             );
 
             if (closeButton) {
@@ -254,6 +411,11 @@
         }
     );
 
+
+    /*
+     * Actualisation de l'état du bouton
+     * pendant la saisie.
+     */
     labelInput.addEventListener(
         "input",
         function () {
@@ -262,6 +424,10 @@
         }
     );
 
+
+    /*
+     * Entrée valide directement la création.
+     */
     labelInput.addEventListener(
         "keydown",
         function (event) {
@@ -272,11 +438,16 @@
         }
     );
 
+
     submitButton.addEventListener(
         "click",
         createValue
     );
 
+
+    /*
+     * Un clic sur l'overlay ferme le dialogue.
+     */
     dialog.addEventListener(
         "click",
         function (event) {
@@ -286,13 +457,18 @@
         }
     );
 
+
+    /*
+     * La touche Échap ferme le dialogue ouvert.
+     */
     document.addEventListener(
         "keydown",
         function (event) {
             if (
                 event.key === "Escape"
-                && dialog.getAttribute("aria-hidden")
-                    === "false"
+                && dialog.getAttribute(
+                    "aria-hidden"
+                ) === "false"
             ) {
                 closeDialog();
             }

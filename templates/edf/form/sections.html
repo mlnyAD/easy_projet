@@ -3,49 +3,45 @@
 {% load ep_form_fields %}
 
 {% if form_view.sections %}
-    <div class="space-y-3">
+
+    <div class="ep-form-sections">
+
         {% for section in form_view.sections %}
-            <section
-                class="rounded-lg border
-                       border-axcio-border-light
-                       bg-axcio-surface
-                       px-4 py-3 shadow-sm
-                       dark:border-axcio-border-dark
-                       dark:bg-axcio-surface-dark"
-            >
+
+            <section class="ep-form-section">
+
                 {% if section.title or section.description %}
-                    <header class="mb-2">
+
+                    <header class="ep-form-section-header">
+
                         {% if section.title %}
-                            <h2
-                                class="text-sm font-semibold
-                                       text-axcio-text
-                                       dark:text-axcio-text-dark"
-                            >
+                            <h2 class="ep-form-section-title">
                                 {{ section.title }}
                             </h2>
                         {% endif %}
 
                         {% if section.description %}
-                            <p
-                                class="mt-0.5 text-xs
-                                       text-axcio-text-muted
-                                       dark:text-axcio-text-muted-dark"
-                            >
+                            <p class="ep-form-section-description">
                                 {{ section.description }}
                             </p>
                         {% endif %}
+
                     </header>
+
                 {% endif %}
 
-                <div
-                    class="grid grid-cols-1 gap-x-5 gap-y-1.5
-                           md:grid-cols-2"
-                >
+                <div class="ep-form-grid">
+
                     {% for field in section.fields %}
                         {% render_ep_field field %}
                     {% endfor %}
+
                 </div>
+
             </section>
+
         {% endfor %}
+
     </div>
+
 {% endif %}

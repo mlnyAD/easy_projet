@@ -8,6 +8,8 @@ from framework.form import (
     FormValidationError,
     FormValidator,
     SectionDefinition,
+    FormCollectionColumnDefinition,
+    FormCollectionDefinition,
 )
 
 
@@ -168,6 +170,178 @@ class FormValidatorTests(TestCase):
                         ),
                     ],
                 )
+            ],
+        )
+
+        with self.assertRaises(FormValidationError):
+            self.validator.validate(definition)
+            
+    def test_valid_collection_is_accepted(self):
+        definition = self.make_valid_definition()
+
+        definition = FormDefinition(
+            name=definition.name,
+            title=definition.title,
+            sections=definition.sections,
+            collections=[
+                FormCollectionDefinition(
+                    name="participants",
+                    title="Participants",
+                    columns=(
+                        FormCollectionColumnDefinition(
+                            name="user",
+                            label="Utilisateur",
+                            field_name="user",
+                        ),
+                    ),
+                ),
+            ],
+        )
+
+        self.validator.validate(definition)
+
+
+    def test_collection_without_column_is_rejected(self):
+        definition = FormDefinition(
+            name="meeting",
+            title="Réunion",
+            sections=[
+                SectionDefinition(
+                    title="Informations",
+                    fields=[
+                        FieldDefinition("name"),
+                    ],
+                )
+            ],
+            collections=[
+                FormCollectionDefinition(
+                    name="participants",
+                    title="Participants",
+                ),
+            ],
+        )
+
+        with self.assertRaises(FormValidationError):
+            self.validator.validate(definition)
+
+
+    def test_duplicate_collection_name_is_rejected(self):
+        collection = FormCollectionDefinition(
+            name="participants",
+            title="Participants",
+            columns=(
+                FormCollectionColumnDefinition(
+                    name="user",
+                    field_name="user",
+                ),
+            ),
+        )
+
+        definition = FormDefinition(
+            name="meeting",
+            title="Réunion",
+            sections=[
+                SectionDefinition(
+                    title="Informations",
+                    fields=[
+                        FieldDefinition("name"),
+                    ],
+                )
+            ],
+            collections=[
+                collection,
+                collection,
+            ],
+        )
+
+        with self.assertRaises(FormValidationError):
+            self.validator.validate(definition)
+
+
+    def test_collection_column_requires_source(self):
+        definition = FormDefinition(
+            name="task",
+            title="Tâche",
+            sections=[
+                SectionDefinition(
+                    title="Informations",
+                    fields=[
+                        FieldDefinition("name"),
+                    ],
+                )
+            ],
+            collections=[
+                FormCollectionDefinition(
+                    name="assignments",
+                    title="Personnel",
+                    columns=(
+                        FormCollectionColumnDefinition(
+                            name="role",
+                        ),
+                    ),
+                ),
+            ],
+        )
+
+        with self.assertRaises(FormValidationError):
+            self.validator.validate(definition)
+
+
+    def test_collection_column_cannot_define_two_sources(self):
+        definition = FormDefinition(
+            name="task",
+            title="Tâche",
+            sections=[
+                SectionDefinition(
+                    title="Informations",
+                    fields=[
+                        FieldDefinition("name"),
+                    ],
+                )
+            ],
+            collections=[
+                FormCollectionDefinition(
+                    name="assignments",
+                    title="Personnel",
+                    columns=(
+                        FormCollectionColumnDefinition(
+                            name="role",
+                            field_name="role",
+                            source_name="user.role",
+                        ),
+                    ),
+                ),
+            ],
+        )
+
+        with self.assertRaises(FormValidationError):
+            self.validator.validate(definition)
+
+
+    def test_invalid_collection_alignment_is_rejected(self):
+        definition = FormDefinition(
+            name="task",
+            title="Tâche",
+            sections=[
+                SectionDefinition(
+                    title="Informations",
+                    fields=[
+                        FieldDefinition("name"),
+                    ],
+                )
+            ],
+            collections=[
+                FormCollectionDefinition(
+                    name="assignments",
+                    title="Personnel",
+                    columns=(
+                        FormCollectionColumnDefinition(
+                            name="role",
+                            field_name="role",
+                            align="invalid",
+                        ),
+                    ),
+                ),
             ],
         )
 

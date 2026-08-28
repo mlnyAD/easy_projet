@@ -3,20 +3,22 @@
 """
 Tags de template des boutons Easy Projet.
 
-Ce module assure la liaison entre EPButton et le Design System.
-Il ne contient aucune règle métier.
+Ce module assure la liaison entre EPButton et le Design System EDF.
+
+Il ne contient :
+- aucune règle métier ;
+- aucune règle CSS ;
+- aucune classe Tailwind.
+
+La présentation visuelle est entièrement définie dans :
+
+    static/src/edf/buttons.css
 """
 
 from __future__ import annotations
 
 from django import template
 
-from common.ui.buttons import (
-    BUTTON_BASE_CLASSES,
-    BUTTON_CANCEL_CLASSES,
-    BUTTON_DANGER_CLASSES,
-    BUTTON_EXECUTE_CLASSES,
-)
 from framework.button import (
     ButtonAction,
     ButtonDefinition,
@@ -28,25 +30,13 @@ from framework.button import (
 register = template.Library()
 
 
-BUTTON_ACTION_CLASSES = {
-    ButtonAction.EXECUTE: BUTTON_EXECUTE_CLASSES,
-    ButtonAction.CANCEL: BUTTON_CANCEL_CLASSES,
-    ButtonAction.DANGER: BUTTON_DANGER_CLASSES,
-}
-
-
-def _join_classes(*classes: str) -> str:
-    """Assemble plusieurs chaînes de classes CSS."""
-    return " ".join(
-        css_class.strip()
-        for css_class in classes
-        if css_class and css_class.strip()
-    )
-
-
 def _resolve_action(
     action: ButtonAction | str,
 ) -> ButtonAction:
+    """
+    Normalise l'action fonctionnelle du bouton.
+    """
+
     if isinstance(action, ButtonAction):
         return action
 
@@ -56,13 +46,19 @@ def _resolve_action(
 def _resolve_button_type(
     button_type: ButtonType | str,
 ) -> ButtonType:
+    """
+    Normalise le type HTML du bouton.
+    """
+
     if isinstance(button_type, ButtonType):
         return button_type
 
     return ButtonType(button_type)
 
 
-@register.inclusion_tag("edf/components/button.html")
+@register.inclusion_tag(
+    "edf/components/button.html"
+)
 def ep_button(
     *,
     label: str,
@@ -77,10 +73,23 @@ def ep_button(
     Rend un bouton du Design System Easy Projet.
 
     Le paramètre action décrit l'intention fonctionnelle :
-    execute, cancel ou danger.
+    - execute ;
+    - cancel ;
+    - danger.
+
+    La présentation correspondant à cette intention est gérée
+    exclusivement par le CSS EDF.
     """
-    resolved_action = _resolve_action(action)
-    resolved_button_type = _resolve_button_type(button_type)
+
+    resolved_action = _resolve_action(
+        action
+    )
+
+    resolved_button_type = (
+        _resolve_button_type(
+            button_type
+        )
+    )
 
     button = EPButton(
         definition=ButtonDefinition(
@@ -94,17 +103,6 @@ def ep_button(
         ),
     )
 
-    action_classes = BUTTON_ACTION_CLASSES[button.action]
-
-    css_classes = _join_classes(
-        BUTTON_BASE_CLASSES,
-        action_classes,
-        "pointer-events-none opacity-50"
-        if button.disabled and button.is_link
-        else "",
-    )
-
     return {
         "button": button,
-        "css_classes": css_classes,
     }

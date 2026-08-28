@@ -1,0 +1,385 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Nouvelle action
+{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-4xl">
+
+    <form
+        method="post"
+        novalidate
+        class="space-y-4"
+    >
+        {% csrf_token %}
+
+        <div
+            class="rounded-xl border
+                   border-axcio-border-light
+                   bg-axcio-surface p-4
+                   shadow-sm
+                   dark:border-axcio-border-dark
+                   dark:bg-axcio-surface-dark"
+        >
+
+            <div class="mb-4">
+
+                <h1
+                    class="text-xl font-semibold
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    Nouvelle action
+                </h1>
+
+            </div>
+
+
+            {% if form.non_field_errors %}
+
+                <div
+                    class="mb-4 rounded-lg
+                           border border-red-300
+                           bg-red-50 p-3
+                           text-sm text-red-700"
+                >
+                    {{ form.non_field_errors }}
+                </div>
+
+            {% endif %}
+
+
+            <div class="grid gap-4 md:grid-cols-2">
+
+                <div class="md:col-span-2">
+
+                    <label
+                        for="{{ form.title.id_for_label }}"
+                        class="mb-1 block text-sm font-medium
+                               text-axcio-text
+                               dark:text-axcio-text-dark"
+                    >
+                        {{ form.title.label }}
+                    </label>
+
+                    {{ form.title }}
+
+                    {% for error in form.title.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="md:col-span-2">
+
+                    <label
+                        for="{{ form.details.id_for_label }}"
+                        class="mb-1 block text-sm font-medium
+                               text-axcio-text
+                               dark:text-axcio-text-dark"
+                    >
+                        {{ form.details.label }}
+                    </label>
+
+                    {{ form.details }}
+
+                    {% for error in form.details.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+
+                </div>
+
+
+                <div>
+
+                    <label
+                        for="{{ form.due_date.id_for_label }}"
+                        class="mb-1 block text-sm font-medium
+                               text-axcio-text
+                               dark:text-axcio-text-dark"
+                    >
+                        {{ form.due_date.label }}
+                    </label>
+
+                    {{ form.due_date }}
+
+                    {% for error in form.due_date.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+
+                </div>
+
+
+                <div>
+
+                    <label
+                        for="{{ form.origin.id_for_label }}"
+                        class="mb-1 block text-sm font-medium
+                               text-axcio-text
+                               dark:text-axcio-text-dark"
+                    >
+                        {{ form.origin.label }}
+                    </label>
+
+                    {{ form.origin }}
+
+                    {% for error in form.origin.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="md:col-span-2">
+
+                    <label
+                        for="{{ form.project.id_for_label }}"
+                        class="mb-1 block text-sm font-medium
+                               text-axcio-text
+                               dark:text-axcio-text-dark"
+                    >
+                        {{ form.project.label }}
+                    </label>
+
+                    {{ form.project }}
+
+                    {% for error in form.project.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="todo-recipients"
+            class="hidden rounded-xl border
+                   border-axcio-border-light
+                   bg-axcio-surface p-4
+                   shadow-sm
+                   dark:border-axcio-border-dark
+                   dark:bg-axcio-surface-dark"
+        >
+
+            <div class="mb-3">
+
+                <h2
+                    class="text-sm font-semibold
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    Destinataires
+                </h2>
+
+                <p
+                    class="mt-1 text-xs
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                >
+                    Indiquez les personnes concernées
+                    et leur rôle dans l'action.
+                </p>
+
+            </div>
+
+
+            {{ recipient_formset.management_form }}
+
+
+            {% if recipient_formset.non_form_errors %}
+
+                <div
+                    class="mb-3 rounded-lg
+                           border border-red-300
+                           bg-red-50 p-3
+                           text-sm text-red-700"
+                >
+                    {{ recipient_formset.non_form_errors }}
+                </div>
+
+            {% endif %}
+
+
+            <div class="space-y-2">
+
+                {% for recipient_form in recipient_formset %}
+
+                    <div
+                        class="grid items-end gap-3
+                               md:grid-cols-[1fr_14rem_auto]"
+                    >
+
+                        <div>
+
+                            <label
+                                for="{{ recipient_form.user.id_for_label }}"
+                                class="mb-1 block text-xs font-medium
+                                       text-axcio-text
+                                       dark:text-axcio-text-dark"
+                            >
+                                Destinataire
+                            </label>
+
+                            {{ recipient_form.user }}
+
+                            {% for error in recipient_form.user.errors %}
+                                <p class="mt-1 text-xs text-red-600">
+                                    {{ error }}
+                                </p>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <div>
+
+                            <label
+                                for="{{ recipient_form.role.id_for_label }}"
+                                class="mb-1 block text-xs font-medium
+                                       text-axcio-text
+                                       dark:text-axcio-text-dark"
+                            >
+                                Rôle
+                            </label>
+
+                            {{ recipient_form.role }}
+
+                            {% for error in recipient_form.role.errors %}
+                                <p class="mt-1 text-xs text-red-600">
+                                    {{ error }}
+                                </p>
+                            {% endfor %}
+
+                        </div>
+
+
+                        {% if recipient_form.DELETE %}
+
+                            <div class="pb-2">
+
+                                <label
+                                    class="flex items-center gap-2
+                                           text-xs
+                                           text-axcio-text-muted
+                                           dark:text-axcio-text-muted-dark"
+                                >
+                                    {{ recipient_form.DELETE }}
+                                    Supprimer
+                                </label>
+
+                            </div>
+
+                        {% endif %}
+
+
+                        {% for hidden in recipient_form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <div class="flex justify-end gap-3">
+
+            <a
+                href="{% url 'todos:list' %}"
+                class="inline-flex items-center justify-center
+                       rounded-lg border
+                       border-axcio-border-light
+                       px-4 py-2 text-sm font-medium
+                       text-axcio-text
+                       transition-colors
+                       hover:bg-axcio-surface-alt
+                       dark:border-axcio-border-dark
+                       dark:text-axcio-text-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
+            >
+                Annuler
+            </a>
+
+            <button
+                type="submit"
+                class="inline-flex items-center justify-center
+                       rounded-lg bg-axcio-light
+                       px-4 py-2
+                       text-sm font-medium text-white
+                       transition-colors
+                       hover:bg-axcio-light-hover
+                       focus:outline-none focus:ring-2
+                       focus:ring-axcio-light
+                       focus:ring-offset-2
+                       dark:focus:ring-offset-axcio-page-dark"
+            >
+                Enregistrer
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+            const origin =
+                document.getElementById(
+                    "{{ form.origin.id_for_label }}"
+                );
+
+            const recipients =
+                document.getElementById(
+                    "todo-recipients"
+                );
+
+            if (!origin || !recipients) {
+                return;
+            }
+
+            function updateRecipientsVisibility() {
+                const isAssigned =
+                    origin.value === "ASSIGNED";
+
+                recipients.classList.toggle(
+                    "hidden",
+                    !isAssigned
+                );
+            }
+
+            origin.addEventListener(
+                "change",
+                updateRecipientsVisibility
+            );
+
+            updateRecipientsVisibility();
+        }
+    );
+</script>
+
+{% endblock %}

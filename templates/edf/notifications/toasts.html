@@ -2,51 +2,46 @@
 
 {% if messages %}
     <div
-        class="pointer-events-none fixed right-4 top-4 z-50
-               flex w-full max-w-sm flex-col gap-2"
+        class="ep-toast-container"
         aria-live="polite"
         aria-relevant="additions"
         data-toast-container
     >
         {% for message in messages %}
             <div
-                class="pointer-events-auto overflow-hidden rounded-lg
-                       border opacity-0 shadow-lg
-                       transition-[opacity,transform] duration-200 ease-out
+                class="
+                    ep-toast
 
-                       {% if message.tags == 'success' %}
-                           border-axcio-success
-                           bg-axcio-success-soft
-                           dark:bg-axcio-success-soft-dark
-                       {% elif message.tags == 'error' %}
-                           border-axcio-danger
-                           bg-axcio-danger-soft
-                           dark:bg-axcio-danger-soft-dark
-                       {% elif message.tags == 'warning' %}
-                           border-axcio-warning
-                           bg-axcio-warning-soft
-                           dark:bg-axcio-warning-soft-dark
-                       {% else %}
-                           border-axcio-info
-                           bg-axcio-info-soft
-                           dark:bg-axcio-info-soft-dark
-                       {% endif %}"
+                    {% if message.tags == 'success' %}
+                        ep-toast-success
+                    {% elif message.tags == 'error' %}
+                        ep-toast-error
+                    {% elif message.tags == 'warning' %}
+                        ep-toast-warning
+                    {% else %}
+                        ep-toast-info
+                    {% endif %}
+                "
                 role="{% if message.tags == 'error' %}alert{% else %}status{% endif %}"
                 data-toast
                 data-toast-duration="5000"
             >
-                <div class="flex items-start gap-3 px-4 py-3">
+                <div class="ep-toast-content">
+
                     <div
-                        class="mt-0.5 shrink-0
-                               {% if message.tags == 'success' %}
-                                   text-axcio-success
-                               {% elif message.tags == 'error' %}
-                                   text-axcio-danger
-                               {% elif message.tags == 'warning' %}
-                                   text-axcio-warning
-                               {% else %}
-                                   text-axcio-info
-                               {% endif %}"
+                        class="
+                            ep-toast-icon
+
+                            {% if message.tags == 'success' %}
+                                ep-toast-icon-success
+                            {% elif message.tags == 'error' %}
+                                ep-toast-icon-error
+                            {% elif message.tags == 'warning' %}
+                                ep-toast-icon-warning
+                            {% else %}
+                                ep-toast-icon-info
+                            {% endif %}
+                        "
                         aria-hidden="true"
                     >
                         {% if message.tags == "success" %}
@@ -72,12 +67,8 @@
                         {% endif %}
                     </div>
 
-                    <div class="min-w-0 flex-1">
-                        <p
-                            class="text-sm font-medium
-                                   text-axcio-text
-                                   dark:text-axcio-text-dark"
-                        >
+                    <div class="ep-toast-body">
+                        <p class="ep-toast-title">
                             {% if message.tags == "success" %}
                                 Opération réussie
                             {% elif message.tags == "error" %}
@@ -89,28 +80,14 @@
                             {% endif %}
                         </p>
 
-                        <p
-                            class="mt-0.5 text-sm
-                                   text-axcio-text-secondary
-                                   dark:text-axcio-text-secondary-dark"
-                        >
+                        <p class="ep-toast-message">
                             {{ message }}
                         </p>
                     </div>
 
                     <button
                         type="button"
-                        class="inline-flex h-7 w-7 shrink-0 items-center
-                               justify-center rounded-md
-                               text-axcio-text-muted
-                               transition-colors
-                               hover:bg-black/5
-                               hover:text-axcio-text
-                               focus:outline-none focus:ring-2
-                               focus:ring-axcio-light
-                               dark:text-axcio-text-muted-dark
-                               dark:hover:bg-white/10
-                               dark:hover:text-axcio-text-dark"
+                        class="ep-toast-close"
                         aria-label="Fermer la notification"
                         data-toast-close
                     >
@@ -120,19 +97,23 @@
                             aria-hidden="true"
                         ></i>
                     </button>
+
                 </div>
 
                 <div
-                    class="h-0.5 origin-left
-                           {% if message.tags == 'success' %}
-                               bg-axcio-success
-                           {% elif message.tags == 'error' %}
-                               bg-axcio-danger
-                           {% elif message.tags == 'warning' %}
-                               bg-axcio-warning
-                           {% else %}
-                               bg-axcio-info
-                           {% endif %}"
+                    class="
+                        ep-toast-progress
+
+                        {% if message.tags == 'success' %}
+                            ep-toast-progress-success
+                        {% elif message.tags == 'error' %}
+                            ep-toast-progress-error
+                        {% elif message.tags == 'warning' %}
+                            ep-toast-progress-warning
+                        {% else %}
+                            ep-toast-progress-info
+                        {% endif %}
+                    "
                     aria-hidden="true"
                     data-toast-progress
                 ></div>

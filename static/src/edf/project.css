@@ -1,2 +1,53 @@
 
 
+/* ==========================================================================
+   EASY PROJET UI - COMPOSANTS SPÉCIFIQUES PROJET
+   ========================================================================== */
+
+/*
+ * project-action-card
+ * Carte d'action utilisée dans l'espace projet.
+ *
+ * Utilisation :
+ * - accès rapide aux fonctions du projet ;
+ * - navigation vers les transactions associées.
+ *
+ * Ce composant reste volontairement spécifique au projet et ne fait pas
+ * partie des cartes génériques EDF.
+ */
+.project-action-card {
+    display: flex;
+    min-height: 6rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--color-axcio-border-light);
+    border-radius: 0.75rem;
+    background-color: var(--color-axcio-surface);
+    padding: 1rem;
+    text-align: center;
+    color: var(--color-axcio-dark);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition:
+        background-color 150ms,
+        border-color 150ms,
+        transform 150ms;
+}
+
+.project-action-card:hover {
+    border-color: var(--color-axcio-light);
+    background-color: var(--color-axcio-input);
+    transform: translateY(-1px);
+}
+
+.dark .project-action-card {
+    border-color: var(--color-axcio-border-dark);
+    background-color: var(--color-axcio-surface-dark);
+    color: var(--color-axcio-light);
+}
+
+.dark .project-action-card:hover {
+    background-color: var(--color-axcio-surface-alt-dark);
+}

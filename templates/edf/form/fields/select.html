@@ -4,7 +4,12 @@
 
 {% if bound_field %}
 
+    {# =============================================================== #}
+    {# Champ de sélection Django lié                                   #}
+    {# =============================================================== #}
+
     <div
+        class="ep-catalog-field"
         data-catalog-field
         {% if field.catalog_code %}
             data-catalog-code="{{ field.catalog_code }}"
@@ -13,24 +18,16 @@
         data-catalog-incremental="{{ field.catalog_is_incremental|yesno:'true,false' }}"
         data-catalog-allows-increment="{{ field.allows_catalog_increment|yesno:'true,false' }}"
     >
-        <div class="flex items-end gap-2">
-            <div class="flex-1">
+        <div class="ep-select-layout">
+
+            <div class="ep-select-control">
                 {% ep_form_field bound_field %}
             </div>
 
             {% if field.allows_catalog_increment %}
                 <button
                     type="button"
-                    class="inline-flex h-10 w-10 shrink-0 items-center
-                           justify-center rounded-lg border
-                           border-axcio-dark bg-axcio-light
-                           text-xl font-medium text-white
-                           transition-colors
-                           hover:bg-axcio-light-hover
-                           focus:outline-none focus:ring-2
-                           focus:ring-axcio-light
-                           focus:ring-offset-2
-                           dark:focus:ring-offset-axcio-page-dark"
+                    class="ep-catalog-add-button"
                     title="Ajouter une valeur"
                     aria-label="Ajouter une valeur"
                     data-catalog-increment-button
@@ -40,62 +37,49 @@
                     <span aria-hidden="true">+</span>
                 </button>
             {% endif %}
+
         </div>
     </div>
 
 {% else %}
 
-    <div class="space-y-2">
-        <label
-            for="id_{{ field.name }}"
-            class="block text-sm font-medium
-                   text-axcio-text-secondary
-                   dark:text-axcio-text-secondary-dark"
-        >
-            {{ field.label }}
+    {# =============================================================== #}
+    {# Champ de sélection EDF autonome                                 #}
+    {# =============================================================== #}
 
-            {% if field.required %}
-                <span
-                    class="text-axcio-danger"
-                    aria-hidden="true"
-                >
-                    *
-                </span>
+    <div class="ep-field">
 
-                <span class="sr-only">
-                    Champ obligatoire
-                </span>
-            {% endif %}
-        </label>
+        <div class="ep-field-label-row">
 
-        <div class="flex items-end gap-2">
-            <div class="flex-1">
+            <label
+                for="id_{{ field.name }}"
+                class="ep-field-label"
+            >
+                {{ field.label }}
+
+                {% if field.required %}
+                    <span
+                        class="ep-field-required"
+                        aria-hidden="true"
+                    >
+                        *
+                    </span>
+
+                    <span class="sr-only">
+                        Champ obligatoire
+                    </span>
+                {% endif %}
+            </label>
+
+        </div>
+
+        <div class="ep-select-layout">
+
+            <div class="ep-select-control">
                 <select
                     id="id_{{ field.name }}"
                     name="{{ field.name }}"
-                    class="
-                        block w-full rounded-lg border
-                        border-axcio-border
-                        bg-axcio-input
-                        px-3 py-2 pe-9
-                        text-sm text-axcio-text
-                        shadow-sm transition
-                        focus:border-axcio-dark
-                        focus:outline-none
-                        focus:ring-2
-                        focus:ring-axcio-dark/20
-                        disabled:cursor-not-allowed
-                        disabled:bg-axcio-input-disabled
-                        disabled:text-axcio-text-muted
-                        disabled:opacity-100
-                        dark:border-axcio-border-dark
-                        dark:bg-axcio-input-dark
-                        dark:text-axcio-text-dark
-                        dark:focus:border-axcio-light
-                        dark:focus:ring-axcio-light/20
-                        dark:disabled:bg-axcio-input-disabled-dark
-                        dark:disabled:text-axcio-text-muted-dark
-                    "
+                    class="ep-select"
                     {% if field.required %}required{% endif %}
                     {% if field.disabled %}disabled{% endif %}
                 >
@@ -105,16 +89,7 @@
             {% if field.allows_catalog_increment %}
                 <button
                     type="button"
-                    class="inline-flex h-10 w-10 shrink-0 items-center
-                           justify-center rounded-lg border
-                           border-axcio-dark bg-axcio-light
-                           text-xl font-medium text-white
-                           transition-colors
-                           hover:bg-axcio-light-hover
-                           focus:outline-none focus:ring-2
-                           focus:ring-axcio-light
-                           focus:ring-offset-2
-                           dark:focus:ring-offset-axcio-page-dark"
+                    class="ep-catalog-add-button"
                     title="Ajouter une valeur"
                     aria-label="Ajouter une valeur"
                     data-catalog-increment-button
@@ -124,16 +99,15 @@
                     <span aria-hidden="true">+</span>
                 </button>
             {% endif %}
+
         </div>
 
         {% if field.help_text %}
-            <p
-                class="text-xs text-axcio-text-muted
-                       dark:text-axcio-text-muted-dark"
-            >
+            <p class="ep-field-help">
                 {{ field.help_text }}
             </p>
         {% endif %}
+
     </div>
 
 {% endif %}

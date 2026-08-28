@@ -1,0 +1,678 @@
+
+
+/* ==========================================================================
+   EASY PROJET UI - LAYOUT
+   ========================================================================== */
+
+/*
+ * ep-app-body
+ * Élément body de l'application Easy Projet.
+ *
+ * Il porte les couleurs globales et garantit une hauteur minimale
+ * égale à celle de l'écran.
+ */
+.ep-app-body {
+    min-height: 100vh;
+    background-color: var(--color-axcio-page);
+    color: var(--color-axcio-text);
+}
+
+.dark .ep-app-body {
+    background-color: var(--color-axcio-page-dark);
+    color: var(--color-axcio-text-dark);
+}
+
+
+/*
+ * ep-app
+ * Structure générale de l'application :
+ *
+ *     sidebar | zone principale
+ */
+.ep-app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+
+/*
+ * ep-app-main
+ * Zone située à droite de la sidebar.
+ *
+ * Elle contient :
+ * - la topbar ;
+ * - le contenu principal ;
+ * - le footer.
+ */
+.ep-app-main {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 0%;
+    flex-direction: column;
+}
+
+
+/*
+ * ep-main-content
+ * Zone scrollable contenant les écrans fonctionnels.
+ */
+.ep-main-content {
+    flex: 1 1 0%;
+    overflow: auto;
+    background-color: var(--color-axcio-page);
+    padding: 1.25rem 1.5rem;
+}
+
+.dark .ep-main-content {
+    background-color: var(--color-axcio-page-dark);
+}
+
+
+/* ==========================================================================
+   SIDEBAR
+   ========================================================================== */
+
+/*
+ * ep-sidebar
+ * Barre de navigation principale Easy Projet.
+ *
+ * Largeur normale : 16 rem.
+ * Largeur réduite : 5 rem.
+ *
+ * La largeur est volontairement définie ici et non par une classe
+ * Tailwind dans le template afin que le composant puisse gérer
+ * lui-même ses deux états.
+ */
+.ep-sidebar {
+    width: 16rem;
+    transition: width 200ms;
+}
+
+
+/*
+ * État réduit de la sidebar.
+ *
+ * L'état est piloté par sidebar.js via l'attribut
+ * data-sidebar-collapsed.
+ */
+.ep-sidebar[data-sidebar-collapsed="true"] {
+    width: 5rem;
+}
+
+
+/*
+ * En mode réduit, les libellés textuels disparaissent.
+ * Les icônes restent visibles et les attributs title des liens
+ * fournissent leur signification au survol.
+ */
+.ep-sidebar[data-sidebar-collapsed="true"]
+[data-sidebar-label] {
+    display: none;
+}
+
+/* ==========================================================================
+   TOPBAR
+   ========================================================================== */
+
+
+/*
+ * ep-topbar
+ * Barre de commandes globale située en haut de l'application.
+ *
+ * Elle regroupe :
+ * - la commande de sidebar ;
+ * - la recherche globale ;
+ * - le projet courant ;
+ * - les actions transversales.
+ */
+.ep-topbar {
+    display: flex;
+    height: 4rem;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 1rem;
+
+    border-bottom: 1px solid var(--color-axcio-border-light);
+    background-color: var(--color-axcio-surface);
+    padding: 0 1.25rem;
+}
+
+.dark .ep-topbar {
+    border-color: var(--color-axcio-border-dark);
+    background-color: var(--color-axcio-surface-dark);
+}
+
+
+/*
+ * ep-topbar-icon-button
+ * Bouton carré standard de la topbar.
+ *
+ * Utilisation :
+ * - sidebar ;
+ * - thème ;
+ * - Todo ;
+ * - notifications ;
+ * - aide.
+ */
+.ep-topbar-icon-button {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 0.5rem;
+
+    color: var(--color-axcio-text-muted);
+
+    cursor: pointer;
+
+    transition:
+        color 150ms,
+        background-color 150ms,
+        box-shadow 150ms;
+}
+
+.ep-topbar-icon-button:hover {
+    background-color: var(--color-axcio-surface-alt);
+    color: var(--color-axcio-text);
+}
+
+.ep-topbar-icon-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+}
+
+.dark .ep-topbar-icon-button {
+    color: var(--color-axcio-text-muted-dark);
+}
+
+.dark .ep-topbar-icon-button:hover {
+    background-color: var(--color-axcio-surface-alt-dark);
+    color: var(--color-axcio-text-dark);
+}
+
+
+/*
+ * ep-topbar-icon
+ * Icône standard des actions principales de la topbar.
+ */
+.ep-topbar-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+
+/* ==========================================================================
+   RECHERCHE GLOBALE
+   ========================================================================== */
+
+
+/*
+ * ep-topbar-search
+ * Conteneur de la recherche globale.
+ */
+.ep-topbar-search {
+    position: relative;
+    max-width: 28rem;
+    flex: 1 1 0%;
+}
+
+
+/*
+ * ep-topbar-search-icon
+ * Icône placée dans le champ de recherche.
+ */
+.ep-topbar-search-icon {
+    pointer-events: none;
+
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+
+    width: 1rem;
+    height: 1rem;
+
+    transform: translateY(-50%);
+
+    color: var(--color-axcio-text-muted);
+}
+
+
+/*
+ * ep-topbar-search-input
+ * Champ spécifique de recherche globale.
+ *
+ * Il reste distinct de ep-input car sa structure intègre
+ * une icône et une hauteur imposée par la topbar.
+ */
+.ep-topbar-search-input {
+    width: 100%;
+    height: 2.5rem;
+
+    border: 1px solid var(--color-axcio-border);
+    border-radius: 0.5rem;
+
+    background-color: var(--color-axcio-surface-alt);
+
+    padding-left: 2.25rem;
+    padding-right: 0.75rem;
+
+    color: var(--color-axcio-text);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.ep-topbar-search-input::placeholder {
+    color: var(--color-axcio-text-muted);
+}
+
+.ep-topbar-search-input:focus {
+    outline: none;
+    border-color: var(--color-axcio-dark);
+    box-shadow: 0 0 0 2px rgb(13 82 98 / 0.20);
+}
+
+.dark .ep-topbar-search-input {
+    border-color: var(--color-axcio-border-dark);
+    background-color: var(--color-axcio-surface-alt-dark);
+    color: var(--color-axcio-text-dark);
+}
+
+.dark .ep-topbar-search-input::placeholder {
+    color: var(--color-axcio-text-muted-dark);
+}
+
+.dark .ep-topbar-search-input:focus {
+    border-color: var(--color-axcio-light);
+    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+}
+
+
+/* ==========================================================================
+   PROJET COURANT
+   ========================================================================== */
+
+
+/*
+ * ep-topbar-project
+ * Zone centrale affichant le projet courant.
+ */
+.ep-topbar-project {
+    min-width: 0;
+    max-width: 36rem;
+    flex: 1 1 0%;
+    margin-right: auto;
+    margin-left: auto;
+
+    text-align: center;
+}
+
+
+/*
+ * ep-topbar-project-label
+ * Libellé fixe "Projet en cours".
+ */
+.ep-topbar-project-label {
+    color: var(--color-axcio-text-muted);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.dark .ep-topbar-project-label {
+    color: var(--color-axcio-text-muted-dark);
+}
+
+
+/*
+ * ep-topbar-project-value
+ * Référence et nom du projet sélectionné.
+ */
+.ep-topbar-project-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    color: var(--color-axcio-text);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+}
+
+.dark .ep-topbar-project-value {
+    color: var(--color-axcio-text-dark);
+}
+
+
+/* ==========================================================================
+   ACTIONS
+   ========================================================================== */
+
+
+/*
+ * ep-topbar-actions
+ * Groupe des actions transversales de droite.
+ */
+.ep-topbar-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+
+/*
+ * ep-topbar-text-button
+ * Variante de bouton pouvant associer une icône et un libellé.
+ *
+ * Utilisation actuelle :
+ * - Assistant IA.
+ */
+.ep-topbar-text-button {
+    display: inline-flex;
+    height: 2.25rem;
+    align-items: center;
+    gap: 0.5rem;
+
+    border-radius: 0.5rem;
+    padding: 0 0.75rem;
+
+    color: var(--color-axcio-text-muted);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+
+    cursor: pointer;
+
+    transition:
+        color 150ms,
+        background-color 150ms;
+}
+
+.ep-topbar-text-button:hover {
+    background-color: var(--color-axcio-surface-alt);
+    color: var(--color-axcio-text);
+}
+
+.dark .ep-topbar-text-button {
+    color: var(--color-axcio-text-muted-dark);
+}
+
+.dark .ep-topbar-text-button:hover {
+    background-color: var(--color-axcio-surface-alt-dark);
+    color: var(--color-axcio-text-dark);
+}
+
+
+/* ==========================================================================
+   TODO
+   ========================================================================== */
+
+
+/*
+ * ep-topbar-todo
+ * Support de positionnement du compteur Todo.
+ */
+.ep-topbar-todo {
+    position: relative;
+}
+
+
+/*
+ * ep-topbar-badge
+ * Compteur des actions Todo nécessitant une intervention
+ * de l'utilisateur.
+ */
+.ep-topbar-badge {
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    display: flex;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9999px;
+    background-color: var(--color-axcio-danger);
+    padding: 0 0.25rem;
+
+    color: #ffffff;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+}
+
+
+/* ==========================================================================
+   MENU DE THÈME
+   ========================================================================== */
+
+
+/*
+ * ep-topbar-menu
+ * Support de positionnement d'un menu déroulant de la topbar.
+ */
+.ep-topbar-menu {
+    position: relative;
+}
+
+
+/*
+ * ep-topbar-dropdown
+ * Menu déroulant standard de la topbar.
+ *
+ * La classe utilitaire "hidden" reste pilotée par theme.js.
+ */
+.ep-topbar-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 40;
+
+    width: 11rem;
+    margin-top: 0.5rem;
+    overflow: hidden;
+
+    border: 1px solid var(--color-axcio-border-light);
+    border-radius: 0.5rem;
+
+    background-color: var(--color-axcio-surface);
+    padding: 0.25rem 0;
+
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.10),
+        0 4px 6px -4px rgb(0 0 0 / 0.10);
+}
+
+.dark .ep-topbar-dropdown {
+    border-color: var(--color-axcio-border-dark);
+    background-color: var(--color-axcio-surface-alt-dark);
+}
+
+
+/*
+ * ep-topbar-dropdown-item
+ * Entrée d'un menu déroulant de la topbar.
+ */
+.ep-topbar-dropdown-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.75rem;
+
+    padding: 0.5rem 0.75rem;
+
+    color: var(--color-axcio-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-align: left;
+
+    cursor: pointer;
+
+    transition: background-color 150ms;
+}
+
+.ep-topbar-dropdown-item:hover {
+    background-color: var(--color-axcio-surface-alt);
+}
+
+.dark .ep-topbar-dropdown-item {
+    color: var(--color-axcio-text-secondary-dark);
+}
+
+.dark .ep-topbar-dropdown-item:hover {
+    background-color: var(--color-axcio-border-dark);
+}
+
+
+/*
+ * ep-topbar-dropdown-icon
+ * Icône d'une entrée du menu.
+ */
+.ep-topbar-dropdown-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+
+/*
+ * ep-topbar-dropdown-label
+ * Libellé d'une entrée du menu.
+ */
+.ep-topbar-dropdown-label {
+    flex: 1 1 0%;
+}
+
+
+/*
+ * ep-topbar-dropdown-check
+ * Indicateur de l'option de thème active.
+ *
+ * Sa visibilité reste pilotée par theme.js via "hidden".
+ */
+.ep-topbar-dropdown-check {
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-axcio-light);
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+
+
+/*
+ * ep-footer
+ * Pied de page global de l'application.
+ *
+ * Il contient :
+ * - les informations de version ;
+ * - l'accès au support.
+ */
+.ep-footer {
+    display: flex;
+    height: 2.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    border-top: 1px solid var(--color-axcio-border-light);
+    background-color: var(--color-axcio-surface);
+    padding: 0 1.25rem;
+
+    color: var(--color-axcio-text-muted);
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+.dark .ep-footer {
+    border-color: var(--color-axcio-border-dark);
+    background-color: var(--color-axcio-surface-dark);
+    color: var(--color-axcio-text-muted-dark);
+}
+
+
+/*
+ * ep-footer-information
+ * Informations générales et versions de l'application.
+ *
+ * Le texte est tronqué si l'espace disponible devient insuffisant.
+ */
+.ep-footer-information {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/*
+ * ep-footer-support
+ * Accès au support Easy Projet.
+ *
+ * Le composant existe déjà visuellement même lorsque la
+ * fonctionnalité n'est pas encore disponible.
+ */
+.ep-footer-support {
+    display: inline-flex;
+    height: 2rem;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
+
+    border-radius: 0.5rem;
+    padding: 0 0.75rem;
+
+    color: var(--color-axcio-text-secondary);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition:
+        color 150ms,
+        background-color 150ms,
+        box-shadow 150ms;
+}
+
+.ep-footer-support:hover {
+    background-color: var(--color-axcio-surface-alt);
+    color: var(--color-axcio-text);
+}
+
+.ep-footer-support:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+}
+
+.ep-footer-support:disabled {
+    cursor: not-allowed;
+    opacity: 0.60;
+}
+
+.dark .ep-footer-support {
+    color: var(--color-axcio-text-secondary-dark);
+}
+
+.dark .ep-footer-support:hover {
+    background-color: var(--color-axcio-surface-alt-dark);
+    color: var(--color-axcio-text-dark);
+}
+
+
+/*
+ * ep-footer-support-icon
+ * Icône du bouton Support.
+ */
+.ep-footer-support-icon {
+    width: 1rem;
+    height: 1rem;
+}

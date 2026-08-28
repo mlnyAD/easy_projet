@@ -1,0 +1,35 @@
+
+
+{% load ep_buttons %}
+
+<header class="ep-page-header">
+
+    <div class="ep-page-heading">
+
+        <h1 class="ep-page-title">
+            {{ page_title }}
+        </h1>
+
+        {% if page_subtitle %}
+            <p class="ep-page-subtitle">
+                {{ page_subtitle }}
+            </p>
+        {% endif %}
+
+    </div>
+
+    {% if page_back_url or page_action_url %}
+        <div class="ep-page-actions">
+
+            {% if page_back_url %}
+                {% ep_button label=page_back_label action="cancel" url=page_back_url icon="arrow-left" %}
+            {% endif %}
+
+            {% if page_action_url %}
+                {% ep_button label=page_action_label action="execute" url=page_action_url icon=page_action_icon %}
+            {% endif %}
+
+        </div>
+    {% endif %}
+
+</header>

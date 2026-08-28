@@ -1,0 +1,96 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+Tableau de bord - {{ project.name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6">
+
+    <div
+        class="flex flex-wrap items-center
+               justify-between gap-4"
+    >
+        <div>
+            <p
+                class="text-sm font-medium
+                       text-axcio-light"
+            >
+                {{ project.reference }}
+            </p>
+
+            <h1
+                class="text-2xl font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                Tableau de bord
+            </h1>
+
+            <p
+                class="mt-1 text-sm
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                {{ project.name }}
+            </p>
+        </div>
+
+        <a
+            href="{% url 'projects:workspace' project.pk %}"
+            class="inline-flex items-center gap-2
+                   rounded-md border
+                   border-axcio-border-light
+                   px-3 py-2 text-sm font-medium
+                   text-axcio-text
+                   hover:bg-axcio-surface-alt
+                   dark:border-axcio-border-dark
+                   dark:text-axcio-text-dark
+                   dark:hover:bg-axcio-surface-alt-dark"
+        >
+            <i
+                data-lucide="arrow-left"
+                class="h-4 w-4"
+            ></i>
+
+            Retour au projet
+        </a>
+    </div>
+
+
+    <div
+        class="grid gap-3
+            sm:grid-cols-2
+            xl:grid-cols-4"
+    >
+        <section class="min-w-0">
+            {% include "projects/dashboard/widgets/identity.html" %}
+        </section>
+
+        <section class="min-w-0">
+            {% include "projects/dashboard/widgets/weekly_work.html" %}
+        </section>
+
+        <section class="min-w-0">
+            {% include "projects/dashboard/widgets/steering.html" %}
+        </section>
+
+        <section class="min-w-0">
+            {% include "projects/dashboard/widgets/risks.html" %}
+        </section>
+
+        <section class="min-w-0">
+            {% include "projects/dashboard/widgets/workload.html" %}
+        </section>
+
+        <section class="min-w-0">
+            {% include "projects/dashboard/widgets/budget.html" %}
+        </section>
+    </div>
+
+</div>
+
+{% endblock %}

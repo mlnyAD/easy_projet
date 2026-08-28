@@ -1,10 +1,11 @@
 
 
 from django.contrib import messages
-from django.urls import reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
+from urllib.parse import urlencode
 
+from django.urls import reverse, reverse_lazy
 from common.constants import (
     DEFAULT_PAGE_SIZE,
     PAGE_SIZE_VALUES,
@@ -114,6 +115,27 @@ class ExternalIntegrationListView(ListView):
 
         context["return_url"] = (
             self.request.get_full_path()
+        )
+
+        context["page_title"] = "Intégrations externes"
+        context["page_subtitle"] = (
+            "Applications et services externes disponibles "
+            "dans les environnements clients."
+        )
+
+        context["page_back_url"] = None
+        context["page_back_label"] = None
+
+        context["page_action_label"] = (
+            "Nouvelle intégration"
+        )
+        context["page_action_icon"] = "plus"
+
+        context["page_action_url"] = (
+            f"{reverse('integrations:create')}?"
+            f"{urlencode({
+                'next': self.request.get_full_path(),
+            })}"
         )
 
         return context

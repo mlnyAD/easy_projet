@@ -1,0 +1,249 @@
+
+
+/* ==========================================================================
+   EASY PROJET UI - NOTIFICATIONS
+   ========================================================================== */
+
+
+/*
+ * ep-toast-container
+ *
+ * Conteneur global des notifications temporaires.
+ *
+ * Les notifications sont affichées dans le coin supérieur droit
+ * de l'application et empilées verticalement.
+ */
+.ep-toast-container {
+    pointer-events: none;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 50;
+
+    display: flex;
+    width: 100%;
+    max-width: 24rem;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+
+/*
+ * ep-toast
+ *
+ * Notification temporaire standard Easy Projet.
+ *
+ * L'état fonctionnel de la notification est porté par une classe
+ * complémentaire :
+ *
+ * - ep-toast-success
+ * - ep-toast-error
+ * - ep-toast-warning
+ * - ep-toast-info
+ */
+.ep-toast {
+    pointer-events: auto;
+    overflow: hidden;
+
+    border: 1px solid;
+    border-radius: 0.5rem;
+
+    opacity: 0;
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    transition:
+        opacity 200ms ease-out,
+        transform 200ms ease-out;
+}
+
+
+/*
+ * États fonctionnels du toast.
+ *
+ * Les couleurs utilisent exclusivement les variables
+ * du Design System Easy Projet.
+ */
+
+.ep-toast-success {
+    border-color: var(--color-axcio-success);
+    background-color: var(--color-axcio-success-soft);
+}
+
+.ep-toast-error {
+    border-color: var(--color-axcio-danger);
+    background-color: var(--color-axcio-danger-soft);
+}
+
+.ep-toast-warning {
+    border-color: var(--color-axcio-warning);
+    background-color: var(--color-axcio-warning-soft);
+}
+
+.ep-toast-info {
+    border-color: var(--color-axcio-info);
+    background-color: var(--color-axcio-info-soft);
+}
+
+.dark .ep-toast-success {
+    background-color: var(--color-axcio-success-soft-dark);
+}
+
+.dark .ep-toast-error {
+    background-color: var(--color-axcio-danger-soft-dark);
+}
+
+.dark .ep-toast-warning {
+    background-color: var(--color-axcio-warning-soft-dark);
+}
+
+.dark .ep-toast-info {
+    background-color: var(--color-axcio-info-soft-dark);
+}
+
+
+/*
+ * ep-toast-content
+ *
+ * Organisation interne d'une notification :
+ *
+ *     icône | titre + message | fermeture
+ */
+.ep-toast-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+}
+
+
+/*
+ * ep-toast-icon
+ *
+ * Zone réservée à l'icône indiquant la nature
+ * de la notification.
+ */
+.ep-toast-icon {
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+}
+
+.ep-toast-icon-success {
+    color: var(--color-axcio-success);
+}
+
+.ep-toast-icon-error {
+    color: var(--color-axcio-danger);
+}
+
+.ep-toast-icon-warning {
+    color: var(--color-axcio-warning);
+}
+
+.ep-toast-icon-info {
+    color: var(--color-axcio-info);
+}
+
+
+/*
+ * ep-toast-body
+ *
+ * Zone contenant le titre et le message.
+ */
+.ep-toast-body {
+    min-width: 0;
+    flex: 1 1 0%;
+}
+
+.ep-toast-title {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: var(--color-axcio-text);
+}
+
+.dark .ep-toast-title {
+    color: var(--color-axcio-text-dark);
+}
+
+.ep-toast-message {
+    margin-top: 0.125rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-axcio-text-secondary);
+}
+
+.dark .ep-toast-message {
+    color: var(--color-axcio-text-secondary-dark);
+}
+
+
+/*
+ * ep-toast-close
+ *
+ * Bouton de fermeture d'une notification.
+ */
+.ep-toast-close {
+    display: inline-flex;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 0.375rem;
+
+    color: var(--color-axcio-text-muted);
+
+    transition:
+        color 150ms,
+        background-color 150ms;
+}
+
+.ep-toast-close:hover {
+    background-color: rgb(0 0 0 / 0.05);
+    color: var(--color-axcio-text);
+}
+
+.ep-toast-close:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-axcio-light);
+}
+
+.dark .ep-toast-close {
+    color: var(--color-axcio-text-muted-dark);
+}
+
+.dark .ep-toast-close:hover {
+    background-color: rgb(255 255 255 / 0.1);
+    color: var(--color-axcio-text-dark);
+}
+
+
+/*
+ * ep-toast-progress
+ *
+ * Barre de durée située sous la notification.
+ * Le JavaScript pilote son animation.
+ */
+.ep-toast-progress {
+    height: 0.125rem;
+    transform-origin: left;
+}
+
+.ep-toast-progress-success {
+    background-color: var(--color-axcio-success);
+}
+
+.ep-toast-progress-error {
+    background-color: var(--color-axcio-danger);
+}
+
+.ep-toast-progress-warning {
+    background-color: var(--color-axcio-warning);
+}
+
+.ep-toast-progress-info {
+    background-color: var(--color-axcio-info);
+}

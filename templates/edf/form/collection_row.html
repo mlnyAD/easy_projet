@@ -1,0 +1,57 @@
+
+
+{% load ep_form_fields %}
+
+<tr
+    class="ep-form-collection-row"
+    data-ep-form-row
+>
+    {% for hidden_field in row.django_form.hidden_fields %}
+            {{ hidden_field }}
+    {% endfor %}
+
+    {% for cell in row.cells %}
+
+        <td class="ep-form-collection-cell">
+
+            {% if cell.bound_field %}
+                {% render_ep_field cell.bound_field %}
+            {% else %}
+                <span class="ep-form-collection-value">
+                    {{ cell.display_value|default_if_none:"" }}
+                </span>
+            {% endif %}
+
+        </td>
+
+    {% endfor %}
+
+    {% if collection.allow_delete %}
+
+        <td class="ep-form-collection-action-cell">
+
+            {% if row.delete_field %}
+                <div class="hidden">
+                    {{ row.delete_field }}
+                </div>
+            {% endif %}
+
+            <button
+                type="button"
+                class="ep-form-collection-delete"
+                data-ep-delete-row
+                title="{{ collection.delete_label }}"
+                aria-label="{{ collection.delete_label }}"
+            >
+                <i
+                    data-lucide="trash-2"
+                    class="ep-form-collection-delete-icon"
+                    aria-hidden="true"
+                ></i>
+            </button>
+
+        </td>
+
+    {% endif %}
+
+</tr>

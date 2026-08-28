@@ -9,7 +9,10 @@ from typing import Any
 from framework.list.column import ColumnDefinition
 from framework.list.definition import ListDefinition
 from framework.list.validator import ListValidator
-
+from framework.value_resolver import (
+    ValueResolutionError,
+    resolve_value,
+)
 
 class EPListExecutionError(ValueError):
     """Erreur produite pendant l'exécution d'une EPList."""
@@ -92,29 +95,33 @@ class EPList:
         """
         Retourne la valeur d'une colonne pour une ligne.
 
-        Les lignes peuvent être :
-
-        - des mappings, par exemple des dictionnaires ;
-        - des objets possédant un attribut portant le nom du champ.
+        La résolution de la valeur est déléguée au mécanisme
+        transversal du framework.
         """
         field_name = column.field.name
 
-        if isinstance(row, Mapping):
-            if field_name not in row:
-                raise EPListExecutionError(
-                    f"La ligne ne contient pas le champ {field_name!r}."
+        try:
+            return resolve_value(
+                row,
+                field_name,
+            )
+        except ValueResolutionError as error:
+            if isinstance(row, Mapping):
+                message = (
+                    f"La ligne ne contient pas le champ "
+                    f"{field_name!r}."
+                )
+            else:
+                message = (
+                    f"L'objet de type {type(row).__name__!r} "
+                    f"ne possède pas l'attribut "
+                    f"{field_name!r}."
                 )
 
-            return row[field_name]
-
-        if not hasattr(row, field_name):
             raise EPListExecutionError(
-                f"L'objet de type {type(row).__name__!r} "
-                f"ne possède pas l'attribut {field_name!r}."
-            )
-
-        return getattr(row, field_name)
-
+                message
+            ) from error
+                                
     def sort_rows(
         self,
         *,

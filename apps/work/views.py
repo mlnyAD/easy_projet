@@ -5,7 +5,9 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
+from urllib.parse import urlencode
 
+from django.contrib import messages
 from apps.projects.models import Project
 from common.constants import (
     DEFAULT_PAGE_SIZE,
@@ -83,6 +85,21 @@ class WorkPackageListView(ListView):
         context["is_project_context"] = False
         context["return_url"] = self.request.get_full_path()
 
+        context["page_title"] = "Lots de travaux"
+        context["page_subtitle"] = None
+        context["page_back_url"] = None
+        context["page_back_label"] = None
+
+        context["page_action_label"] = "Nouveau lot de travaux"
+        context["page_action_icon"] = "plus"
+
+        context["page_action_url"] = (
+            f"{reverse('work:create')}?"
+            f"{urlencode({
+                'next': self.request.get_full_path(),
+            })}"
+        )
+
         return context
 
 
@@ -118,14 +135,39 @@ class WorkPackageListByProjectView(WorkPackageListView):
 
         project = self.get_project()
 
-        context["project"] = project
-        context["current_project"] = project
-        context["is_project_context"] = True
-        context["return_url"] = reverse(
+        project_workspace_url = reverse(
             "projects:workspace",
             kwargs={
                 "pk": project.pk,
             },
+        )
+
+        context["project"] = project
+        context["current_project"] = project
+        context["is_project_context"] = True
+        context["return_url"] = project_workspace_url
+
+        context["page_title"] = (
+            "Lots de travaux du projet"
+        )
+        context["page_subtitle"] = (
+            f"{project.reference} — {project.name}"
+        )
+
+        context["page_back_url"] = project_workspace_url
+        context["page_back_label"] = "Retour au projet"
+
+        context["page_action_label"] = (
+            "Nouveau lot de travaux"
+        )
+        context["page_action_icon"] = "plus"
+
+        context["page_action_url"] = (
+            f"{reverse('work:create')}?"
+            f"{urlencode({
+                'project': project.pk,
+                'next': project_workspace_url,
+            })}"
         )
 
         return context

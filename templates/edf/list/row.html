@@ -3,22 +3,22 @@
 {% load ep_lists %}
 
 <tr
-    class="transition-colors
-           hover:bg-axcio-surface-alt
-           dark:hover:bg-axcio-surface-alt-dark"
+    class="
+        ep-list-row
+        {{ row.css_class }}
+    "
 >
+
     {% for cell in row.cells %}
+
         <td
             class="
+                ep-list-cell
                 {{ cell.column|column_width_class }}
                 {{ cell.column|column_alignment_class }}
-                px-4 py-1.5
-                text-sm
-                leading-5
-                text-axcio-text-secondary
-                dark:text-axcio-text-secondary-dark
+
                 {% if cell.column.truncate %}
-                    truncate whitespace-nowrap
+                    ep-list-cell-truncate
                 {% endif %}
             "
             {% if cell.column.truncate and cell.display_value %}
@@ -27,18 +27,16 @@
         >
             {{ cell.display_value }}
         </td>
+
     {% endfor %}
 
+
     {% if row_actions_template %}
-        <td
-            class="
-                w-px
-                whitespace-nowrap
-                text-center
-                px-4 py-1.5
-            "
-        >
+
+        <td class="ep-list-actions-cell">
             {% include row_actions_template %}
         </td>
+
     {% endif %}
+
 </tr>

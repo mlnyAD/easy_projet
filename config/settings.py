@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "apps.risks",
     "apps.integrations.apps.IntegrationsConfig",
     "apps.planning.apps.PlanningConfig",
+    "apps.todos",
 ]
 
 MIDDLEWARE = [
@@ -91,6 +92,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.todos.context_processors.todo_context",
             ],
             "libraries": {
                 "ep_form_fields": (
@@ -173,6 +175,20 @@ DOCUMENT_STORAGE_ROOT = (
     BASE_DIR
     / "var"
     / "documents"
+)
+
+# ***********************************
+#
+# Médias applicatifs
+#
+# ***********************************
+
+MEDIA_URL = "/media/"
+
+MEDIA_ROOT = (
+    BASE_DIR
+    / "var"
+    / "media"
 )
 
 #***********************************

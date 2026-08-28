@@ -1,5 +1,5 @@
 
-    
+
 import unittest
 
 from django.forms import (
@@ -7,6 +7,7 @@ from django.forms import (
     FileInput,
     HiddenInput,
     PasswordInput,
+    RadioSelect,
     Select,
     TextInput,
     Textarea,
@@ -18,10 +19,33 @@ from framework.integrations.django.widget_adapter import (
 
 
 class WidgetAdapterTests(unittest.TestCase):
+    """
+    Tests de l'adaptation des widgets Django au Design System EDF.
+
+    Le WidgetAdapter attribue uniquement des classes sémantiques
+    aux widgets Django.
+
+    La présentation visuelle associée à ces classes est définie dans :
+
+        static/src/edf/forms.css
+
+    Les tests vérifient donc le contrat entre Django et EDF,
+    et non les règles CSS ou les classes Tailwind utilisées pour
+    construire visuellement les composants.
+    """
+
     def setUp(self) -> None:
         self.adapter = WidgetAdapter()
 
+    # ------------------------------------------------------------------
+    # Contrat général
+    # ------------------------------------------------------------------
+
     def test_adapt_returns_same_widget_instance(self) -> None:
+        """
+        L'adaptateur modifie le widget fourni sans le remplacer.
+        """
+
         widget = TextInput()
 
         adapted_widget = self.adapter.adapt(widget)
@@ -32,32 +56,136 @@ class WidgetAdapterTests(unittest.TestCase):
         )
 
     def test_adapt_rejects_non_widget_value(self) -> None:
+        """
+        Une valeur qui n'est pas un widget Django est refusée.
+        """
+
         with self.assertRaises(TypeError):
             self.adapter.adapt(
                 "not-a-widget"  # type: ignore[arg-type]
             )
 
-    def test_text_input_receives_design_system_classes(
+    # ------------------------------------------------------------------
+    # Classes sémantiques EDF
+    # ------------------------------------------------------------------
+
+    def test_text_input_receives_ep_input_class(
         self,
     ) -> None:
+        """
+        Un champ de saisie Django devient un composant ep-input.
+        """
+
         widget = TextInput()
 
         self.adapter.adapt(widget)
 
         classes = widget.attrs["class"].split()
 
-        self.assertIn("edf-form-input", classes)
-        self.assertIn("block", classes)
-        self.assertIn("w-full", classes)
-        self.assertIn("rounded-lg", classes)
-        self.assertIn("border-axcio-border", classes)
-        self.assertIn("bg-axcio-input", classes)
         self.assertIn(
-            "dark:bg-axcio-input-dark",
+            "ep-input",
             classes,
         )
 
+    def test_textarea_receives_ep_textarea_class(
+        self,
+    ) -> None:
+        """
+        Une zone de texte Django devient un composant ep-textarea.
+        """
+
+        widget = Textarea()
+
+        self.adapter.adapt(widget)
+
+        classes = widget.attrs["class"].split()
+
+        self.assertIn(
+            "ep-textarea",
+            classes,
+        )
+
+    def test_select_receives_ep_select_class(
+        self,
+    ) -> None:
+        """
+        Une liste Django devient un composant ep-select.
+        """
+
+        widget = Select()
+
+        self.adapter.adapt(widget)
+
+        classes = widget.attrs["class"].split()
+
+        self.assertIn(
+            "ep-select",
+            classes,
+        )
+
+    def test_checkbox_receives_ep_checkbox_class(
+        self,
+    ) -> None:
+        """
+        Une case à cocher Django devient un composant ep-checkbox.
+        """
+
+        widget = CheckboxInput()
+
+        self.adapter.adapt(widget)
+
+        classes = widget.attrs["class"].split()
+
+        self.assertIn(
+            "ep-checkbox",
+            classes,
+        )
+
+    def test_radio_receives_ep_radio_class(
+        self,
+    ) -> None:
+        """
+        Un groupe de boutons radio Django devient un composant ep-radio.
+        """
+
+        widget = RadioSelect()
+
+        self.adapter.adapt(widget)
+
+        classes = widget.attrs["class"].split()
+
+        self.assertIn(
+            "ep-radio",
+            classes,
+        )
+
+    def test_file_input_receives_ep_file_class(
+        self,
+    ) -> None:
+        """
+        Un champ fichier Django devient un composant ep-file.
+        """
+
+        widget = FileInput()
+
+        self.adapter.adapt(widget)
+
+        classes = widget.attrs["class"].split()
+
+        self.assertIn(
+            "ep-file",
+            classes,
+        )
+
+    # ------------------------------------------------------------------
+    # Préservation des personnalisations métier
+    # ------------------------------------------------------------------
+
     def test_existing_classes_are_preserved(self) -> None:
+        """
+        Les classes ajoutées par un formulaire métier sont conservées.
+        """
+
         widget = TextInput(
             attrs={
                 "class": (
@@ -79,14 +207,18 @@ class WidgetAdapterTests(unittest.TestCase):
             classes,
         )
         self.assertIn(
-            "w-full",
+            "ep-input",
             classes,
         )
 
     def test_classes_are_not_duplicated(self) -> None:
+        """
+        Plusieurs adaptations successives ne dupliquent pas les classes.
+        """
+
         widget = TextInput(
             attrs={
-                "class": "block w-full",
+                "class": "custom-class",
             }
         )
 
@@ -96,17 +228,25 @@ class WidgetAdapterTests(unittest.TestCase):
         classes = widget.attrs["class"].split()
 
         self.assertEqual(
-            classes.count("block"),
+            classes.count("custom-class"),
             1,
         )
         self.assertEqual(
-            classes.count("w-full"),
+            classes.count("ep-input"),
             1,
         )
+
+    # ------------------------------------------------------------------
+    # Textarea
+    # ------------------------------------------------------------------
 
     def test_textarea_receives_rows_when_not_defined(
         self,
     ) -> None:
+        """
+        EDF utilise quatre lignes par défaut pour les zones de texte.
+        """
+
         widget = Textarea()
 
         self.adapter.adapt(widget)
@@ -119,6 +259,10 @@ class WidgetAdapterTests(unittest.TestCase):
     def test_textarea_preserves_existing_rows(
         self,
     ) -> None:
+        """
+        Une hauteur explicitement définie par le métier est conservée.
+        """
+
         widget = Textarea(
             attrs={
                 "rows": 8,
@@ -132,91 +276,18 @@ class WidgetAdapterTests(unittest.TestCase):
             8,
         )
 
-    def test_select_receives_select_classes(
-        self,
-    ) -> None:
-        widget = Select()
-
-        self.adapter.adapt(widget)
-
-        classes = widget.attrs["class"].split()
-
-        self.assertIn(
-            "w-full",
-            classes,
-        )
-        self.assertIn(
-            "pe-9",
-            classes,
-        )
-
-    def test_checkbox_receives_checkbox_classes(
-        self,
-    ) -> None:
-        widget = CheckboxInput()
-
-        self.adapter.adapt(widget)
-
-        classes = widget.attrs["class"].split()
-
-        self.assertIn(
-            "size-4",
-            classes,
-        )
-        self.assertIn(
-            "rounded",
-            classes,
-        )
-        self.assertIn(
-            "border-axcio-border",
-            classes,
-        )
-        self.assertIn(
-            "bg-axcio-input",
-            classes,
-        )
-        self.assertNotIn(
-            "w-full",
-            classes,
-        )
-
-    def test_file_input_receives_file_classes(
-        self,
-    ) -> None:
-        widget = FileInput()
-
-        self.adapter.adapt(widget)
-
-        classes = widget.attrs["class"].split()
-
-        self.assertIn(
-            "edf-form-input",
-            classes,
-        )
-        self.assertIn(
-            "w-full",
-            classes,
-        )
-        self.assertIn(
-            "file:px-4",
-            classes,
-        )
-        self.assertIn(
-            "file:bg-axcio-surface-alt",
-            classes,
-        )
-        self.assertIn(
-            "hover:file:bg-axcio-border-light",
-            classes,
-        )
-        self.assertIn(
-            "dark:file:bg-axcio-surface-alt-dark",
-            classes,
-        )
+    # ------------------------------------------------------------------
+    # Mot de passe
+    # ------------------------------------------------------------------
 
     def test_password_input_receives_default_autocomplete(
         self,
     ) -> None:
+        """
+        Le comportement standard d'autocomplétion est ajouté
+        aux champs mot de passe.
+        """
+
         widget = PasswordInput()
 
         self.adapter.adapt(widget)
@@ -229,6 +300,10 @@ class WidgetAdapterTests(unittest.TestCase):
     def test_password_input_preserves_existing_autocomplete(
         self,
     ) -> None:
+        """
+        Une règle d'autocomplétion métier existante est prioritaire.
+        """
+
         widget = PasswordInput(
             attrs={
                 "autocomplete": "new-password",
@@ -242,9 +317,18 @@ class WidgetAdapterTests(unittest.TestCase):
             "new-password",
         )
 
+    # ------------------------------------------------------------------
+    # Validation et accessibilité
+    # ------------------------------------------------------------------
+
     def test_invalid_widget_receives_accessibility_attribute(
         self,
     ) -> None:
+        """
+        Un champ invalide expose son état aux technologies d'assistance
+        et reçoit l'état visuel EDF correspondant.
+        """
+
         widget = TextInput()
 
         self.adapter.adapt(
@@ -260,29 +344,21 @@ class WidgetAdapterTests(unittest.TestCase):
         classes = widget.attrs["class"].split()
 
         self.assertIn(
-            "border-axcio-danger",
+            "ep-input",
             classes,
         )
         self.assertIn(
-            "bg-axcio-danger-soft",
-            classes,
-        )
-        self.assertIn(
-            "focus:border-axcio-danger",
-            classes,
-        )
-        self.assertIn(
-            "focus:ring-axcio-danger/20",
-            classes,
-        )
-        self.assertIn(
-            "dark:bg-axcio-danger-soft-dark",
+            "ep-field-invalid",
             classes,
         )
 
     def test_widget_without_errors_has_no_aria_invalid(
         self,
     ) -> None:
+        """
+        Un champ valide ne reçoit pas aria-invalid.
+        """
+
         widget = TextInput()
 
         self.adapter.adapt(
@@ -296,6 +372,10 @@ class WidgetAdapterTests(unittest.TestCase):
         )
 
     def test_described_by_is_added(self) -> None:
+        """
+        aria-describedby est ajouté lorsqu'une description est fournie.
+        """
+
         widget = TextInput()
 
         self.adapter.adapt(
@@ -311,6 +391,10 @@ class WidgetAdapterTests(unittest.TestCase):
     def test_existing_described_by_is_preserved_and_completed(
         self,
     ) -> None:
+        """
+        Une description existante est conservée lors de l'adaptation.
+        """
+
         widget = TextInput(
             attrs={
                 "aria-describedby": (
@@ -336,9 +420,18 @@ class WidgetAdapterTests(unittest.TestCase):
             ],
         )
 
+    # ------------------------------------------------------------------
+    # Champs invisibles
+    # ------------------------------------------------------------------
+
     def test_hidden_input_is_not_modified(
         self,
     ) -> None:
+        """
+        Un champ invisible ne reçoit aucune adaptation visuelle
+        ou attribut d'accessibilité supplémentaire.
+        """
+
         widget = HiddenInput(
             attrs={
                 "class": "existing-hidden-class",

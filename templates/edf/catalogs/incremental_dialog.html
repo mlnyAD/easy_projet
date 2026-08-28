@@ -2,164 +2,120 @@
 
 <div
     id="catalog-incremental-dialog"
-    class="fixed inset-0 z-50 hidden items-center justify-center
-           bg-black/30 p-4"
+    class="ep-dialog-overlay"
     data-catalog-increment-dialog
     data-create-url="{% url 'catalogs:incremental-create' %}"
     aria-hidden="true"
 >
     <div
-        class="w-full max-w-md rounded-xl border
-               border-axcio-border-light
-               bg-axcio-surface p-6 shadow-xl
-               dark:border-axcio-border-dark
-               dark:bg-axcio-surface-dark"
+        class="ep-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="catalog-incremental-title"
     >
-        <div class="flex items-start justify-between gap-4">
+        <div class="ep-dialog-header">
+
             <div>
                 <h2
                     id="catalog-incremental-title"
-                    class="text-lg font-semibold
-                           text-axcio-text
-                           dark:text-axcio-text-dark"
+                    class="ep-dialog-title"
                 >
                     Nouvelle valeur
                 </h2>
 
                 <p
-                    class="mt-1 text-sm
-                           text-axcio-text-muted
-                           dark:text-axcio-text-muted-dark"
+                    class="ep-dialog-subtitle"
                     data-catalog-dialog-code
                 ></p>
             </div>
 
             <button
                 type="button"
-                class="inline-flex h-8 w-8 items-center justify-center
-                       rounded-md text-axcio-text-muted
-                       transition-colors
-                       hover:bg-axcio-surface-alt
-                       hover:text-axcio-text
-                       focus:outline-none focus:ring-2
-                       focus:ring-axcio-light
-                       dark:text-axcio-text-muted-dark
-                       dark:hover:bg-axcio-surface-alt-dark
-                       dark:hover:text-axcio-text-dark"
+                class="ep-dialog-close"
                 aria-label="Fermer"
                 data-catalog-dialog-close
             >
                 <span aria-hidden="true">×</span>
             </button>
+
         </div>
 
-        <div class="mt-6 space-y-2">
-            <label
-                for="catalog-incremental-label"
-                class="block text-sm font-medium
-                       text-axcio-text-secondary
-                       dark:text-axcio-text-secondary-dark"
-            >
-                Libellé
 
-                <span
-                    class="text-axcio-danger"
-                    aria-hidden="true"
+        <div class="ep-dialog-body">
+
+            <div class="ep-field">
+
+                <div class="ep-field-label-row">
+
+                    <label
+                        for="catalog-incremental-label"
+                        class="ep-field-label"
+                    >
+                        Libellé
+
+                        <span
+                            class="ep-field-required"
+                            aria-hidden="true"
+                        >
+                            *
+                        </span>
+
+                        <span class="sr-only">
+                            Champ obligatoire
+                        </span>
+                    </label>
+
+                </div>
+
+                <input
+                    id="catalog-incremental-label"
+                    type="text"
+                    maxlength="100"
+                    autocomplete="off"
+                    class="ep-input"
+                    placeholder="Ex. : Peintre, Carreleur…"
+                    data-catalog-dialog-label
                 >
-                    *
-                </span>
 
-                <span class="sr-only">
-                    Champ obligatoire
-                </span>
-            </label>
+                <p
+                    class="ep-dialog-error"
+                    role="alert"
+                    data-catalog-dialog-error
+                    hidden
+                ></p>
 
-            <input
-                id="catalog-incremental-label"
-                type="text"
-                maxlength="100"
-                autocomplete="off"
-                class="
-                    block w-full rounded-lg border
-                    border-axcio-border
-                    bg-axcio-input
-                    px-3 py-2
-                    text-sm text-axcio-text
-                    shadow-sm transition
-                    placeholder:text-axcio-text-muted
-                    focus:border-axcio-dark
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-axcio-dark/20
-                    disabled:cursor-not-allowed
-                    disabled:bg-axcio-input-disabled
-                    disabled:text-axcio-text-muted
-                    disabled:opacity-100
-                    dark:border-axcio-border-dark
-                    dark:bg-axcio-input-dark
-                    dark:text-axcio-text-dark
-                    dark:placeholder:text-axcio-text-muted-dark
-                    dark:focus:border-axcio-light
-                    dark:focus:ring-axcio-light/20
-                    dark:disabled:bg-axcio-input-disabled-dark
-                    dark:disabled:text-axcio-text-muted-dark
-                "
-                placeholder="Ex. : Peintre, Carreleur…"
-                data-catalog-dialog-label
-            >
+            </div>
 
-            <p
-                class="hidden text-sm text-axcio-danger"
-                role="alert"
-                data-catalog-dialog-error
-            ></p>
         </div>
 
-        <div class="mt-6 flex justify-end gap-3">
+
+        <div class="ep-dialog-actions">
+
             <button
                 type="button"
-                class="inline-flex items-center justify-center
-                       rounded-lg border border-axcio-border
-                       bg-axcio-surface-alt px-4 py-2
-                       text-sm font-medium
-                       text-axcio-text-secondary
-                       transition-colors
-                       hover:bg-axcio-border-light
-                       focus:outline-none focus:ring-2
-                       focus:ring-axcio-border
-                       focus:ring-offset-2
-                       dark:border-axcio-border-dark
-                       dark:bg-axcio-surface-alt-dark
-                       dark:text-axcio-text-secondary-dark
-                       dark:hover:bg-axcio-border-dark
-                       dark:focus:ring-axcio-border-dark
-                       dark:focus:ring-offset-axcio-page-dark"
+                class="ep-button ep-button-cancel"
                 data-catalog-dialog-close
             >
-                Annuler
+                <span class="ep-button-label">
+                    Annuler
+                </span>
             </button>
 
             <button
                 type="button"
-                class="inline-flex items-center justify-center
-                       rounded-lg bg-axcio-light px-4 py-2
-                       text-sm font-medium text-white
-                       transition-colors
-                       hover:bg-axcio-light-hover
-                       focus:outline-none focus:ring-2
-                       focus:ring-axcio-light
-                       focus:ring-offset-2
-                       disabled:cursor-not-allowed
-                       disabled:opacity-50
-                       dark:focus:ring-offset-axcio-page-dark"
+                class="ep-button ep-button-execute"
                 data-catalog-dialog-submit
                 disabled
             >
-                Créer
+                <span
+                    class="ep-button-label"
+                    data-catalog-dialog-submit-label
+                >
+                    Créer
+                </span>
             </button>
+
         </div>
+
     </div>
 </div>

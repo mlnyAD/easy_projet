@@ -94,20 +94,12 @@ RISK_LIST_DEFINITION = ListDefinition(
         ),
         ColumnDefinition(
             field=RISK_ENTITY_DEFINITION.get_field(
-                "last_review_date"
-            ),
-            label="Dernière revue",
-            width="sm",
-            order=90,
-        ),
-        ColumnDefinition(
-            field=RISK_ENTITY_DEFINITION.get_field(
                 "is_active"
             ),
             label="Actif",
             width="xs",
             align="center",
-            order=100,
+            order=90,
         ),
     ),
     default_sort="project",

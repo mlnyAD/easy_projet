@@ -1,23 +1,25 @@
 
 
+{# ================================================================== #}
+{# Champ booléen EDF                                                  #}
+{# ================================================================== #}
+
 <div
-    class="group relative"
+    class="ep-field ep-field-checkbox"
     data-checkbox-field
 >
-    <div class="mb-1 flex items-center gap-1.5">
+    <div class="ep-field-label-row">
+
         <label
             for="{{ field.id_for_label }}"
-            class="block text-sm font-medium
-                   text-axcio-text-secondary
-                   dark:text-axcio-text-secondary-dark"
+            class="ep-field-label ep-field-label-checkbox"
         >
             {{ field.label }}
         </label>
 
         {% if field.help_text %}
             <span
-                class="inline-flex text-axcio-text-muted
-                       dark:text-axcio-text-muted-dark"
+                class="ep-field-help-icon"
                 aria-hidden="true"
             >
                 <i
@@ -26,17 +28,18 @@
                 ></i>
             </span>
         {% endif %}
+
     </div>
 
-    <div class="flex min-h-10 items-center gap-3">
+    <div class="ep-checkbox-status-layout">
+
         {{ field.bound_field }}
 
         <span
+            class="ep-checkbox-status"
             data-checkbox-status
             data-checked-label="{{ field.checked_label }}"
             data-unchecked-label="{{ field.unchecked_label }}"
-            class="text-sm text-axcio-text-secondary
-                   dark:text-axcio-text-secondary-dark"
             aria-live="polite"
         >
             {% if field.value %}
@@ -45,19 +48,13 @@
                 {{ field.unchecked_label }}
             {% endif %}
         </span>
+
     </div>
 
     {% if field.help_text %}
         <div
             id="{{ field.bound_field.auto_id }}_help"
-            class="pointer-events-none absolute left-0 top-full z-30
-                   mt-1 max-w-sm rounded-md
-                   bg-axcio-text px-3 py-2
-                   text-xs leading-4 text-white
-                   opacity-0 shadow-lg transition-opacity
-                   group-hover:opacity-100
-                   group-focus-within:opacity-100
-                   dark:bg-axcio-surface-alt-dark"
+            class="ep-field-tooltip"
             role="tooltip"
         >
             {{ field.help_text }}
@@ -67,14 +64,13 @@
     {% if field.errors %}
         <div
             id="{{ field.bound_field.auto_id }}_errors"
-            class="mt-1 space-y-1"
+            class="ep-field-errors"
             role="alert"
         >
             {% for error in field.errors %}
-                <p class="text-sm text-axcio-danger">
-                    {{ error }}
-                </p>
+                <p>{{ error }}</p>
             {% endfor %}
         </div>
     {% endif %}
+
 </div>

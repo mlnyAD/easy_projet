@@ -588,3 +588,17 @@ ProjectExternalParticipantFormSet = (
         can_delete=True,
     )
 )
+
+class ProjectPhotoForm(forms.ModelForm):
+    """
+    Formulaire de remplacement de la photo principale du projet.
+    """
+
+    class Meta:
+        model = Project
+        fields = (
+            "project_photo",
+        )
+        labels = {
+            "project_photo": "Photo du projet",
+        }

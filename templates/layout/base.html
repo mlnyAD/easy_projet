@@ -46,34 +46,19 @@
     >
 </head>
 
-<body
-    class="min-h-screen
-           bg-axcio-page
-           text-axcio-text
-           dark:bg-axcio-page-dark
-           dark:text-axcio-text-dark"
->
+<body class=ep-app-body">
 
     {% include "edf/notifications/toasts.html" %}
 
-    <div
-        class="flex h-screen overflow-hidden"
-    >
+    <div class="ep-app">
 
         {% include "layout/sidebar.html" %}
 
-        <div
-            class="flex min-w-0 flex-1 flex-col"
-        >
+        <div class="ep-app-main">
 
             {% include "layout/topbar.html" %}
 
-            <main
-                class="flex-1 overflow-auto
-                       bg-axcio-page
-                       px-6 py-5
-                       dark:bg-axcio-page-dark"
-            >
+            <main class="ep-main-content">
                 {% block content %}
                 {% endblock %}
             </main>
@@ -103,6 +88,16 @@
 
         <script
             src="{% static 'js/framework/toasts.js' %}?v=3"
+            defer
+        ></script>
+
+        <script
+            src="{% static 'js/framework/sidebar.js' %}?v=1"
+            defer
+        ></script>
+
+        <script
+            src="{% static 'js/framework/form_collection.js' %}"
             defer
         ></script>
 

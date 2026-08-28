@@ -151,8 +151,19 @@
             {% endif %}
 
             {% if document.current_version %}
-                data-document-open-url="{% url 'documents:version-view' document.current_version.pk %}"
+
+                {% if document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" or document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.presentationml.presentation" %}
+
+                    data-document-open-url="{% url 'documents:version-edit' document.current_version.pk %}"
+
+                {% else %}
+
+                    data-document-open-url="{% url 'documents:version-view' document.current_version.pk %}"
+
+                {% endif %}
+
                 data-document-download-url="{% url 'documents:version-download' document.current_version.pk %}"
+
             {% endif %}
 
             class="grid min-h-9 cursor-default

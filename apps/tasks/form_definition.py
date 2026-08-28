@@ -2,6 +2,8 @@
 
 from framework.form import (
     FieldDefinition,
+    FormCollectionColumnDefinition,
+    FormCollectionDefinition,
     FormDefinition,
     SectionDefinition,
 )
@@ -70,4 +72,66 @@ TASK_FORM_DEFINITION = FormDefinition(
             ],
         ),
     ],
+    collections=[
+        FormCollectionDefinition(
+            name="assignments",
+            title="Personnel",
+            columns=(
+                FormCollectionColumnDefinition(
+                    name="user",
+                    label="Utilisateur",
+                    field_name="user",
+                ),
+                FormCollectionColumnDefinition(
+                    name="role",
+                    label="Rôle",
+                    field_name="role",
+                ),
+                FormCollectionColumnDefinition(
+                    name="allocation_percent",
+                    label="Taux de charge (%)",
+                    field_name="allocation_percent",
+                ),
+                FormCollectionColumnDefinition(
+                    name="is_active",
+                    label="Actif",
+                    field_name="is_active",
+                ),
+            ),
+            allow_add=True,
+            allow_delete=True,
+            add_label="Ajouter une personne",
+            delete_label="Supprimer l'affectation",
+        ),
+        FormCollectionDefinition(
+            name="dependencies",
+            title="Enchaînements",
+            columns=(
+                FormCollectionColumnDefinition(
+                    name="predecessor",
+                    label="Tâche antécédente",
+                    field_name="predecessor",
+                ),
+                FormCollectionColumnDefinition(
+                    name="dependency_type",
+                    label="Type",
+                    field_name="dependency_type",
+                ),
+                FormCollectionColumnDefinition(
+                    name="lag_days",
+                    label="Décalage (jours)",
+                    field_name="lag_days",
+                ),
+                FormCollectionColumnDefinition(
+                    name="is_active",
+                    label="Actif",
+                    field_name="is_active",
+                ),
+            ),
+            allow_add=True,
+            allow_delete=True,
+            add_label="Ajouter un enchaînement",
+            delete_label="Supprimer l'enchaînement",
+        ),
+    ],  
 )

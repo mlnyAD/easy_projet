@@ -1,0 +1,150 @@
+
+
+<a
+    href="{% url 'risks:list-by-project' project.pk %}"
+    class="flex h-full min-h-40 flex-col
+           rounded-xl border
+           border-axcio-border-light
+           bg-axcio-surface p-3
+           shadow-sm transition-colors
+           hover:bg-axcio-surface-alt
+           dark:border-axcio-border-dark
+           dark:bg-axcio-surface-dark
+           dark:hover:bg-axcio-surface-alt-dark"
+>
+    <div
+        class="flex items-center
+               justify-between gap-2"
+    >
+        <h2
+            class="text-sm font-semibold
+                   text-axcio-text
+                   dark:text-axcio-text-dark"
+        >
+            Risques projet
+        </h2>
+
+        <i
+            data-lucide="arrow-up-right"
+            class="h-4 w-4
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+            aria-hidden="true"
+        ></i>
+    </div>
+
+
+    <div
+        class="mt-2 flex items-end gap-4"
+    >
+        <div>
+            <span
+                class="text-xl font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                {{ dashboard_risk_count }}
+            </span>
+
+            <span
+                class="ml-1 text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                ouverts
+            </span>
+        </div>
+
+        <div>
+            <span
+                class="text-xl font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                {{ dashboard_major_risk_count }}
+            </span>
+
+            <span
+                class="ml-1 text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                majeurs
+            </span>
+        </div>
+    </div>
+
+
+    <div
+        class="mt-3 flex flex-wrap gap-1"
+        aria-label="Criticité des risques ouverts"
+    >
+
+        {% for risk in dashboard_risks %}
+
+            {% if risk.criticality.code == "LOW" %}
+
+                <span
+                    title="{{ risk.reference }} — {{ risk.title }} — {{ risk.criticality.label }}"
+                    class="h-4 w-4 rounded-sm border"
+                    style="background-color: #22c55e; border-color: #16a34a;"
+                ></span>
+
+            {% elif risk.criticality.code == "MEDIUM" %}
+
+                <span
+                    title="{{ risk.reference }} — {{ risk.title }} — {{ risk.criticality.label }}"
+                    class="h-4 w-4 rounded-sm border"
+                    style="background-color: #facc15; border-color: #eab308;"
+                ></span>
+
+            {% elif risk.criticality.code == "HIGH" %}
+
+                <span
+                    title="{{ risk.reference }} — {{ risk.title }} — {{ risk.criticality.label }}"
+                    class="h-4 w-4 rounded-sm border"
+                    style="background-color: #f97316; border-color: #ea580c;"
+                ></span>
+
+            {% elif risk.criticality.code == "CRITICAL" %}
+
+                <span
+                    title="{{ risk.reference }} — {{ risk.title }} — {{ risk.criticality.label }}"
+                    class="h-4 w-4 rounded-sm border"
+                    style="background-color: #dc2626; border-color: #b91c1c;"
+                ></span>
+
+            {% else %}
+
+                <span
+                    title="{{ risk.reference }} — {{ risk.title }} — {{ risk.criticality.label }}"
+                    class="h-4 w-4 rounded-sm border"
+                    style="background-color: #d1d5db; border-color: #9ca3af;"
+                ></span>
+
+            {% endif %}
+
+        {% empty %}
+
+            <span
+                class="text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                Aucun risque ouvert
+            </span>
+
+        {% endfor %}
+
+    </div>
+
+
+    <div
+        class="mt-auto pt-2 text-xs
+               text-axcio-text-muted
+               dark:text-axcio-text-muted-dark"
+    >
+        Voir les risques
+    </div>
+
+</a>

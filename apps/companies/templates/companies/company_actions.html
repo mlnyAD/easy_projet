@@ -2,18 +2,13 @@
 
 <a
     href="{% url 'companies:update' row.source_object.pk %}"
-    class="inline-flex h-7 w-7 items-center justify-center rounded-md
-           text-axcio-light transition-colors
-           hover:bg-axcio-light/10 hover:text-axcio-light-hover
-           focus:outline-none focus:ring-2
-           focus:ring-axcio-light focus:ring-offset-1
-           dark:text-axcio-light dark:hover:bg-neutral-800"
+    class="ep-list-row-action"
     title="Modifier"
-    aria-label="Modifier"
+    aria-label="Modifier la société"
 >
     <i
         data-lucide="pen"
-        class="h-4 w-4"
+        class="ep-list-row-action-icon"
         aria-hidden="true"
     ></i>
 </a>

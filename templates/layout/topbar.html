@@ -1,91 +1,90 @@
 
 
-<header
-    class="flex h-16 shrink-0 items-center gap-4
-           border-b border-gray-200 bg-white px-5
-           dark:border-neutral-800 dark:bg-neutral-900"
->
+<header class="ep-topbar">
+
+    {# =============================================================== #}
+    {# Commande de réduction de la sidebar                             #}
+    {# =============================================================== #}
+
     <button
         type="button"
-        class="inline-flex h-9 w-9 items-center justify-center
-               rounded-lg text-gray-500 transition
-               hover:bg-gray-100 hover:text-gray-900
-               dark:text-neutral-400
-               dark:hover:bg-neutral-800
-               dark:hover:text-neutral-100"
+        class="ep-topbar-icon-button"
         aria-label="Réduire le menu"
+        aria-expanded="true"
+        title="Réduire le menu"
+        data-sidebar-toggle
     >
         <i
             data-lucide="panel-left-close"
-            class="h-5 w-5"
+            class="ep-topbar-icon"
             aria-hidden="true"
+            data-sidebar-toggle-icon
         ></i>
     </button>
 
-    <div class="relative max-w-md flex-1">
+
+    {# =============================================================== #}
+    {# Recherche globale                                               #}
+    {# =============================================================== #}
+
+    <div class="ep-topbar-search">
+
         <i
             data-lucide="search"
-            class="pointer-events-none absolute left-3 top-1/2
-                   h-4 w-4 -translate-y-1/2 text-gray-400"
+            class="ep-topbar-search-icon"
             aria-hidden="true"
         ></i>
 
         <input
             type="search"
             placeholder="Rechercher dans Easy Projet"
-            class="h-10 w-full rounded-lg border border-gray-300
-                   bg-gray-50 pl-9 pr-3 text-sm
-                   text-gray-900
-                   focus:border-axcio-dark
-                   focus:outline-none focus:ring-2
-                   focus:ring-axcio-dark/20
-                   dark:border-neutral-700
-                   dark:bg-neutral-800
-                   dark:text-neutral-100
-                   dark:placeholder:text-neutral-500"
+            class="ep-topbar-search-input"
         >
+
     </div>
 
-    <div
-        class="mx-auto min-w-0 max-w-xl flex-1
-            text-center"
-    >
-        <p
-            class="text-xs font-medium uppercase tracking-wide
-                text-gray-400 dark:text-neutral-500"
-        >
+
+    {# =============================================================== #}
+    {# Projet courant                                                  #}
+    {# =============================================================== #}
+
+    <div class="ep-topbar-project">
+
+        <p class="ep-topbar-project-label">
             Projet en cours
         </p>
 
-        <p
-            class="truncate text-sm font-semibold text-gray-900
-                dark:text-neutral-100"
-        >
+        <p class="ep-topbar-project-value">
+
             {% if current_project %}
                 {{ current_project.reference }}
                 — {{ current_project.name }}
             {% else %}
                 Aucun projet sélectionné
             {% endif %}
+
         </p>
+
     </div>
 
-    <div class="flex shrink-0 items-center gap-1">
+
+    {# =============================================================== #}
+    {# Actions globales                                                #}
+    {# =============================================================== #}
+
+    <div class="ep-topbar-actions">
+
+        {# ----------------------------------------------------------- #}
+        {# Thème                                                       #}
+        {# ----------------------------------------------------------- #}
 
         <div
-            class="relative"
+            class="ep-topbar-menu"
             data-theme-menu
         >
             <button
                 type="button"
-                class="inline-flex h-9 w-9 items-center justify-center
-                       rounded-lg text-gray-500 transition
-                       hover:bg-gray-100 hover:text-gray-900
-                       focus:outline-none focus:ring-2
-                       focus:ring-axcio-light
-                       dark:text-neutral-400
-                       dark:hover:bg-neutral-800
-                       dark:hover:text-neutral-100"
+                class="ep-topbar-icon-button"
                 aria-label="Choisir le thème"
                 aria-haspopup="menu"
                 aria-expanded="false"
@@ -94,43 +93,37 @@
             >
                 <i
                     data-lucide="sun-moon"
-                    class="h-5 w-5"
+                    class="ep-topbar-icon"
                     aria-hidden="true"
                     data-theme-icon
                 ></i>
             </button>
 
             <div
-                class="absolute right-0 top-full z-40 mt-2 hidden
-                       w-44 overflow-hidden rounded-lg border
-                       border-gray-200 bg-white py-1 shadow-lg
-                       dark:border-neutral-700
-                       dark:bg-neutral-800"
+                class="ep-topbar-dropdown hidden"
                 role="menu"
                 aria-label="Choix du thème"
                 data-theme-dropdown
             >
                 <button
                     type="button"
-                    class="flex w-full items-center gap-3 px-3 py-2
-                           text-left text-sm text-gray-700 transition
-                           hover:bg-gray-100
-                           dark:text-neutral-200
-                           dark:hover:bg-neutral-700"
+                    class="ep-topbar-dropdown-item"
                     role="menuitem"
                     data-theme-option="system"
                 >
                     <i
                         data-lucide="monitor"
-                        class="h-4 w-4"
+                        class="ep-topbar-dropdown-icon"
                         aria-hidden="true"
                     ></i>
 
-                    <span class="flex-1">Système</span>
+                    <span class="ep-topbar-dropdown-label">
+                        Système
+                    </span>
 
                     <i
                         data-lucide="check"
-                        class="hidden h-4 w-4 text-axcio-light"
+                        class="ep-topbar-dropdown-check hidden"
                         aria-hidden="true"
                         data-theme-check="system"
                     ></i>
@@ -138,25 +131,23 @@
 
                 <button
                     type="button"
-                    class="flex w-full items-center gap-3 px-3 py-2
-                           text-left text-sm text-gray-700 transition
-                           hover:bg-gray-100
-                           dark:text-neutral-200
-                           dark:hover:bg-neutral-700"
+                    class="ep-topbar-dropdown-item"
                     role="menuitem"
                     data-theme-option="light"
                 >
                     <i
                         data-lucide="sun"
-                        class="h-4 w-4"
+                        class="ep-topbar-dropdown-icon"
                         aria-hidden="true"
                     ></i>
 
-                    <span class="flex-1">Clair</span>
+                    <span class="ep-topbar-dropdown-label">
+                        Clair
+                    </span>
 
                     <i
                         data-lucide="check"
-                        class="hidden h-4 w-4 text-axcio-light"
+                        class="ep-topbar-dropdown-check hidden"
                         aria-hidden="true"
                         data-theme-check="light"
                     ></i>
@@ -164,25 +155,23 @@
 
                 <button
                     type="button"
-                    class="flex w-full items-center gap-3 px-3 py-2
-                           text-left text-sm text-gray-700 transition
-                           hover:bg-gray-100
-                           dark:text-neutral-200
-                           dark:hover:bg-neutral-700"
+                    class="ep-topbar-dropdown-item"
                     role="menuitem"
                     data-theme-option="dark"
                 >
                     <i
                         data-lucide="moon"
-                        class="h-4 w-4"
+                        class="ep-topbar-dropdown-icon"
                         aria-hidden="true"
                     ></i>
 
-                    <span class="flex-1">Sombre</span>
+                    <span class="ep-topbar-dropdown-label">
+                        Sombre
+                    </span>
 
                     <i
                         data-lucide="check"
-                        class="hidden h-4 w-4 text-axcio-light"
+                        class="ep-topbar-dropdown-check hidden"
                         aria-hidden="true"
                         data-theme-check="dark"
                     ></i>
@@ -190,60 +179,89 @@
             </div>
         </div>
 
+
+        {# ----------------------------------------------------------- #}
+        {# Todo                                                        #}
+        {# ----------------------------------------------------------- #}
+
+        <a
+            href="{% url 'todos:list' %}"
+            class="ep-topbar-icon-button ep-topbar-todo"
+            aria-label="Mon Todo"
+            title="Mon Todo"
+        >
+            <i
+                data-lucide="pickaxe"
+                class="ep-topbar-icon"
+                aria-hidden="true"
+            ></i>
+
+            {% if todo_pending_count > 0 %}
+                <span class="ep-topbar-badge">
+                    {% if todo_pending_count > 99 %}
+                        99+
+                    {% else %}
+                        {{ todo_pending_count }}
+                    {% endif %}
+                </span>
+            {% endif %}
+        </a>
+
+
+        {# ----------------------------------------------------------- #}
+        {# Assistant IA                                                #}
+        {# ----------------------------------------------------------- #}
+
         <button
             type="button"
-            class="inline-flex h-9 items-center gap-2
-                   rounded-lg px-3 text-sm text-gray-500
-                   transition hover:bg-gray-100
-                   hover:text-gray-900
-                   dark:text-neutral-400
-                   dark:hover:bg-neutral-800
-                   dark:hover:text-neutral-100"
+            class="ep-topbar-text-button"
             title="Assistant IA"
         >
             <i
                 data-lucide="sparkles"
-                class="h-5 w-5"
+                class="ep-topbar-icon"
                 aria-hidden="true"
             ></i>
 
             <span>IA</span>
         </button>
 
+
+        {# ----------------------------------------------------------- #}
+        {# Notifications                                               #}
+        {# ----------------------------------------------------------- #}
+
         <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center
-                   rounded-lg text-gray-500 transition
-                   hover:bg-gray-100 hover:text-gray-900
-                   dark:text-neutral-400
-                   dark:hover:bg-neutral-800
-                   dark:hover:text-neutral-100"
+            class="ep-topbar-icon-button"
             aria-label="Notifications"
             title="Notifications"
         >
             <i
                 data-lucide="bell"
-                class="h-5 w-5"
+                class="ep-topbar-icon"
                 aria-hidden="true"
             ></i>
         </button>
 
+
+        {# ----------------------------------------------------------- #}
+        {# Aide                                                        #}
+        {# ----------------------------------------------------------- #}
+
         <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center
-                   rounded-lg text-gray-500 transition
-                   hover:bg-gray-100 hover:text-gray-900
-                   dark:text-neutral-400
-                   dark:hover:bg-neutral-800
-                   dark:hover:text-neutral-100"
+            class="ep-topbar-icon-button"
             aria-label="Aide en ligne"
             title="Aide en ligne"
         >
             <i
                 data-lucide="circle-help"
-                class="h-5 w-5"
+                class="ep-topbar-icon"
                 aria-hidden="true"
             ></i>
         </button>
+
     </div>
+
 </header>

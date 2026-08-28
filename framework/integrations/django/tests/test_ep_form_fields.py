@@ -133,7 +133,7 @@ class EPFormFieldsTemplateTagTests(unittest.TestCase):
             html,
         )
 
-    def test_render_ep_field_adds_easy_project_css_class(self) -> None:
+    def test_render_ep_field_adds_semantic_input_class(self) -> None:
         form = DjangoCompanyForm()
 
         template = Template(
@@ -152,7 +152,7 @@ class EPFormFieldsTemplateTagTests(unittest.TestCase):
         )
 
         self.assertIn(
-            "edf-form-input",
+            "ep-input",
             html,
         )
     

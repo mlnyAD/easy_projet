@@ -60,30 +60,43 @@
                    dark:bg-axcio-surface-dark
                    lg:grid-cols-3"
         >
+
             <div
                 class="flex min-h-56 items-center justify-center
-                       rounded-xl border border-dashed
-                       border-axcio-border
-                       bg-axcio-surface-alt
-                       dark:border-axcio-border-dark
-                       dark:bg-axcio-surface-alt-dark"
+                    overflow-hidden rounded-xl border
+                    border-axcio-border-light
+                    bg-axcio-surface-alt
+                    dark:border-axcio-border-dark
+                    dark:bg-axcio-surface-alt-dark"
             >
-                <div class="text-center">
-                    <i
-                        data-lucide="image"
-                        class="mx-auto h-10 w-10
-                               text-axcio-text-muted"
-                        aria-hidden="true"
-                    ></i>
+                {% if project.project_photo %}
 
-                    <p
-                        class="mt-2 text-sm
-                               text-axcio-text-muted
-                               dark:text-axcio-text-muted-dark"
+                    <img
+                        src="{{ project.project_photo.url }}"
+                        alt="Photo du projet {{ project.name }}"
+                        class="h-56 w-full object-cover"
                     >
-                        Photo du projet à venir
-                    </p>
-                </div>
+
+                {% else %}
+
+                    <div class="text-center">
+                        <i
+                            data-lucide="image"
+                            class="mx-auto h-10 w-10
+                                text-axcio-text-muted"
+                            aria-hidden="true"
+                        ></i>
+
+                        <p
+                            class="mt-2 text-sm
+                                text-axcio-text-muted
+                                dark:text-axcio-text-muted-dark"
+                        >
+                            Aucune photo du projet
+                        </p>
+                    </div>
+
+                {% endif %}
             </div>
 
             <div class="space-y-5 lg:col-span-2">
@@ -265,9 +278,34 @@
                 </a>
                 {% include "projects/project_workspace_action_disabled.html" with icon="users" label="Affecter" %}
                 {% include "projects/project_workspace_action_disabled.html" with icon="banknote" label="Financer" %}
-                {% include "projects/project_workspace_action_disabled.html" with icon="map-pin" label="Localiser" %}
                 {% include "projects/project_workspace_action_disabled.html" with icon="clock-3" label="Gérer les heures" %}
-                {% include "projects/project_workspace_action_disabled.html" with icon="chart-no-axes-combined" label="Tableau de bord" %}
+
+                <a
+                    href="{% url 'projects:dashboard' project.pk %}"
+                    class="project-action-card"
+                >
+                    <i
+                        data-lucide="chart-no-axes-combined"
+                        class="h-6 w-6"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>Tableau de bord</span>
+                </a>
+
+                <a
+                    href="{% url 'projects:locations' %}?project={{ project.pk }}"
+                    class="project-action-card"
+                >
+                    <i
+                        data-lucide="map-pin"
+                        class="h-6 w-6"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>Localiser</span>
+                </a>
+
                 <a
                     href="{% url 'risks:list-by-project' project.pk %}"
                     class="project-action-card"
@@ -294,7 +332,19 @@
                     <span>Documentation</span>
                 </a>
 
-                {% include "projects/project_workspace_action_disabled.html" with icon="image-plus" label="Photo" %}
+                <a
+                    href="{% url 'projects:photo' project.pk %}"
+                    class="project-action-card"
+                >
+                    <i
+                        data-lucide="image-plus"
+                        class="h-6 w-6"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>Photo</span>
+                </a>
+
             </div>
         </section>
     </div>

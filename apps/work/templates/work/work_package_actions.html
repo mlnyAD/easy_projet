@@ -1,41 +1,31 @@
 
 
-<div class="flex items-center justify-end gap-1">
+<div class="ep-list-row-actions">
+
     <a
         href="{% url 'tasks:list-by-work-package' row.source_object.pk %}"
-        class="inline-flex h-7 w-7 items-center justify-center rounded-md
-               text-axcio-light transition-colors
-               hover:bg-axcio-light/10 hover:text-axcio-light-hover
-               focus:outline-none focus:ring-2
-               focus:ring-axcio-light focus:ring-offset-1
-               dark:text-axcio-light
-               dark:hover:bg-axcio-surface-alt-dark"
+        class="ep-list-row-action"
         title="Afficher les tâches"
         aria-label="Afficher les tâches du lot"
     >
         <i
             data-lucide="list-checks"
-            class="h-4 w-4"
+            class="ep-list-row-action-icon"
             aria-hidden="true"
         ></i>
     </a>
 
     <a
         href="{% url 'work:update' row.source_object.pk %}?next={{ return_url|urlencode }}"
-        class="inline-flex h-7 w-7 items-center justify-center rounded-md
-               text-axcio-light transition-colors
-               hover:bg-axcio-light/10 hover:text-axcio-light-hover
-               focus:outline-none focus:ring-2
-               focus:ring-axcio-light focus:ring-offset-1
-               dark:text-axcio-light
-               dark:hover:bg-axcio-surface-alt-dark"
+        class="ep-list-row-action"
         title="Modifier"
         aria-label="Modifier le lot de travaux"
     >
         <i
             data-lucide="pen"
-            class="h-4 w-4"
+            class="ep-list-row-action-icon"
             aria-hidden="true"
         ></i>
     </a>
+
 </div>

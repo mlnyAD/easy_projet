@@ -144,6 +144,16 @@ class OnlyOfficeAdapter(DocumentIntegration):
             f"{easy_projet_url}"
             f"{callback_path}"
         )
+        
+        print(
+            "ONLYOFFICE content_url =",
+            content_url,
+        )
+
+        print(
+            "ONLYOFFICE callback_url =",
+            callback_url,
+        )
 
         mode = (
             "edit"

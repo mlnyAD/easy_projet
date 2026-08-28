@@ -2,64 +2,53 @@
 
 {% load ep_lists %}
 
-<thead class="bg-axcio-surface-alt dark:bg-axcio-surface-alt-dark">
+<thead class="ep-list-header">
+
     <tr>
+
         {% for column in list_view.columns %}
+
             <th
                 scope="col"
                 class="
+                    ep-list-header-cell
                     {{ column|column_width_class }}
                     {{ column|column_alignment_class }}
-                    whitespace-nowrap
-                    px-4 py-2.5
-                    text-xs
-                    font-semibold
-                    uppercase
-                    tracking-wider
-                    text-axcio-text-muted
-                    dark:text-axcio-text-muted-dark
                 "
             >
-                <span>{{ column.label }}</span>
+                <span>
+                    {{ column.label }}
+                </span>
 
                 {% if column.sorted %}
-                    {% if column.descending %}
-                        <span
-                            class="ml-1 text-axcio-light"
-                            aria-label="Tri décroissant"
-                        >
+                    <span
+                        class="ep-list-sort-indicator"
+                        aria-label="{% if column.descending %}Tri décroissant{% else %}Tri croissant{% endif %}"
+                    >
+                        {% if column.descending %}
                             ▼
-                        </span>
-                    {% else %}
-                        <span
-                            class="ml-1 text-axcio-light"
-                            aria-label="Tri croissant"
-                        >
+                        {% else %}
                             ▲
-                        </span>
-                    {% endif %}
+                        {% endif %}
+                    </span>
                 {% endif %}
+
             </th>
+
         {% endfor %}
 
+
         {% if row_actions_template %}
+
             <th
                 scope="col"
-                class="
-                    w-px
-                    whitespace-nowrap
-                    text-center
-                    px-4 py-2.5
-                    text-xs
-                    font-semibold
-                    uppercase
-                    tracking-wider
-                    text-axcio-text-muted
-                    dark:text-axcio-text-muted-dark
-                "
+                class="ep-list-header-cell ep-list-actions-header"
             >
                 Actions
             </th>
+
         {% endif %}
+
     </tr>
+
 </thead>

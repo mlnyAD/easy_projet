@@ -1,31 +1,21 @@
 
 
-<div
-    class="overflow-x-auto rounded-lg border
-           border-axcio-border-light
-           bg-axcio-surface shadow-sm
-           dark:border-axcio-border-dark
-           dark:bg-axcio-surface-dark"
->
-    <table
-        class="min-w-full table-auto divide-y
-               divide-axcio-border-light
-               dark:divide-axcio-border-dark"
-    >
+<div class="ep-list-table-container">
+
+    <table class="ep-list-table">
+
         {% include "edf/list/header.html" %}
 
-        <tbody
-            class="divide-y
-                   divide-axcio-border-light
-                   bg-axcio-surface
-                   dark:divide-axcio-border-dark
-                   dark:bg-axcio-surface-dark"
-        >
+        <tbody class="ep-list-body">
+
             {% for row in list_view.rows %}
                 {% include "edf/list/row.html" %}
             {% empty %}
                 {% include "edf/list/empty.html" %}
             {% endfor %}
+
         </tbody>
+
     </table>
+
 </div>

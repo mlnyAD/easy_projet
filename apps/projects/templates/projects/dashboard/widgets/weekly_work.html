@@ -1,0 +1,70 @@
+
+
+<div
+    class="flex h-full min-h-40 flex-col
+           rounded-xl border
+           border-axcio-border-light
+           bg-axcio-surface p-3
+           shadow-sm
+           dark:border-axcio-border-dark
+           dark:bg-axcio-surface-dark"
+>
+    <h2
+        class="text-sm font-semibold
+               text-axcio-text
+               dark:text-axcio-text-dark"
+    >
+        Travail de la semaine
+    </h2>
+
+    <div
+        class="mt-1 text-xs
+               text-axcio-text-muted
+               dark:text-axcio-text-muted-dark"
+    >
+        {{ dashboard_week_start|date:"d/m" }}
+        →
+        {{ dashboard_week_end|date:"d/m" }}
+    </div>
+
+    <div
+        class="grid flex-1 grid-cols-2
+               items-center gap-3 text-center"
+    >
+        <div>
+            <div
+                class="text-2xl font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                {{ dashboard_weekly_task_count }}
+            </div>
+
+            <div
+                class="text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                Tâches
+            </div>
+        </div>
+
+        <div>
+            <div
+                class="text-2xl font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                {{ dashboard_weekly_resource_count }}
+            </div>
+
+            <div
+                class="text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                Ressources
+            </div>
+        </div>
+    </div>
+</div>

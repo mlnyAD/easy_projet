@@ -1,0 +1,128 @@
+
+
+<div
+    class="flex h-full min-h-40 flex-col
+           rounded-xl border
+           border-axcio-border-light
+           bg-axcio-surface p-3
+           shadow-sm
+           dark:border-axcio-border-dark
+           dark:bg-axcio-surface-dark"
+>
+    <div
+        class="flex items-center
+               justify-between gap-2"
+    >
+        <h2
+            class="text-sm font-semibold
+                   text-axcio-text
+                   dark:text-axcio-text-dark"
+        >
+            Pilotage projet
+        </h2>
+
+        <i
+            data-lucide="calendar-clock"
+            class="h-4 w-4
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        ></i>
+    </div>
+
+
+    <div class="mt-2">
+
+        <span
+            class="text-xl font-semibold
+                   text-axcio-text
+                   dark:text-axcio-text-dark"
+        >
+            {{ dashboard_meeting_count }}
+        </span>
+
+        <span
+            class="ml-1 text-xs
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            réunion{{ dashboard_meeting_count|pluralize }}
+            à venir
+        </span>
+
+    </div>
+
+
+    {% if dashboard_next_meeting %}
+
+        <div
+            class="mt-2 rounded-md
+                   bg-axcio-surface-alt px-2 py-1.5
+                   dark:bg-axcio-surface-alt-dark"
+        >
+            <div
+                class="text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                Prochaine réunion
+            </div>
+
+            <div
+                class="mt-0.5 flex items-center
+                       gap-2 text-xs font-medium
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                <span>
+                    {{ dashboard_next_meeting.scheduled_at|date:"d/m" }}
+                </span>
+
+                <span>
+                    {{ dashboard_next_meeting.scheduled_at|date:"H:i" }}
+                </span>
+            </div>
+
+            <div
+                class="truncate text-xs
+                       text-axcio-text-secondary
+                       dark:text-axcio-text-secondary-dark"
+                title="{{ dashboard_next_meeting.subject }}"
+            >
+                {{ dashboard_next_meeting.subject }}
+            </div>
+        </div>
+
+    {% else %}
+
+        <div
+            class="mt-2 text-xs
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            Aucune réunion planifiée
+        </div>
+
+    {% endif %}
+
+
+    <div
+        class="mt-auto flex items-center
+               justify-between pt-2 text-xs"
+    >
+        <span
+            class="text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            Todo CP
+        </span>
+
+        <span
+            class="font-medium
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            —
+        </span>
+    </div>
+
+</div>

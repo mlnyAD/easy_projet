@@ -7,7 +7,12 @@ ViewModel utilisé pour le rendu d'un formulaire Easy Projet.
 from dataclasses import dataclass
 from typing import Any
 
-from framework.form import EPForm, FormMode, ResolvedSection
+from framework.form import (
+    EPForm,
+    FormMode,
+    ResolvedFormCollection,
+    ResolvedSection,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,7 +32,6 @@ class FormViewModel:
         """
         Indique si le formulaire est affiché en lecture seule.
         """
-
         return self.form.is_readonly
 
     @property
@@ -35,17 +39,23 @@ class FormViewModel:
         """
         Retourne le ModelForm Django porté par EPForm.
         """
-
         return self.form.django_form
-    
+
     @property
     def title(self) -> str:
         return self.form.title
 
     @property
-    def sections(self):
+    def sections(self) -> list[ResolvedSection]:
         return self.form.sections
 
     @property
-    def mode(self):
+    def collections(self) -> list[ResolvedFormCollection]:
+        """
+        Retourne les collections répétables du formulaire.
+        """
+        return self.form.collections
+
+    @property
+    def mode(self) -> FormMode:
         return self.form.mode

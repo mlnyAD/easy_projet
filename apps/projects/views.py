@@ -5,8 +5,19 @@ from django.db import transaction
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.generic import DetailView, ListView
+from django.utils import timezone
+from django.views.generic import (
+    DetailView,
+    ListView,
+    UpdateView,
+)
+from django.contrib.auth.mixins import LoginRequiredMixin
+from datetime import timedelta
 
+from django.db.models import Sum
+from django.utils import timezone
+
+from apps.tasks.models import Task, TaskAssignment
 from common.constants import (
     DEFAULT_PAGE_SIZE,
     PAGE_SIZE_VALUES,
@@ -23,6 +34,7 @@ from .forms import (
     ProjectExternalParticipantFormSet,
     ProjectForm,
     ProjectMembershipFormSet,
+    ProjectPhotoForm,
 )
 from .lists import PROJECT_LIST_DEFINITION
 from .models import Project
@@ -110,15 +122,29 @@ class ProjectLocationView(ListView):
     context_object_name = "projects"
 
     def get_queryset(self):
-        return (
+        queryset = (
             ProjectAccessService
-            .get_accessible_projects(self.request.user)
+            .get_accessible_projects(
+                self.request.user
+            )
             .select_related(
                 "company",
                 "client_environment",
                 "client_environment__company",
             )
         )
+
+        project_id = (
+            self.request.GET
+            .get("project")
+        )
+
+        if project_id:
+            queryset = queryset.filter(
+                pk=project_id
+            )
+
+        return queryset
 
     @staticmethod
     def build_project_data(project):
@@ -147,7 +173,7 @@ class ProjectLocationView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        
         localized_projects = []
         unlocalized_projects = []
 
@@ -274,29 +300,27 @@ class ProjectUpdateView(EPUpdateView):
     template_name = "projects/project_form.html"
 
     def get_queryset(self):
-        return (
-            Project.objects
+        queryset = (
+            ProjectAccessService
+            .get_accessible_projects(self.request.user)
             .select_related(
+                "company",
                 "client_environment",
                 "client_environment__company",
-                "company",
-                "owner_company",
-                "designer_company",
-                "project_manager",
-                "status",
-                "project_type",
-            )
-            .prefetch_related(
-                "memberships",
-                "memberships__user",
-                "memberships__user__company",
-                "memberships__role",
-                "memberships__role__catalog_type",
-                "external_participants",
-                "external_participants__access_level",
-                "external_participants__converted_user",
             )
         )
+
+        project_id = (
+            self.request.GET
+            .get("project")
+        )
+
+        if project_id:
+            queryset = queryset.filter(
+                pk=project_id
+            )
+
+        return queryset
 
     def get_return_url(self):
         candidate = self.request.GET.get("next")
@@ -431,3 +455,176 @@ class ProjectUpdateView(EPUpdateView):
         return redirect(
             self.get_success_url()
         )
+        
+class ProjectPhotoUpdateView(
+    LoginRequiredMixin,
+    UpdateView,
+):
+    """
+    Ajoute ou remplace la photo principale d'un projet.
+    """
+
+    model = Project
+    form_class = ProjectPhotoForm
+    template_name = "projects/project_photo_form.html"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "projects:workspace",
+            kwargs={
+                "pk": self.object.pk,
+            },
+        )
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            "La photo du projet a été mise à jour.",
+        )
+
+        return super().form_valid(form)
+    
+
+class ProjectDashboardView(DetailView):
+    """
+    Tableau de bord synthétique d'un projet.
+
+    Les widgets sont volontairement séparés du template principal
+    afin de permettre une future personnalisation du dashboard.
+    """
+
+    model = Project
+    template_name = "projects/project_dashboard.html"
+    context_object_name = "project"
+
+    def get_queryset(self):
+        return (
+            Project.objects
+            .select_related(
+                "company",
+                "owner_company",
+                "project_manager",
+                "status",
+                "project_type",
+                "client_environment",
+            )
+            .prefetch_related(
+                "work_packages",
+                "work_packages__tasks",
+            )
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        project = self.object
+
+        context["current_project"] = project
+
+        open_risks = (
+            project.risks
+            .filter(
+                is_active=True,
+                status__code__in=(
+                    "LATENT",
+                    "EMERGED",
+                    "ACTIVE",
+                ),
+                status__catalog_type__code="RISK_STATE",
+            )
+            .select_related(
+                "criticality",
+                "status",
+            )
+            .order_by(
+                "-criticality__sort_order",
+                "reference",
+            )
+        )
+
+        context["dashboard_risks"] = open_risks
+
+        context["dashboard_risk_count"] = (
+            open_risks.count()
+        )
+
+        context["dashboard_major_risk_count"] = (
+            open_risks
+            .filter(
+                criticality__code__in=(
+                    "HIGH",
+                    "CRITICAL",
+                ),
+                criticality__catalog_type__code=(
+                    "RISK_CRITICALITY"
+                ),
+            )
+            .count()
+        )
+        
+        upcoming_meetings = (
+            project.meetings
+            .filter(
+                is_active=True,
+                scheduled_at__gte=timezone.now(),
+            )
+            .select_related(
+                "status",
+                "organizer",
+            )
+            .order_by(
+                "scheduled_at",
+            )
+        )
+
+        context["dashboard_meeting_count"] = (
+            upcoming_meetings.count()
+        )
+
+        context["dashboard_next_meeting"] = (
+            upcoming_meetings.first()
+        )
+        
+        today = timezone.localdate()
+
+        week_start = today - timedelta(
+            days=today.weekday()
+        )
+
+        week_end = week_start + timedelta(
+            days=6
+        )
+
+        weekly_tasks = (
+            Task.objects
+            .filter(
+                work_package__project=project,
+                is_active=True,
+                start_date__lte=week_end,
+                end_date__gte=week_start,
+            )
+        )
+
+        context["dashboard_weekly_task_count"] = (
+            weekly_tasks.count()
+        )
+
+        context["dashboard_weekly_workload"] = (
+            weekly_tasks.aggregate(
+                total=Sum("planned_workload_hours")
+            )["total"]
+            or 0
+        )
+
+        context["dashboard_weekly_resource_count"] = (
+            TaskAssignment.objects
+            .filter(
+                task__in=weekly_tasks,
+                is_active=True,
+            )
+            .values("user_id")
+            .distinct()
+            .count()
+        )
+
+        return context

@@ -1,0 +1,171 @@
+
+
+{% if is_checkbox %}
+
+    {# =============================================================== #}
+    {# Champ booléen EDF                                               #}
+    {# =============================================================== #}
+
+    <div
+        class="ep-field ep-field-checkbox"
+    >
+        <div class="ep-checkbox-layout">
+
+            <div class="ep-checkbox-control">
+                {{ widget_html }}
+            </div>
+
+            <div class="ep-checkbox-content">
+
+                <div class="ep-field-label-row">
+
+                    <label
+                        for="{{ field.id_for_label }}"
+                        class="ep-field-label ep-field-label-checkbox"
+                    >
+                        {{ field.label }}
+
+                        {% if field.field.required %}
+                            <span
+                                class="ep-field-required"
+                                aria-hidden="true"
+                            >
+                                *
+                            </span>
+
+                            <span class="sr-only">
+                                Champ obligatoire
+                            </span>
+                        {% endif %}
+                    </label>
+
+                    {% if field.help_text %}
+                        <span
+                            class="ep-field-help-icon"
+                            aria-hidden="true"
+                        >
+                            <i
+                                data-lucide="circle-help"
+                                class="h-3.5 w-3.5"
+                            ></i>
+                        </span>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {% if field.help_text %}
+
+            <div
+                id="{{ field.auto_id }}_help"
+                class="ep-field-tooltip"
+                role="tooltip"
+            >
+                {{ field.help_text }}
+            </div>
+
+        {% endif %}
+
+
+        {% if field.errors %}
+
+            <div
+                id="{{ field.auto_id }}_errors"
+                class="ep-field-errors"
+                role="alert"
+            >
+                {% for error in field.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+{% else %}
+
+    {# =============================================================== #}
+    {# Champ standard EDF                                              #}
+    {# =============================================================== #}
+
+    <div class="ep-field">
+
+        <div class="ep-field-label-row">
+
+            <label
+                for="{{ field.id_for_label }}"
+                class="ep-field-label"
+            >
+                {{ field.label }}
+
+                {% if field.field.required %}
+                    <span
+                        class="ep-field-required"
+                        aria-hidden="true"
+                    >
+                        *
+                    </span>
+
+                    <span class="sr-only">
+                        Champ obligatoire
+                    </span>
+                {% endif %}
+            </label>
+
+
+            {% if field.help_text %}
+
+                <span
+                    class="ep-field-help-icon"
+                    aria-hidden="true"
+                >
+                    <i
+                        data-lucide="circle-help"
+                        class="h-3.5 w-3.5"
+                    ></i>
+                </span>
+
+            {% endif %}
+
+        </div>
+
+
+        {{ widget_html }}
+
+
+        {% if field.help_text %}
+
+            <div
+                id="{{ field.auto_id }}_help"
+                class="ep-field-tooltip"
+                role="tooltip"
+            >
+                {{ field.help_text }}
+            </div>
+
+        {% endif %}
+
+
+        {% if field.errors %}
+
+            <div
+                id="{{ field.auto_id }}_errors"
+                class="ep-field-errors"
+                role="alert"
+            >
+                {% for error in field.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+
+        {% endif %}
+
+    </div>
+
+{% endif %}

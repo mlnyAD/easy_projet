@@ -1,0 +1,21 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Mon Todo
+{% endblock %}
+
+{% block content %}
+
+    {% url "todos:create" as todo_create_url %}
+
+    <div class="ep-page">
+
+        {% include "edf/page/header.html" with page_title="Mon Todo" page_subtitle="Actions à faire, en cours ou suspendues." page_action_label="Nouvelle action" page_action_url=todo_create_url page_action_icon="plus" %}
+
+        {% include "edf/list/list.html" %}
+
+    </div>
+
+{% endblock %}

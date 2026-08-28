@@ -1,0 +1,100 @@
+
+
+{% load ep_form_fields %}
+
+{% if collection.visible %}
+
+    <section
+        class="ep-form-collection"
+        data-ep-form-collection="{{ collection.name }}"
+    >
+
+        {% include "edf/form/collection_header.html" %}
+
+        {{ collection.management_form }}
+
+        {% if collection.non_form_errors %}
+            <div
+                class="ep-form-errors"
+                role="alert"
+            >
+                {{ collection.non_form_errors }}
+            </div>
+        {% endif %}
+
+        <div class="ep-form-collection-table-wrapper">
+
+            <table class="ep-form-collection-table">
+
+                <thead class="ep-form-collection-head">
+                    <tr>
+
+                        {% for column in collection.columns %}
+                            {% if column.visible %}
+                                <th
+                                    scope="col"
+                                    class="ep-form-collection-heading"
+                                >
+                                    {{ column.label|default:column.name }}
+                                </th>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if collection.allow_delete %}
+                            <th
+                                scope="col"
+                                class="ep-form-collection-action-heading"
+                            >
+                                <span class="sr-only">
+                                    Actions
+                                </span>
+                            </th>
+                        {% endif %}
+
+                    </tr>
+                </thead>
+
+                <tbody
+                    data-ep-form-collection-body
+                    class="ep-form-collection-body"
+                >
+
+                    {% for row in collection.rows %}
+                        {% include "edf/form/collection_row.html" %}
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% if collection.allow_add %}
+
+            {% include "edf/form/collection_empty_row.html" %}
+
+            <div class="ep-form-collection-footer">
+
+                <button
+                    type="button"
+                    class="ep-form-collection-add"
+                    data-ep-add-row="{{ collection.name }}"
+                >
+                    <i
+                        data-lucide="plus"
+                        class="ep-form-collection-add-icon"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>
+                        {{ collection.add_label }}
+                    </span>
+                </button>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+{% endif %}

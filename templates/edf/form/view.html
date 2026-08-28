@@ -4,15 +4,32 @@
 
 {% block content %}
 
-<form method="post" novalidate>
+<form
+    method="post"
+    novalidate
+    class="ep-form"
+>
     {% csrf_token %}
 
     {% include "edf/form/header.html" %}
     {% include "edf/form/messages.html" %}
     {% include "edf/form/sections.html" %}
+
+    {% if form_view.collections %}
+        <div class="ep-form-collections">
+            {% for collection in form_view.collections %}
+                {% include "edf/form/collection.html" %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
     {% include "edf/form/actions.html" %}
 </form>
 
 {% include "edf/catalogs/incremental_dialog.html" %}
+
+{% if form_extra_template %}
+    {% include form_extra_template %}
+{% endif %}
 
 {% endblock %}

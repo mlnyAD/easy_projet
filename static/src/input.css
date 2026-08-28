@@ -2,12 +2,13 @@
 
 @import "tailwindcss";
 
-@import "./edf/variables.css";
+@import "./edf/layout.css";
+@import "./edf/page.css";
 @import "./edf/forms.css";
 @import "./edf/buttons.css";
 @import "./edf/lists.css";
-@import "./edf/cards.css";
-@import "./edf/tables.css";
+@import "./edf/notifications.css";
+@import "./edf/dialogs.css";
 @import "./edf/project.css";
 
 @source "../../templates/**/*.html";
@@ -71,5 +72,6 @@
     --color-axcio-info-soft: #EFF6FF;
     --color-axcio-info-soft-dark: #172554;
 }
+
 
 @custom-variant dark (&:where(.dark, .dark *));

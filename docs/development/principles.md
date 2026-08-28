@@ -85,3 +85,45 @@ Toute évolution d'un composant commence par la mise à jour du dictionnaire.
 Un composant graphique Easy Projet ne contient aucune connaissance métier.
 
 Il reçoit uniquement une configuration et produit une représentation graphique.
+
+18. Un même concept utilise un même composant
+
+Deux fonctionnalités présentant le même concept fonctionnel doivent utiliser le même composant générique.
+
+Une différence de données, de configuration ou de règle métier ne justifie pas la création d'un nouveau composant graphique.
+
+19. La variabilité relève de la configuration
+
+Les différences entre les usages d'un composant doivent, autant que possible, être exprimées par sa configuration.
+
+Par exemple, une liste peut disposer ou non de filtres, d'actions, d'une pagination ou d'une ligne de synthèse sans constituer un nouveau type de liste.
+
+De même, un formulaire peut comporter une ou plusieurs sections et zéro, une ou plusieurs collections associées sans nécessiter une architecture différente.
+
+20. Un composant spécifique répond à une interaction spécifique
+
+Un composant spécifique n'est créé que lorsque la nature de l'interaction utilisateur ne peut raisonnablement être représentée par un composant générique.
+
+Sont notamment susceptibles de relever de composants spécifiques : cartographie, tableaux de bord, planning, reporting, conversation et interactions avec un assistant IA.
+
+La spécificité métier seule ne suffit pas à justifier un composant spécifique.
+
+21. Les composants spécifiques suivent l'architecture commune
+
+Un composant spécifique conserve les mêmes principes d'organisation que les composants génériques.
+
+Il reprend, lorsque cela est applicable, le même découpage en définition, runtime, ViewModel, intégration, templates, ressources statiques et tests.
+
+La spécificité fonctionnelle ne doit pas entraîner une nouvelle architecture technique.
+
+22. Les écrans métier assemblent les composants
+
+Les templates et vues métier configurent et assemblent les composants du Design System.
+
+Ils ne doivent pas reproduire localement la présentation, les comportements ou les structures déjà fournis par un composant générique.
+
+23. Toute exception doit être justifiée
+
+Avant de créer un nouveau composant, template, comportement ou mécanisme spécifique, il faut vérifier si le besoin peut être couvert par l'extension configurable d'un composant existant.
+
+Une exception est introduite uniquement lorsqu'elle correspond à une différence fonctionnelle réelle et durable.

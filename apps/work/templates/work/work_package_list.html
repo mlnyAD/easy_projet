@@ -3,89 +3,17 @@
 {% extends "layout/base.html" %}
 
 {% block title %}
-    {% if is_project_context %}
-        Lots — {{ project.reference }}
-    {% else %}
-        Lots de travaux
-    {% endif %}
+    {{ page_title }}
 {% endblock %}
 
 {% block content %}
-    <div class="space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <h1
-                    class="text-xl font-semibold
-                           text-axcio-text
-                           dark:text-axcio-text-dark"
-                >
-                    {% if is_project_context %}
-                        Lots de travaux du projet
-                    {% else %}
-                        Lots de travaux
-                    {% endif %}
-                </h1>
 
-                {% if is_project_context %}
-                    <p
-                        class="mt-1 text-sm
-                               text-axcio-text-muted
-                               dark:text-axcio-text-muted-dark"
-                    >
-                        {{ project.reference }} — {{ project.name }}
-                    </p>
-                {% endif %}
-            </div>
+    <div class="ep-page">
 
-            <div class="flex flex-wrap items-center gap-2">
-                {% if is_project_context %}
-                    <a
-                        href="{% url 'projects:workspace' project.pk %}"
-                        class="inline-flex items-center gap-2 rounded-lg
-                               border border-axcio-border
-                               bg-axcio-surface-alt px-4 py-2
-                               text-sm font-medium
-                               text-axcio-text-secondary
-                               transition-colors
-                               hover:bg-axcio-border-light
-                               focus:outline-none focus:ring-2
-                               focus:ring-axcio-light
-                               dark:border-axcio-border-dark
-                               dark:bg-axcio-surface-alt-dark
-                               dark:text-axcio-text-secondary-dark
-                               dark:hover:bg-axcio-border-dark"
-                    >
-                        <i
-                            data-lucide="arrow-left"
-                            class="h-4 w-4"
-                            aria-hidden="true"
-                        ></i>
-
-                        Retour au projet
-                    </a>
-                {% endif %}
-
-                <a
-                    {% if is_project_context %}
-                        href="{% url 'work:create' %}?project={{ project.pk }}&next={{ return_url|urlencode }}"
-                    {% else %}
-                        href="{% url 'work:create' %}?next={{ return_url|urlencode }}"
-                    {% endif %}
-                    class="inline-flex items-center justify-center
-                           rounded-lg bg-axcio-light px-4 py-2
-                           text-sm font-medium text-white
-                           transition-colors
-                           hover:bg-axcio-light-hover
-                           focus:outline-none focus:ring-2
-                           focus:ring-axcio-light
-                           focus:ring-offset-2
-                           dark:focus:ring-offset-axcio-page-dark"
-                >
-                    Nouveau lot de travaux
-                </a>
-            </div>
-        </div>
+        {% include "edf/page/header.html" with page_title=page_title page_subtitle=page_subtitle page_back_url=page_back_url page_back_label=page_back_label page_action_label=page_action_label page_action_url=page_action_url page_action_icon=page_action_icon %}
 
         {% include "edf/list/list.html" %}
+
     </div>
+
 {% endblock %}

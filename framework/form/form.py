@@ -15,6 +15,12 @@ from framework.form.mode import FormMode
 from framework.form.resolved_section import ResolvedSection
 from framework.providers import Choice, ProviderRegistry
 from framework.form.resolved_field import ResolvedField
+from django.forms.formsets import BaseFormSet
+
+from framework.form.resolved_collection import (
+    ResolvedFormCollection,
+)
+
 
 @dataclass(frozen=True, slots=True)
 class EPForm:
@@ -35,7 +41,52 @@ class EPForm:
     mode: FormMode = FormMode.CREATE
 
     django_form: BaseForm = field(kw_only=True)
+    
+    formsets: dict[str, BaseFormSet] = field(
+        default_factory=dict,
+        kw_only=True,
+    ) 
 
+    @property
+    def collections(
+        self,
+    ) -> list[ResolvedFormCollection]:
+        """
+        Retourne les collections dont les formsets
+        Django ont été résolus.
+        """
+        resolved_collections: list[
+            ResolvedFormCollection
+        ] = []
+
+        for collection_definition in (
+            self.definition.collections
+        ):
+            collection_name = (
+                collection_definition.name
+            )
+
+            try:
+                formset = self.formsets[
+                    collection_name
+                ]
+            except KeyError as error:
+                raise ValueError(
+                    f"La collection "
+                    f"{collection_name!r} définie dans "
+                    "EPForm ne possède aucun formset "
+                    "Django correspondant."
+                ) from error
+
+            resolved_collections.append(
+                ResolvedFormCollection(
+                    definition=collection_definition,
+                    formset=formset,
+                )
+            )
+
+        return resolved_collections
+    
     @property
     def title(self) -> str:
         """

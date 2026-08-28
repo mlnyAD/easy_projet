@@ -1,7 +1,6 @@
 
 
-### Évolution envisagée
-
+### Transaction Tâches
 - Étudier une fiche tâche unifiée présentant sur une même page :
   - les informations de la tâche ;
   - les ressources affectées.
@@ -11,9 +10,6 @@
 - Conserver la possibilité de créer volontairement une tâche sans
   ressource : l'absence d'affectation doit être visible, mais ne doit
   pas nécessairement être bloquante.
-
-### Objectif
-
 Réduire les oublis d'affectation sans rigidifier le processus de
 planification.
 
@@ -54,3 +50,12 @@ Libellés trop proche Gestion docuementaire et Suite bureautique
 
 ### Affichage des répertoires
 Faut-il fermer automatiquement un répertoire ouvert lorsqu'on en sélectionne un autre?
+
+### Dashboard
+A faire :
+- dashboard Société ;
+- dashboard multi-projets / CP ;
+- choix des agrégats et navigation entre niveaux.
+
+### Tâches
+Ajouter des tests fonctionnels

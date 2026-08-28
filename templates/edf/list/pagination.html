@@ -1,61 +1,45 @@
 
 
 {% if list_view.pagination.total_pages > 1 %}
+
     <nav
-        class="flex items-center justify-between"
+        class="ep-list-pagination"
         aria-label="Pagination"
     >
-        <div class="min-w-32">
+
+        <div class="ep-list-pagination-side">
+
             {% if list_view.pagination.has_previous %}
                 <a
                     href="?page={{ list_view.pagination.previous_page }}"
-                    class="inline-flex items-center rounded-lg
-                           bg-axcio-light
-                           px-3 py-1.5
-                           text-sm font-medium text-white
-                           shadow-sm
-                           transition-colors
-                           hover:bg-axcio-light-hover
-                           focus:outline-none
-                           focus:ring-2
-                           focus:ring-axcio-light
-                           focus:ring-offset-2
-                           dark:focus:ring-offset-axcio-page-dark"
+                    class="ep-list-pagination-button"
                 >
                     Page précédente
                 </a>
             {% endif %}
+
         </div>
 
-        <span
-            class="text-sm
-                   text-axcio-text-muted
-                   dark:text-axcio-text-muted-dark"
-        >
+
+        <span class="ep-list-pagination-status">
             Page {{ list_view.pagination.page }}
             sur {{ list_view.pagination.total_pages }}
         </span>
 
-        <div class="flex min-w-32 justify-end">
+
+        <div class="ep-list-pagination-side ep-list-pagination-side-end">
+
             {% if list_view.pagination.has_next %}
                 <a
                     href="?page={{ list_view.pagination.next_page }}"
-                    class="inline-flex items-center rounded-lg
-                           bg-axcio-light
-                           px-3 py-1.5
-                           text-sm font-medium text-white
-                           shadow-sm
-                           transition-colors
-                           hover:bg-axcio-light-hover
-                           focus:outline-none
-                           focus:ring-2
-                           focus:ring-axcio-light
-                           focus:ring-offset-2
-                           dark:focus:ring-offset-axcio-page-dark"
+                    class="ep-list-pagination-button"
                 >
                     Page suivante
                 </a>
             {% endif %}
+
         </div>
+
     </nav>
+
 {% endif %}

@@ -21,14 +21,16 @@
 
 {% can_review_reports request.user as can_review_reports %}
 
-{% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-2 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2 text-sm text-axcio-text-secondary transition-colors hover:bg-axcio-surface-alt hover:text-axcio-text dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-surface-alt-dark dark:hover:text-axcio-text-dark" %}
+{% with active_classes="flex items-center gap-3 rounded-lg border-l-4 border-axcio-light bg-axcio-light/10 px-3 py-1.5 text-sm font-medium text-axcio-dark dark:text-axcio-light" inactive_classes="flex items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-1.5 text-sm text-axcio-text-secondary transition-colors hover:bg-axcio-surface-alt hover:text-axcio-text dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-surface-alt-dark dark:hover:text-axcio-text-dark" %}
+
 
 <aside
-    class="flex w-64 shrink-0 flex-col
+    class="ep-sidebar flex shrink-0 flex-col
            border-r border-axcio-border-light
            bg-axcio-surface
            dark:border-axcio-border-dark
            dark:bg-axcio-surface-dark"
+    data-sidebar
 >
     <div
         class="flex h-20 shrink-0 items-center justify-center
@@ -52,11 +54,12 @@
             class="px-3 text-xs font-semibold uppercase
                    tracking-wider text-axcio-text-muted
                    dark:text-axcio-text-muted-dark"
+            data-sidebar-label
         >
             Environnement
         </p>
 
-        <div class="mt-3 space-y-1">
+        <div class="mt-2 space-y-0.5">
 
             <a
                 href="{{ home_url }}"
@@ -67,6 +70,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Accueil"
             >
                 <i
                     data-lucide="house"
@@ -74,7 +78,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Accueil</span>
+                <span data-sidebar-label>
+                    Accueil
+                </span>
             </a>
 
             <a
@@ -86,6 +92,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Sociétés"
             >
                 <i
                     data-lucide="building-2"
@@ -93,7 +100,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Sociétés</span>
+                <span data-sidebar-label>
+                    Sociétés
+                </span>
             </a>
 
             <a
@@ -105,6 +114,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Contacts"
             >
                 <i
                     data-lucide="users"
@@ -112,7 +122,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Contacts</span>
+                <span data-sidebar-label>
+                    Contacts
+                </span>
             </a>
 
             <a
@@ -124,6 +136,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Licences"
             >
                 <i
                     data-lucide="key-round"
@@ -131,7 +144,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Licences</span>
+                <span data-sidebar-label>
+                    Licences
+                </span>
             </a>
 
             <a
@@ -143,6 +158,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Localisation des projets"
             >
                 <i
                     data-lucide="map-pinned"
@@ -150,7 +166,31 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Localisation des projets</span>
+                <span data-sidebar-label>
+                    Localisation des projets
+                </span>
+            </a>
+
+            <a
+                href="{{ risks_url }}"
+                class="
+                    {% if request.resolver_match.namespace == 'risks' %}
+                        {{ active_classes }}
+                    {% else %}
+                        {{ inactive_classes }}
+                    {% endif %}
+                "
+                title="Risques"
+            >
+                <i
+                    data-lucide="triangle-alert"
+                    class="h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                ></i>
+
+                <span data-sidebar-label>
+                    Risques
+                </span>
             </a>
 
             <a
@@ -162,6 +202,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Intégrations externes"
             >
                 <i
                     data-lucide="plug"
@@ -169,7 +210,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Intégrations externes</span>
+                <span data-sidebar-label>
+                    Intégrations externes
+                </span>
             </a>
 
         </div>
@@ -179,14 +222,15 @@
         {# ============================================================ #}
 
         <p
-            class="mt-7 px-3 text-xs font-semibold uppercase
+            class="mt-4 px-3 text-xs font-semibold uppercase
                    tracking-wider text-axcio-text-muted
                    dark:text-axcio-text-muted-dark"
+            data-sidebar-label
         >
             Mes projets
         </p>
 
-        <div class="mt-3 space-y-1">
+        <div class="mt-2 space-y-0.5">
 
             <a
                 href="{{ projects_url }}"
@@ -197,6 +241,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Projets"
             >
                 <i
                     data-lucide="folder-kanban"
@@ -204,7 +249,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Projets</span>
+                <span data-sidebar-label>
+                    Projets
+                </span>
             </a>
 
             <a
@@ -216,6 +263,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Favoris"
             >
                 <i
                     data-lucide="star"
@@ -223,7 +271,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Favoris</span>
+                <span data-sidebar-label>
+                    Favoris
+                </span>
             </a>
 
             <a
@@ -235,6 +285,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Lots de travaux"
             >
                 <i
                     data-lucide="hammer"
@@ -242,7 +293,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Lots de travaux</span>
+                <span data-sidebar-label>
+                    Lots de travaux
+                </span>
             </a>
 
             <a
@@ -254,6 +307,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Tâches"
             >
                 <i
                     data-lucide="list-checks"
@@ -261,7 +315,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Tâches</span>
+                <span data-sidebar-label>
+                    Tâches
+                </span>
             </a>
 
             <a
@@ -273,6 +329,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Planning"
             >
                 <i
                     data-lucide="gantt-chart-square"
@@ -280,7 +337,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Planning</span>
+                <span data-sidebar-label>
+                    Planning
+                </span>
             </a>
 
             <a
@@ -292,6 +351,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Mon rapport d'activité"
             >
                 <i
                     data-lucide="clipboard-list"
@@ -299,7 +359,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Mon rapport d'activité</span>
+                <span data-sidebar-label>
+                    Mon rapport d'activité
+                </span>
             </a>
 
             {% if can_review_reports %}
@@ -312,6 +374,7 @@
                             {{ inactive_classes }}
                         {% endif %}
                     "
+                    title="Validation des rapports"
                 >
                     <i
                         data-lucide="clipboard-check"
@@ -319,7 +382,9 @@
                         aria-hidden="true"
                     ></i>
 
-                    <span>Validation des rapports</span>
+                    <span data-sidebar-label>
+                        Validation des rapports
+                    </span>
                 </a>
             {% endif %}
 
@@ -332,6 +397,7 @@
                         {{ inactive_classes }}
                     {% endif %}
                 "
+                title="Réunions"
             >
                 <i
                     data-lucide="calendar-days"
@@ -339,26 +405,9 @@
                     aria-hidden="true"
                 ></i>
 
-                <span>Réunions</span>
-            </a>
-
-            <a
-                href="{{ risks_url }}"
-                class="
-                    {% if request.resolver_match.namespace == 'risks' %}
-                        {{ active_classes }}
-                    {% else %}
-                        {{ inactive_classes }}
-                    {% endif %}
-                "
-            >
-                <i
-                    data-lucide="triangle-alert"
-                    class="h-5 w-5 shrink-0"
-                    aria-hidden="true"
-                ></i>
-
-                <span>Risques</span>
+                <span data-sidebar-label>
+                    Réunions
+                </span>
             </a>
 
         </div>
@@ -393,7 +442,10 @@
                 ML
             </div>
 
-            <div class="min-w-0 flex-1">
+            <div
+                class="min-w-0 flex-1"
+                data-sidebar-label
+            >
                 <p
                     class="truncate text-sm font-medium
                            text-axcio-text
@@ -417,6 +469,7 @@
                        text-axcio-text-muted
                        dark:text-axcio-text-muted-dark"
                 aria-hidden="true"
+                data-sidebar-label
             ></i>
         </button>
     </div>

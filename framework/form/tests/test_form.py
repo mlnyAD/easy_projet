@@ -20,7 +20,11 @@ from framework.providers import (
     ProviderRegistry,
 )
 from framework.form.resolved_field import ResolvedField
+from django.forms import formset_factory
 
+from framework.form import (
+    FormCollectionDefinition,
+)
 
 class DummyForm(forms.Form):
     """
@@ -352,6 +356,93 @@ class EPFormTestCase(unittest.TestCase):
         self.assertTrue(
             resolved_field.allows_catalog_increment,
         )
+    
+    def test_resolve_collection(self):
+        class ItemForm(forms.Form):
+            name = forms.CharField()
+
+        item_formset_class = formset_factory(
+            ItemForm,
+            extra=1,
+            can_delete=True,
+        )
+
+        item_formset = item_formset_class(
+            prefix="items",
+        )
+
+        definition = FormDefinition(
+            name="sample",
+            title="Exemple",
+            collections=[
+                FormCollectionDefinition(
+                    name="items",
+                    title="Éléments",
+                ),
+            ],
+        )
+
+        ep_form = EPForm(
+            definition=definition,
+            context=self.context,
+            providers=self.providers,
+            django_form=self.django_form,
+            formsets={
+                "items": item_formset,
+            },
+        )
+
+        collections = ep_form.collections
+
+        self.assertEqual(
+            len(collections),
+            1,
+        )
+
+        self.assertEqual(
+            collections[0].name,
+            "items",
+        )
+
+        self.assertIs(
+            collections[0].formset,
+            item_formset,
+        )        
+        
+    def test_missing_collection_formset_raises_error(self):
+        definition = FormDefinition(
+            name="sample",
+            title="Exemple",
+            collections=[
+                FormCollectionDefinition(
+                    name="items",
+                    title="Éléments",
+                ),
+            ],
+        )
+
+        ep_form = EPForm(
+            definition=definition,
+            context=self.context,
+            providers=self.providers,
+            django_form=self.django_form,
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "items",
+        ):
+            ep_form.collections   
+            
+    def setUp(self):
+        self.context = EPContext(
+            operator="operator",
+            client_environment="environment",
+        )
+
+        self.providers = ProviderRegistry()
+
+        self.django_form = DummyForm()
 
 if __name__ == "__main__":
     unittest.main()

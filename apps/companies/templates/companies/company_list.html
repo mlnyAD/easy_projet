@@ -1,21 +1,21 @@
 
 
 {% extends "layout/base.html" %}
-{% load ep_buttons %}
 
 {% block title %}
     Sociétés — Easy Projet
 {% endblock %}
 
 {% block content %}
-    <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-gray-900 dark:text-neutral-100">
-            Sociétés
-        </h1>
 
-        {% url "companies:create" as company_create_url %}
-        {% ep_button label="Nouvelle société" action="execute" url=company_create_url icon="plus" %}
+    {% url "companies:create" as company_create_url %}
+
+    <div class="ep-page">
+
+        {% include "edf/page/header.html" with page_title="Sociétés" page_action_label="Nouvelle société" page_action_url=company_create_url page_action_icon="plus" %}
+
+        {% include "edf/list/list.html" %}
+
     </div>
 
-    {% include "edf/list/list.html" %}
 {% endblock %}

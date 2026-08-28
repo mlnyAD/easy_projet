@@ -1,0 +1,53 @@
+
+
+<div
+    class="flex h-full min-h-40 flex-col
+           rounded-xl border
+           border-axcio-border-light
+           bg-axcio-surface p-3
+           shadow-sm
+           dark:border-axcio-border-dark
+           dark:bg-axcio-surface-dark"
+>
+    <h2
+        class="text-sm font-semibold
+               text-axcio-text
+               dark:text-axcio-text-dark"
+    >
+        Charge hebdomadaire
+    </h2>
+
+    <div
+        class="mt-1 text-xs
+               text-axcio-text-muted
+               dark:text-axcio-text-muted-dark"
+    >
+        Charge des tâches de la semaine
+    </div>
+
+    <div
+        class="flex flex-1 items-center
+               justify-center"
+    >
+        <div class="text-center">
+
+            <div
+                class="text-3xl font-semibold
+                       text-axcio-text
+                       dark:text-axcio-text-dark"
+            >
+                {{ dashboard_weekly_workload }}
+                <span class="text-sm font-normal">h</span>
+            </div>
+
+            <div
+                class="mt-1 text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                charge planifiée
+            </div>
+
+        </div>
+    </div>
+</div>

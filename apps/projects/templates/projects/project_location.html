@@ -7,24 +7,73 @@
 
 <div class="space-y-6">
 
-    <div>
-        <h1
-            class="text-2xl font-semibold
-                   text-axcio-text
-                   dark:text-axcio-text-dark"
-        >
-            Localisation des projets
-        </h1>
+    <div
+        class="flex items-start justify-between gap-4"
+    >
+        <div>
+            <h1
+                class="text-2xl font-semibold
+                    text-axcio-text
+                    dark:text-axcio-text-dark"
+            >
+                Localisation des projets
+            </h1>
 
-        <p
-            class="mt-1 text-sm
-                   text-axcio-text-muted
-                   dark:text-axcio-text-muted-dark"
-        >
-            Localisation des projets auxquels vous avez accès.
-        </p>
+            <p
+                class="mt-1 text-sm
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark"
+            >
+                Localisation des projets auxquels vous avez accès.
+            </p>
+        </div>
+
+        {% if request.GET.project %}
+
+            <a
+                href="{% url 'projects:workspace' request.GET.project %}"
+                class="inline-flex shrink-0 items-center gap-2
+                    rounded-md border
+                    border-axcio-border-light
+                    px-3 py-2 text-sm font-medium
+                    text-axcio-text
+                    hover:bg-axcio-surface-alt
+                    dark:border-axcio-border-dark
+                    dark:text-axcio-text-dark
+                    dark:hover:bg-axcio-surface-alt-dark"
+            >
+                <i
+                    data-lucide="arrow-left"
+                    class="h-4 w-4"
+                ></i>
+
+                Retour
+            </a>
+
+        {% else %}
+
+            <a
+                href="{% url 'projects:list' %}"
+                class="inline-flex shrink-0 items-center gap-2
+                    rounded-md border
+                    border-axcio-border-light
+                    px-3 py-2 text-sm font-medium
+                    text-axcio-text
+                    hover:bg-axcio-surface-alt
+                    dark:border-axcio-border-dark
+                    dark:text-axcio-text-dark
+                    dark:hover:bg-axcio-surface-alt-dark"
+            >
+                <i
+                    data-lucide="arrow-left"
+                    class="h-4 w-4"
+                ></i>
+
+                Retour
+            </a>
+
+        {% endif %}
     </div>
-
 
     {% if not google_maps_api_key %}
 

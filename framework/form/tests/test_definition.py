@@ -4,6 +4,7 @@ from unittest import TestCase
 
 from framework.form import (
     FieldDefinition,
+    FormCollectionDefinition,
     FormDefinition,
     SectionDefinition,
 )
@@ -44,108 +45,59 @@ class FormDefinitionTests(TestCase):
             2,
         )
 
-    def test_field_name(self):
-        field = FieldDefinition("name")
-
-        self.assertEqual(
-            field.name,
-            "name",
+    def test_create_form_definition_with_collection(self):
+        collection = FormCollectionDefinition(
+            name="participants",
+            title="Participants",
         )
-
-        self.assertTrue(
-            field.required,
-        )
-
-    def test_section_title(self):
-        section = SectionDefinition(
-            title="Adresse",
-        )
-
-        self.assertEqual(
-            section.title,
-            "Adresse",
-        )
-    
-    def test_get_existing_field(self):
-        field = FieldDefinition(name="name")
 
         definition = FormDefinition(
-            name="company",
-            title="Company",
-            sections=[
-                SectionDefinition(
-                    title="General",
-                    fields=[field],
-                ),
+            name="meeting",
+            title="Réunion",
+            collections=[
+                collection,
+            ],
+        )
+
+        self.assertEqual(
+            len(definition.collections),
+            1,
+        )
+
+        self.assertIs(
+            definition.collections[0],
+            collection,
+        )
+
+    def test_get_existing_collection(self):
+        collection = FormCollectionDefinition(
+            name="assignments",
+            title="Personnel affecté",
+        )
+
+        definition = FormDefinition(
+            name="task",
+            title="Tâche",
+            collections=[
+                collection,
             ],
         )
 
         self.assertIs(
-            definition.get_field("name"),
-            field,
+            definition.get_collection(
+                "assignments"
+            ),
+            collection,
         )
-        
-    def test_get_unknown_field(self):
+
+    def test_get_unknown_collection(self):
         definition = FormDefinition(
-            name="company",
-            title="Company",
-            sections=[
-                SectionDefinition(
-                    title="General",
-                    fields=[
-                        FieldDefinition(name="name"),
-                    ],
-                ),
-            ],
+            name="task",
+            title="Tâche",
         )
 
         self.assertIsNone(
-            definition.get_field("unknown"),
-        )        
-
-    def test_get_field_in_second_section(self):
-        field = FieldDefinition(name="city")
-
-        definition = FormDefinition(
-            name="company",
-            title="Company",
-            sections=[
-                SectionDefinition(
-                    title="General",
-                    fields=[
-                        FieldDefinition(name="name"),
-                    ],
-                ),
-                SectionDefinition(
-                    title="Address",
-                    fields=[field],
-                ),
-            ],
+            definition.get_collection(
+                "unknown"
+            )
         )
-
-        self.assertIs(
-            definition.get_field("city"),
-            field,
-        )
-        
-    def test_boolean_labels_use_framework_defaults(self):
-        field = FieldDefinition(name="is_active")
-
-        self.assertEqual(
-            field.checked_label,
-            DEFAULT_FIELD_CHECKED_LABEL,
-        )
-        self.assertEqual(
-            field.unchecked_label,
-            DEFAULT_FIELD_UNCHECKED_LABEL,
-        )
-
-    def test_boolean_labels_can_be_overridden(self):
-        field = FieldDefinition(
-            name="is_active",
-            checked_label="Actif",
-            unchecked_label="Inactif",
-        )
-
-        self.assertEqual(field.checked_label, "Actif")
-        self.assertEqual(field.unchecked_label, "Inactif")

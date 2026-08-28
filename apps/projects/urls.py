@@ -6,8 +6,10 @@ from .views import (
     ProjectCreateView,
     ProjectListView,
     ProjectLocationView,
+    ProjectPhotoUpdateView,
     ProjectUpdateView,
     ProjectWorkspaceView,
+    ProjectDashboardView,
 )
 
 
@@ -38,5 +40,15 @@ urlpatterns = [
         "<uuid:pk>/edit/",
         ProjectUpdateView.as_view(),
         name="update",
+    ),
+    path(
+        "<uuid:pk>/photo/",
+        ProjectPhotoUpdateView.as_view(),
+        name="photo",
+    ),
+    path(
+        "<uuid:pk>/dashboard/",
+        ProjectDashboardView.as_view(),
+        name="dashboard",
     ),
 ]

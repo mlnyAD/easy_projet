@@ -40,6 +40,18 @@ from common.constants.user import (
 from common.models import TimeStampedModel
 
 
+def project_photo_upload_to(
+    instance,
+    filename: str,
+) -> str:
+    """
+    Construit le chemin de stockage de la photo principale
+    d'un projet.
+    """
+    return (
+        f"projects/{instance.pk}/photo/{filename}"
+    )
+
 class Project(TimeStampedModel):
     """
     Projet contractuel et opérationnel géré dans Easy Projet.
@@ -78,6 +90,13 @@ class Project(TimeStampedModel):
         max_length=PROJECT_DESCRIPTION_LENGTH,
         blank=True,
         verbose_name="Description",
+    )
+
+    project_photo = models.ImageField(
+        upload_to=project_photo_upload_to,
+        null=True,
+        blank=True,
+        verbose_name="Photo du projet",
     )
 
     client_environment = models.ForeignKey(

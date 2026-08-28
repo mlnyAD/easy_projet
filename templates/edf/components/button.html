@@ -1,11 +1,18 @@
 
 
 {% if button.is_link %}
+
     <a
         {% if not button.disabled %}
             href="{{ button.url }}"
         {% endif %}
-        class="{{ css_classes }}"
+        class="
+            ep-button
+            ep-button-{{ button.action.value }}
+            {% if button.disabled %}
+                ep-button-disabled
+            {% endif %}
+        "
         {% if button.disabled %}
             aria-disabled="true"
             tabindex="-1"
@@ -17,17 +24,24 @@
         {% if button.icon %}
             <i
                 data-lucide="{{ button.icon }}"
-                class="mr-2 h-4 w-4"
+                class="ep-button-icon"
                 aria-hidden="true"
             ></i>
         {% endif %}
 
-        <span>{{ button.label }}</span>
+        <span class="ep-button-label">
+            {{ button.label }}
+        </span>
     </a>
+
 {% else %}
+
     <button
         type="{{ button.button_type.value }}"
-        class="{{ css_classes }}"
+        class="
+            ep-button
+            ep-button-{{ button.action.value }}
+        "
         {% if button.disabled %}
             disabled
         {% endif %}
@@ -38,11 +52,14 @@
         {% if button.icon %}
             <i
                 data-lucide="{{ button.icon }}"
-                class="mr-2 h-4 w-4"
+                class="ep-button-icon"
                 aria-hidden="true"
             ></i>
         {% endif %}
 
-        <span>{{ button.label }}</span>
+        <span class="ep-button-label">
+            {{ button.label }}
+        </span>
     </button>
+
 {% endif %}

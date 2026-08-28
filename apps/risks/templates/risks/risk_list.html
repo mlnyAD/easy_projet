@@ -3,59 +3,17 @@
 {% extends "layout/base.html" %}
 
 {% block title %}
-    Risques
+    {{ page_title }}
 {% endblock %}
 
 {% block content %}
-    <div class="space-y-4">
 
-        <div class="flex items-center justify-between gap-4">
+    <div class="ep-page">
 
-            <div>
-
-                <h1
-                    class="text-xl font-semibold
-                           text-axcio-text
-                           dark:text-axcio-text-dark"
-                >
-                    {% if is_project_context %}
-                        Risques du projet
-                    {% else %}
-                        Risques
-                    {% endif %}
-                </h1>
-
-                {% if is_project_context %}
-                    <p
-                        class="mt-1 text-sm
-                               text-axcio-text-muted
-                               dark:text-axcio-text-muted-dark"
-                    >
-                        {{ project.reference }}
-                        — {{ project.name }}
-                    </p>
-                {% endif %}
-
-            </div>
-
-            <a
-                href="{% url 'risks:create' %}?next={{ return_url|urlencode }}{% if is_project_context %}&project={{ project.pk }}{% endif %}"
-                class="inline-flex items-center justify-center
-                       rounded-lg bg-axcio-light px-4 py-2
-                       text-sm font-medium text-white
-                       transition-colors
-                       hover:bg-axcio-light-hover
-                       focus:outline-none focus:ring-2
-                       focus:ring-axcio-light
-                       focus:ring-offset-2
-                       dark:focus:ring-offset-axcio-page-dark"
-            >
-                Nouveau risque
-            </a>
-
-        </div>
+        {% include "edf/page/header.html" with page_title=page_title page_subtitle=page_subtitle page_action_label="Nouveau risque" page_action_url=page_action_url page_action_icon="plus" %}
 
         {% include "edf/list/list.html" %}
 
     </div>
+
 {% endblock %}

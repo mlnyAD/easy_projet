@@ -1,0 +1,113 @@
+
+
+/* ==========================================================================
+   EASY PROJET UI - PAGES
+   ========================================================================== */
+
+/*
+ * ep-page
+ * Conteneur principal d'une page fonctionnelle Easy Projet.
+ *
+ * Utilisation :
+ * - pages de liste ;
+ * - pages de détail ;
+ * - écrans de transaction standards.
+ */
+.ep-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+
+/*
+ * ep-page-header
+ * En-tête standard d'une page.
+ *
+ * Il contient :
+ * - le titre et le sous-titre éventuel ;
+ * - les actions principales de la page.
+ */
+.ep-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+
+/*
+ * ep-page-heading
+ * Zone regroupant titre et sous-titre.
+ */
+.ep-page-heading {
+    min-width: 0;
+}
+
+
+/*
+ * ep-page-title
+ * Titre principal d'une page Easy Projet.
+ */
+.ep-page-title {
+    color: var(--color-axcio-text);
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+}
+
+.dark .ep-page-title {
+    color: var(--color-axcio-text-dark);
+}
+
+
+/*
+ * ep-page-subtitle
+ * Information secondaire placée sous le titre.
+ *
+ * Utilisation :
+ * - projet courant ;
+ * - description courte ;
+ * - contexte de transaction.
+ */
+.ep-page-subtitle {
+    margin-top: 0.25rem;
+    color: var(--color-axcio-text-muted);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.dark .ep-page-subtitle {
+    color: var(--color-axcio-text-muted-dark);
+}
+
+
+/*
+ * ep-page-actions
+ * Groupe des actions disponibles dans l'en-tête d'une page.
+ */
+.ep-page-actions {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+/*
+ * Adaptation mobile.
+ *
+ * Sur écran étroit, l'en-tête passe verticalement afin
+ * de laisser toute la largeur disponible au contenu.
+ */
+@media (max-width: 639px) {
+    .ep-page-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ep-page-actions {
+        justify-content: flex-start;
+    }
+}

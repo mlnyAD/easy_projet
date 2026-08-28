@@ -14,6 +14,7 @@ class ViewRow:
 
     cells: tuple[ViewCell, ...]
     source_object: Any
+    css_class: str = ""
 
     def __post_init__(self) -> None:
         if not isinstance(self.cells, tuple):
@@ -30,10 +31,17 @@ class ViewRow:
                 "une instance de ViewCell."
             )
 
+        if not isinstance(
+            self.css_class,
+            str,
+        ):
+            raise TypeError(
+                "La propriété 'css_class' doit être "
+                "une chaîne de caractères."
+            )
+
     def __iter__(self):
-        """Permet d'itérer directement sur les cellules."""
         return iter(self.cells)
 
     def __len__(self) -> int:
-        """Retourne le nombre de cellules."""
         return len(self.cells)

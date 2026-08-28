@@ -1,17 +1,21 @@
 
 
 {% if form_view.title or form_view.subtitle %}
-    <header class="space-y-1">
+
+    <header class="ep-form-header">
+
         {% if form_view.title %}
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-neutral-100">
+            <h1 class="ep-form-title">
                 {{ form_view.title }}
             </h1>
         {% endif %}
 
         {% if form_view.subtitle %}
-            <p class="text-sm text-gray-600 dark:text-neutral-400">
+            <p class="ep-form-subtitle">
                 {{ form_view.subtitle }}
             </p>
         {% endif %}
+
     </header>
+
 {% endif %}

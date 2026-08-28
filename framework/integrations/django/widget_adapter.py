@@ -19,156 +19,60 @@ from django.forms.widgets import (
     Widget,
 )
 
-_FIELD_BASE_CLASSES = (
-    "edf-form-input",
-    "block",
-    "w-full",
-    "rounded-lg",
-    "border",
-    "border-axcio-border",
-    "bg-axcio-input",
-    "px-3",
-    "py-2",
-    "text-sm",
-    "text-axcio-text",
-    "shadow-sm",
-    "transition",
-    "placeholder:text-axcio-text-muted",
-    "focus:border-axcio-dark",
-    "focus:outline-none",
-    "focus:ring-2",
-    "focus:ring-axcio-dark/20",
-    "disabled:cursor-not-allowed",
-    "disabled:bg-axcio-input-disabled",
-    "disabled:text-axcio-text-muted",
-    "disabled:opacity-100",
-    "dark:border-axcio-border-dark",
-    "dark:bg-axcio-input-dark",
-    "dark:text-axcio-text-dark",
-    "dark:placeholder:text-axcio-text-muted-dark",
-    "dark:focus:border-axcio-light",
-    "dark:focus:ring-axcio-light/20",
-    "dark:disabled:bg-axcio-input-disabled-dark",
-    "dark:disabled:text-axcio-text-muted-dark",
-)
+
+# ---------------------------------------------------------------------------
+# Classes sémantiques du Design System Easy Projet.
+#
+# Le WidgetAdapter identifie la nature UI du widget Django.
+# La présentation effective de ces composants est définie dans :
+#
+#     static/src/edf/forms.css
+#
+# Le framework Python ne doit donc pas contenir de règles de présentation
+# Tailwind ou CSS.
+# ---------------------------------------------------------------------------
 
 _INPUT_CLASSES = (
-    *_FIELD_BASE_CLASSES,
-    "read-only:cursor-default",
-    "read-only:bg-axcio-input-disabled",
-    "read-only:text-axcio-text-secondary",
-    "dark:read-only:bg-axcio-input-disabled-dark",
-    "dark:read-only:text-axcio-text-muted-dark",
+    "ep-input",
 )
 
 _TEXTAREA_CLASSES = (
-    *_INPUT_CLASSES,
-    "min-h-24",
-    "resize-y",
+    "ep-textarea",
 )
 
 _SELECT_CLASSES = (
-    *_FIELD_BASE_CLASSES,
-    "edf-form-select",
-    "appearance-none",
-    "cursor-pointer",
-    "pe-9",
+    "ep-select",
 )
 
 _CHECKBOX_CLASSES = (
-    "size-4",
-    "shrink-0",
-    "rounded",
-    "border-axcio-border",
-    "bg-axcio-input",
-    "text-axcio-light",
-    "accent-axcio-light",
-    "focus:outline-none",
-    "focus:ring-2",
-    "focus:ring-axcio-light/20",
-    "focus:ring-offset-1",
-    "disabled:pointer-events-none",
-    "disabled:opacity-50",
-    "dark:border-axcio-border-dark",
-    "dark:bg-axcio-input-dark",
-    "dark:text-axcio-light",
-    "dark:accent-axcio-light",
-    "dark:focus:ring-axcio-light/20",
-    "dark:focus:ring-offset-axcio-page-dark",
+    "ep-checkbox",
 )
 
 _RADIO_CLASSES = (
-    "size-4",
-    "shrink-0",
-    "border-axcio-border",
-    "bg-axcio-input",
-    "text-axcio-light",
-    "accent-axcio-light",
-    "focus:outline-none",
-    "focus:ring-2",
-    "focus:ring-axcio-light/20",
-    "focus:ring-offset-1",
-    "disabled:pointer-events-none",
-    "disabled:opacity-50",
-    "dark:border-axcio-border-dark",
-    "dark:bg-axcio-input-dark",
-    "dark:text-axcio-light",
-    "dark:accent-axcio-light",
-    "dark:focus:ring-axcio-light/20",
-    "dark:focus:ring-offset-axcio-page-dark",
+    "ep-radio",
 )
 
 _FILE_CLASSES = (
-    "edf-form-input",
-    "block",
-    "w-full",
-    "rounded-lg",
-    "border",
-    "border-axcio-border",
-    "bg-axcio-input",
-    "text-sm",
-    "text-axcio-text",
-    "shadow-sm",
-    "file:me-4",
-    "file:border-0",
-    "file:bg-axcio-surface-alt",
-    "file:px-4",
-    "file:py-2",
-    "file:text-sm",
-    "file:font-medium",
-    "file:text-axcio-text-secondary",
-    "hover:file:bg-axcio-border-light",
-    "focus:border-axcio-dark",
-    "focus:outline-none",
-    "focus:ring-2",
-    "focus:ring-axcio-dark/20",
-    "disabled:pointer-events-none",
-    "disabled:opacity-50",
-    "dark:border-axcio-border-dark",
-    "dark:bg-axcio-input-dark",
-    "dark:text-axcio-text-dark",
-    "dark:file:bg-axcio-surface-alt-dark",
-    "dark:file:text-axcio-text-secondary-dark",
-    "dark:hover:file:bg-axcio-border-dark",
-    "dark:focus:border-axcio-light",
-    "dark:focus:ring-axcio-light/20",
+    "ep-file",
 )
 
 _INVALID_CLASSES = (
-    "border-axcio-danger",
-    "bg-axcio-danger-soft",
-    "focus:border-axcio-danger",
-    "focus:ring-axcio-danger/20",
-    "dark:border-axcio-danger",
-    "dark:bg-axcio-danger-soft-dark",
+    "ep-field-invalid",
 )
 
 
 class WidgetAdapter:
-    """Adapte les widgets Django au Design System Easy Projet.
+    """
+    Adapte les widgets Django au Design System Easy Projet.
 
-    L'adaptateur complète les attributs existants sans supprimer les
+    L'adaptateur associe une classe sémantique EDF au widget Django
+    correspondant.
+
+    Il complète les attributs existants sans supprimer les
     personnalisations éventuellement définies par le formulaire métier.
+
+    La présentation des composants est entièrement déléguée aux fichiers
+    CSS EDF.
     """
 
     def adapt(
@@ -178,7 +82,12 @@ class WidgetAdapter:
         has_errors: bool = False,
         described_by: str | None = None,
     ) -> Widget:
-        """Adapte un widget et retourne la même instance."""
+        """
+        Adapte un widget Django et retourne la même instance.
+
+        Les widgets invisibles ne nécessitent aucune adaptation visuelle.
+        """
+
         if not isinstance(widget, Widget):
             raise TypeError(
                 "widget doit être une instance de django.forms.Widget."
@@ -189,14 +98,19 @@ class WidgetAdapter:
 
         if isinstance(widget, CheckboxInput):
             self._adapt_checkbox(widget)
+
         elif isinstance(widget, RadioSelect):
             self._adapt_radio(widget)
+
         elif isinstance(widget, FileInput):
             self._adapt_file(widget)
+
         elif isinstance(widget, Textarea):
             self._adapt_textarea(widget)
+
         elif isinstance(widget, (Select, SelectMultiple)):
             self._adapt_select(widget)
+
         elif isinstance(widget, Input):
             self._adapt_input(widget)
 
@@ -208,7 +122,14 @@ class WidgetAdapter:
 
         return widget
 
-    def _adapt_input(self, widget: Input) -> None:
+    def _adapt_input(
+        self,
+        widget: Input,
+    ) -> None:
+        """
+        Adapte un champ de saisie standard.
+        """
+
         self._merge_classes(
             widget,
             _INPUT_CLASSES,
@@ -221,7 +142,19 @@ class WidgetAdapter:
                 "current-password",
             )
 
-    def _adapt_textarea(self, widget: Textarea) -> None:
+    def _adapt_textarea(
+        self,
+        widget: Textarea,
+    ) -> None:
+        """
+        Adapte une zone de texte multiligne.
+
+        Django utilise 10 lignes par défaut pour Textarea.
+        EDF ramène cette valeur à 4 afin de conserver des formulaires
+        compacts. Une valeur explicitement définie par le formulaire
+        métier reste inchangée.
+        """
+
         self._merge_classes(
             widget,
             _TEXTAREA_CLASSES,
@@ -236,6 +169,10 @@ class WidgetAdapter:
         self,
         widget: Select | SelectMultiple,
     ) -> None:
+        """
+        Adapte une liste de sélection.
+        """
+
         self._merge_classes(
             widget,
             _SELECT_CLASSES,
@@ -245,6 +182,10 @@ class WidgetAdapter:
         self,
         widget: CheckboxInput,
     ) -> None:
+        """
+        Adapte une case à cocher.
+        """
+
         self._merge_classes(
             widget,
             _CHECKBOX_CLASSES,
@@ -254,6 +195,10 @@ class WidgetAdapter:
         self,
         widget: RadioSelect,
     ) -> None:
+        """
+        Adapte un groupe de boutons radio.
+        """
+
         self._merge_classes(
             widget,
             _RADIO_CLASSES,
@@ -263,6 +208,10 @@ class WidgetAdapter:
         self,
         widget: FileInput,
     ) -> None:
+        """
+        Adapte un champ de sélection de fichier.
+        """
+
         self._merge_classes(
             widget,
             _FILE_CLASSES,
@@ -275,6 +224,17 @@ class WidgetAdapter:
         has_errors: bool,
         described_by: str | None,
     ) -> None:
+        """
+        Complète les attributs d'accessibilité du widget.
+
+        En cas d'erreur :
+        - aria-invalid indique l'état invalide ;
+        - ep-field-invalid fournit l'état visuel associé.
+
+        aria-describedby relie le widget aux textes d'aide et aux
+        messages d'erreur lorsqu'ils existent.
+        """
+
         if has_errors:
             widget.attrs["aria-invalid"] = "true"
 
@@ -296,6 +256,10 @@ class WidgetAdapter:
         name: str,
         value: object,
     ) -> None:
+        """
+        Définit un attribut uniquement s'il n'existe pas déjà.
+        """
+
         widget.attrs.setdefault(
             name,
             value,
@@ -307,6 +271,10 @@ class WidgetAdapter:
         widget: Widget,
         classes: Iterable[str],
     ) -> None:
+        """
+        Ajoute des classes CSS sans supprimer les classes existantes.
+        """
+
         cls._merge_attribute_values(
             widget,
             attribute="class",
@@ -320,6 +288,13 @@ class WidgetAdapter:
         attribute: str,
         values: Iterable[str],
     ) -> None:
+        """
+        Fusionne les valeurs d'un attribut HTML sans doublon.
+
+        Cette méthode permet notamment de préserver les attributs ajoutés
+        par les formulaires métier avant le passage dans l'adaptateur EDF.
+        """
+
         existing_values = str(
             widget.attrs.get(
                 attribute,

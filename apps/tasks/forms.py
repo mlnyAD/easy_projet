@@ -1,5 +1,9 @@
 
 
+"""
+Formulaires du domaine des tâches.
+"""
+
 from __future__ import annotations
 
 from django import forms
@@ -379,128 +383,6 @@ TaskAssignmentFormSet = forms.inlineformset_factory(
     extra=0,
     can_delete=True,
 )
-
-class TaskDependencyForm(forms.ModelForm):
-    """
-    Dépendance d'ordonnancement vers la tâche courante.
-
-    La tâche courante est la successeure.
-    L'utilisateur choisit uniquement l'antécédent.
-    """
-
-    class Meta:
-        model = TaskDependency
-
-        fields = (
-            "predecessor",
-            "dependency_type",
-            "lag_days",
-            "is_active",
-        )
-
-        labels = {
-            "predecessor": "Tâche antécédente",
-            "dependency_type": "Type",
-            "lag_days": "Décalage (jours)",
-            "is_active": "Actif",
-        }
-
-        widgets = {
-            "lag_days": forms.NumberInput(
-                attrs={
-                    "step": 1,
-                    "inputmode": "numeric",
-                }
-            ),
-        }
-
-    def __init__(
-        self,
-        *args,
-        task=None,
-        project=None,
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, **kwargs)
-
-        self.task = task
-        self.project = project
-
-        queryset = (
-            Task.objects
-            .filter(
-                is_active=True,
-            )
-            .select_related(
-                "work_package",
-                "work_package__project",
-            )
-            .order_by(
-                "work_package__code",
-                "code",
-                "name",
-            )
-        )
-
-        if project is not None:
-            queryset = queryset.filter(
-                work_package__project=project,
-            )
-
-        if task is not None and task.pk:
-            queryset = queryset.exclude(
-                pk=task.pk,
-            )
-
-        self.fields["predecessor"].queryset = queryset
-
-        if (
-            not self.is_bound
-            and not self.instance.pk
-        ):
-            self.initial["dependency_type"] = (
-                TaskDependency
-                .DependencyType
-                .FINISH_TO_START
-            )
-
-            self.initial["lag_days"] = 0
-
-
-class BaseTaskDependencyFormSet(
-    forms.BaseInlineFormSet
-):
-    """
-    Formset des antécédents d'une tâche.
-
-    La tâche courante est toujours la successeure.
-    """
-
-    def __init__(
-        self,
-        *args,
-        task=None,
-        project=None,
-        **kwargs,
-    ) -> None:
-        self.task = task
-        self.project = project
-
-        super().__init__(
-            *args,
-            **kwargs,
-        )
-
-    def get_form_kwargs(
-        self,
-        index,
-    ):
-        kwargs = super().get_form_kwargs(index)
-
-        kwargs["task"] = self.task
-        kwargs["project"] = self.project
-
-        return kwargs
 
 
 class TaskDependencyForm(forms.ModelForm):
