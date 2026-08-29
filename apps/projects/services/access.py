@@ -6,7 +6,7 @@ from django.db.models import QuerySet
 
 from apps.users.models import User
 from apps.core.models import ClientEnvironment
-from ..models import Project
+from apps.projects.models import Project
 
 
 class ProjectAccessService:

@@ -2,6 +2,8 @@
 
 from framework.form import (
     FieldDefinition,
+    FormCollectionColumnDefinition,
+    FormCollectionDefinition,
     FormDefinition,
     SectionDefinition,
 )
@@ -145,6 +147,80 @@ PROJECT_FORM_DEFINITION = FormDefinition(
                     width=FieldWidth.FULL,
                 ),
             ],
+        ),
+    ],
+    collections=[
+        FormCollectionDefinition(
+            name="memberships",
+            title="Participants internes",
+            description=(
+                "Utilisateurs Easy Projet affectés au projet."
+            ),
+            columns=(
+                FormCollectionColumnDefinition(
+                    name="user",
+                    label="Utilisateur",
+                    field_name="user",
+                ),
+                FormCollectionColumnDefinition(
+                    name="role",
+                    label="Rôle sur le projet",
+                    field_name="role",
+                ),
+                FormCollectionColumnDefinition(
+                    name="is_active",
+                    label="Actif",
+                    field_name="is_active",
+                ),
+            ),
+            allow_add=True,
+            allow_delete=True,
+            add_label="Ajouter un participant",
+            delete_label="Supprimer le participant",
+        ),
+        FormCollectionDefinition(
+            name="external_participants",
+            title="Participants externes",
+            description=(
+                "Intervenants ponctuels ne disposant pas "
+                "nécessairement d'un compte Easy Projet."
+            ),
+            columns=(
+                FormCollectionColumnDefinition(
+                    name="last_name",
+                    label="Nom",
+                    field_name="last_name",
+                ),
+                FormCollectionColumnDefinition(
+                    name="first_name",
+                    label="Prénom",
+                    field_name="first_name",
+                ),
+                FormCollectionColumnDefinition(
+                    name="email",
+                    label="Adresse électronique",
+                    field_name="email",
+                ),
+                FormCollectionColumnDefinition(
+                    name="company_name",
+                    label="Société",
+                    field_name="company_name",
+                ),
+                FormCollectionColumnDefinition(
+                    name="access_level",
+                    label="Niveau d'accès",
+                    field_name="access_level",
+                ),
+                FormCollectionColumnDefinition(
+                    name="is_active",
+                    label="Actif",
+                    field_name="is_active",
+                ),
+            ),
+            allow_add=True,
+            allow_delete=True,
+            add_label="Ajouter un participant externe",
+            delete_label="Supprimer le participant externe",
         ),
     ],
 )

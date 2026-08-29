@@ -3,7 +3,7 @@
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.views.generic import (
@@ -15,7 +15,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from datetime import timedelta
 
 from django.db.models import Sum
-from django.utils import timezone
 
 from apps.tasks.models import Task, TaskAssignment
 from common.constants import (
@@ -44,7 +43,6 @@ from .services.geocoding import (
     ProjectGeocodingError,
     ProjectGeocodingService,
 )
-from apps.users.models import User
 
 
 class ProjectListView(ListView):
@@ -55,21 +53,12 @@ class ProjectListView(ListView):
 
     def get_queryset(self):
         return (
-            Project.objects
-            .select_related(
-                "client_environment",
-                "client_environment__company",
-                "company",
-                "owner_company",
-                "project_manager",
-                "status",
-            )
-            .order_by(
-                "reference",
-                "name",
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
             )
         )
-
+        
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -268,28 +257,176 @@ class ProjectWorkspaceView(DetailView):
 
         return context
 
+class ProjectFormCollectionsMixin:
+    """
+    Gestion générique des collections du formulaire Projet.
+    """
 
-class ProjectCreateView(EPCreateView):
+    success_message = None
+
+    def get_return_url(self):
+        candidate = self.request.GET.get("next")
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={
+                    self.request.get_host()
+                },
+                require_https=(
+                    self.request.is_secure()
+                ),
+            )
+        ):
+            return candidate
+
+        return reverse("projects:list")
+
+    def get_success_url(self):
+        return self.get_return_url()
+
+    def get_cancel_url(self):
+        return self.get_return_url()
+
+    def get_membership_formset(
+        self,
+        *,
+        data=None,
+        instance=None,
+    ):
+        return ProjectMembershipFormSet(
+            data=data,
+            instance=instance,
+            prefix="memberships",
+        )
+
+    def get_external_participant_formset(
+        self,
+        *,
+        data=None,
+        instance=None,
+    ):
+        return ProjectExternalParticipantFormSet(
+            data=data,
+            instance=instance,
+            prefix="external_participants",
+        )
+
+    def get_formsets(
+        self,
+        *,
+        django_form,
+        context,
+    ):
+        if "formsets" in context:
+            return context["formsets"]
+
+        instance = django_form.instance
+
+        data = (
+            self.request.POST
+            if self.request.method == "POST"
+            else None
+        )
+
+        return {
+            "memberships": (
+                self.get_membership_formset(
+                    data=data,
+                    instance=instance,
+                )
+            ),
+            "external_participants": (
+                self.get_external_participant_formset(
+                    data=data,
+                    instance=instance,
+                )
+            ),
+        }
+
+    def form_valid(self, form):
+        membership_formset = (
+            self.get_membership_formset(
+                data=self.request.POST,
+                instance=form.instance,
+            )
+        )
+
+        external_participant_formset = (
+            self.get_external_participant_formset(
+                data=self.request.POST,
+                instance=form.instance,
+            )
+        )
+
+        memberships_valid = (
+            membership_formset.is_valid()
+        )
+
+        external_participants_valid = (
+            external_participant_formset.is_valid()
+        )
+
+        if not (
+            memberships_valid
+            and external_participants_valid
+        ):
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form,
+                    formsets={
+                        "memberships": (
+                            membership_formset
+                        ),
+                        "external_participants": (
+                            external_participant_formset
+                        ),
+                    },
+                )
+            )
+
+        with transaction.atomic():
+            self.object = form.save()
+
+            membership_formset.instance = (
+                self.object
+            )
+            membership_formset.save()
+
+            external_participant_formset.instance = (
+                self.object
+            )
+            external_participant_formset.save()
+
+        if self.success_message:
+            messages.success(
+                self.request,
+                self.success_message,
+            )
+
+        return redirect(
+            self.get_success_url()
+        )
+
+class ProjectCreateView(
+    ProjectFormCollectionsMixin,
+    EPCreateView,
+):
     model = Project
     form_class = ProjectForm
     definition = PROJECT_FORM_DEFINITION
     template_name = "edf/form/view.html"
 
-    success_url = reverse_lazy("projects:list")
-    cancel_url = reverse_lazy("projects:list")
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-
-        messages.success(
-            self.request,
-            "Le projet a été créé avec succès.",
-        )
-
-        return response
+    success_message = (
+        "Le projet a été créé avec succès."
+    )
 
 
-class ProjectUpdateView(EPUpdateView):
+class ProjectUpdateView(
+    ProjectFormCollectionsMixin,
+    EPUpdateView,
+):
     """
     Modification d'un projet et de ses participants.
     """
@@ -297,12 +434,18 @@ class ProjectUpdateView(EPUpdateView):
     model = Project
     form_class = ProjectForm
     definition = PROJECT_FORM_DEFINITION
-    template_name = "projects/project_form.html"
+    template_name = "edf/form/view.html"
+
+    success_message = (
+        "Le projet a été modifié avec succès."
+    )
 
     def get_queryset(self):
         queryset = (
             ProjectAccessService
-            .get_accessible_projects(self.request.user)
+            .get_accessible_projects(
+                self.request.user
+            )
             .select_related(
                 "company",
                 "client_environment",
@@ -321,141 +464,8 @@ class ProjectUpdateView(EPUpdateView):
             )
 
         return queryset
-
-    def get_return_url(self):
-        candidate = self.request.GET.get("next")
-
-        if (
-            candidate
-            and url_has_allowed_host_and_scheme(
-                candidate,
-                allowed_hosts={self.request.get_host()},
-                require_https=self.request.is_secure(),
-            )
-        ):
-            return candidate
-
-        return reverse_lazy("projects:list")
-
-    def get_success_url(self):
-        return self.get_return_url()
-
-    def get_cancel_url(self):
-        return self.get_return_url()
-
-    def get_membership_formset(
-        self,
-        *,
-        data=None,
-    ):
-        return ProjectMembershipFormSet(
-            data=data,
-            instance=self.object,
-            prefix="memberships",
-        )
-
-    def get_external_participant_formset(
-        self,
-        *,
-        data=None,
-    ):
-        return ProjectExternalParticipantFormSet(
-            data=data,
-            instance=self.object,
-            prefix="external_participants",
-        )
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if "membership_formset" not in context:
-            context["membership_formset"] = (
-                self.get_membership_formset()
-            )
-
-        if "external_participant_formset" not in context:
-            context["external_participant_formset"] = (
-                self.get_external_participant_formset()
-            )
-
-        users = (
-            User.objects
-            .filter(is_active=True)
-            .select_related(
-                "company",
-                "global_role",
-                "access_level",
-            )
-            .order_by(
-                "last_name",
-                "first_name",
-            )
-        )
-
-        context["project_users_data"] = [
-            {
-                "id": str(user.pk),
-                "last_name": user.last_name,
-                "first_name": user.first_name,
-                "email": user.email,
-                "company": str(user.company),
-                "global_role": user.global_role.label,
-                "access_level": user.access_level.label,
-            }
-            for user in users
-        ]
-
-        return context
-   
-    def form_valid(self, form):
-        membership_formset = self.get_membership_formset(
-            data=self.request.POST,
-        )
-
-        external_participant_formset = (
-            self.get_external_participant_formset(
-                data=self.request.POST,
-            )
-        )
-
-        memberships_valid = membership_formset.is_valid()
-
-        external_participants_valid = (
-            external_participant_formset.is_valid()
-        )
-
-        if not (
-            memberships_valid
-            and external_participants_valid
-        ):
-            return self.render_to_response(
-                self.get_context_data(
-                    form=form,
-                    membership_formset=membership_formset,
-                    external_participant_formset=(
-                        external_participant_formset
-                    ),
-                )
-            )
-
-        with transaction.atomic():
-            self.object = form.save()
-
-            membership_formset.instance = self.object
-            membership_formset.save()
-
-            external_participant_formset.instance = self.object
-            external_participant_formset.save()
-
-        messages.success(
-            self.request,
-            "Le projet a été modifié avec succès.",
-        )
-
-        return redirect(
-            self.get_success_url()
-        )
-        
+            
 class ProjectPhotoUpdateView(
     LoginRequiredMixin,
     UpdateView,

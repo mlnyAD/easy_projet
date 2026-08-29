@@ -1,5 +1,5 @@
 
-
+        
 from __future__ import annotations
 
 from django.conf import settings
@@ -9,10 +9,14 @@ from django.core.exceptions import ImproperlyConfigured
 
 class DevelopmentAutoLoginMiddleware:
     """
-    Authentifie automatiquement un utilisateur de développement.
+    Authentifie automatiquement l'utilisateur de développement configuré.
 
-    Ce middleware ne peut fonctionner que lorsque DEBUG est actif
-    et que DEV_AUTO_LOGIN est explicitement activé.
+    Ce middleware ne fonctionne que lorsque :
+    - DEBUG est actif ;
+    - DEV_AUTO_LOGIN est explicitement activé.
+
+    Lorsque l'utilisateur configuré change, la session Django
+    est automatiquement basculée vers ce nouvel utilisateur.
     """
 
     def __init__(self, get_response):
@@ -28,20 +32,46 @@ class DevelopmentAutoLoginMiddleware:
         if (
             settings.DEBUG
             and settings.DEV_AUTO_LOGIN
-            and not request.user.is_authenticated
         ):
-            self._login_development_user(request)
+            self._ensure_development_user(request)
 
         return self.get_response(request)
 
-    def _login_development_user(self, request) -> None:
-        email = settings.DEV_AUTO_LOGIN_EMAIL.strip().lower()
+    def _ensure_development_user(
+        self,
+        request,
+    ) -> None:
+        """
+        Garantit que l'utilisateur courant correspond
+        à DEV_AUTO_LOGIN_EMAIL.
+        """
+
+        email = (
+            settings.DEV_AUTO_LOGIN_EMAIL
+            .strip()
+            .lower()
+        )
 
         if not email:
             raise ImproperlyConfigured(
                 "DEV_AUTO_LOGIN_EMAIL doit être renseigné "
                 "lorsque DEV_AUTO_LOGIN est actif."
             )
+
+        current_email = (
+            getattr(
+                request.user,
+                "email",
+                "",
+            )
+            or ""
+        ).strip().lower()
+
+        if (
+            request.user.is_authenticated
+            and current_email == email
+        ):
+            return
 
         user_model = get_user_model()
 
@@ -59,5 +89,8 @@ class DevelopmentAutoLoginMiddleware:
         login(
             request,
             user,
-            backend="django.contrib.auth.backends.ModelBackend",
+            backend=(
+                "django.contrib.auth.backends."
+                "ModelBackend"
+            ),
         )
