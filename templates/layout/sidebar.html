@@ -415,31 +415,138 @@
     </nav>
 
     <div
-        class="shrink-0 border-t border-axcio-border-light p-3
-               dark:border-axcio-border-dark"
+        class="relative shrink-0 border-t border-axcio-border-light p-3
+            dark:border-axcio-border-dark"
+        data-user-menu-container
     >
+        {# --------------------------------------------------------------- #}
+        {# Menu utilisateur                                                #}
+        {# --------------------------------------------------------------- #}
+
+        <div
+            class="absolute bottom-full left-3 right-3 z-50 mb-2 hidden
+                overflow-hidden rounded-lg
+                border border-axcio-border-light
+                bg-axcio-surface shadow-lg
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-dark"
+            data-user-menu
+        >
+            <div
+                class="border-b border-axcio-border-light px-4 py-3
+                    dark:border-axcio-border-dark"
+            >
+                <p
+                    class="truncate text-sm font-medium
+                        text-axcio-text
+                        dark:text-axcio-text-dark"
+                >
+                    {{ request.user.first_name }}
+                    {{ request.user.last_name|upper }}
+                </p>
+
+                <p
+                    class="mt-0.5 truncate text-xs
+                        text-axcio-text-muted
+                        dark:text-axcio-text-muted-dark"
+                >
+                    {{ request.user.email }}
+                </p>
+            </div>
+
+            <div class="p-1.5">
+
+                <a
+                    href="{% url 'users:account' %}"
+                    class="flex w-full items-center gap-3 rounded-md
+                        px-3 py-2 text-left text-sm
+                        text-axcio-text-secondary
+                        hover:bg-axcio-surface-alt
+                        hover:text-axcio-text
+                        dark:text-axcio-text-secondary-dark
+                        dark:hover:bg-axcio-surface-alt-dark
+                        dark:hover:text-axcio-text-dark"
+                >
+                    <i
+                        data-lucide="user-round"
+                        class="h-4 w-4 shrink-0"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>Mon compte</span>
+                </a>
+
+                <div
+                    class="my-1 border-t border-axcio-border-light
+                        dark:border-axcio-border-dark"
+                ></div>
+
+                <form
+                    method="post"
+                    action="{% url 'users:logout' %}"
+                >
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="flex w-full items-center gap-3 rounded-md
+                            px-3 py-2 text-left text-sm
+                            text-axcio-text-secondary
+                            hover:bg-axcio-surface-alt
+                            hover:text-axcio-text
+                            dark:text-axcio-text-secondary-dark
+                            dark:hover:bg-axcio-surface-alt-dark
+                            dark:hover:text-axcio-text-dark"
+                    >
+                        <i
+                            data-lucide="log-out"
+                            class="h-4 w-4 shrink-0"
+                            aria-hidden="true"
+                        ></i>
+
+                        <span>Déconnexion</span>
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
+        {# --------------------------------------------------------------- #}
+        {# Utilisateur connecté                                            #}
+        {# --------------------------------------------------------------- #}
+
         <button
             type="button"
             class="flex w-full items-center gap-3 rounded-lg
-                   px-3 py-2 text-left
-                   transition-colors
-                   hover:bg-axcio-surface-alt
-                   focus:outline-none focus:ring-2
-                   focus:ring-axcio-light
-                   dark:hover:bg-axcio-surface-alt-dark
-                   dark:focus:ring-offset-axcio-surface-dark"
+                px-3 py-2 text-left
+                transition-colors
+                hover:bg-axcio-surface-alt
+                focus:outline-none focus:ring-2
+                focus:ring-axcio-light
+                dark:hover:bg-axcio-surface-alt-dark
+                dark:focus:ring-offset-axcio-surface-dark"
             aria-label="Ouvrir le menu utilisateur"
+            aria-expanded="false"
+            data-user-menu-toggle
         >
             <div
                 class="flex h-9 w-9 shrink-0 items-center
-                       justify-center rounded-full
-                       bg-axcio-surface-alt
-                       text-sm font-semibold
-                       text-axcio-text-secondary
-                       dark:bg-axcio-surface-alt-dark
-                       dark:text-axcio-text-secondary-dark"
+                    justify-center overflow-hidden rounded-full
+                    bg-axcio-surface-alt
+                    text-sm font-semibold
+                    text-axcio-text-secondary
+                    dark:bg-axcio-surface-alt-dark
+                    dark:text-axcio-text-secondary-dark"
             >
-                ML
+                {% if request.user.photo %}
+                    <img
+                        src="{{ request.user.photo.url }}"
+                        alt=""
+                        class="h-full w-full object-cover"
+                    >
+                {% else %}
+                    {{ request.user.initials }}
+                {% endif %}
             </div>
 
             <div
@@ -448,31 +555,35 @@
             >
                 <p
                     class="truncate text-sm font-medium
-                           text-axcio-text
-                           dark:text-axcio-text-dark"
+                        text-axcio-text
+                        dark:text-axcio-text-dark"
                 >
-                    Martin Lenourry
+                    {{ request.user.first_name }}
+                    {{ request.user.last_name|upper }}
                 </p>
 
                 <p
                     class="truncate text-xs
-                           text-axcio-text-muted
-                           dark:text-axcio-text-muted-dark"
+                        text-axcio-text-muted
+                        dark:text-axcio-text-muted-dark"
                 >
-                    Administrateur système
+                    {{ request.user.global_role.label }}
                 </p>
             </div>
 
             <i
                 data-lucide="chevron-up"
                 class="h-4 w-4 shrink-0
-                       text-axcio-text-muted
-                       dark:text-axcio-text-muted-dark"
+                    text-axcio-text-muted
+                    transition-transform
+                    dark:text-axcio-text-muted-dark"
                 aria-hidden="true"
+                data-user-menu-chevron
                 data-sidebar-label
             ></i>
         </button>
     </div>
+
 </aside>
 
 {% endwith %}

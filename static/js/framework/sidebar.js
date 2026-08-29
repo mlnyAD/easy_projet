@@ -13,7 +13,7 @@
         "[data-sidebar-toggle]"
     );
 
-    if (!sidebar || !toggleButton) {
+    if (!sidebar) {
         return;
     }
 
@@ -79,15 +79,125 @@
         );
     }
 
-    renderState(loadState());
+    if (toggleButton) {
+        renderState(loadState());
 
-    toggleButton.addEventListener(
-        "click",
-        function () {
-            const collapsed = !isCollapsed();
+        toggleButton.addEventListener(
+            "click",
+            function () {
+                const collapsed = !isCollapsed();
 
-            renderState(collapsed);
-            saveState(collapsed);
-        }
+                renderState(collapsed);
+                saveState(collapsed);
+            }
+        );
+    }
+
+        // ------------------------------------------------------------
+    // Menu utilisateur
+    // ------------------------------------------------------------
+
+    const userMenuContainer = document.querySelector(
+        "[data-user-menu-container]"
     );
+
+    const userMenuToggle = document.querySelector(
+        "[data-user-menu-toggle]"
+    );
+
+    const userMenu = document.querySelector(
+        "[data-user-menu]"
+    );
+
+    const userMenuChevron = document.querySelector(
+        "[data-user-menu-chevron]"
+    );
+
+    function closeUserMenu() {
+        if (!userMenu || !userMenuToggle) {
+            return;
+        }
+
+        userMenu.classList.add("hidden");
+
+        userMenuToggle.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+
+        if (userMenuChevron) {
+            userMenuChevron.classList.remove(
+                "rotate-180"
+            );
+        }
+    }
+
+    function openUserMenu() {
+        if (!userMenu || !userMenuToggle) {
+            return;
+        }
+
+        userMenu.classList.remove("hidden");
+
+        userMenuToggle.setAttribute(
+            "aria-expanded",
+            "true"
+        );
+
+        if (userMenuChevron) {
+            userMenuChevron.classList.add(
+                "rotate-180"
+            );
+        }
+    }
+
+    function isUserMenuOpen() {
+        return (
+            userMenu
+            && !userMenu.classList.contains("hidden")
+        );
+    }
+
+    if (
+        userMenuContainer
+        && userMenuToggle
+        && userMenu
+    ) {
+        userMenuToggle.addEventListener(
+            "click",
+            function (event) {
+                event.stopPropagation();
+
+                if (isUserMenuOpen()) {
+                    closeUserMenu();
+                } else {
+                    openUserMenu();
+                }
+            }
+        );
+
+        document.addEventListener(
+            "click",
+            function (event) {
+                if (
+                    !userMenuContainer.contains(
+                        event.target
+                    )
+                ) {
+                    closeUserMenu();
+                }
+            }
+        );
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+                if (event.key === "Escape") {
+                    closeUserMenu();
+                    userMenuToggle.focus();
+                }
+            }
+        );
+    }
+    
 })();

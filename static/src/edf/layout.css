@@ -32,7 +32,7 @@
 .ep-app {
     display: flex;
     height: 100vh;
-    overflow: hidden;
+    overflow: visible;
 }
 
 
@@ -50,6 +50,7 @@
     min-width: 0;
     flex: 1 1 0%;
     flex-direction: column;
+    overflow-x: hidden;
 }
 
 

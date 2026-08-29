@@ -1,8 +1,10 @@
 
 
-from django.urls import path
+from django.contrib.auth.views import LogoutView
+from django.urls import path, reverse_lazy
 
 from .views import (
+    AccountUpdateView,
     UserCreateView,
     UserListView,
     UserUpdateView,
@@ -26,5 +28,17 @@ urlpatterns = [
         "<uuid:pk>/edit/",
         UserUpdateView.as_view(),
         name="update",
+    ),
+    path(
+        "logout/",
+        LogoutView.as_view(
+            next_page=reverse_lazy("home"),
+        ),
+        name="logout",
+    ),
+    path(
+        "account/",
+        AccountUpdateView.as_view(),
+        name="account",
     ),
 ]

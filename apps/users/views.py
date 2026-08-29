@@ -19,6 +19,12 @@ from .form_definition import USER_FORM_DEFINITION
 from .forms import UserForm
 from .lists import USER_LIST_DEFINITION
 from .models import User
+from django.contrib.auth import update_session_auth_hash
+
+from .account_form_definition import (
+    ACCOUNT_FORM_DEFINITION,
+)
+from .forms import AccountForm
 
 
 class UserListView(ListView):
@@ -119,6 +125,38 @@ class UserUpdateView(EPUpdateView):
         messages.success(
             self.request,
             "L'utilisateur a été modifié avec succès.",
+        )
+
+        return response
+    
+class AccountUpdateView(EPUpdateView):
+    model = User
+    form_class = AccountForm
+    definition = ACCOUNT_FORM_DEFINITION
+    template_name = "edf/form/view.html"
+
+    success_url = reverse_lazy("home")
+    cancel_url = reverse_lazy("home")
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        password_changed = bool(
+            form.cleaned_data.get("new_password")
+        )
+
+        response = super().form_valid(form)
+
+        if password_changed:
+            update_session_auth_hash(
+                self.request,
+                form.instance,
+            )
+
+        messages.success(
+            self.request,
+            "Votre compte a été mis à jour.",
         )
 
         return response

@@ -18,6 +18,12 @@ from common.forms.widgets import TelInput
 
 from .models import User
 
+from django.contrib.auth.password_validation import (
+    password_validators_help_text_html,
+    validate_password,
+)
+from django.core.exceptions import ValidationError
+
 
 class UserForm(forms.ModelForm):
     """
@@ -231,3 +237,200 @@ class UserForm(forms.ModelForm):
 
         if default_value is not None:
             self.initial[field_name] = default_value.pk
+            
+class AccountForm(forms.ModelForm):
+    """
+    Formulaire personnel de l'utilisateur connecté.
+
+    Les données administratives sont affichées en lecture seule.
+    L'utilisateur peut modifier sa photo et son mot de passe.
+    """
+
+    company_display = forms.CharField(
+        label="Société",
+        required=False,
+        disabled=True,
+    )
+
+    global_role_display = forms.CharField(
+        label="Rôle",
+        required=False,
+        disabled=True,
+    )
+
+    current_password = forms.CharField(
+        label="Mot de passe actuel",
+        required=False,
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "autocomplete": "current-password",
+            }
+        ),
+    )
+
+    new_password = forms.CharField(
+        label="Nouveau mot de passe",
+        required=False,
+        strip=False,
+        help_text=password_validators_help_text_html(),
+        widget=forms.PasswordInput(
+            attrs={
+                "autocomplete": "new-password",
+            }
+        ),
+    )
+
+    new_password_confirmation = forms.CharField(
+        label="Confirmation du nouveau mot de passe",
+        required=False,
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "autocomplete": "new-password",
+            }
+        ),
+    )
+
+    class Meta:
+        model = User
+
+        fields = (
+            "photo",
+            "first_name",
+            "last_name",
+            "email",
+        )
+
+        widgets = {
+            "first_name": forms.TextInput(
+                attrs={
+                    "autocomplete": "given-name",
+                }
+            ),
+            "last_name": forms.TextInput(
+                attrs={
+                    "autocomplete": "family-name",
+                }
+            ),
+            "email": forms.EmailInput(
+                attrs={
+                    "autocomplete": "email",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        
+        if not self.instance.has_usable_password():
+            self.fields["current_password"].required = False
+            self.fields["current_password"].disabled = True
+            self.fields["current_password"].help_text = (
+                "Aucun mot de passe n'est encore défini pour ce compte."
+            )
+
+        # Données administrées depuis Contacts.
+        self.fields["first_name"].disabled = True
+        self.fields["last_name"].disabled = True
+        self.fields["email"].disabled = True
+
+        self.fields["company_display"].initial = (
+            self.instance.company.name
+            if self.instance.company_id
+            else ""
+        )
+
+        self.fields["global_role_display"].initial = (
+            self.instance.global_role.label
+            if self.instance.global_role_id
+            else ""
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        current_password = cleaned_data.get(
+            "current_password"
+        )
+        new_password = cleaned_data.get(
+            "new_password"
+        )
+        confirmation = cleaned_data.get(
+            "new_password_confirmation"
+        )
+
+        password_change_requested = any(
+            (
+                current_password,
+                new_password,
+                confirmation,
+            )
+        )
+
+        if not password_change_requested:
+            return cleaned_data
+
+        if self.instance.has_usable_password():
+            if not current_password:
+                self.add_error(
+                    "current_password",
+                    "Saisissez votre mot de passe actuel.",
+                )
+            elif not self.instance.check_password(current_password):
+                self.add_error(
+                    "current_password",
+                    "Le mot de passe actuel est incorrect.",
+                )
+                
+        if not new_password:
+            self.add_error(
+                "new_password",
+                "Saisissez le nouveau mot de passe.",
+            )
+
+        if not confirmation:
+            self.add_error(
+                "new_password_confirmation",
+                "Confirmez le nouveau mot de passe.",
+            )
+
+        if (
+            new_password
+            and confirmation
+            and new_password != confirmation
+        ):
+            self.add_error(
+                "new_password_confirmation",
+                "Les deux mots de passe ne correspondent pas.",
+            )
+
+        if new_password:
+            try:
+                validate_password(
+                    new_password,
+                    user=self.instance,
+                )
+            except ValidationError as error:
+                self.add_error(
+                    "new_password",
+                    error,
+                )
+
+        return cleaned_data
+
+    def save(self, commit: bool = True) -> User:
+        user = super().save(commit=False)
+
+        new_password = self.cleaned_data.get(
+            "new_password"
+        )
+
+        if new_password:
+            user.set_password(new_password)
+
+        if commit:
+            user.save()
+            self.save_m2m()
+
+        return user
