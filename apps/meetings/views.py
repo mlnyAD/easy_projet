@@ -3,7 +3,7 @@
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
 from urllib.parse import urlencode
@@ -206,6 +206,20 @@ class MeetingCompositeFormMixin:
     Gestion commune du formulaire Réunion + Participants.
     """
 
+    success_message = None
+
+    def get_return_url(self):
+        return get_allowed_return_url(
+            self.request,
+            default_url=reverse("meetings:list"),
+        )
+
+    def get_success_url(self):
+        return self.get_return_url()
+
+    def get_cancel_url(self):
+        return self.get_return_url()
+
     def get_internal_formset(
         self,
         *,
@@ -236,68 +250,34 @@ class MeetingCompositeFormMixin:
             prefix="external",
         )
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get_formsets(
+        self,
+        *,
+        django_form,
+        context,
+    ):
+        if "formsets" in context:
+            return context["formsets"]
 
-        instance = getattr(
-            self,
-            "object",
-            None,
+        instance = django_form.instance
+
+        data = (
+            self.request.POST
+            if self.request.method == "POST"
+            else None
         )
 
-        if (
-            instance is None
-            or not isinstance(instance, Meeting)
-        ):
-            form = context.get("form")
-
-            if form is not None:
-                instance = form.instance
-
-        if "internal_formset" not in context:
-            context["internal_formset"] = (
-                self.get_internal_formset(
-                    instance=instance,
-                )
-            )
-
-        if "external_formset" not in context:
-            context["external_formset"] = (
-                self.get_external_formset(
-                    instance=instance,
-                )
-            )
-
-        context["return_url"] = self.get_return_url()
-        context.setdefault(
-            "active_tab",
-            "meeting",
-        )
-
-        return context
-
-    def form_invalid(self, form):
-        instance = form.instance
-
-        internal_formset = self.get_internal_formset(
-            data=self.request.POST,
-            instance=instance,
-        )
-
-        external_formset = self.get_external_formset(
-            data=self.request.POST,
-            instance=instance,
-        )
-
-        return self.render_to_response(
-            self.get_context_data(
-                form=form,
-                internal_formset=internal_formset,
-                external_formset=external_formset,
-                active_tab="meeting",
-            )
-        )
-
+        return {
+            "internal": self.get_internal_formset(
+                data=data,
+                instance=instance,
+            ),
+            "external": self.get_external_formset(
+                data=data,
+                instance=instance,
+            ),
+        }
+        
     def form_valid(self, form):
         instance = form.instance
 
@@ -305,28 +285,25 @@ class MeetingCompositeFormMixin:
             data=self.request.POST,
             instance=instance,
         )
-
         external_formset = self.get_external_formset(
             data=self.request.POST,
             instance=instance,
         )
 
-        internal_valid = internal_formset.is_valid()
-        external_valid = external_formset.is_valid()
-
         if not (
-            internal_valid
-            and external_valid
+            internal_formset.is_valid()
+            and external_formset.is_valid()
         ):
             return self.render_to_response(
                 self.get_context_data(
                     form=form,
-                    internal_formset=internal_formset,
-                    external_formset=external_formset,
-                    active_tab="participants",
+                    formsets={
+                        "internal": internal_formset,
+                        "external": external_formset,
+                    },
                 )
             )
-
+            
         with transaction.atomic():
             self.object = form.save()
 
@@ -336,18 +313,15 @@ class MeetingCompositeFormMixin:
             internal_formset.save()
             external_formset.save()
 
-        messages.success(
-            self.request,
-            self.get_success_message(),
-        )
+        if self.success_message:
+            messages.success(
+                self.request,
+                self.success_message,
+            )
 
         return redirect(
             self.get_success_url()
         )
-
-    def get_success_message(self) -> str:
-        raise NotImplementedError
-
 
 class MeetingCreateView(
     MeetingCompositeFormMixin,
@@ -360,19 +334,9 @@ class MeetingCreateView(
     model = Meeting
     form_class = MeetingForm
     definition = MEETING_FORM_DEFINITION
-    template_name = "meetings/meeting_form.html"
+    template_name = "edf/form/view.html"
 
-    def get_return_url(self):
-        return get_allowed_return_url(
-            self.request,
-            default_url=reverse_lazy("meetings:list"),
-        )
-
-    def get_success_url(self):
-        return self.get_return_url()
-
-    def get_cancel_url(self):
-        return self.get_return_url()
+    success_message = "La réunion a été créée avec succès."
 
     def get_initial(self):
         initial = super().get_initial()
@@ -394,9 +358,6 @@ class MeetingCreateView(
 
         return initial
 
-    def get_success_message(self) -> str:
-        return "La réunion a été créée avec succès."
-
 
 class MeetingUpdateView(
     MeetingCompositeFormMixin,
@@ -409,19 +370,8 @@ class MeetingUpdateView(
     model = Meeting
     form_class = MeetingForm
     definition = MEETING_FORM_DEFINITION
-    template_name = "meetings/meeting_form.html"
+    template_name = "edf/form/view.html"
 
-    def get_return_url(self):
-        return get_allowed_return_url(
-            self.request,
-            default_url=reverse_lazy("meetings:list"),
-        )
-
-    def get_success_url(self):
-        return self.get_return_url()
-
-    def get_cancel_url(self):
-        return self.get_return_url()
-
-    def get_success_message(self) -> str:
-        return "La réunion a été modifiée avec succès."
+    success_message = (
+        "La réunion a été modifiée avec succès."
+    )

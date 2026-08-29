@@ -2,6 +2,8 @@
 
 from framework.form import (
     FieldDefinition,
+    FormCollectionColumnDefinition,
+    FormCollectionDefinition,
     FormDefinition,
     SectionDefinition,
 )
@@ -76,6 +78,44 @@ MEETING_FORM_DEFINITION = FormDefinition(
                     unchecked_label="Inactive",
                 ),
             ],
+        ),
+    ],
+    collections=[
+        FormCollectionDefinition(
+            name="internal",
+            title="Participants internes",
+            description=(
+                "Utilisateurs disposant d'un compte Easy Projet."
+            ),
+            columns=(
+                FormCollectionColumnDefinition(
+                    name="participant",
+                    label="Participant",
+                    field_name="participant",
+                ),
+            ),
+            allow_add=True,
+            allow_delete=True,
+            add_label="Ajouter un participant",
+            delete_label="Supprimer le participant",
+        ),
+        FormCollectionDefinition(
+            name="external",
+            title="Participants externes",
+            description=(
+                "Personnes ne disposant pas d'un compte Easy Projet."
+            ),
+            columns=(
+                FormCollectionColumnDefinition(
+                    name="external_email",
+                    label="Adresse email",
+                    field_name="external_email",
+                ),
+            ),
+            allow_add=True,
+            allow_delete=True,
+            add_label="Ajouter un participant externe",
+            delete_label="Supprimer le participant externe",
         ),
     ],
 )
