@@ -16,9 +16,8 @@ from django.views.generic import ListView
 
 from apps.projects.models import ProjectMembership
 from apps.work.models import WorkPackage
-from common.constants import (
-    DEFAULT_PAGE_SIZE,
-    PAGE_SIZE_VALUES,
+from framework.integrations.django.list_pagination import (
+    EPListPaginationMixin,
 )
 from framework.integrations.django.views import (
     EPCreateView,
@@ -112,7 +111,10 @@ def build_task_assignment_context():
     }
 
 
-class TaskListView(ListView):
+class TaskListView(
+    EPListPaginationMixin,
+    ListView,
+):
     """
     Liste globale des tâches.
     """
@@ -120,7 +122,6 @@ class TaskListView(ListView):
     model = Task
     template_name = "tasks/task_list.html"
     context_object_name = "tasks"
-    paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
@@ -188,10 +189,6 @@ class TaskListView(ListView):
         # Alias temporaire pour compatibilité
         # avec les tests existants.
         context["list"] = list_view
-
-        context["page_sizes"] = (
-            PAGE_SIZE_VALUES
-        )
 
         context["row_actions_template"] = (
             "tasks/task_actions.html"

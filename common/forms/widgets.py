@@ -18,3 +18,20 @@ class TelInput(forms.TextInput):
     """
 
     input_type = "tel"
+
+
+class FileUploadInput(forms.ClearableFileInput):
+    """
+    Widget fichier utilisé par le composant FileUpload EDF.
+
+    Le comportement de ClearableFileInput est conservé afin
+    de bénéficier notamment de la gestion Django de la
+    suppression d'un fichier existant.
+
+    En revanche, le rendu HTML natif
+    "Currently / Clear / Change" n'est pas utilisé :
+    le composant FileUpload EDF prend en charge cette
+    présentation.
+    """
+
+    template_name = "django/forms/widgets/input.html"

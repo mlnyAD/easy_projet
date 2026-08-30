@@ -1,17 +1,16 @@
 
 
+from urllib.parse import urlencode
+
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
-from urllib.parse import urlencode
 
-from django.contrib import messages
 from apps.projects.models import Project
-from common.constants import (
-    DEFAULT_PAGE_SIZE,
-    PAGE_SIZE_VALUES,
+from framework.integrations.django.list_pagination import (
+    EPListPaginationMixin,
 )
 from framework.integrations.django.views import (
     EPCreateView,
@@ -26,11 +25,13 @@ from .lists import WORK_PACKAGE_LIST_DEFINITION
 from .models import WorkPackage
 
 
-class WorkPackageListView(ListView):
+class WorkPackageListView(
+    EPListPaginationMixin,
+    ListView,
+):
     model = WorkPackage
     template_name = "work/work_package_list.html"
     context_object_name = "work_packages"
-    paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
@@ -58,7 +59,9 @@ class WorkPackageListView(ListView):
         )
 
         framework_page = ListPage(
-            rows=tuple(django_page.object_list),
+            rows=tuple(
+                django_page.object_list
+            ),
             page=django_page.number,
             page_size=django_page.paginator.per_page,
             total_items=django_page.paginator.count,
@@ -77,7 +80,6 @@ class WorkPackageListView(ListView):
         # Alias temporaire pour compatibilité avec les tests existants.
         context["list"] = list_view
 
-        context["page_sizes"] = PAGE_SIZE_VALUES
         context["row_actions_template"] = (
             "work/work_package_actions.html"
         )

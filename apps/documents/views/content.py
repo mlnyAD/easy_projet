@@ -200,6 +200,31 @@ class DocumentVersionCallbackView(View):
             )
         )
 
+        if jwt_payload is None:
+            return JsonResponse(
+                {
+                    "error": 1,
+                },
+                status=403,
+            )
+
+        signed_payload = jwt_payload.get(
+            "payload"
+        )
+
+        if not isinstance(
+            signed_payload,
+            dict,
+        ):
+            return JsonResponse(
+                {
+                    "error": 1,
+                },
+                status=403,
+            )
+
+        payload = signed_payload
+
         print(
             "ONLYOFFICE JWT valide:",
             jwt_payload is not None,

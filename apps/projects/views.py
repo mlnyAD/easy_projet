@@ -13,14 +13,13 @@ from django.views.generic import (
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
 from datetime import timedelta
-
+from framework.integrations.django.list_pagination import (
+    EPListPaginationMixin,
+)
 from django.db.models import Sum
 
 from apps.tasks.models import Task, TaskAssignment
-from common.constants import (
-    DEFAULT_PAGE_SIZE,
-    PAGE_SIZE_VALUES,
-)
+
 from framework.integrations.django.views import (
     EPCreateView,
     EPUpdateView,
@@ -45,11 +44,13 @@ from .services.geocoding import (
 )
 
 
-class ProjectListView(ListView):
+class ProjectListView(
+    EPListPaginationMixin,
+    ListView,
+):
     model = Project
     template_name = "projects/project_list.html"
     context_object_name = "projects"
-    paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
@@ -58,7 +59,7 @@ class ProjectListView(ListView):
                 self.request.user
             )
         )
-        
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -70,7 +71,9 @@ class ProjectListView(ListView):
         )
 
         framework_page = ListPage(
-            rows=tuple(django_page.object_list),
+            rows=tuple(
+                django_page.object_list
+            ),
             page=django_page.number,
             page_size=django_page.paginator.per_page,
             total_items=django_page.paginator.count,
@@ -89,13 +92,12 @@ class ProjectListView(ListView):
         # Alias temporaire pour compatibilité avec les tests existants.
         context["list"] = list_view
 
-        context["page_sizes"] = PAGE_SIZE_VALUES
         context["row_actions_template"] = (
             "projects/project_actions.html"
         )
 
         return context
-
+    
 class ProjectLocationView(ListView):
     """
     Localisation de tous les projets accessibles.

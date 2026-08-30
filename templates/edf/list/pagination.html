@@ -1,25 +1,61 @@
 
 
-{% if list_view.pagination.total_pages > 1 %}
+{% if list_view.pagination.total_items %}
 
     <nav
         class="ep-list-pagination"
         aria-label="Pagination"
     >
 
-        <div class="ep-list-pagination-side">
+        {# ----------------------------------------------------------- #}
+        {# Informations / taille de page                              #}
+        {# ----------------------------------------------------------- #}
 
-            {% if list_view.pagination.has_previous %}
-                <a
-                    href="?page={{ list_view.pagination.previous_page }}"
-                    class="ep-list-pagination-button"
+        <div class="ep-list-pagination-info">
+
+            <span class="ep-list-pagination-total">
+                {{ list_view.pagination.total_items }}
+                élément{% if list_view.pagination.total_items > 1 %}s{% endif %}
+            </span>
+
+            <label
+                class="ep-list-pagination-size"
+            >
+                <span>
+                    Lignes par page
+                </span>
+
+                <select
+                    class="ep-list-pagination-select"
+                    aria-label="Nombre de lignes par page"
+                    onchange="
+                        if (this.value) {
+                            window.location.href = this.value;
+                        }
+                    "
                 >
-                    Page précédente
-                </a>
-            {% endif %}
+                    {% for size in page_sizes %}
+
+                        <option
+                            value="{% querystring page=1 page_size=size %}"
+                            {% if size == list_view.pagination.page_size %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ size }}
+                        </option>
+
+                    {% endfor %}
+                </select>
+
+            </label>
 
         </div>
 
+
+        {# ----------------------------------------------------------- #}
+        {# État                                                       #}
+        {# ----------------------------------------------------------- #}
 
         <span class="ep-list-pagination-status">
             Page {{ list_view.pagination.page }}
@@ -27,15 +63,115 @@
         </span>
 
 
-        <div class="ep-list-pagination-side ep-list-pagination-side-end">
+        {# ----------------------------------------------------------- #}
+        {# Navigation                                                 #}
+        {# ----------------------------------------------------------- #}
+
+        <div class="ep-list-pagination-navigation">
+
+            {% if list_view.pagination.has_previous %}
+
+                <a
+                    href="{% querystring page=1 %}"
+                    class="ep-list-pagination-button"
+                    title="Première page"
+                    aria-label="Première page"
+                >
+                    <i
+                        data-lucide="chevrons-left"
+                        class="ep-list-pagination-icon"
+                        aria-hidden="true"
+                    ></i>
+                </a>
+
+                <a
+                    href="{% querystring page=list_view.pagination.previous_page %}"
+                    class="ep-list-pagination-button"
+                    title="Page précédente"
+                    aria-label="Page précédente"
+                >
+                    <i
+                        data-lucide="chevron-left"
+                        class="ep-list-pagination-icon"
+                        aria-hidden="true"
+                    ></i>
+                </a>
+
+            {% else %}
+
+                <span
+                    class="ep-list-pagination-button ep-list-pagination-button-disabled"
+                    aria-hidden="true"
+                >
+                    <i
+                        data-lucide="chevrons-left"
+                        class="ep-list-pagination-icon"
+                    ></i>
+                </span>
+
+                <span
+                    class="ep-list-pagination-button ep-list-pagination-button-disabled"
+                    aria-hidden="true"
+                >
+                    <i
+                        data-lucide="chevron-left"
+                        class="ep-list-pagination-icon"
+                    ></i>
+                </span>
+
+            {% endif %}
+
 
             {% if list_view.pagination.has_next %}
+
                 <a
-                    href="?page={{ list_view.pagination.next_page }}"
+                    href="{% querystring page=list_view.pagination.next_page %}"
                     class="ep-list-pagination-button"
+                    title="Page suivante"
+                    aria-label="Page suivante"
                 >
-                    Page suivante
+                    <i
+                        data-lucide="chevron-right"
+                        class="ep-list-pagination-icon"
+                        aria-hidden="true"
+                    ></i>
                 </a>
+
+                <a
+                    href="{% querystring page=list_view.pagination.total_pages %}"
+                    class="ep-list-pagination-button"
+                    title="Dernière page"
+                    aria-label="Dernière page"
+                >
+                    <i
+                        data-lucide="chevrons-right"
+                        class="ep-list-pagination-icon"
+                        aria-hidden="true"
+                    ></i>
+                </a>
+
+            {% else %}
+
+                <span
+                    class="ep-list-pagination-button ep-list-pagination-button-disabled"
+                    aria-hidden="true"
+                >
+                    <i
+                        data-lucide="chevron-right"
+                        class="ep-list-pagination-icon"
+                    ></i>
+                </span>
+
+                <span
+                    class="ep-list-pagination-button ep-list-pagination-button-disabled"
+                    aria-hidden="true"
+                >
+                    <i
+                        data-lucide="chevrons-right"
+                        class="ep-list-pagination-icon"
+                    ></i>
+                </span>
+
             {% endif %}
 
         </div>

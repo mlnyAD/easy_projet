@@ -57,5 +57,24 @@ A faire :
 - dashboard multi-projets / CP ;
 - choix des agrégats et navigation entre niveaux.
 
-### Tâches
-Ajouter des tests fonctionnels
+### Sociétés
+SIRET : Placeholder affiche un format qui n'est pas repris après la saisie
+PAYS : Mettre par défaut la France en présaisie
+
+### Contacts
+1er caractère du prénom en MAJ
+Liste : réduire la hauteur des lignes pour avoir une page entière à l'écran
+
+### Listes
+Sur un écran 1920*1080 afficher une liste de 20 lignes dans la zone utile
+
+
+### Formulaires
+Revoir la hauteur des sections
+Revoir le nombre de champs de saisie par ligne
+
+## Lots de travaux
+Liste : Revoir les critères de filtres
+
+### Import photos
+Pour la suite, je garderais en tête deux évolutions seulement : preview_fit différencié entre photo utilisateur (cover) et logo société (contain), puis plus tard une vraie sélection de société active si le modèle multi-société évolue. Pour l’instant, ce n’est pas bloquant.

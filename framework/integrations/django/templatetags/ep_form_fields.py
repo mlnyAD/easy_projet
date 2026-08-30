@@ -4,9 +4,14 @@ from django import template
 from django.forms.boundfield import BoundField
 from django.template.loader import render_to_string
 
+from framework.form.kinds import FieldKind
 from framework.form.resolved_field import ResolvedField
-from framework.integrations.django.field_renderer import FieldRenderer
-from framework.integrations.django.widget_adapter import WidgetAdapter
+from framework.integrations.django.field_renderer import (
+    FieldRenderer,
+)
+from framework.integrations.django.widget_adapter import (
+    WidgetAdapter,
+)
 
 
 register = template.Library()
@@ -38,13 +43,28 @@ def render_ep_field(context, field) -> str:
 
         _widget_adapter.adapt(
             bound_field.field.widget,
-            has_errors=bool(bound_field.errors),
-            described_by=" ".join(described_by) or None,
+            has_errors=bool(
+                bound_field.errors
+            ),
+            described_by=(
+                " ".join(described_by)
+                or None
+            ),
         )
 
-    template_name = _field_renderer.get_template_name(field)
+    if isinstance(field, ResolvedField):
+        _apply_file_upload_configuration(
+            field
+        )
+
+    template_name = (
+        _field_renderer.get_template_name(
+            field
+        )
+    )
 
     field_context = context.flatten()
+
     field_context["field"] = field
     field_context["bound_field"] = bound_field
 
@@ -64,10 +84,66 @@ def _resolve_bound_field(
     Retourne le BoundField Django associé au champ.
     """
 
-    if isinstance(field, ResolvedField):
+    if isinstance(
+        field,
+        ResolvedField,
+    ):
         return field.bound_field
 
-    if isinstance(field, BoundField):
+    if isinstance(
+        field,
+        BoundField,
+    ):
         return field
 
     return None
+
+
+def _apply_file_upload_configuration(
+    field: ResolvedField,
+) -> None:
+    """
+    Applique au widget Django la configuration
+    déclarée par FileUploadDefinition.
+    """
+
+    if (
+        field.kind
+        != FieldKind.FILE_UPLOAD
+    ):
+        return
+
+    upload = field.upload
+
+    if upload is None:
+        return
+
+    widget = field.bound_field.field.widget
+
+    if upload.multiple:
+        widget.attrs["multiple"] = True
+    else:
+        widget.attrs.pop(
+            "multiple",
+            None,
+        )
+
+    accept_values = []
+
+    accept_values.extend(
+        upload.allowed_mime_types
+    )
+
+    accept_values.extend(
+        upload.allowed_extensions
+    )
+
+    if accept_values:
+        widget.attrs["accept"] = ",".join(
+            accept_values
+        )
+    else:
+        widget.attrs.pop(
+            "accept",
+            None,
+        )

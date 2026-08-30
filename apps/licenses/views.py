@@ -4,9 +4,8 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.generic import ListView
 
-from common.constants import (
-    DEFAULT_PAGE_SIZE,
-    PAGE_SIZE_VALUES,
+from framework.integrations.django.list_pagination import (
+    EPListPaginationMixin,
 )
 from framework.integrations.django.views import (
     EPCreateView,
@@ -25,11 +24,13 @@ from .lists import LICENSE_LIST_DEFINITION
 from .models import License
 
 
-class LicenseListView(ListView):
+class LicenseListView(
+    EPListPaginationMixin,
+    ListView,
+):
     model = License
     template_name = "licenses/license_list.html"
     context_object_name = "licenses"
-    paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
@@ -58,7 +59,9 @@ class LicenseListView(ListView):
         )
 
         framework_page = ListPage(
-            rows=tuple(django_page.object_list),
+            rows=tuple(
+                django_page.object_list
+            ),
             page=django_page.number,
             page_size=django_page.paginator.per_page,
             total_items=django_page.paginator.count,
@@ -74,7 +77,6 @@ class LicenseListView(ListView):
 
         context["list_view"] = list_view
         context["list"] = list_view
-        context["page_sizes"] = PAGE_SIZE_VALUES
         context["row_actions_template"] = (
             "licenses/license_actions.html"
         )
@@ -103,7 +105,7 @@ class LicenseCreateView(EPCreateView):
 
     def form_invalid(self, form):
         return super().form_invalid(form)
-    
+
 
 class LicenseUpdateView(EPUpdateView):
     model = License

@@ -1993,6 +1993,94 @@
   line-height: 1.25rem;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
 }
+.ep-file-upload {
+  position: relative;
+}
+.ep-file-upload-current {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--color-axcio-border-light);
+  border-radius: 0.5rem;
+  background-color: var(--color-axcio-surface);
+  padding: 0.625rem 0.75rem;
+}
+.ep-file-upload-preview {
+  width: 4rem;
+  height: 4rem;
+  flex-shrink: 0;
+  border-radius: 0.5rem;
+  object-fit: contain;
+}
+.ep-file-upload-current-icon {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  color: var(--color-axcio-text-muted);
+}
+.ep-file-upload-information {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.ep-file-upload-current-name {
+  overflow: hidden;
+  color: var(--color-axcio-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ep-file-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+.ep-file-upload-action {
+  color: var(--color-axcio-light);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.ep-file-upload-action:hover {
+  text-decoration: underline;
+}
+.ep-file-upload-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--color-axcio-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  cursor: pointer;
+}
+.ep-file-upload-control {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.dark .ep-file-upload-current {
+  border-color: var(--color-axcio-border-dark);
+  background-color: var(--color-axcio-surface-dark);
+}
+.dark .ep-file-upload-current-icon {
+  color: var(--color-axcio-text-muted-dark);
+}
+.dark .ep-file-upload-current-name {
+  color: var(--color-axcio-text-secondary-dark);
+}
+.dark .ep-file-upload-delete {
+  color: var(--color-axcio-text-muted-dark);
+}
 .ep-file:focus {
   outline: none;
   border-color: var(--color-axcio-dark);
@@ -2694,44 +2782,111 @@
   margin-left: 0.5rem;
 }
 .ep-list-pagination {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
+  gap: 1rem;
 }
-.ep-list-pagination-side {
-  min-width: 8rem;
-}
-.ep-list-pagination-side-end {
+.ep-list-pagination-info {
   display: flex;
-  justify-content: flex-end;
-}
-.ep-list-pagination-button {
-  display: inline-flex;
+  min-width: 0;
   align-items: center;
-  border-radius: 0.5rem;
-  background-color: var(--color-axcio-light);
-  padding: 0.375rem 0.75rem;
-  color: #ffffff;
+  gap: 1rem;
+}
+.ep-list-pagination-total {
+  color: var(--color-axcio-text-muted);
   font-size: 0.875rem;
   line-height: 1.25rem;
-  font-weight: 500;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
-  transition: background-color 150ms, box-shadow 150ms;
 }
-.ep-list-pagination-button:hover {
-  background-color: var(--color-axcio-light-hover);
+.ep-list-pagination-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-axcio-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
-.ep-list-pagination-button:focus {
+.ep-list-pagination-select {
+  height: 2rem;
+  border: 1px solid var(--color-axcio-border);
+  border-radius: 0.375rem;
+  background-color: var(--color-axcio-input);
+  padding: 0 1.75rem 0 0.5rem;
+  color: var(--color-axcio-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.ep-list-pagination-select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+  border-color: var(--color-axcio-dark);
+  box-shadow: 0 0 0 2px rgb(13 82 98 / 0.20);
 }
 .ep-list-pagination-status {
   color: var(--color-axcio-text-muted);
   font-size: 0.875rem;
   line-height: 1.25rem;
+  white-space: nowrap;
 }
-.dark .ep-list-pagination-status {
+.ep-list-pagination-navigation {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+.ep-list-pagination-button {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-axcio-border);
+  border-radius: 0.375rem;
+  background-color: var(--color-axcio-surface);
+  color: var(--color-axcio-light);
+  transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
+}
+.ep-list-pagination-button:hover {
+  border-color: var(--color-axcio-light);
+  background-color: rgb(36 138 141 / 0.10);
+}
+.ep-list-pagination-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+}
+.ep-list-pagination-button-disabled {
+  cursor: default;
+  color: var(--color-axcio-text-muted);
+  opacity: 0.4;
+}
+.ep-list-pagination-button-disabled:hover {
+  border-color: var(--color-axcio-border);
+  background-color: var(--color-axcio-surface);
+}
+.ep-list-pagination-icon {
+  width: 1rem;
+  height: 1rem;
+}
+.dark .ep-list-pagination-total, .dark .ep-list-pagination-size, .dark .ep-list-pagination-status {
   color: var(--color-axcio-text-muted-dark);
+}
+.dark .ep-list-pagination-select {
+  border-color: var(--color-axcio-border-dark);
+  background-color: var(--color-axcio-input-dark);
+  color: var(--color-axcio-text-dark);
+}
+.dark .ep-list-pagination-button {
+  border-color: var(--color-axcio-border-dark);
+  background-color: var(--color-axcio-surface-dark);
+}
+.dark .ep-list-pagination-button:hover {
+  border-color: var(--color-axcio-light);
+  background-color: rgb(36 138 141 / 0.10);
+}
+.dark .ep-list-pagination-button-disabled {
+  color: var(--color-axcio-text-muted-dark);
+}
+.dark .ep-list-pagination-button-disabled:hover {
+  border-color: var(--color-axcio-border-dark);
+  background-color: var(--color-axcio-surface-dark);
 }
 .ep-row-follow-up {
   background-color: #e5e7eb;

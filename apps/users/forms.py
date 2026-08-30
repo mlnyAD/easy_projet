@@ -14,7 +14,10 @@ from common.constants.user import (
     USER_PHONE_LENGTH,
 )
 from common.forms.fields import CatalogModelChoiceField
-from common.forms.widgets import TelInput
+from common.forms.widgets import (
+    FileUploadInput,
+    TelInput,
+)
 
 from .models import User
 
@@ -303,6 +306,7 @@ class AccountForm(forms.ModelForm):
         )
 
         widgets = {
+            "photo": FileUploadInput(),
             "first_name": forms.TextInput(
                 attrs={
                     "autocomplete": "given-name",
@@ -319,7 +323,7 @@ class AccountForm(forms.ModelForm):
                 }
             ),
         }
-
+        
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         

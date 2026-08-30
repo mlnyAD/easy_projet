@@ -1,17 +1,17 @@
 
 
+from urllib.parse import urlencode
+
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
-from urllib.parse import urlencode
 
 from apps.projects.models import Project
-from common.constants import (
-    DEFAULT_PAGE_SIZE,
-    PAGE_SIZE_VALUES,
+from framework.integrations.django.list_pagination import (
+    EPListPaginationMixin,
 )
 from framework.integrations.django.views import (
     EPCreateView,
@@ -50,7 +50,10 @@ def get_allowed_return_url(
     return default_url
 
 
-class MeetingListView(ListView):
+class MeetingListView(
+    EPListPaginationMixin,
+    ListView,
+):
     """
     Liste globale des réunions.
     """
@@ -58,7 +61,6 @@ class MeetingListView(ListView):
     model = Meeting
     template_name = "meetings/meeting_list.html"
     context_object_name = "meetings"
-    paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
@@ -86,7 +88,9 @@ class MeetingListView(ListView):
         )
 
         framework_page = ListPage(
-            rows=tuple(django_page.object_list),
+            rows=tuple(
+                django_page.object_list
+            ),
             page=django_page.number,
             page_size=django_page.paginator.per_page,
             total_items=django_page.paginator.count,
@@ -102,7 +106,6 @@ class MeetingListView(ListView):
 
         context["list_view"] = list_view
         context["list"] = list_view
-        context["page_sizes"] = PAGE_SIZE_VALUES
         context["row_actions_template"] = (
             "meetings/meeting_actions.html"
         )
@@ -123,7 +126,9 @@ class MeetingListView(ListView):
 
         context["page_action_url"] = (
             f"{reverse('meetings:create')}?"
-            f"{urlencode({'next': self.request.get_full_path()})}"
+            f"{urlencode({
+                'next': self.request.get_full_path(),
+            })}"
         )
 
         return context
@@ -277,7 +282,7 @@ class MeetingCompositeFormMixin:
                 instance=instance,
             ),
         }
-        
+
     def form_valid(self, form):
         instance = form.instance
 
@@ -303,7 +308,7 @@ class MeetingCompositeFormMixin:
                     },
                 )
             )
-            
+
         with transaction.atomic():
             self.object = form.save()
 
@@ -323,6 +328,7 @@ class MeetingCompositeFormMixin:
             self.get_success_url()
         )
 
+
 class MeetingCreateView(
     MeetingCompositeFormMixin,
     EPCreateView,
@@ -336,7 +342,9 @@ class MeetingCreateView(
     definition = MEETING_FORM_DEFINITION
     template_name = "edf/form/view.html"
 
-    success_message = "La réunion a été créée avec succès."
+    success_message = (
+        "La réunion a été créée avec succès."
+    )
 
     def get_initial(self):
         initial = super().get_initial()

@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from django.forms.boundfield import BoundField
 
 from framework.form.field import FieldDefinition
+from framework.form.file_upload import FileUploadDefinition
 from framework.form.kinds import FieldKind
 
 
@@ -92,6 +93,20 @@ class ResolvedField:
         return self.definition.unchecked_label
 
     @property
+    def upload(self) -> FileUploadDefinition | None:
+        """
+        Retourne la configuration d'import du champ.
+        """
+        return self.definition.upload
+
+    @property
+    def is_file_upload(self) -> bool:
+        """
+        Indique si le champ utilise le composant FileUpload.
+        """
+        return self.kind == FieldKind.FILE_UPLOAD
+
+    @property
     def errors(self):
         """Retourne les erreurs Django du champ."""
         return self.bound_field.errors
@@ -105,7 +120,7 @@ class ResolvedField:
     def id_for_label(self) -> str:
         """Retourne l'identifiant HTML associé au libellé."""
         return self.bound_field.id_for_label
-    
+
     @property
     def catalog_code(self) -> str | None:
         """Retourne le code du catalogue associé au champ."""

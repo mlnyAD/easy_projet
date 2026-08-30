@@ -32,16 +32,29 @@
            dark:bg-axcio-surface-dark"
     data-sidebar
 >
+
     <div
         class="flex h-20 shrink-0 items-center justify-center
-               border-b border-axcio-border-light px-5
-               dark:border-axcio-border-dark"
+            border-b border-axcio-border-light px-5
+            dark:border-axcio-border-dark"
     >
-        <img
-            src="{% static 'images/branding/axcio-data-logo.png' %}"
-            alt="AXCIO-DATA"
-            class="max-h-14 max-w-full object-contain"
-        >
+        {% if request.active_company and request.active_company.logo %}
+
+            <img
+                src="{{ request.active_company.logo.url }}"
+                alt="{{ request.active_company.name }}"
+                class="max-h-14 max-w-full object-contain"
+            >
+
+        {% else %}
+
+            <img
+                src="{% static 'images/branding/axcio-data-logo.png' %}"
+                alt="AXCIO-DATA"
+                class="max-h-14 max-w-full object-contain"
+            >
+
+        {% endif %}
     </div>
 
     <nav class="min-h-0 flex-1 overflow-y-auto px-3 py-4">

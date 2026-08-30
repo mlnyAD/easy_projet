@@ -1,14 +1,14 @@
 
 
-from django.contrib import messages
-from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.generic import ListView
 from urllib.parse import urlencode
 
+from django.contrib import messages
 from django.urls import reverse, reverse_lazy
-from common.constants import (
-    DEFAULT_PAGE_SIZE,
-    PAGE_SIZE_VALUES,
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.generic import ListView
+
+from framework.integrations.django.list_pagination import (
+    EPListPaginationMixin,
 )
 from framework.integrations.django.views import (
     EPCreateView,
@@ -48,7 +48,10 @@ def get_allowed_return_url(
     return default_url
 
 
-class ExternalIntegrationListView(ListView):
+class ExternalIntegrationListView(
+    EPListPaginationMixin,
+    ListView,
+):
     """
     Liste des intégrations externes.
     """
@@ -56,7 +59,6 @@ class ExternalIntegrationListView(ListView):
     model = ExternalIntegration
     template_name = "integrations/integration_list.html"
     context_object_name = "integrations"
-    paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
@@ -87,7 +89,9 @@ class ExternalIntegrationListView(ListView):
         )
 
         framework_page = ListPage(
-            rows=tuple(django_page.object_list),
+            rows=tuple(
+                django_page.object_list
+            ),
             page=django_page.number,
             page_size=django_page.paginator.per_page,
             total_items=django_page.paginator.count,
@@ -106,8 +110,6 @@ class ExternalIntegrationListView(ListView):
         # Alias temporaire pour compatibilité avec
         # les conventions actuelles des listes.
         context["list"] = list_view
-
-        context["page_sizes"] = PAGE_SIZE_VALUES
 
         context["row_actions_template"] = (
             "integrations/integration_actions.html"

@@ -15,6 +15,7 @@ from framework.defaults.field import (
     DEFAULT_FIELD_VISIBLE,
     DEFAULT_FIELD_WIDTH,
 )
+from framework.form.file_upload import FileUploadDefinition
 from framework.form.kinds import FieldKind
 from framework.providers import ChoiceProviderDefinition
 from framework.types.field_width import FieldWidth
@@ -59,3 +60,41 @@ class FieldDefinition:
     checked_label: str = DEFAULT_FIELD_CHECKED_LABEL
 
     unchecked_label: str = DEFAULT_FIELD_UNCHECKED_LABEL
+
+    upload: FileUploadDefinition | None = None
+
+    def __post_init__(self) -> None:
+        """
+        Valide uniquement les règles spécifiques
+        à la configuration FileUpload.
+
+        Les validations générales des champs restent
+        sous la responsabilité de FormValidator.
+        """
+
+        if self.upload is not None and not isinstance(
+            self.upload,
+            FileUploadDefinition,
+        ):
+            raise TypeError(
+                "La propriété 'upload' doit être une instance "
+                "de FileUploadDefinition."
+            )
+
+        if (
+            self.kind == FieldKind.FILE_UPLOAD
+            and self.upload is None
+        ):
+            raise ValueError(
+                "Un champ FILE_UPLOAD doit définir une "
+                "configuration 'upload'."
+            )
+
+        if (
+            self.kind != FieldKind.FILE_UPLOAD
+            and self.upload is not None
+        ):
+            raise ValueError(
+                "La propriété 'upload' n'est autorisée "
+                "que pour les champs FILE_UPLOAD."
+            )

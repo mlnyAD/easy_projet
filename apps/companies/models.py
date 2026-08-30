@@ -41,6 +41,13 @@ class Company(TimeStampedModel):
         verbose_name="Nom usuel",
     )
 
+    logo = models.ImageField(
+        upload_to="companies/logos/",
+        blank=True,
+        null=True,
+        verbose_name="Logo",
+    )
+
     siret = models.CharField(
         "SIRET",
         max_length=COMPANY_SIRET_LENGTH,
@@ -117,6 +124,6 @@ class Company(TimeStampedModel):
         ordering = ["name"]
         verbose_name = "Société"
         verbose_name_plural = "Sociétés"
-        
+
     def __str__(self):
         return self.name

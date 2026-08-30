@@ -1,0 +1,189 @@
+
+
+{% if bound_field %}
+
+    <div
+        class="ep-field ep-file-upload"
+        data-file-upload
+        data-file-upload-preview="{% if field.upload.preview %}true{% else %}false{% endif %}"
+    >
+
+        <div class="ep-field-label-row">
+
+            <span class="ep-field-label">
+                {{ field.label }}
+
+                {% if field.required %}
+                    <span
+                        class="ep-field-required"
+                        aria-hidden="true"
+                    >
+                        *
+                    </span>
+
+                    <span class="sr-only">
+                        Champ obligatoire
+                    </span>
+                {% endif %}
+            </span>
+
+            {% if field.help_text %}
+                <span
+                    class="ep-field-help-icon"
+                    aria-hidden="true"
+                >
+                    <i
+                        data-lucide="circle-help"
+                        class="h-3.5 w-3.5"
+                    ></i>
+                </span>
+            {% endif %}
+
+        </div>
+
+
+        <div
+            class="ep-file-upload-current"
+            data-file-upload-current
+        >
+
+            {% if bound_field.value %}
+
+                {% if field.upload.preview %}
+
+                    <img
+                        src="{{ bound_field.value.url }}"
+                        alt=""
+                        class="ep-file-upload-preview"
+                        data-file-upload-preview-image
+                    >
+
+                {% else %}
+
+                    <i
+                        data-lucide="file"
+                        class="ep-file-upload-current-icon"
+                        aria-hidden="true"
+                        data-file-upload-icon
+                    ></i>
+
+                {% endif %}
+
+                <div class="ep-file-upload-information">
+
+                    <span
+                        class="ep-file-upload-current-name"
+                        data-file-upload-name
+                    >
+                        {{ bound_field.value.name }}
+                    </span>
+
+                    <div class="ep-file-upload-actions">
+
+                        {% if field.upload.allow_replace %}
+
+                            <label
+                                for="{{ bound_field.id_for_label }}"
+                                class="ep-file-upload-action"
+                            >
+                                Remplacer
+                            </label>
+
+                        {% endif %}
+
+
+                        {% if field.upload.allow_delete %}
+
+                            <label
+                                class="ep-file-upload-delete"
+                            >
+                                <input
+                                    type="checkbox"
+                                    name="{{ bound_field.html_name }}-clear"
+                                    class="ep-checkbox"
+                                    data-file-upload-clear
+                                >
+
+                                <span>
+                                    Supprimer
+                                </span>
+                            </label>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <i
+                    data-lucide="image"
+                    class="ep-file-upload-current-icon"
+                    aria-hidden="true"
+                    data-file-upload-icon
+                ></i>
+
+                <div class="ep-file-upload-information">
+
+                    <span
+                        class="ep-file-upload-current-name"
+                        data-file-upload-name
+                    >
+                        Aucun fichier
+                    </span>
+
+                    <label
+                        for="{{ bound_field.id_for_label }}"
+                        class="ep-file-upload-action"
+                    >
+                        Choisir un fichier
+                    </label>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        {# ----------------------------------------------------------- #}
+        {# Véritable input Django                                      #}
+        {# Conservé pour le protocole HTTP mais masqué visuellement.   #}
+        {# ----------------------------------------------------------- #}
+
+        <div class="ep-file-upload-control">
+            {{ bound_field }}
+        </div>
+
+
+        {% if field.help_text %}
+
+            <div
+                id="{{ bound_field.auto_id }}_help"
+                class="ep-field-tooltip"
+                role="tooltip"
+            >
+                {{ field.help_text }}
+            </div>
+
+        {% endif %}
+
+
+        {% if bound_field.errors %}
+
+            <div
+                id="{{ bound_field.auto_id }}_errors"
+                class="ep-field-errors"
+                role="alert"
+            >
+                {% for error in bound_field.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+
+        {% endif %}
+
+    </div>
+
+{% endif %}

@@ -1,5 +1,5 @@
 
-        
+
 from __future__ import annotations
 
 from django.conf import settings
@@ -21,12 +21,6 @@ class DevelopmentAutoLoginMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
-
-        if settings.DEV_AUTO_LOGIN and not settings.DEBUG:
-            raise ImproperlyConfigured(
-                "DEV_AUTO_LOGIN ne peut pas être activé "
-                "lorsque DEBUG est désactivé."
-            )
 
     def __call__(self, request):
         if (

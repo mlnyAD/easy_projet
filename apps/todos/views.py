@@ -1,25 +1,17 @@
 
 
+from django.contrib import messages
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
 )
-from django.db.models import F
-from django.views.generic import ListView
-from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.db.models import F
 from django.shortcuts import redirect, render
-from django.urls import reverse
 from django.views import View
+from django.views.generic import ListView
 
-from .forms import (
-    TodoActionForm,
-    TodoActionRecipientFormSet,
-)
-from .models import TodoAction
-from common.constants import (
-    DEFAULT_PAGE_SIZE,
-    PAGE_SIZE_VALUES,
+from framework.integrations.django.list_pagination import (
+    EPListPaginationMixin,
 )
 from framework.runtime import (
     EPList,
@@ -29,6 +21,10 @@ from framework.viewmodel.builder import (
     ListViewModelBuilder,
 )
 
+from .forms import (
+    TodoActionForm,
+    TodoActionRecipientFormSet,
+)
 from .lists import TODO_LIST_DEFINITION
 from .models import TodoAction
 from .selectors import get_user_todo_actions
@@ -36,6 +32,7 @@ from .selectors import get_user_todo_actions
 
 class TodoListView(
     LoginRequiredMixin,
+    EPListPaginationMixin,
     ListView,
 ):
     """
@@ -52,8 +49,6 @@ class TodoListView(
     )
 
     context_object_name = "todo_actions"
-
-    paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
@@ -128,12 +123,8 @@ class TodoListView(
         # aux autres listes Easy Projet.
         context["list"] = list_view
 
-        context["page_sizes"] = (
-            PAGE_SIZE_VALUES
-        )
-
         return context
-    
+
 
 class TodoActionCreateView(
     LoginRequiredMixin,

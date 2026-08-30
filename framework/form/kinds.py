@@ -19,3 +19,5 @@ class FieldKind(StrEnum):
     SELECT = "select"
 
     CHECKBOX = "checkbox"
+
+    FILE_UPLOAD = "file_upload"

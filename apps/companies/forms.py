@@ -9,7 +9,10 @@ from common.constants.company import (
     COMPANY_SIRET_LENGTH,
     COMPANY_VAT_NUMBER_LENGTH,
 )
-from common.forms.widgets import TelInput
+from common.forms.widgets import (
+    FileUploadInput,
+    TelInput,
+)
 
 from .models import Company
 
@@ -20,6 +23,7 @@ class CompanyForm(forms.ModelForm):
 
         fields = (
             "name",
+            "logo",
             "siret",
             "vat_number",
             "email",
@@ -42,6 +46,7 @@ class CompanyForm(forms.ModelForm):
         }
 
         widgets = {
+            "logo": FileUploadInput(),
             "name": forms.TextInput(
                 attrs={
                     "maxlength": COMPANY_NAME_LENGTH,

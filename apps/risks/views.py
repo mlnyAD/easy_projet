@@ -9,9 +9,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
 
 from apps.projects.models import Project
-from common.constants import (
-    DEFAULT_PAGE_SIZE,
-    PAGE_SIZE_VALUES,
+from framework.integrations.django.list_pagination import (
+    EPListPaginationMixin,
 )
 from framework.integrations.django.views import (
     EPCreateView,
@@ -26,7 +25,10 @@ from .lists import RISK_LIST_DEFINITION
 from .models import Risk
 
 
-class RiskListView(ListView):
+class RiskListView(
+    EPListPaginationMixin,
+    ListView,
+):
     """
     Liste globale des risques et opportunités.
     """
@@ -34,7 +36,6 @@ class RiskListView(ListView):
     model = Risk
     template_name = "risks/risk_list.html"
     context_object_name = "risks"
-    paginate_by = DEFAULT_PAGE_SIZE
 
     def get_queryset(self):
         return (
@@ -175,10 +176,6 @@ class RiskListView(ListView):
         # Alias temporaire pour compatibilité
         # avec les tests existants.
         context["list"] = list_view
-
-        context["page_sizes"] = (
-            PAGE_SIZE_VALUES
-        )
 
         context["row_actions_template"] = (
             "risks/risk_actions.html"
