@@ -14,6 +14,8 @@ class EPListPaginationMixin:
 
     Le nombre de lignes par page peut être choisi par l'utilisateur
     parmi les valeurs autorisées par le framework.
+
+    La valeur "Tout" affiche tous les éléments sur une page unique.
     """
 
     paginate_by = DEFAULT_PAGE_SIZE
@@ -23,13 +25,26 @@ class EPListPaginationMixin:
     page_size_values = PAGE_SIZE_VALUES
 
     def get_paginate_by(self, queryset):
-        raw_page_size = self.request.GET.get(
-            self.page_size_parameter,
-            "",
+        raw_page_size = (
+            self.request.GET.get(
+                self.page_size_parameter,
+                "",
+            )
+            .strip()
         )
 
+        if raw_page_size == "Tout":
+            total_items = queryset.count()
+
+            return max(
+                total_items,
+                1,
+            )
+
         try:
-            page_size = int(raw_page_size)
+            page_size = int(
+                raw_page_size
+            )
         except (
             TypeError,
             ValueError,
@@ -48,6 +63,13 @@ class EPListPaginationMixin:
 
         context["page_sizes"] = (
             self.page_size_values
+        )
+
+        context["show_all_items"] = (
+            self.request.GET.get(
+                self.page_size_parameter
+            )
+            == "Tout"
         )
 
         return context

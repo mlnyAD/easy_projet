@@ -16,7 +16,7 @@
 .ep-page {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.375rem;
 }
 
 
@@ -33,8 +33,17 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+
+    padding: 0.4rem 0.75rem;
+
+    border-radius: 0.5rem;
+
+    background-color: var(--color-axcio-surface-alt);
 }
 
+.dark .ep-page-header {
+    background-color: var(--color-axcio-surface-alt-dark);
+}
 
 /*
  * ep-page-heading
@@ -51,8 +60,8 @@
  */
 .ep-page-title {
     color: var(--color-axcio-text);
-    font-size: 1.25rem;
-    line-height: 1.75rem;
+    font-size: 1rem;
+    line-height: 1.25rem;
     font-weight: 600;
 }
 
@@ -71,10 +80,10 @@
  * - contexte de transaction.
  */
 .ep-page-subtitle {
-    margin-top: 0.25rem;
+    margin-top: 0.125rem;
     color: var(--color-axcio-text-muted);
-    font-size: 0.875rem;
-    line-height: 1.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.125rem;
 }
 
 .dark .ep-page-subtitle {

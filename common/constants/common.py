@@ -33,9 +33,9 @@ SHORT_TEXT_LENGTH = 255
 # Pagination
 # ============================================================================
 
-DEFAULT_PAGE_SIZE = 20
+DEFAULT_PAGE_SIZE = 15
 
-PAGE_SIZE_VALUES = (10, 20, 50, 100)
+PAGE_SIZE_VALUES = (15, 30, 45, "Tout")
 
 PAGE_SIZE_CHOICES = tuple(
     (value, str(value))

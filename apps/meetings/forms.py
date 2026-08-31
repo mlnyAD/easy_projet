@@ -24,16 +24,6 @@ from common.forms.fields import CatalogModelChoiceField
 from .models import Meeting, MeetingParticipant
 
 
-PARTICIPANT_FIELD_CLASSES = (
-    "h-10 w-full rounded-lg border border-gray-300 "
-    "bg-white px-3 text-sm text-gray-900 "
-    "focus:border-axcio-light focus:outline-none "
-    "focus:ring-2 focus:ring-axcio-light/20 "
-    "dark:border-neutral-700 dark:bg-neutral-800 "
-    "dark:text-neutral-100"
-)
-
-
 class MeetingForm(forms.ModelForm):
     """
     Formulaire de création et de modification d'une réunion.
@@ -111,7 +101,9 @@ class MeetingForm(forms.ModelForm):
             "duration_hours": forms.NumberInput(
                 attrs={
                     "min": "0.25",
-                    "max": str(MEETING_DURATION_MAX_HOURS),
+                    "max": str(
+                        MEETING_DURATION_MAX_HOURS
+                    ),
                     "step": "0.25",
                     "inputmode": "decimal",
                     "placeholder": "Ex. 1,50",
@@ -201,7 +193,9 @@ class MeetingForm(forms.ModelForm):
         )
 
         if not self.is_bound and not self.instance.pk:
-            self._apply_catalog_default("status")
+            self._apply_catalog_default(
+                "status"
+            )
 
     def _configure_catalog_field(
         self,
@@ -231,7 +225,9 @@ class MeetingForm(forms.ModelForm):
                 catalog_type__is_active=True,
                 is_active=True,
             )
-            .select_related("catalog_type")
+            .select_related(
+                "catalog_type"
+            )
             .order_by(
                 "level",
                 "sort_order",
@@ -245,10 +241,15 @@ class MeetingForm(forms.ModelForm):
             return
 
         field.catalog_is_editable = (
-            catalog["catalog_type__is_editable"]
+            catalog[
+                "catalog_type__is_editable"
+            ]
         )
+
         field.catalog_is_incremental = (
-            catalog["catalog_type__is_incremental"]
+            catalog[
+                "catalog_type__is_incremental"
+            ]
         )
 
     def _apply_catalog_default(
@@ -258,87 +259,129 @@ class MeetingForm(forms.ModelForm):
         default_value = (
             self.fields[field_name]
             .queryset
-            .filter(is_default=True)
+            .filter(
+                is_default=True
+            )
             .first()
         )
 
         if default_value is not None:
-            self.initial[field_name] = default_value.pk
+            self.initial[field_name] = (
+                default_value.pk
+            )
 
 
-class InternalMeetingParticipantForm(forms.ModelForm):
+class InternalMeetingParticipantForm(
+    forms.ModelForm
+):
     """
     Participant Easy Projet.
     """
 
     class Meta:
         model = MeetingParticipant
+
         fields = (
             "participant",
         )
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            *args,
+            **kwargs,
+        )
 
-        self.fields["participant"].required = True
-        self.fields["participant"].label = "Participant"
+        self.fields[
+            "participant"
+        ].required = True
 
-        self.fields["participant"].queryset = (
+        self.fields[
+            "participant"
+        ].label = "Participant"
+
+        self.fields[
+            "participant"
+        ].queryset = (
             User.objects
-            .filter(is_active=True)
-            .select_related("company")
+            .filter(
+                is_active=True
+            )
+            .select_related(
+                "company"
+            )
             .order_by(
                 "last_name",
                 "first_name",
             )
         )
 
-        self.fields["participant"].widget.attrs.update(
-            {
-                "class": PARTICIPANT_FIELD_CLASSES,
-            }
-        )
 
-
-class ExternalMeetingParticipantForm(forms.ModelForm):
+class ExternalMeetingParticipantForm(
+    forms.ModelForm
+):
     """
-    Participant externe identifié par son adresse email.
+    Participant externe identifié
+    par son adresse email.
     """
 
     class Meta:
         model = MeetingParticipant
+
         fields = (
             "external_email",
         )
 
         widgets = {
-            "external_email": forms.EmailInput(
-                attrs={
-                    "maxlength": (
-                        MEETING_PARTICIPANT_EXTERNAL_EMAIL_LENGTH
-                    ),
-                    "autocomplete": "email",
-                    "inputmode": "email",
-                    "placeholder": "adresse@exemple.fr",
-                    "data-trim": True,
-                    "class": PARTICIPANT_FIELD_CLASSES,
-                }
+            "external_email": (
+                forms.EmailInput(
+                    attrs={
+                        "maxlength": (
+                            MEETING_PARTICIPANT_EXTERNAL_EMAIL_LENGTH
+                        ),
+                        "autocomplete": "email",
+                        "inputmode": "email",
+                        "placeholder": "adresse@exemple.fr",
+                        "data-trim": True,
+                    }
+                )
             ),
         }
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            *args,
+            **kwargs,
+        )
 
-        self.fields["external_email"].required = True
-        self.fields["external_email"].label = "Adresse email"
+        self.fields[
+            "external_email"
+        ].required = True
+
+        self.fields[
+            "external_email"
+        ].label = "Adresse email"
 
     def clean_external_email(self):
-        value = self.cleaned_data["external_email"]
+        value = (
+            self.cleaned_data[
+                "external_email"
+            ]
+        )
 
         return value.strip().lower()
 
 
-class InternalParticipantFormSet(BaseInlineFormSet):
+class InternalParticipantFormSet(
+    BaseInlineFormSet
+):
     """
     Formset des participants internes.
     """
@@ -369,11 +412,15 @@ class InternalParticipantFormSet(BaseInlineFormSet):
             if not form.cleaned_data:
                 continue
 
-            if form.cleaned_data.get("DELETE"):
+            if form.cleaned_data.get(
+                "DELETE"
+            ):
                 continue
 
-            participant = form.cleaned_data.get(
-                "participant"
+            participant = (
+                form.cleaned_data.get(
+                    "participant"
+                )
             )
 
             if participant is None:
@@ -385,10 +432,14 @@ class InternalParticipantFormSet(BaseInlineFormSet):
                     "ajouté qu'une seule fois."
                 )
 
-            participant_ids.add(participant.pk)
+            participant_ids.add(
+                participant.pk
+            )
 
 
-class ExternalParticipantFormSet(BaseInlineFormSet):
+class ExternalParticipantFormSet(
+    BaseInlineFormSet
+):
     """
     Formset des participants externes.
     """
@@ -415,7 +466,9 @@ class ExternalParticipantFormSet(BaseInlineFormSet):
             if not form.cleaned_data:
                 continue
 
-            if form.cleaned_data.get("DELETE"):
+            if form.cleaned_data.get(
+                "DELETE"
+            ):
                 continue
 
             email = (
@@ -434,24 +487,30 @@ class ExternalParticipantFormSet(BaseInlineFormSet):
                     "ajoutée qu'une seule fois."
                 )
 
-            emails.add(email)
+            emails.add(
+                email
+            )
 
 
-InternalMeetingParticipantFormSet = inlineformset_factory(
-    Meeting,
-    MeetingParticipant,
-    form=InternalMeetingParticipantForm,
-    formset=InternalParticipantFormSet,
-    extra=0,
-    can_delete=True,
+InternalMeetingParticipantFormSet = (
+    inlineformset_factory(
+        Meeting,
+        MeetingParticipant,
+        form=InternalMeetingParticipantForm,
+        formset=InternalParticipantFormSet,
+        extra=0,
+        can_delete=True,
+    )
 )
 
 
-ExternalMeetingParticipantFormSet = inlineformset_factory(
-    Meeting,
-    MeetingParticipant,
-    form=ExternalMeetingParticipantForm,
-    formset=ExternalParticipantFormSet,
-    extra=0,
-    can_delete=True,
+ExternalMeetingParticipantFormSet = (
+    inlineformset_factory(
+        Meeting,
+        MeetingParticipant,
+        form=ExternalMeetingParticipantForm,
+        formset=ExternalParticipantFormSet,
+        extra=0,
+        can_delete=True,
+    )
 )

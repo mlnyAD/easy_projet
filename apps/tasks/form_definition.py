@@ -13,6 +13,7 @@ from framework.types.field_width import FieldWidth
 TASK_FORM_DEFINITION = FormDefinition(
     name="task",
     title="Tâche",
+
     sections=[
         SectionDefinition(
             title="Rattachement",
@@ -26,6 +27,7 @@ TASK_FORM_DEFINITION = FormDefinition(
                 ),
             ],
         ),
+
         SectionDefinition(
             title="Identification",
             fields=[
@@ -45,6 +47,7 @@ TASK_FORM_DEFINITION = FormDefinition(
                 ),
             ],
         ),
+
         SectionDefinition(
             title="Planning",
             fields=[
@@ -72,10 +75,11 @@ TASK_FORM_DEFINITION = FormDefinition(
             ],
         ),
     ],
+
     collections=[
         FormCollectionDefinition(
             name="assignments",
-            title="Personnel",
+            title="Personnel affecté",
             columns=(
                 FormCollectionColumnDefinition(
                     name="user",
@@ -103,6 +107,7 @@ TASK_FORM_DEFINITION = FormDefinition(
             add_label="Ajouter une personne",
             delete_label="Supprimer l'affectation",
         ),
+
         FormCollectionDefinition(
             name="dependencies",
             title="Enchaînements",
@@ -133,5 +138,5 @@ TASK_FORM_DEFINITION = FormDefinition(
             add_label="Ajouter un enchaînement",
             delete_label="Supprimer l'enchaînement",
         ),
-    ],  
+    ],
 )

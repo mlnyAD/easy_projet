@@ -15,19 +15,25 @@
             {{ hidden_field }}
         {% endfor %}
 
+
         {% for cell in collection.empty_row.cells %}
 
             <td class="ep-form-collection-cell">
 
                 {% if cell.bound_field %}
-                    {% render_ep_field cell.bound_field %}
+
+                    {% render_ep_collection_field cell.bound_field %}
+
                 {% else %}
+
                     <span class="ep-form-collection-value"></span>
+
                 {% endif %}
 
             </td>
 
         {% endfor %}
+
 
         {% if collection.allow_delete %}
 

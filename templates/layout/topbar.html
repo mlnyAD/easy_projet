@@ -48,25 +48,24 @@
     {# Projet courant                                                  #}
     {# =============================================================== #}
 
-    <div class="ep-topbar-project">
+        <div class="ep-topbar-project">
 
-        <p class="ep-topbar-project-label">
-            Projet en cours
-        </p>
+            <span class="ep-topbar-project-label">
+                Projet en cours :
+            </span>
 
-        <p class="ep-topbar-project-value">
+            <span class="ep-topbar-project-value">
 
-            {% if current_project %}
-                {{ current_project.reference }}
-                — {{ current_project.name }}
-            {% else %}
-                Aucun projet sélectionné
-            {% endif %}
+                {% if current_project %}
+                    {{ current_project.reference }}
+                    — {{ current_project.name }}
+                {% else %}
+                    Aucun projet sélectionné
+                {% endif %}
 
-        </p>
+            </span>
 
-    </div>
-
+        </div>
 
     {# =============================================================== #}
     {# Actions globales                                                #}

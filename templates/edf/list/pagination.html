@@ -38,7 +38,11 @@
 
                         <option
                             value="{% querystring page=1 page_size=size %}"
-                            {% if size == list_view.pagination.page_size %}
+                            {% if size == "Tout" %}
+                                {% if show_all_items %}
+                                    selected
+                                {% endif %}
+                            {% elif size == list_view.pagination.page_size %}
                                 selected
                             {% endif %}
                         >

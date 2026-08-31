@@ -6,25 +6,32 @@
     class="ep-form-collection-row"
     data-ep-form-row
 >
+
     {% for hidden_field in row.django_form.hidden_fields %}
-            {{ hidden_field }}
+        {{ hidden_field }}
     {% endfor %}
+
 
     {% for cell in row.cells %}
 
         <td class="ep-form-collection-cell">
 
             {% if cell.bound_field %}
-                {% render_ep_field cell.bound_field %}
+
+                {% render_ep_collection_field cell.bound_field %}
+
             {% else %}
+
                 <span class="ep-form-collection-value">
                     {{ cell.display_value|default_if_none:"" }}
                 </span>
+
             {% endif %}
 
         </td>
 
     {% endfor %}
+
 
     {% if collection.allow_delete %}
 

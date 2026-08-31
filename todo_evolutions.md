@@ -1,4 +1,7 @@
 
+### Formulaires
+Voir si on peut afficher les champs sur 1, 2, 4 champs par ligne
+
 
 ### Transaction Tâches
 - Étudier une fiche tâche unifiée présentant sur une même page :
@@ -22,11 +25,9 @@ Faire du Master/détail quand c'est possible
 tous les projets
   tous les lots
     toutes les âches
-
-### Planning
 Rendre les barres de tâche sélectionnables
 
-### Document
+### Documents
 Fonction de recherche des orphelins 
 Pourquoi télécharger le document l'ouvre automatiquement sur le poste client?
 Mettre les fichiers supprimés dans une corbeille lors de la suppression initiale
@@ -64,10 +65,6 @@ PAYS : Mettre par défaut la France en présaisie
 ### Contacts
 1er caractère du prénom en MAJ
 Liste : réduire la hauteur des lignes pour avoir une page entière à l'écran
-
-### Listes
-Sur un écran 1920*1080 afficher une liste de 20 lignes dans la zone utile
-
 
 ### Formulaires
 Revoir la hauteur des sections

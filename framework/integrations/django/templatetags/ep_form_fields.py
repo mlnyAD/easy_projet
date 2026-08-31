@@ -23,34 +23,15 @@ _widget_adapter = WidgetAdapter()
 @register.simple_tag(takes_context=True)
 def render_ep_field(context, field) -> str:
     """
-    Rend un champ avec le template associé à son type.
+    Rend un champ standard Easy Projet.
+
+    Ce rendu est destiné aux formulaires classiques :
+    libellé, aide, erreurs et widget.
     """
 
-    bound_field = _resolve_bound_field(field)
-
-    if bound_field is not None:
-        described_by = []
-
-        if bound_field.help_text:
-            described_by.append(
-                f"{bound_field.auto_id}_help"
-            )
-
-        if bound_field.errors:
-            described_by.append(
-                f"{bound_field.auto_id}_errors"
-            )
-
-        _widget_adapter.adapt(
-            bound_field.field.widget,
-            has_errors=bool(
-                bound_field.errors
-            ),
-            described_by=(
-                " ".join(described_by)
-                or None
-            ),
-        )
+    bound_field = _prepare_bound_field(
+        field
+    )
 
     if isinstance(field, ResolvedField):
         _apply_file_upload_configuration(
@@ -75,6 +56,107 @@ def render_ep_field(context, field) -> str:
         context=field_context,
         request=request,
     )
+
+
+@register.simple_tag(takes_context=True)
+def render_ep_collection_field(
+    context,
+    field,
+) -> str:
+    """
+    Rend un champ compact dans une cellule de collection.
+
+    Contrairement au rendu standard :
+    - le libellé n'est pas répété ;
+    - le libellé est porté par l'en-tête de colonne ;
+    - seules le widget et ses erreurs sont affichés.
+
+    Le widget Django reste pleinement éditable.
+    """
+
+    bound_field = _prepare_bound_field(
+        field,
+        include_help_text=False,
+    )
+
+    if bound_field is None:
+        return ""
+
+    if isinstance(field, ResolvedField):
+        _apply_file_upload_configuration(
+            field
+        )
+
+    field_context = context.flatten()
+
+    field_context["field"] = field
+    field_context["bound_field"] = bound_field
+
+    request = context.get("request")
+
+    return render_to_string(
+        template_name=(
+            "edf/form/collection_field.html"
+        ),
+        context=field_context,
+        request=request,
+    )
+
+
+def _prepare_bound_field(
+    field,
+    *,
+    include_help_text: bool = True,
+) -> BoundField | None:
+    """
+    Prépare un BoundField avant son rendu.
+
+    Le WidgetAdapter applique les classes sémantiques EDF
+    et les attributs d'accessibilité.
+    """
+
+    bound_field = _resolve_bound_field(
+        field
+    )
+
+    if bound_field is None:
+        return None
+
+    described_by = []
+
+    if (
+        include_help_text
+        and bound_field.help_text
+    ):
+        described_by.append(
+            f"{bound_field.auto_id}_help"
+        )
+
+    if bound_field.errors:
+        described_by.append(
+            f"{bound_field.auto_id}_errors"
+        )
+
+    _widget_adapter.adapt(
+        bound_field.field.widget,
+        has_errors=bool(
+            bound_field.errors
+        ),
+        described_by=(
+            " ".join(described_by)
+            or None
+        ),
+    )
+
+    # Dans une collection tabulaire, le libellé visible
+    # est porté par le <th>. L'aria-label conserve
+    # néanmoins l'information au niveau du contrôle.
+    bound_field.field.widget.attrs.setdefault(
+        "aria-label",
+        str(bound_field.label),
+    )
+
+    return bound_field
 
 
 def _resolve_bound_field(
