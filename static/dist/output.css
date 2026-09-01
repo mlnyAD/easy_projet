@@ -50,8 +50,6 @@
     --color-gray-900: oklch(21% 0.034 264.665);
     --color-neutral-100: oklch(97% 0 none);
     --color-neutral-400: oklch(70.8% 0 none);
-    --color-neutral-700: oklch(37.1% 0 none);
-    --color-neutral-800: oklch(26.9% 0 none);
     --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
@@ -1225,12 +1223,6 @@
   .focus\:ring-axcio-light:focus {
     --tw-ring-color: var(--color-axcio-light);
   }
-  .focus\:ring-axcio-light\/20:focus {
-    --tw-ring-color: color-mix(in srgb, #248A8D 20%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      --tw-ring-color: color-mix(in oklab, var(--color-axcio-light) 20%, transparent);
-    }
-  }
   .focus\:ring-offset-2:focus {
     --tw-ring-offset-width: 2px;
     --tw-ring-offset-shadow: var(--tw-ring-inset,) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
@@ -1310,9 +1302,6 @@
   .dark\:border-green-800:where(.dark, .dark *) {
     border-color: var(--color-green-800);
   }
-  .dark\:border-neutral-700:where(.dark, .dark *) {
-    border-color: var(--color-neutral-700);
-  }
   .dark\:border-red-800:where(.dark, .dark *) {
     border-color: var(--color-red-800);
   }
@@ -1360,9 +1349,6 @@
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-green-950) 40%, transparent);
     }
-  }
-  .dark\:bg-neutral-800:where(.dark, .dark *) {
-    background-color: var(--color-neutral-800);
   }
   .dark\:bg-red-950\/40:where(.dark, .dark *) {
     background-color: color-mix(in srgb, oklch(25.8% 0.092 26.042) 40%, transparent);
@@ -1447,6 +1433,7 @@
   overflow: visible;
 }
 .ep-app-main {
+  position: relative;
   display: flex;
   min-width: 0;
   flex: 1 1 0%;
@@ -1458,9 +1445,13 @@
   overflow: auto;
   background-color: var(--color-axcio-page);
   padding: 0.5rem 1.5rem 0.75rem;
+  transition: margin-right 180ms ease;
 }
 .dark .ep-main-content {
   background-color: var(--color-axcio-page-dark);
+}
+.ep-app-main.ep-app-main-communication-pinned .ep-main-content {
+  margin-right: 24rem;
 }
 .ep-sidebar {
   width: 16rem;
@@ -1631,8 +1622,11 @@
   background-color: var(--color-axcio-surface-alt-dark);
   color: var(--color-axcio-text-dark);
 }
-.ep-topbar-todo {
+.ep-topbar-todo, .ep-topbar-communication {
   position: relative;
+}
+.ep-topbar-communication {
+  position: relative !important;
 }
 .ep-topbar-badge {
   position: absolute;
@@ -3249,6 +3243,669 @@ body.ep-dialog-open {
 }
 .dark .project-action-card:hover {
   background-color: var(--color-axcio-surface-alt-dark);
+}
+.ep-communication-panel {
+  position: absolute;
+  top: 3rem;
+  right: 0;
+  bottom: 0;
+  z-index: 35;
+  display: flex;
+  width: 24rem;
+  max-width: 90vw;
+  flex-direction: column;
+  border-left: 1px solid var(--color-axcio-border-light);
+  background-color: var(--color-axcio-surface);
+  box-shadow: -4px 0 12px rgb(0 0 0 / 0.08);
+  transform: translateX(100%);
+  transition: transform 180ms ease;
+}
+.dark .ep-communication-panel {
+  border-color: var(--color-axcio-border-dark);
+  background-color: var(--color-axcio-surface-dark);
+}
+.ep-communication-panel-open {
+  transform: translateX(0);
+}
+.ep-topbar-communication {
+  position: relative;
+}
+.ep-communication-panel-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--color-axcio-border-light);
+  padding: 0.75rem 1rem;
+}
+.dark .ep-communication-panel-header {
+  border-color: var(--color-axcio-border-dark);
+}
+.ep-communication-panel-heading {
+  min-width: 0;
+}
+.ep-communication-panel-title {
+  color: var(--color-axcio-text);
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+}
+.dark .ep-communication-panel-title {
+  color: var(--color-axcio-text-dark);
+}
+.ep-communication-panel-project {
+  margin-top: 0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-axcio-text-muted);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.dark .ep-communication-panel-project {
+  color: var(--color-axcio-text-muted-dark);
+}
+.ep-communication-panel-header-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+.ep-communication-panel-pin, .ep-communication-panel-close {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  color: var(--color-axcio-text-muted);
+  transition: color 150ms, background-color 150ms;
+}
+.ep-communication-panel-pin:hover, .ep-communication-panel-close:hover {
+  background-color: var(--color-axcio-surface-alt);
+  color: var(--color-axcio-text);
+}
+.dark .ep-communication-panel-pin:hover, .dark .ep-communication-panel-close:hover {
+  background-color: var(--color-axcio-surface-alt-dark);
+  color: var(--color-axcio-text-dark);
+}
+.ep-communication-panel-pin[aria-pressed="true"] {
+  background-color: rgb(36 138 141 / 0.12);
+  color: var(--color-axcio-light);
+}
+.ep-communication-panel-icon {
+  width: 1rem;
+  height: 1rem;
+}
+.ep-communication-panel-pinned {
+  transform: translateX(0);
+  box-shadow: none;
+}
+@media (max-width: 1023px) {
+  .ep-app-main.ep-app-main-communication-pinned .ep-main-content {
+    margin-right: 0;
+  }
+  .ep-communication-panel-pinned {
+    transform: translateX(100%);
+  }
+  .ep-communication-panel-pinned .ep-communication-panel-pin {
+    display: none;
+  }
+  .ep-communication-panel-pinned.ep-communication-panel-open {
+    transform: translateX(0);
+  }
+}
+.ep-communication-panel-thread {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding: 1rem;
+}
+.ep-communication-message {
+  max-width: 88%;
+  align-self: flex-start;
+}
+.ep-communication-message-own {
+  align-self: flex-end;
+}
+.ep-communication-message-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.ep-communication-message-own .ep-communication-message-header {
+  flex-direction: row-reverse;
+}
+.ep-communication-message-heading {
+  min-width: 0;
+  flex: 1 1 0%;
+}
+.ep-communication-message-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-axcio-text-muted);
+  font-size: 0.6875rem;
+  line-height: 0.875rem;
+}
+.ep-communication-message-own .ep-communication-message-meta {
+  justify-content: flex-end;
+}
+.ep-communication-message-author {
+  font-weight: 600;
+}
+.ep-communication-avatar {
+  display: flex;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: rgb(36 138 141 / 0.14);
+  color: var(--color-axcio-light);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.ep-communication-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ep-communication-avatar-initials {
+  line-height: 1;
+}
+.ep-communication-message-recipient-group {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+}
+.ep-communication-message-recipient-group-label {
+  display: inline-flex;
+  min-width: 1.5rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  padding: 0 0.25rem;
+  font-size: 0.5625rem;
+  line-height: 1rem;
+  font-weight: 700;
+}
+.ep-communication-message-recipient-purpose-action {
+  background-color: rgb(36 138 141 / 0.16);
+  color: var(--color-axcio-light);
+}
+.ep-communication-message-recipient-purpose-information {
+  background-color: var(--color-axcio-surface-alt);
+  color: var(--color-axcio-text-muted);
+}
+.dark .ep-communication-message-recipient-purpose-information {
+  background-color: var(--color-axcio-surface-alt-dark);
+  color: var(--color-axcio-text-muted-dark);
+}
+.ep-communication-message-recipient-list {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+.ep-communication-message-recipient {
+  display: inline-flex;
+  max-width: 9rem;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-axcio-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.dark .ep-communication-message-recipient {
+  color: var(--color-axcio-text-secondary-dark);
+}
+.ep-communication-message-recipient-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 400;
+}
+.ep-communication-recipient-avatar {
+  display: inline-flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--color-axcio-surface-alt);
+  color: var(--color-axcio-text-secondary);
+  font-size: 0.5rem;
+  font-weight: 700;
+}
+.dark .ep-communication-recipient-avatar {
+  background-color: var(--color-axcio-surface-alt-dark);
+  color: var(--color-axcio-text-secondary-dark);
+}
+.ep-communication-recipient-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ep-communication-recipient-avatar-initials {
+  line-height: 1;
+}
+.ep-communication-message-recipient-channel {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+  color: var(--color-axcio-text-muted);
+}
+.ep-communication-message-recipient-current-action {
+  border-radius: 0.375rem;
+  background-color: var(--color-axcio-light);
+  padding: 0.125rem 0.375rem;
+  color: #ffffff;
+}
+.ep-communication-message-recipient-current-action .ep-communication-message-recipient-name {
+  color: #ffffff;
+  font-weight: 600;
+}
+.ep-communication-message-recipient-current-action .ep-communication-recipient-avatar {
+  background-color: rgb(255 255 255 / 0.20);
+  color: #ffffff;
+}
+.ep-communication-message-subject {
+  margin-top: 0.375rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-axcio-text);
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+  font-weight: 600;
+}
+.dark .ep-communication-message-subject {
+  color: var(--color-axcio-text-dark);
+}
+.ep-communication-message-subject-label {
+  color: var(--color-axcio-text-muted);
+  font-weight: 500;
+}
+.dark .ep-communication-message-subject-label {
+  color: var(--color-axcio-text-muted-dark);
+}
+.ep-communication-message-body {
+  border-radius: 0.625rem;
+  background-color: var(--color-axcio-surface-alt);
+  padding: 0.5rem 0.75rem;
+  color: var(--color-axcio-text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.dark .ep-communication-message-body {
+  background-color: var(--color-axcio-surface-alt-dark);
+  color: var(--color-axcio-text-secondary-dark);
+}
+.ep-communication-message-own .ep-communication-message-body {
+  background-color: rgb(36 138 141 / 0.12);
+}
+.ep-communication-message-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+}
+.ep-communication-attachment {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.375rem;
+  color: var(--color-axcio-text-muted);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  transition: background-color 150ms, color 150ms;
+}
+.ep-communication-attachment:hover {
+  background-color: var(--color-axcio-surface-alt);
+  color: var(--color-axcio-light);
+}
+.dark .ep-communication-attachment:hover {
+  background-color: var(--color-axcio-surface-alt-dark);
+}
+.ep-communication-attachment-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+.ep-communication-attachment-name {
+  min-width: 0;
+  flex: 1 1 0%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ep-communication-attachment-download {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+.ep-communication-panel-empty {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--color-axcio-text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+.ep-communication-panel-empty-icon {
+  width: 2rem;
+  height: 2rem;
+}
+.ep-communication-composer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-axcio-border-light);
+  padding: 0.75rem;
+}
+.dark .ep-communication-composer {
+  border-color: var(--color-axcio-border-dark);
+}
+.ep-communication-composer-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--color-axcio-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.ep-communication-composer-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.ep-communication-composer-content {
+  margin-top: 0.75rem;
+}
+.ep-communication-composer-content[hidden] {
+  display: none;
+}
+.ep-communication-composer-input {
+  width: 100%;
+  resize: none;
+  border: 1px solid var(--color-axcio-border);
+  border-radius: 0.5rem;
+  background-color: var(--color-axcio-surface-alt);
+  padding: 0.5rem 0.625rem;
+  color: var(--color-axcio-text);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+.dark .ep-communication-composer-input {
+  border-color: var(--color-axcio-border-dark);
+  background-color: var(--color-axcio-surface-alt-dark);
+  color: var(--color-axcio-text-dark);
+}
+.ep-communication-composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+.ep-communication-composer-button {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  color: var(--color-axcio-text-muted);
+}
+.ep-communication-send-button {
+  display: inline-flex;
+  height: 2rem;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.375rem;
+  background-color: var(--color-axcio-light);
+  padding: 0 0.75rem;
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.ep-communication-send-button:not(:disabled):hover {
+  background-color: var(--color-axcio-light-hover);
+}
+.ep-communication-composer-button:disabled, .ep-communication-send-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.50;
+}
+.ep-communication-composer-error {
+  margin-top: 0.375rem;
+  color: var(--color-axcio-danger);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.ep-communication-recipient-field {
+  margin-bottom: 0.5rem;
+}
+.ep-communication-recipient-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--color-axcio-text-muted);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+}
+.ep-communication-recipient-group {
+  overflow: hidden;
+  margin-top: 0.375rem;
+  border: 1px solid var(--color-axcio-border-light);
+  border-radius: 0.5rem;
+}
+.dark .ep-communication-recipient-group {
+  border-color: var(--color-axcio-border-dark);
+}
+.ep-communication-recipient-group-title {
+  border-bottom: 1px solid var(--color-axcio-border-light);
+  background-color: var(--color-axcio-surface-alt);
+  padding: 0.375rem 0.5rem;
+  color: var(--color-axcio-text-muted);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.dark .ep-communication-recipient-group-title {
+  border-color: var(--color-axcio-border-dark);
+  background-color: var(--color-axcio-surface-alt-dark);
+}
+.ep-communication-recipient-row {
+  display: flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-axcio-border-light);
+  padding: 0.25rem 0.5rem;
+  transition: background-color 150ms;
+}
+.ep-communication-recipient-row:last-child {
+  border-bottom: 0;
+}
+.dark .ep-communication-recipient-row {
+  border-color: var(--color-axcio-border-dark);
+}
+.ep-communication-recipient-row-selected {
+  background-color: rgb(36 138 141 / 0.08);
+}
+.ep-communication-recipient-identity {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0%;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+}
+.ep-communication-recipient-checkbox {
+  flex-shrink: 0;
+}
+.ep-communication-recipient-row-avatar {
+  display: inline-flex;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: rgb(36 138 141 / 0.14);
+  color: var(--color-axcio-light);
+  font-size: 0.5625rem;
+  line-height: 1;
+  font-weight: 700;
+}
+.ep-communication-recipient-row-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ep-communication-recipient-row-content {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+}
+.ep-communication-recipient-row-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-axcio-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.ep-communication-recipient-row-company {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-axcio-text-muted);
+  font-size: 0.625rem;
+  line-height: 0.875rem;
+}
+.ep-communication-recipient-channel-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  color: var(--color-axcio-text-muted);
+}
+.ep-communication-recipient-purpose-select {
+  flex-shrink: 0;
+  border: 1px solid var(--color-axcio-border);
+  border-radius: 0.375rem;
+  background-color: var(--color-axcio-surface-alt);
+  padding: 0.25rem 0.375rem;
+  color: var(--color-axcio-text);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+}
+.ep-communication-recipient-purpose-select:disabled {
+  opacity: 0.45;
+}
+.dark .ep-communication-recipient-purpose-select {
+  border-color: var(--color-axcio-border-dark);
+  background-color: var(--color-axcio-surface-alt-dark);
+  color: var(--color-axcio-text-dark);
+}
+.ep-communication-subject-field {
+  margin-bottom: 0.5rem;
+}
+.ep-communication-subject-input {
+  width: 100%;
+  border: 1px solid var(--color-axcio-border);
+  border-radius: 0.5rem;
+  background-color: var(--color-axcio-surface-alt);
+  padding: 0.5rem 0.625rem;
+  color: var(--color-axcio-text);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+.dark .ep-communication-subject-input {
+  border-color: var(--color-axcio-border-dark);
+  background-color: var(--color-axcio-surface-alt-dark);
+  color: var(--color-axcio-text-dark);
+}
+.ep-communication-selected-files {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+}
+.ep-communication-selected-files[hidden] {
+  display: none;
+}
+.ep-communication-selected-file {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.375rem;
+  background-color: var(--color-axcio-surface-alt);
+  padding: 0.25rem 0.5rem;
+  color: var(--color-axcio-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.dark .ep-communication-selected-file {
+  background-color: var(--color-axcio-surface-alt-dark);
+  color: var(--color-axcio-text-secondary-dark);
+}
+.ep-communication-selected-file-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ep-communication-selected-file-remove {
+  display: inline-flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  color: var(--color-axcio-text-muted);
+}
+.ep-communication-selected-file-remove:hover {
+  background-color: rgb(0 0 0 / 0.06);
+  color: var(--color-axcio-danger);
+}
+.dark .ep-communication-selected-file-remove:hover {
+  background-color: rgb(255 255 255 / 0.08);
+}
+.ep-communication-selected-file-remove-icon {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 @property --tw-rotate-x {
   syntax: "*";

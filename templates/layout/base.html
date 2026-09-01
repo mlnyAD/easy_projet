@@ -1,10 +1,14 @@
 
 
 {% load static %}
+{% load communication_tags %}
 
 <!DOCTYPE html>
+
 <html lang="fr">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -42,11 +46,12 @@
 
     <link
         rel="stylesheet"
-        href="{% static 'dist/output.css' %}?v=7"
+        href="{% static 'dist/output.css' %}?v=8"
     >
+
 </head>
 
-<body class=ep-app-body">
+<body class="ep-app-body">
 
     {% include "edf/notifications/toasts.html" %}
 
@@ -59,13 +64,21 @@
             {% include "layout/topbar.html" %}
 
             <main class="ep-main-content">
+
                 {% block content %}
                 {% endblock %}
+
             </main>
+
+
+            {% if current_project %}
+                {% communication_panel current_project %}
+            {% endif %}
 
         </div>
 
     </div>
+
 
     {% block scripts %}
 
@@ -109,6 +122,11 @@
             defer
         ></script>
 
+        <script
+            src="{% static 'js/framework/communications.js' %}?v=14"
+            defer
+        ></script>
+
         <script>
             document.addEventListener(
                 "DOMContentLoaded",
@@ -123,4 +141,5 @@
     {% endblock %}
 
 </body>
+
 </html>

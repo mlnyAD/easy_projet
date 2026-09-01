@@ -107,3 +107,10 @@ En particulier, aucune évolution ne devra remettre en cause :
 - la propriété des données par leur environnement ;
 - la conservation de la traçabilité ;
 - les principes fondateurs définis dans le document 00 – Principes d'architecture.
+
+# 7. Messagerie et données personnelles
+Un e-mail extérieur à Easy Projet n’entre dans le flux projet que sur action explicite de l’utilisateur. Easy Projet ne surveille, ne classe et ne récupère automatiquement aucun message de sa boîte personnelle.
+
+À terme, on pourra prévoir une action simple du type « Ajouter au projet » depuis un mécanisme d’import ou éventuellement un complément Outlook. L’utilisateur choisira alors le projet et, si nécessaire, le contexte (tâche, réunion, document…). Le mail, ses métadonnées et ses pièces jointes seront ensuite enregistrés comme une communication du projet.
+
+Cela nous donne une frontière nette : Easy Projet gère le flux de communication du projet ; la messagerie personnelle reste extérieure au périmètre.

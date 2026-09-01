@@ -46,6 +46,8 @@
  * - le footer.
  */
 .ep-app-main {
+    position: relative;
+
     display: flex;
     min-width: 0;
     flex: 1 1 0%;
@@ -61,12 +63,27 @@
 .ep-main-content {
     flex: 1 1 0%;
     overflow: auto;
+
     background-color: var(--color-axcio-page);
+
     padding: 0.5rem 1.5rem 0.75rem;
+
+    transition:
+        margin-right 180ms ease;
 }
 
 .dark .ep-main-content {
     background-color: var(--color-axcio-page-dark);
+}
+
+
+/*
+ * Lorsque le volet Communications est épinglé,
+ * la zone fonctionnelle lui réserve sa largeur.
+ */
+.ep-app-main.ep-app-main-communication-pinned
+.ep-main-content {
+    margin-right: 24rem;
 }
 
 
@@ -426,10 +443,13 @@
  * ep-topbar-todo
  * Support de positionnement du compteur Todo.
  */
-.ep-topbar-todo {
+.ep-topbar-todo,
+.ep-topbar-communication {
     position: relative;
 }
-
+.ep-topbar-communication {
+    position: relative !important;
+}
 
 /*
  * ep-topbar-badge

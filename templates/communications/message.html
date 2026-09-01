@@ -1,0 +1,341 @@
+
+
+<article
+    class="
+        ep-communication-message
+        {% if message.author_id == request.user.id %}
+            ep-communication-message-own
+        {% endif %}
+    "
+>
+
+    <div class="ep-communication-message-header">
+
+        {% if message.author %}
+
+            <div class="ep-communication-avatar">
+
+                {% if message.author.photo %}
+
+                    <img
+                        src="{{ message.author.photo.url }}"
+                        alt=""
+                        class="ep-communication-avatar-image"
+                    >
+
+                {% else %}
+
+                    <span class="ep-communication-avatar-initials">
+                        {{ message.author.initials }}
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+
+        <div class="ep-communication-message-heading">
+
+            <div class="ep-communication-message-meta">
+
+                <span class="ep-communication-message-author">
+
+                    {% if message.author %}
+
+                        {{ message.author.first_name }}
+                        {{ message.author.last_name|upper }}
+
+                    {% elif message.sender_name %}
+
+                        {{ message.sender_name }}
+
+                    {% elif message.sender_email %}
+
+                        {{ message.sender_email }}
+
+                    {% else %}
+
+                        Système
+
+                    {% endif %}
+
+                </span>
+
+                <time
+                    class="ep-communication-message-date"
+                    datetime="{{ message.created_at|date:'c' }}"
+                >
+                    {{ message.created_at|date:"d/m/Y H:i" }}
+                </time>
+
+            </div>
+
+
+            {# ======================================================= #}
+            {# Pour action                                             #}
+            {# ======================================================= #}
+
+            <div class="ep-communication-message-recipient-group">
+
+                <span
+                    class="ep-communication-message-recipient-group-label ep-communication-message-recipient-purpose-action"
+                    title="Pour action"
+                >
+                    A
+                </span>
+
+                <div class="ep-communication-message-recipient-list">
+
+                    {% for distribution in message.recipients.all %}
+
+                        {% if distribution.purpose == "ACTION" %}
+
+                            <span
+                                class="
+                                    ep-communication-message-recipient
+                                    {% if distribution.user_id == request.user.pk %}
+                                        ep-communication-message-recipient-current-action
+                                    {% endif %}
+                                "
+                            >
+
+                                {% if distribution.user %}
+
+                                    <span class="ep-communication-recipient-avatar">
+
+                                        {% if distribution.user.photo %}
+
+                                            <img
+                                                src="{{ distribution.user.photo.url }}"
+                                                alt=""
+                                                class="ep-communication-recipient-avatar-image"
+                                            >
+
+                                        {% else %}
+
+                                            <span class="ep-communication-recipient-avatar-initials">
+                                                {{ distribution.user.initials }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </span>
+
+                                    <span class="ep-communication-message-recipient-name">
+                                        {{ distribution.user.first_name }}
+                                        {{ distribution.user.last_name|upper }}
+                                    </span>
+
+
+                                {% elif distribution.external_participant %}
+
+                                    <span class="ep-communication-recipient-avatar">
+
+                                        <span class="ep-communication-recipient-avatar-initials">
+                                            {{ distribution.external_participant.first_name|slice:":1" }}
+                                            {{ distribution.external_participant.last_name|slice:":1" }}
+                                        </span>
+
+                                    </span>
+
+                                    <span class="ep-communication-message-recipient-name">
+                                        {{ distribution.external_participant.first_name }}
+                                        {{ distribution.external_participant.last_name|upper }}
+                                    </span>
+
+                                    <i
+                                        data-lucide="mail"
+                                        class="ep-communication-message-recipient-channel"
+                                        aria-hidden="true"
+                                    ></i>
+
+
+                                {% elif distribution.destination_email %}
+
+                                    <span class="ep-communication-message-recipient-name">
+                                        {{ distribution.destination_email }}
+                                    </span>
+
+                                    <i
+                                        data-lucide="mail"
+                                        class="ep-communication-message-recipient-channel"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                {% endif %}
+
+                            </span>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            {# ======================================================= #}
+            {# Pour information                                        #}
+            {# ======================================================= #}
+
+            <div class="ep-communication-message-recipient-group">
+
+                <span
+                    class="ep-communication-message-recipient-group-label ep-communication-message-recipient-purpose-information"
+                    title="Pour information"
+                >
+                    CC
+                </span>
+
+                <div class="ep-communication-message-recipient-list">
+
+                    {% for distribution in message.recipients.all %}
+
+                        {% if distribution.purpose == "INFORMATION" %}
+
+                            <span class="ep-communication-message-recipient">
+
+                                {% if distribution.user %}
+
+                                    <span class="ep-communication-recipient-avatar">
+
+                                        {% if distribution.user.photo %}
+
+                                            <img
+                                                src="{{ distribution.user.photo.url }}"
+                                                alt=""
+                                                class="ep-communication-recipient-avatar-image"
+                                            >
+
+                                        {% else %}
+
+                                            <span class="ep-communication-recipient-avatar-initials">
+                                                {{ distribution.user.initials }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </span>
+
+                                    <span class="ep-communication-message-recipient-name">
+                                        {{ distribution.user.first_name }}
+                                        {{ distribution.user.last_name|upper }}
+                                    </span>
+
+
+                                {% elif distribution.external_participant %}
+
+                                    <span class="ep-communication-recipient-avatar">
+
+                                        <span class="ep-communication-recipient-avatar-initials">
+                                            {{ distribution.external_participant.first_name|slice:":1" }}
+                                            {{ distribution.external_participant.last_name|slice:":1" }}
+                                        </span>
+
+                                    </span>
+
+                                    <span class="ep-communication-message-recipient-name">
+                                        {{ distribution.external_participant.first_name }}
+                                        {{ distribution.external_participant.last_name|upper }}
+                                    </span>
+
+                                    <i
+                                        data-lucide="mail"
+                                        class="ep-communication-message-recipient-channel"
+                                        aria-hidden="true"
+                                    ></i>
+
+
+                                {% elif distribution.destination_email %}
+
+                                    <span class="ep-communication-message-recipient-name">
+                                        {{ distribution.destination_email }}
+                                    </span>
+
+                                    <i
+                                        data-lucide="mail"
+                                        class="ep-communication-message-recipient-channel"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                {% endif %}
+
+                            </span>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            {# ======================================================= #}
+            {# Objet                                                   #}
+            {# ======================================================= #}
+
+            {% if message.subject %}
+
+                <div class="ep-communication-message-subject">
+
+                    <span class="ep-communication-message-subject-label">
+                        Objet :
+                    </span>
+
+                    {{ message.subject }}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <div class="ep-communication-message-body">
+        {{ message.body|linebreaksbr }}
+    </div>
+
+
+    {% if message.attachments.all %}
+
+        <div class="ep-communication-message-attachments">
+
+            {% for attachment in message.attachments.all %}
+
+                <a
+                    href="{% url 'communications:attachment-download' pk=attachment.pk %}"
+                    class="ep-communication-attachment"
+                    title="Télécharger {{ attachment.original_filename }}"
+                >
+
+                    <i
+                        data-lucide="paperclip"
+                        class="ep-communication-attachment-icon"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span class="ep-communication-attachment-name">
+                        {{ attachment.original_filename }}
+                    </span>
+
+                    <i
+                        data-lucide="download"
+                        class="ep-communication-attachment-download"
+                        aria-hidden="true"
+                    ></i>
+
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+</article>

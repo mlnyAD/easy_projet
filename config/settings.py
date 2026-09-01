@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "apps.integrations.apps.IntegrationsConfig",
     "apps.planning.apps.PlanningConfig",
     "apps.todos",
+    "apps.communications.apps.CommunicationsConfig",
 ]
 
 MIDDLEWARE = [
@@ -94,6 +95,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.todos.context_processors.todo_context",
+                "apps.projects.context_processors.current_project",
             ],
             "libraries": {
                 "ep_form_fields": (
@@ -236,4 +238,58 @@ EASY_PROJET_PUBLIC_URL = os.environ.get(
 ONLYOFFICE_JWT_SECRET = os.environ.get(
     "ONLYOFFICE_JWT_SECRET",
     default="",
+)
+
+
+# ***********************************
+#
+# Email
+#
+# ***********************************
+
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+)
+
+EMAIL_HOST = os.getenv(
+    "EMAIL_HOST",
+    "",
+)
+
+EMAIL_PORT = int(
+    os.getenv(
+        "EMAIL_PORT",
+        "465",
+    )
+)
+
+EMAIL_HOST_USER = os.getenv(
+    "EMAIL_HOST_USER",
+    "",
+)
+
+EMAIL_HOST_PASSWORD = os.getenv(
+    "EMAIL_HOST_PASSWORD",
+    "",
+)
+
+EMAIL_USE_SSL = (
+    os.getenv(
+        "EMAIL_USE_SSL",
+        "false",
+    ).lower()
+    == "true"
+)
+
+EMAIL_USE_TLS = (
+    os.getenv(
+        "EMAIL_USE_TLS",
+        "false",
+    ).lower()
+    == "true"
+)
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    EMAIL_HOST_USER,
 )

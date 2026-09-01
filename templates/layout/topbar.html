@@ -1,5 +1,7 @@
 
 
+{% load communication_tags %}
+
 <header class="ep-topbar">
 
     {# =============================================================== #}
@@ -48,24 +50,25 @@
     {# Projet courant                                                  #}
     {# =============================================================== #}
 
-        <div class="ep-topbar-project">
+    <div class="ep-topbar-project">
 
-            <span class="ep-topbar-project-label">
-                Projet en cours :
-            </span>
+        <span class="ep-topbar-project-label">
+            Projet en cours :
+        </span>
 
-            <span class="ep-topbar-project-value">
+        <span class="ep-topbar-project-value">
 
-                {% if current_project %}
-                    {{ current_project.reference }}
-                    — {{ current_project.name }}
-                {% else %}
-                    Aucun projet sélectionné
-                {% endif %}
+            {% if current_project %}
+                {{ current_project.reference }}
+                — {{ current_project.name }}
+            {% else %}
+                Aucun projet sélectionné
+            {% endif %}
 
-            </span>
+        </span>
 
-        </div>
+    </div>
+
 
     {# =============================================================== #}
     {# Actions globales                                                #}
@@ -206,6 +209,54 @@
             {% endif %}
         </a>
 
+
+        {# ----------------------------------------------------------- #}
+        {# Communications                                              #}
+        {# ----------------------------------------------------------- #}
+
+        {% if current_project %}
+            {% communication_unread_count current_project as communication_unread_count %}
+        {% else %}
+            {% communication_unread_count as communication_unread_count %}
+        {% endif %}
+
+        <button
+            type="button"
+            class="ep-topbar-icon-button ep-topbar-communication"
+            aria-label="Communications"
+            aria-expanded="false"
+            title="
+                {% if current_project %}
+                    Communications du projet
+                {% else %}
+                    Aucun projet sélectionné
+                {% endif %}
+            "
+            {% if current_project %}
+                data-communication-toggle
+            {% else %}
+                disabled
+            {% endif %}
+        >
+            <i
+                data-lucide="messages-square"
+                class="ep-topbar-icon"
+                aria-hidden="true"
+            ></i>
+
+            {% if communication_unread_count > 0 %}
+                <span
+                    class="ep-topbar-badge"
+                    data-communication-unread-badge
+                >
+                    {% if communication_unread_count > 99 %}
+                        99+
+                    {% else %}
+                        {{ communication_unread_count }}
+                    {% endif %}
+                </span>
+            {% endif %}
+        </button>
 
         {# ----------------------------------------------------------- #}
         {# Assistant IA                                                #}

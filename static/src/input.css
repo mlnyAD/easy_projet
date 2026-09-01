@@ -10,6 +10,7 @@
 @import "./edf/notifications.css";
 @import "./edf/dialogs.css";
 @import "./edf/project.css";
+@import "./edf/communications.css";
 
 @source "../../templates/**/*.html";
 @source "../../apps/**/*.html";

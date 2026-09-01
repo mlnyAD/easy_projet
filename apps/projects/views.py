@@ -42,6 +42,9 @@ from .services.geocoding import (
     ProjectGeocodingError,
     ProjectGeocodingService,
 )
+from .current_project import (
+    set_current_project,
+)
 
 
 class ProjectListView(
@@ -242,6 +245,11 @@ class ProjectWorkspaceView(DetailView):
         context = super().get_context_data(**kwargs)
 
         project = self.object
+
+        set_current_project(
+            self.request,
+            project,
+        )
 
         context["current_project"] = project
 
@@ -530,6 +538,11 @@ class ProjectDashboardView(DetailView):
         context = super().get_context_data(**kwargs)
 
         project = self.object
+
+        set_current_project(
+            self.request,
+            project,
+        )
 
         context["current_project"] = project
 

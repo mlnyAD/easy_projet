@@ -6,42 +6,102 @@ URL configuration for config project.
 The `urlpatterns` list routes URLs to views.
 """
 
-from django.contrib import admin
-from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
 
 from apps.core.views import HomeView
 
 
 urlpatterns = [
-    path("", HomeView.as_view(), name="home"),
+    path(
+        "",
+        HomeView.as_view(),
+        name="home",
+    ),
 
-    path("admin/", admin.site.urls),
-    path("catalogs/", include("apps.catalogs.urls")),
-    path("companies/", include("apps.companies.urls")),
-    path("users/", include("apps.users.urls")),
-    path("licenses/", include("apps.licenses.urls")),
-    path("projects/", include("apps.projects.urls")),
-    path("work/", include("apps.work.urls")),
-    path("tasks/", include("apps.tasks.urls")),
-    path("reporting/", include("apps.reporting.urls")),
-    path("planning/", include("apps.planning.urls")),
-    path("risks/", include("apps.risks.urls")),
-    path("meetings/", include("apps.meetings.urls")),
+    path(
+        "admin/",
+        admin.site.urls,
+    ),
+
+    path(
+        "catalogs/",
+        include("apps.catalogs.urls"),
+    ),
+
+    path(
+        "companies/",
+        include("apps.companies.urls"),
+    ),
+
+    path(
+        "users/",
+        include("apps.users.urls"),
+    ),
+
+    path(
+        "licenses/",
+        include("apps.licenses.urls"),
+    ),
+
+    path(
+        "projects/",
+        include("apps.projects.urls"),
+    ),
+
+    path(
+        "work/",
+        include("apps.work.urls"),
+    ),
+
+    path(
+        "tasks/",
+        include("apps.tasks.urls"),
+    ),
+
+    path(
+        "reporting/",
+        include("apps.reporting.urls"),
+    ),
+
+    path(
+        "planning/",
+        include("apps.planning.urls"),
+    ),
+
+    path(
+        "risks/",
+        include("apps.risks.urls"),
+    ),
+
+    path(
+        "meetings/",
+        include("apps.meetings.urls"),
+    ),
+
     path(
         "integrations/",
         include("apps.integrations.urls"),
     ),
+
     path(
         "documents/",
         include("apps.documents.urls"),
     ),
+
     path(
         "todos/",
         include("apps.todos.urls"),
     ),
+
+    path(
+        "communications/",
+        include("apps.communications.urls"),
+    ),
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(
