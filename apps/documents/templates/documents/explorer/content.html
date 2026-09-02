@@ -150,6 +150,20 @@
                 data-document-favorite="false"
             {% endif %}
 
+            {% if document.current_version.extension == ".dwg" or document.current_version.extension == ".dxf" or document.current_version.extension == ".dwf" %}
+
+                data-document-open-url="{% url 'documents:version-cad-view' document.current_version.pk %}"
+
+            {% elif document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" or document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.presentationml.presentation" %}
+
+                data-document-open-url="{% url 'documents:version-edit' document.current_version.pk %}"
+
+            {% else %}
+
+                data-document-open-url="{% url 'documents:version-view' document.current_version.pk %}"
+
+            {% endif %}
+
             {% if document.current_version %}
 
                 {% if document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" or document.current_version.mime_type == "application/vnd.openxmlformats-officedocument.presentationml.presentation" %}

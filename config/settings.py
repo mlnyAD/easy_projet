@@ -34,6 +34,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     ".trycloudflare.com",
+    "host.docker.internal",
 ]
 
 
@@ -292,4 +293,25 @@ EMAIL_USE_TLS = (
 DEFAULT_FROM_EMAIL = os.getenv(
     "DEFAULT_FROM_EMAIL",
     EMAIL_HOST_USER,
+)
+
+
+# ***********************************
+#
+# CADViewer
+#
+# ***********************************
+CADVIEWER_FRONTEND_URL = os.getenv(
+    "CADVIEWER_FRONTEND_URL",
+    "",
+)
+
+CADVIEWER_BACKEND_URL = os.getenv(
+    "CADVIEWER_BACKEND_URL",
+    "",
+)
+
+CADVIEWER_CVKEY = os.getenv(
+    "CADVIEWER_CVKEY",
+    "",
 )

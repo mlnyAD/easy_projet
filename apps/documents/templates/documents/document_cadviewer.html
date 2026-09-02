@@ -1,0 +1,565 @@
+
+
+{% load static %}
+
+<!DOCTYPE html>
+
+<html lang="fr">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        {{ document.title }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'dist/output.css' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ viewer.frontend_url }}/app/css/jquery.qtip.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ viewer.frontend_url }}/app/css/bootstrap.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ viewer.frontend_url }}/app/css/jquery-ui-1.11.4.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ viewer.frontend_url }}/app/css/bootstrap-multiselect.css"
+    >
+
+</head>
+
+
+<body
+    class="
+        h-screen
+        overflow-hidden
+        bg-axcio-page
+        text-axcio-text
+        dark:bg-axcio-page-dark
+        dark:text-axcio-text-dark
+    "
+>
+
+
+<div class="flex h-screen flex-col">
+
+
+    {# =============================================================== #}
+    {# Barre Easy Projet                                               #}
+    {# =============================================================== #}
+
+    <header
+        class="
+            flex
+            h-14
+            shrink-0
+            items-center
+            justify-between
+            gap-4
+            border-b
+            border-axcio-border-light
+            bg-axcio-surface
+            px-4
+            dark:border-axcio-border-dark
+            dark:bg-axcio-surface-dark
+        "
+    >
+
+        <div class="min-w-0">
+
+            <h1
+                class="
+                    truncate
+                    text-base
+                    font-semibold
+                    text-axcio-text
+                    dark:text-axcio-text-dark
+                "
+            >
+                {{ document.title }}
+            </h1>
+
+            <p
+                class="
+                    truncate
+                    text-xs
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                "
+            >
+                Version {{ version.version_number }}
+                —
+                {{ version.original_filename }}
+            </p>
+
+        </div>
+
+
+        <button
+            type="button"
+            onclick="window.close()"
+            class="
+                inline-flex
+                shrink-0
+                items-center
+                gap-2
+                rounded-md
+                border
+                border-axcio-border-light
+                px-3
+                py-2
+                text-sm
+                font-medium
+                text-axcio-text
+                hover:bg-axcio-surface-alt
+                dark:border-axcio-border-dark
+                dark:text-axcio-text-dark
+                dark:hover:bg-axcio-surface-alt-dark
+            "
+        >
+            Fermer
+        </button>
+
+    </header>
+
+
+    {# =============================================================== #}
+    {# CADViewer                                                       #}
+    {# =============================================================== #}
+
+    <main
+        class="relative min-h-0 flex-1"
+    >
+
+        <div
+            id="floorPlan"
+            class="h-full w-full"
+        ></div>
+
+    </main>
+
+
+</div>
+
+
+{{ viewer|json_script:"cadviewer-config" }}
+
+
+{# ================================================================== #}
+{# Bibliothèques CADViewer                                             #}
+{# ================================================================== #}
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/jquery-2.2.3.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/jquery.qtip.min.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/popper.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/bootstrap.min.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/jquery-ui-1.11.4.min.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/cv/cv-custom_commands/CADViewer_custom_commands.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/bootstrap-multiselect.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/library_js_svg_path.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/snap.svg-min.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/cv/cv-pro/cadviewer.min.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/cvjs_api_styles_2_0_26.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/rgbcolor.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/StackBlur.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/canvg.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/list.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/jscolor.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/jstree/jstree.min.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/xml2json.min.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/d3.v3.min.js"
+></script>
+
+<script
+    src="{{ viewer.frontend_url }}/app/js/qrcode.min.js"
+></script>
+
+
+<script>
+
+    "use strict";
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const configElement = (
+                document.getElementById(
+                    "cadviewer-config"
+                )
+            );
+
+
+            if (!configElement) {
+
+                console.error(
+                    "Configuration CADViewer introuvable."
+                );
+
+                return;
+            }
+
+
+            const config = JSON.parse(
+                configElement.textContent
+            );
+
+
+            const frontendUrl = (
+                config.frontend_url.replace(
+                    /\/+$/,
+                    ""
+                )
+                + "/"
+            );
+
+
+            const backendUrl = (
+                config.backend_url.replace(
+                    /\/+$/,
+                    ""
+                )
+                + "/"
+            );
+
+
+            const contentUrl = (
+                config.content_url
+            );
+
+
+            /*
+             * Interface CADViewer Pro.
+             */
+            cvjs_CADViewerPro(
+                true
+            );
+
+
+            /*
+             * Debug désactivé pour l'intégration.
+             */
+            cvjs_debugMode(
+                false
+            );
+
+
+            /*
+             * Architecture Axcio-Data :
+             *
+             * frontendUrl
+             *     ressources JavaScript CADViewer
+             *
+             * backendUrl
+             *     backend NodeJS / AutoXchange
+             */
+            cvjs_setAllServerPaths_and_Handlers(
+                backendUrl,
+                frontendUrl,
+                "",
+                "NodeJS",
+                "JavaScript",
+                "floorPlan"
+            );
+
+
+            /*
+             * Fenêtre d'impression.
+             */
+            cvjs_PrintToPDFWindowRelativeSize(
+                0.8
+            );
+
+
+            /*
+             * Pas d'édition via le file manager CADViewer.
+             */
+            cvjs_setFileModalEditMode(
+                false
+            );
+
+
+            /*
+             * Menu standard CADViewer.
+             */
+            cvjs_setTopMenuXML(
+                "floorPlan",
+                "cadviewer_full_commands_01.xml",
+                "/app/cv/cv-pro/menu_config/"
+            );
+
+
+            /*
+             * Attributs graphiques nécessaires
+             * à l'initialisation de CADViewer.
+             */
+            const baseAttributes = {
+
+                fill: "#D3D3D3",
+
+                "fill-opacity": "0.15",
+
+                stroke: "#CCC",
+
+                "stroke-width": 1,
+
+                "stroke-linejoin": "round",
+            };
+
+
+            const highlightAttributes = {
+
+                fill: "#a4d7f4",
+
+                "fill-opacity": "0.5",
+
+                stroke: "#a4d7f4",
+
+                "stroke-width": 3,
+            };
+
+
+            const selectAttributes = {
+
+                fill: "#5BBEF6",
+
+                "fill-opacity": "0.5",
+
+                stroke: "#5BBEF6",
+
+                "stroke-width": 3,
+            };
+
+
+            cvjs_setCallbackForModalDisplay(
+                true,
+                myCustomPopUpBody,
+                populateMyCustomPopUpBody
+            );
+
+
+            cvjs_InitCADViewer_highLight_popUp_app(
+                "floorPlan",
+                frontendUrl + "app/",
+                baseAttributes,
+                highlightAttributes,
+                selectAttributes,
+                ""
+            );
+
+
+            /*
+             * Licence CADViewer.
+             *
+             * L'installation Axcio-Data utilise
+             * cvjs_setLicenseKeyDirect().
+             */
+            cvjs_setLicenseKeyDirect(
+                JSON.stringify({
+                    cvKey: config.cvkey
+                })
+            );
+
+            /*
+             * Easy Projet reste propriétaire
+             * des documents.
+             */
+            cvjs_allowFileLoadToServer(
+                false
+            );
+
+
+            /*
+             * Paramètres AutoXchange identiques
+             * à ceux observés sur l'installation
+             * Axcio-Data.
+             */
+            cvjs_conversion_clearAXconversionParameters();
+
+
+            cvjs_conversion_addAXconversionParameter(
+                "last",
+                ""
+            );
+
+
+            cvjs_conversion_addAXconversionParameter(
+                "extents",
+                ""
+            );
+
+
+            cvjs_conversion_addAXconversionParameter(
+                "trace",
+                ""
+            );
+
+
+            /*
+             * La source est directement l'URL
+             * temporaire Easy Projet.
+             *
+             * CADViewer transmettra cette URL
+             * au backend NodeJS dans contentLocation.
+             */
+
+            console.log(
+                "Easy Projet contentUrl:",
+                contentUrl
+            );
+            const drawingUrl = decodeURIComponent(
+                contentUrl
+            );
+
+            cvjs_LoadDrawing(
+                "floorPlan",
+                drawingUrl
+            );
+
+            cvjs_resizeWindow_position(
+                "floorPlan"
+            );
+
+        }
+    );
+
+
+    window.addEventListener(
+        "resize",
+        function () {
+
+            cvjs_resizeWindow_position(
+                "floorPlan"
+            );
+
+
+            cvjs_LoadTopIconMenuXML_preconfigured(
+                "floorPlan"
+            );
+
+        }
+    );
+
+
+    /*
+     * Callback CADViewer :
+     * dessin chargé.
+     */
+    function cvjs_OnLoadEnd() {
+
+        cvjs_resetZoomPan(
+            "floorPlan"
+        );
+
+    }
+
+
+    /*
+     * Callback CADViewer :
+     * redlines chargées.
+     */
+    function cvjs_OnLoadEndRedlines() {
+    }
+
+
+    /*
+     * Callbacks nécessaires au moteur
+     * de popup CADViewer.
+     */
+    function myCustomPopUpBody() {
+
+        return "";
+
+    }
+
+
+    function populateMyCustomPopUpBody() {
+
+        return "";
+
+    }
+
+
+    function cvjs_change_space() {
+    }
+
+</script>
+
+
+</body>
+
+</html>

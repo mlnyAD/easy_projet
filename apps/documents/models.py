@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from pathlib import Path
 
 from apps.catalogs.models import CatalogValue
 from apps.projects.models import Project
@@ -454,6 +455,14 @@ class DocumentVersion(TimeStampedModel):
         related_name="created_document_versions",
         verbose_name="Créé par",
     )
+    
+    @property
+    def extension(self) -> str:
+        return (
+            Path(self.original_filename)
+            .suffix
+            .lower()
+        )
 
     class Meta:
         db_table = "document_version"

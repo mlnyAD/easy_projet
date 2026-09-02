@@ -11,6 +11,10 @@ from .onlyoffice_download import (
 )
 from .onlyoffice_jwt import OnlyOfficeJwtService
 
+from .cadviewer import (
+    CadViewerAdapter,
+)
+
 __all__ = [
     "OnlyOfficeAdapter",
     "OnlyOfficeCallbackError",
@@ -18,4 +22,5 @@ __all__ = [
     "OnlyOfficeDownloadError",
     "OnlyOfficeDownloadService",
     "OnlyOfficeJwtService",
+    "CadViewerAdapter",
 ]

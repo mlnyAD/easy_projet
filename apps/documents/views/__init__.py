@@ -26,6 +26,9 @@ from .document import (
 )
 from .favorites import DocumentFavoriteListView
 
+from .cadviewer import (
+    DocumentCadViewerView,
+)
 
 __all__ = [
     "DocumentCreateView",
@@ -47,4 +50,5 @@ __all__ = [
     "DocumentFavoriteListView",
     "DocumentDeleteView",
     "DocumentFolderMoveView",
+    "DocumentCadViewerView",
 ]

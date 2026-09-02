@@ -45,6 +45,7 @@ class DocumentVersionContentView(View):
         request,
         *,
         version_id,
+        filename=None,
     ):
         version = get_object_or_404(
             DocumentVersion.objects.select_related(

@@ -23,6 +23,9 @@ from apps.documents.views import (
     DocumentDeleteView,
     DocumentFolderMoveView,
 )
+from apps.documents.views import (
+    DocumentCadViewerView,
+)
 
 
 app_name = "documents"
@@ -80,6 +83,14 @@ urlpatterns = [
         "versions/<uuid:version_id>/content/",
         DocumentVersionContentView.as_view(),
         name="version-content",
+    ),
+    path(
+        (
+            "versions/<uuid:version_id>/"
+            "cad-content/<str:filename>"
+        ),
+        DocumentVersionContentView.as_view(),
+        name="version-cad-content",
     ),
     path(
         "versions/<uuid:version_id>/callback/",
@@ -164,5 +175,10 @@ urlpatterns = [
         ),
         DocumentFolderMoveView.as_view(),
         name="folder-move",
+    ),
+    path(
+        "versions/<uuid:version_id>/cad-view/",
+        DocumentCadViewerView.as_view(),
+        name="version-cad-view",
     ),
 ]
