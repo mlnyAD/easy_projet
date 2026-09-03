@@ -39,3 +39,11 @@ DOCUMENT_CHECKSUM_ALGORITHM = "sha256"
 
 DOCUMENT_HISTORY_ACTION_LENGTH = 40
 DOCUMENT_HISTORY_DETAILS_LENGTH = 2000
+
+
+# ----------------------------------------------------------------------
+# Extensions
+# ----------------------------------------------------------------------
+
+DOCUMENT_EXTENSION_LENGTH = 20
+DOCUMENT_TECHNICAL_TYPE_LENGTH = 20

@@ -13,12 +13,14 @@ from apps.projects.models import Project
 from apps.users.models import User
 from common.constants.document import (
     DOCUMENT_CHECKSUM_LENGTH,
+    DOCUMENT_EXTENSION_LENGTH,
     DOCUMENT_FILENAME_LENGTH,
     DOCUMENT_FOLDER_NAME_LENGTH,
     DOCUMENT_HISTORY_ACTION_LENGTH,
     DOCUMENT_HISTORY_DETAILS_LENGTH,
     DOCUMENT_MIME_TYPE_LENGTH,
     DOCUMENT_STORAGE_KEY_LENGTH,
+    DOCUMENT_TECHNICAL_TYPE_LENGTH,
     DOCUMENT_TITLE_LENGTH,
 )
 from common.models import TimeStampedModel
@@ -400,7 +402,86 @@ class DocumentVersion(TimeStampedModel):
     effectuée dans un éditeur est effectivement enregistrée.
 
     Une version existante ne doit pas être modifiée.
+
+    Les métadonnées techniques du fichier sont déterminées
+    automatiquement par Easy Projet.
     """
+
+    class TechnicalType(models.TextChoices):
+        CAD = (
+            "CAD",
+            "CAO",
+        )
+
+        OFFICE = (
+            "OFFICE",
+            "Bureautique",
+        )
+
+        PDF = (
+            "PDF",
+            "PDF",
+        )
+
+        IMAGE = (
+            "IMAGE",
+            "Image",
+        )
+
+        MEDIA = (
+            "MEDIA",
+            "Audio / vidéo",
+        )
+
+        OTHER = (
+            "OTHER",
+            "Autre",
+        )
+
+    CAD_EXTENSIONS = frozenset(
+        {
+            ".dwg",
+            ".dxf",
+            ".dwf",
+            ".dgn",
+            ".pcf",
+        }
+    )
+
+    OFFICE_EXTENSIONS = frozenset(
+        {
+            ".docx",
+            ".xlsx",
+            ".pptx",
+        }
+    )
+
+    IMAGE_EXTENSIONS = frozenset(
+        {
+            ".bmp",
+            ".gif",
+            ".jpeg",
+            ".jpg",
+            ".png",
+            ".tif",
+            ".tiff",
+            ".webp",
+        }
+    )
+
+    MEDIA_EXTENSIONS = frozenset(
+        {
+            ".avi",
+            ".m4a",
+            ".mkv",
+            ".mov",
+            ".mp3",
+            ".mp4",
+            ".ogg",
+            ".wav",
+            ".webm",
+        }
+    )
 
     id = models.UUIDField(
         primary_key=True,
@@ -424,6 +505,19 @@ class DocumentVersion(TimeStampedModel):
     original_filename = models.CharField(
         max_length=DOCUMENT_FILENAME_LENGTH,
         verbose_name="Nom du fichier d'origine",
+    )
+
+    extension = models.CharField(
+        max_length=DOCUMENT_EXTENSION_LENGTH,
+        editable=False,
+        verbose_name="Extension",
+    )
+
+    technical_type = models.CharField(
+        max_length=DOCUMENT_TECHNICAL_TYPE_LENGTH,
+        choices=TechnicalType.choices,
+        editable=False,
+        verbose_name="Type technique",
     )
 
     storage_key = models.CharField(
@@ -455,13 +549,147 @@ class DocumentVersion(TimeStampedModel):
         related_name="created_document_versions",
         verbose_name="Créé par",
     )
-    
-    @property
-    def extension(self) -> str:
+
+    # ------------------------------------------------------------------
+    # Métadonnées techniques
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def detect_extension(
+        cls,
+        filename: str,
+    ) -> str:
+        """
+        Détermine automatiquement l'extension normalisée.
+        """
+
         return (
-            Path(self.original_filename)
+            Path(filename)
             .suffix
             .lower()
+        )
+
+    @classmethod
+    def detect_technical_type(
+        cls,
+        *,
+        extension: str,
+        mime_type: str = "",
+    ) -> str:
+        """
+        Détermine automatiquement la famille technique
+        du fichier.
+
+        L'extension est prioritaire pour les formats
+        explicitement connus.
+
+        Le type MIME complète la détection pour les
+        images et médias.
+        """
+
+        normalized_extension = (
+            extension
+            .strip()
+            .lower()
+        )
+
+        normalized_mime_type = (
+            mime_type
+            .strip()
+            .lower()
+        )
+
+        if (
+            normalized_extension
+            in cls.CAD_EXTENSIONS
+        ):
+            return cls.TechnicalType.CAD
+
+        if (
+            normalized_extension
+            in cls.OFFICE_EXTENSIONS
+        ):
+            return cls.TechnicalType.OFFICE
+
+        if normalized_extension == ".pdf":
+            return cls.TechnicalType.PDF
+
+        if (
+            normalized_extension
+            in cls.IMAGE_EXTENSIONS
+            or normalized_mime_type.startswith(
+                "image/"
+            )
+        ):
+            return cls.TechnicalType.IMAGE
+
+        if (
+            normalized_extension
+            in cls.MEDIA_EXTENSIONS
+            or normalized_mime_type.startswith(
+                "audio/"
+            )
+            or normalized_mime_type.startswith(
+                "video/"
+            )
+        ):
+            return cls.TechnicalType.MEDIA
+
+        return cls.TechnicalType.OTHER
+
+    def refresh_technical_metadata(
+        self,
+    ) -> None:
+        """
+        Recalcule les métadonnées techniques du fichier.
+
+        Cette opération ne demande aucune intervention
+        utilisateur.
+        """
+
+        self.extension = (
+            self.detect_extension(
+                self.original_filename
+            )
+        )
+
+        self.technical_type = (
+            self.detect_technical_type(
+                extension=self.extension,
+                mime_type=self.mime_type,
+            )
+        )
+
+    # ------------------------------------------------------------------
+    # Persistance
+    # ------------------------------------------------------------------
+
+    def save(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
+        """
+        Synchronise automatiquement les métadonnées
+        techniques avant persistance.
+        """
+
+        self.original_filename = (
+            self.original_filename
+            .strip()
+        )
+
+        self.mime_type = (
+            self.mime_type
+            .strip()
+            .lower()
+        )
+
+        self.refresh_technical_metadata()
+
+        super().save(
+            *args,
+            **kwargs,
         )
 
     class Meta:
@@ -493,7 +721,6 @@ class DocumentVersion(TimeStampedModel):
             f"{self.document.title} "
             f"- V{self.version_number}"
         )
-
 
 class DocumentHistory(TimeStampedModel):
     """
