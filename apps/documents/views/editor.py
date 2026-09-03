@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views import View
+from django.urls import reverse
 
 from apps.documents.integrations import (
     DocumentCapability,
@@ -87,13 +88,26 @@ class DocumentEditorView(
                 "n'est configuré pour ce document."
             ) from exc
 
+        return_path = reverse(
+            "documents:folder",
+            kwargs={
+                "project_id": document.project_id,
+                "folder_id": document.folder_id,
+            },
+        )
+
+        return_url = request.build_absolute_uri(
+            return_path
+        )
+
         editor = integration.open(
             version=version,
             capability=(
                 DocumentCapability.OFFICE_EDIT
             ),
             user=request.user,
-        )
+            return_url=return_url,
+)
 
         return render(
             request,

@@ -74,6 +74,7 @@ class CadViewerAdapter(
         version: DocumentVersion,
         capability: DocumentCapability,
         user,
+        return_url: str | None = None,
     ) -> dict[str, object]:
         """
         Prépare la configuration d'ouverture CADViewer.

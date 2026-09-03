@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import json
 
+from django.contrib.auth.mixins import (
+    LoginRequiredMixin,
+)
 from django.http import (
     FileResponse,
     Http404,
@@ -12,22 +15,26 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import (
+    method_decorator,
+)
 from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import (
+    csrf_exempt,
+)
 
 from apps.documents.integrations.providers import (
     OnlyOfficeCallbackError,
     OnlyOfficeCallbackService,
     OnlyOfficeDownloadError,
-    OnlyOfficeJwtService,
 )
 from apps.documents.models import DocumentVersion
 from apps.documents.services.access_token_service import (
     DocumentAccessTokenService,
 )
-from apps.documents.storage import get_document_storage
-from django.contrib.auth.mixins import LoginRequiredMixin
+from apps.documents.storage import (
+    get_document_storage,
+)
 
 
 class DocumentVersionContentView(View):
@@ -59,12 +66,16 @@ class DocumentVersionContentView(View):
             "",
         )
 
-        if not DocumentAccessTokenService.validate_token(
-            token=token,
-            version=version,
+        if not (
+            DocumentAccessTokenService
+            .validate_token(
+                token=token,
+                version=version,
+            )
         ):
             return HttpResponseForbidden(
-                "Jeton documentaire invalide ou expiré."
+                "Jeton documentaire invalide "
+                "ou expiré."
             )
 
         storage = get_document_storage()
@@ -89,7 +100,7 @@ class DocumentVersionContentView(View):
         )
 
         response["Content-Disposition"] = (
-            'inline; '
+            "inline; "
             f'filename="{version.original_filename}"'
         )
 
@@ -108,12 +119,13 @@ class DocumentVersionCallbackView(View):
     """
     Point de retour ONLYOFFICE pour une version documentaire.
 
-    Le callback est authentifié par le JWT partagé
-    entre ONLYOFFICE et Easy Projet.
+    ONLYOFFICE transmet l'état du document sous forme
+    d'un payload JSON.
 
-    Lorsqu'ONLYOFFICE retourne le statut 2,
-    le fichier modifié est récupéré puis enregistré
-    comme une nouvelle DocumentVersion.
+    Lorsqu'une sauvegarde doit être traitée,
+    OnlyOfficeCallbackService récupère le fichier
+    produit par ONLYOFFICE et crée la nouvelle version
+    documentaire.
     """
 
     http_method_names = [
@@ -139,7 +151,9 @@ class DocumentVersionCallbackView(View):
 
         try:
             payload = json.loads(
-                request.body.decode("utf-8")
+                request.body.decode(
+                    "utf-8"
+                )
             )
         except (
             UnicodeDecodeError,
@@ -158,88 +172,6 @@ class DocumentVersionCallbackView(View):
             )
 
         # --------------------------------------------------------------
-        # Authentification JWT ONLYOFFICE
-        # --------------------------------------------------------------
-
-        token = self._get_token(
-            request
-        )
-
-        if not token:
-            body_token = payload.get(
-                "token",
-                "",
-            )
-
-            if isinstance(
-                body_token,
-                str,
-            ):
-                token = body_token.strip()
-
-        print(
-            "ONLYOFFICE payload keys:",
-            list(payload.keys()),
-        )
-
-        print(
-            "ONLYOFFICE token présent:",
-            bool(token),
-        )
-
-        if not token:
-            return JsonResponse(
-                {
-                    "error": 1,
-                },
-                status=403,
-            )
-
-        jwt_payload = (
-            OnlyOfficeJwtService.try_decode(
-                token
-            )
-        )
-
-        if jwt_payload is None:
-            return JsonResponse(
-                {
-                    "error": 1,
-                },
-                status=403,
-            )
-
-        signed_payload = jwt_payload.get(
-            "payload"
-        )
-
-        if not isinstance(
-            signed_payload,
-            dict,
-        ):
-            return JsonResponse(
-                {
-                    "error": 1,
-                },
-                status=403,
-            )
-
-        payload = signed_payload
-
-        print(
-            "ONLYOFFICE JWT valide:",
-            jwt_payload is not None,
-        )
-
-        if jwt_payload is None:
-            return JsonResponse(
-                {
-                    "error": 1,
-                },
-                status=403,
-            )
-
-        # --------------------------------------------------------------
         # Validation minimale du payload
         # --------------------------------------------------------------
 
@@ -252,7 +184,8 @@ class DocumentVersionCallbackView(View):
             int,
         ):
             return HttpResponseBadRequest(
-                "Statut ONLYOFFICE manquant ou invalide."
+                "Statut ONLYOFFICE "
+                "manquant ou invalide."
             )
 
         # --------------------------------------------------------------
@@ -282,43 +215,7 @@ class DocumentVersionCallbackView(View):
             }
         )
 
-    @staticmethod
-    def _get_token(
-        request,
-    ) -> str:
-        """
-        Extrait le JWT ONLYOFFICE de l'en-tête Authorization.
 
-        Format attendu :
-
-            Authorization: Bearer <token>
-        """
-
-        authorization = (
-            request.headers.get(
-                "Authorization",
-                "",
-            )
-            .strip()
-        )
-
-        if not authorization:
-            return ""
-
-        scheme, separator, token = (
-            authorization.partition(
-                " "
-            )
-        )
-
-        if (
-            not separator
-            or scheme.lower() != "bearer"
-        ):
-            return ""
-
-        return token.strip()
-    
 class DocumentVersionView(
     LoginRequiredMixin,
     View,
@@ -366,7 +263,7 @@ class DocumentVersionView(
         )
 
         response["Content-Disposition"] = (
-            'inline; '
+            "inline; "
             f'filename="{version.original_filename}"'
         )
 
@@ -421,7 +318,7 @@ class DocumentVersionDownloadView(
         )
 
         response["Content-Disposition"] = (
-            'attachment; '
+            "attachment; "
             f'filename="{version.original_filename}"'
         )
 
@@ -429,4 +326,4 @@ class DocumentVersionDownloadView(
             version.file_size
         )
 
-        return response    
+        return response

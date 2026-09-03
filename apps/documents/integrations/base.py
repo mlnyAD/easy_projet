@@ -60,12 +60,13 @@ class DocumentIntegration(ABC):
         version: DocumentVersion,
         capability: DocumentCapability,
         user,
+        return_url: str | None = None,
     ) -> Any:
         """
         Prépare l'ouverture du document avec l'intégration.
 
-        La valeur retournée dépendra de l'adaptateur :
-        URL, configuration d'éditeur, jeton temporaire, etc.
+        return_url permet à une intégration de proposer
+        un retour vers la page Easy Projet appelante.
         """
 
         raise NotImplementedError

@@ -81,6 +81,7 @@ class OnlyOfficeAdapter(DocumentIntegration):
         version: DocumentVersion,
         capability: DocumentCapability,
         user,
+        return_url: str | None = None,
     ) -> dict[str, object]:
         """
         Construit la configuration DocsAPI.DocEditor.
@@ -172,8 +173,19 @@ class OnlyOfficeAdapter(DocumentIntegration):
                 },
 
                 "lang": "fr",
+
+                "customization": {
+                    "forcesave": True,
+
+                    "goback": {
+                        "blank": False,
+                        "requestClose": False,
+                        "text": "Retour aux documents",
+                        "url": return_url or "",
+                    },
+                },
             },
-        }
+}
 
         token = OnlyOfficeJwtService.encode(
             config
