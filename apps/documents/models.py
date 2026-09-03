@@ -722,6 +722,92 @@ class DocumentVersion(TimeStampedModel):
             f"- V{self.version_number}"
         )
 
+class DocumentEditLock(TimeStampedModel):
+    """
+    Verrou applicatif d'édition d'un document.
+
+    Un document ne peut être verrouillé que par un seul
+    utilisateur à la fois.
+
+    Le verrou mémorise la version qui était courante lors
+    de sa prise ainsi que sa date d'expiration.
+
+    La logique d'acquisition, de renouvellement et de
+    libération est portée par DocumentEditLockService.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    document = models.OneToOneField(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="edit_lock",
+        verbose_name="Document",
+    )
+
+    version = models.ForeignKey(
+        DocumentVersion,
+        on_delete=models.CASCADE,
+        related_name="edit_locks",
+        verbose_name="Version",
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="document_edit_locks",
+        verbose_name="Utilisateur",
+    )
+
+    expires_at = models.DateTimeField(
+        verbose_name="Expiration",
+    )
+
+    class Meta:
+        db_table = "document_edit_lock"
+
+        ordering = [
+            "expires_at",
+        ]
+
+        verbose_name = "Verrou d'édition documentaire"
+        verbose_name_plural = (
+            "Verrous d'édition documentaire"
+        )
+
+    def clean(self) -> None:
+        """
+        Vérifie que la version verrouillée appartient
+        au document verrouillé.
+        """
+        super().clean()
+
+        if (
+            self.version_id is not None
+            and self.document_id is not None
+            and self.version.document_id
+            != self.document_id
+        ):
+            raise ValidationError(
+                {
+                    "version": (
+                        "La version verrouillée doit "
+                        "appartenir au document."
+                    ),
+                }
+            )
+
+    def __str__(self) -> str:
+        return (
+            f"{self.document} - "
+            f"{self.user}"
+        )
+        
 class DocumentHistory(TimeStampedModel):
     """
     Trace une opération métier réalisée sur un document.

@@ -29,9 +29,15 @@ Rendre les barres de tâche sélectionnables
 
 ### Documents
 Fonction de recherche des orphelins 
+Fonction de recherche des fichiers bloqués en édition
 Pourquoi télécharger le document l'ouvre automatiquement sur le poste client?
 Mettre les fichiers supprimés dans une corbeille lors de la suppression initiale
 Implémenter Partager et Permissions
+
+Traiter dans un second temps le renouvellement/expiration en session
+Future page de maintenance des verrous.
+Sans l'implémenter maintenant on pourrait aussi mettre un batch qui au démarrage du serveur débloque les verrous.
+
 
 ### CSS
 Revoir les définition de bg-axcio-dark et bg-axcio-light

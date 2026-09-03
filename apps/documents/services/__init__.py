@@ -10,6 +10,10 @@ from .folder_service import (
 from .favorite_service import (
     DocumentFavoriteService,
 )
+from .edit_lock_service import (
+    DocumentEditLockResult,
+    DocumentEditLockService,
+)
 
 __all__ = [
     "DocumentAccessTokenService",
@@ -18,4 +22,6 @@ __all__ = [
     "DocumentVersionService",
     "DocumentFolderService",
     "DocumentFavoriteService",
+    "DocumentEditLockResult",
+    "DocumentEditLockService",
 ]

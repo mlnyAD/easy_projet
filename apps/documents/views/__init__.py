@@ -15,7 +15,13 @@ from .folder import (
     DocumentFolderRenameView,
     DocumentFolderMoveView,
 )
-from .import_view import DocumentImportView
+from .import_view import (
+    DocumentImportView,
+)
+from .editor import (
+    DocumentEditorView,
+    DocumentEditLockRefreshView,
+)
 from .document import (
     DocumentCopyView,
     DocumentDeleteView,
@@ -51,4 +57,5 @@ __all__ = [
     "DocumentDeleteView",
     "DocumentFolderMoveView",
     "DocumentCadViewerView",
+    "DocumentEditLockRefreshView"
 ]

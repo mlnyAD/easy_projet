@@ -3,28 +3,27 @@
 from django.urls import path
 
 from apps.documents.views import (
+    DocumentCadViewerView,
+    DocumentCopyView,
     DocumentCreateView,
+    DocumentDeleteView,
+    DocumentEditLockRefreshView,
     DocumentEditorView,
     DocumentExplorerView,
+    DocumentFavoriteAddView,
+    DocumentFavoriteListView,
+    DocumentFavoriteRemoveView,
     DocumentFolderCreateView,
     DocumentFolderDeleteView,
+    DocumentFolderMoveView,
     DocumentFolderRenameView,
+    DocumentImportView,
+    DocumentMoveView,
+    DocumentRenameView,
     DocumentVersionCallbackView,
     DocumentVersionContentView,
-    DocumentImportView,
     DocumentVersionDownloadView,
     DocumentVersionView,
-    DocumentRenameView,
-    DocumentMoveView,
-    DocumentCopyView,
-    DocumentFavoriteAddView,
-    DocumentFavoriteRemoveView,
-    DocumentFavoriteListView,
-    DocumentDeleteView,
-    DocumentFolderMoveView,
-)
-from apps.documents.views import (
-    DocumentCadViewerView,
 )
 
 
@@ -80,6 +79,14 @@ urlpatterns = [
         name="version-edit",
     ),
     path(
+        (
+            "versions/<uuid:version_id>/"
+            "edit-lock/refresh/"
+        ),
+        DocumentEditLockRefreshView.as_view(),
+        name="version-edit-lock-refresh",
+    ),
+    path(
         "versions/<uuid:version_id>/content/",
         DocumentVersionContentView.as_view(),
         name="version-content",
@@ -114,7 +121,7 @@ urlpatterns = [
         "versions/<uuid:version_id>/download/",
         DocumentVersionDownloadView.as_view(),
         name="version-download",
-    ),  
+    ),
     path(
         (
             "projects/<uuid:project_id>/"
@@ -122,7 +129,7 @@ urlpatterns = [
         ),
         DocumentRenameView.as_view(),
         name="document-rename",
-    ),  
+    ),
     path(
         (
             "projects/<uuid:project_id>/"

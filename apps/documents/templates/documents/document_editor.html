@@ -13,8 +13,6 @@
         content="width=device-width, initial-scale=1"
     >
 
-    {% load static %}
-
     <link
         rel="icon"
         href="{% static 'ad_icon.ico' %}"
@@ -55,6 +53,7 @@
                dark:border-axcio-border-dark
                dark:bg-axcio-surface-dark"
     >
+
         <div class="min-w-0">
 
             <h1
@@ -99,6 +98,37 @@
 
 
     {# -------------------------------------------------------------- #}
+    {# Information de verrou                                          #}
+    {# -------------------------------------------------------------- #}
+
+    {% if read_only_due_to_lock %}
+
+        <div
+            class="
+                shrink-0
+                border-b
+                border-amber-300
+                bg-amber-50
+                px-4
+                py-2
+                text-sm
+                text-amber-900
+                dark:border-amber-700
+                dark:bg-amber-950/40
+                dark:text-amber-200
+            "
+        >
+            Ce document est actuellement en cours d'édition par
+            <strong>
+                {{ edit_lock_owner }}
+            </strong>.
+            Il est ouvert en lecture seule.
+        </div>
+
+    {% endif %}
+
+
+    {# -------------------------------------------------------------- #}
     {# ONLYOFFICE                                                     #}
     {# -------------------------------------------------------------- #}
 
@@ -111,6 +141,10 @@
 
 
 {{ onlyoffice_config|json_script:"onlyoffice-config" }}
+
+{% if edit_lock_heartbeat_url %}
+    {{ edit_lock_heartbeat_url|json_script:"edit-lock-heartbeat-url" }}
+{% endif %}
 
 <script
     src="{{ onlyoffice_api_url }}"
@@ -185,6 +219,81 @@
             new DocsAPI.DocEditor(
                 "onlyoffice-editor",
                 config
+            );
+
+
+            // ---------------------------------------------------------
+            // Heartbeat du verrou d'édition
+            // ---------------------------------------------------------
+
+            const heartbeatElement =
+                document.getElementById(
+                    "edit-lock-heartbeat-url"
+                );
+
+            if (!heartbeatElement) {
+                return;
+            }
+
+            const heartbeatUrl = JSON.parse(
+                heartbeatElement.textContent
+            );
+
+            const csrfCookie = document.cookie
+                .split("; ")
+                .find(
+                    (row) => row.startsWith(
+                        "csrftoken="
+                    )
+                );
+
+            const csrfToken = csrfCookie
+                ? decodeURIComponent(
+                    csrfCookie.split("=")[1]
+                )
+                : null;
+
+            const refreshEditLock =
+                async function () {
+
+                    try {
+                        const response = await fetch(
+                            heartbeatUrl,
+                            {
+                                method: "POST",
+                                credentials: "same-origin",
+                                headers: csrfToken
+                                    ? {
+                                        "X-CSRFToken":
+                                            csrfToken,
+                                    }
+                                    : {},
+                            }
+                        );
+
+                        if (!response.ok) {
+                            console.warn(
+                                "Le verrou d'édition "
+                                + "n'a pas pu être renouvelé.",
+                                response.status
+                            );
+                        }
+
+                    } catch (error) {
+                        console.warn(
+                            "Heartbeat du verrou "
+                            + "d'édition impossible.",
+                            error
+                        );
+                    }
+                };
+
+            const heartbeatIntervalMs =
+               5 * 60 * 1000;
+
+            window.setInterval(
+                refreshEditLock,
+                heartbeatIntervalMs
             );
         }
     );

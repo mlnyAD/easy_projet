@@ -171,20 +171,26 @@ STATICFILES_DIRS = [
 ]
 
 #***********************************
-#
 # Stockage documents - test
-#
 #***********************************
 DOCUMENT_STORAGE_ROOT = (
     BASE_DIR
     / "var"
     / "documents"
 )
+# ----------------------------------------------------------------------
+# Verrouillage documentaire (156 minutes)
+# ----------------------------------------------------------------------
+
+DOCUMENT_EDIT_LOCK_TIMEOUT_SECONDS = int(
+    os.getenv(
+        "DOCUMENT_EDIT_LOCK_TIMEOUT_SECONDS",
+        "900",
+    )
+)
 
 # ***********************************
-#
 # Médias applicatifs
-#
 # ***********************************
 
 MEDIA_URL = "/media/"
@@ -196,9 +202,7 @@ MEDIA_ROOT = (
 )
 
 #***********************************
-#
 # Authentification
-#
 #***********************************
 DEV_AUTO_LOGIN = (
     DEBUG
@@ -211,9 +215,7 @@ DEV_AUTO_LOGIN_EMAIL = os.environ.get(
 )
 
 # ***********************************
-#
 # Google Maps
-#
 # ***********************************
 
 GOOGLE_MAPS_API_KEY = os.environ.get(
@@ -222,9 +224,7 @@ GOOGLE_MAPS_API_KEY = os.environ.get(
 )
 
 # ***********************************
-#
 # OnlyOffice
-#
 # ***********************************
 ONLYOFFICE_URL = os.environ.get(
     "ONLYOFFICE_URL",
@@ -243,9 +243,7 @@ ONLYOFFICE_JWT_SECRET = os.environ.get(
 
 
 # ***********************************
-#
 # Email
-#
 # ***********************************
 
 EMAIL_BACKEND = (
@@ -297,9 +295,7 @@ DEFAULT_FROM_EMAIL = os.getenv(
 
 
 # ***********************************
-#
 # CADViewer
-#
 # ***********************************
 CADVIEWER_FRONTEND_URL = os.getenv(
     "CADVIEWER_FRONTEND_URL",

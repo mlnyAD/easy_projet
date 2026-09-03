@@ -146,11 +146,10 @@ class OnlyOfficeAdapter(DocumentIntegration):
             f"{callback_path}"
         )
 
-        mode = (
-            "edit"
-            if capability
+
+        can_edit = (
+            capability
             == DocumentCapability.OFFICE_EDIT
-            else "view"
         )
 
         config = {
@@ -161,31 +160,31 @@ class OnlyOfficeAdapter(DocumentIntegration):
                 "key": str(version.pk),
                 "title": version.original_filename,
                 "url": content_url,
-            },
-
-            "editorConfig": {
-                "callbackUrl": callback_url,
-                "mode": mode,
-
-                "user": {
-                    "id": str(user.pk),
-                    "name": str(user),
-                },
-
-                "lang": "fr",
-
-                "customization": {
-                    "forcesave": True,
-
-                    "goback": {
-                        "blank": False,
-                        "requestClose": False,
-                        "text": "Retour aux documents",
-                        "url": return_url or "",
-                    },
+                "permissions": {
+                    "edit": can_edit,
                 },
             },
-}
+
+        "editorConfig": {
+            "callbackUrl": callback_url,
+            "mode": (
+                "edit"
+                if can_edit
+                else "view"
+            ),
+
+            "user": {
+                "id": str(user.pk),
+                "name": str(user),
+            },
+
+            "lang": "fr",
+
+            "customization": {
+                "forcesave": can_edit,
+            },
+        },
+    }
 
         token = OnlyOfficeJwtService.encode(
             config

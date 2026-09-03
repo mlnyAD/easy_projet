@@ -7,7 +7,7 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $projectRoot
 
 $env:EASY_PROJET_DEV_AUTO_LOGIN = "1"
-$env:EASY_PROJET_DEV_AUTO_LOGIN_EMAIL = "dev@axcio-data.com"
+$env:EASY_PROJET_DEV_AUTO_LOGIN_EMAIL = "alain.delon@axcio-data.com"
 
 Write-Host "Demarrage du tunnel Cloudflare..."
 
