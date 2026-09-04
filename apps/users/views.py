@@ -1,9 +1,18 @@
 
 
+from __future__ import annotations
+
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import ListView
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect
+from django.views.generic import FormView
 
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
@@ -21,11 +30,30 @@ from .account_form_definition import (
 from .form_definition import USER_FORM_DEFINITION
 from .forms import (
     AccountForm,
+    RequiredPasswordChangeForm,
     UserForm,
+    UserLoginForm,
 )
 from .lists import USER_LIST_DEFINITION
 from .models import User
+from .services import TemporaryPasswordService
 
+
+class UserLoginView(LoginView):
+    template_name = "users/login.html"
+    authentication_form = UserLoginForm
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        if (
+            self.request.user
+            .must_change_password
+        ):
+            return reverse_lazy(
+                "users:password-change-required"
+            )
+
+        return super().get_success_url()
 
 class UserListView(
     EPListPaginationMixin,
@@ -79,10 +107,7 @@ class UserListView(
         )
 
         context["list_view"] = list_view
-
-        # Alias temporaire pour compatibilité.
         context["list"] = list_view
-
         context["row_actions_template"] = (
             "users/user_actions.html"
         )
@@ -99,16 +124,22 @@ class UserCreateView(EPCreateView):
     success_url = reverse_lazy("users:list")
     cancel_url = reverse_lazy("users:list")
 
+    @transaction.atomic
     def form_valid(self, form):
         response = super().form_valid(form)
 
-        messages.success(
-            self.request,
-            "L'utilisateur a été créé avec succès.",
+        TemporaryPasswordService.reset_and_send(
+            user=self.object,
         )
 
-        # L'envoi de l'invitation sera ajouté ici lorsque
-        # le service d'invitation sera disponible.
+        messages.success(
+            self.request,
+            (
+                "L'utilisateur a été créé avec succès. "
+                "Son mot de passe provisoire lui a été "
+                "envoyé par e-mail."
+            ),
+        )
 
         return response
 
@@ -131,6 +162,45 @@ class UserUpdateView(EPUpdateView):
         )
 
         return response
+
+
+class UserTemporaryPasswordResendView(View):
+    """
+    Régénère et renvoie un mot de passe provisoire.
+
+    Cette action invalide immédiatement le mot de passe
+    précédemment associé au compte.
+    """
+
+    http_method_names = [
+        "post",
+    ]
+
+    def post(
+        self,
+        request,
+        pk,
+    ):
+        user = get_object_or_404(
+            User,
+            pk=pk,
+        )
+
+        TemporaryPasswordService.reset_and_send(
+            user=user,
+        )
+
+        messages.success(
+            request,
+            (
+                "Un nouveau mot de passe provisoire "
+                f"a été envoyé à {user.email}."
+            ),
+        )
+
+        return redirect(
+            "users:list"
+        )
 
 
 class AccountUpdateView(EPUpdateView):
@@ -164,3 +234,76 @@ class AccountUpdateView(EPUpdateView):
         )
 
         return response
+    
+class RequiredPasswordChangeView(
+    LoginRequiredMixin,
+    FormView,
+):
+    """
+    Oblige l'utilisateur connecté avec un mot
+    de passe provisoire à définir son mot
+    de passe personnel.
+    """
+
+    template_name = (
+        "users/password_change_required.html"
+    )
+
+    form_class = (
+        RequiredPasswordChangeForm
+    )
+
+    success_url = reverse_lazy(
+        "home"
+    )
+
+    def dispatch(
+        self,
+        request,
+        *args,
+        **kwargs,
+    ):
+        if (
+            request.user.is_authenticated
+            and not request.user.must_change_password
+        ):
+            return redirect(
+                "home"
+            )
+
+        return super().dispatch(
+            request,
+            *args,
+            **kwargs,
+        )
+
+    def get_form_kwargs(self):
+        kwargs = (
+            super().get_form_kwargs()
+        )
+
+        kwargs["user"] = (
+            self.request.user
+        )
+
+        return kwargs
+
+    def form_valid(
+        self,
+        form,
+    ):
+        user = form.save()
+
+        update_session_auth_hash(
+            self.request,
+            user,
+        )
+
+        messages.success(
+            self.request,
+            "Votre mot de passe personnel a été enregistré.",
+        )
+
+        return super().form_valid(
+            form
+        )

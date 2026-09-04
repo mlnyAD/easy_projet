@@ -12,3 +12,27 @@
         aria-hidden="true"
     ></i>
 </a>
+
+<form
+    method="post"
+    action="{% url 'users:temporary-password-resend' row.source_object.pk %}"
+    class="inline"
+>
+    {% csrf_token %}
+
+    <button
+        type="submit"
+        class="ep-list-row-action"
+        title="Renvoyer un mot de passe provisoire"
+        aria-label="Renvoyer un mot de passe provisoire"
+        onclick="return confirm(
+            'Générer et envoyer un nouveau mot de passe provisoire à cet utilisateur ?'
+        );"
+    >
+        <i
+            data-lucide="key-round"
+            class="ep-list-row-action-icon"
+            aria-hidden="true"
+        ></i>
+    </button>
+</form>

@@ -1,0 +1,169 @@
+
+
+{% load static %}
+
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        Connexion - Easy Projet
+    </title>
+
+    <link
+        rel="icon"
+        href="{% static 'ad_icon.png' %}"
+        type="image/x-icon"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'dist/output.css' %}"
+    >
+</head>
+
+<body
+    class="
+        flex min-h-screen items-center justify-center
+        bg-axcio-page
+        px-4
+        text-axcio-text
+        dark:bg-axcio-page-dark
+        dark:text-axcio-text-dark
+    "
+>
+
+    <main
+        class="
+            w-full max-w-md
+            rounded-lg
+            border border-axcio-border-light
+            bg-axcio-surface
+            p-6
+            shadow-sm
+            dark:border-axcio-border-dark
+            dark:bg-axcio-surface-dark
+        "
+    >
+
+        <div class="mb-6">
+
+            <h1
+                class="
+                    text-xl font-semibold
+                    text-axcio-text
+                    dark:text-axcio-text-dark
+                "
+            >
+                Easy Projet
+            </h1>
+
+            <p
+                class="
+                    mt-1 text-sm
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                "
+            >
+                Connectez-vous à votre espace.
+            </p>
+
+        </div>
+
+        {% if form.non_field_errors %}
+
+            <div
+                class="
+                    mb-4 rounded-md
+                    border border-red-300
+                    bg-red-50
+                    px-3 py-2
+                    text-sm text-red-800
+                "
+            >
+                Adresse électronique ou mot de passe incorrect.
+            </div>
+
+        {% endif %}
+
+        <form
+            method="post"
+            novalidate
+            class="space-y-4"
+        >
+
+            {% csrf_token %}
+
+            {% if next %}
+                <input
+                    type="hidden"
+                    name="next"
+                    value="{{ next }}"
+                >
+            {% endif %}
+
+            <div>
+
+                <label
+                    for="{{ form.username.id_for_label }}"
+                    class="mb-1 block text-sm font-medium"
+                >
+                    {{ form.username.label }}
+                </label>
+
+                {{ form.username }}
+
+                {% for error in form.username.errors %}
+                    <p class="mt-1 text-sm text-red-600">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+
+            </div>
+
+            <div>
+
+                <label
+                    for="{{ form.password.id_for_label }}"
+                    class="mb-1 block text-sm font-medium"
+                >
+                    {{ form.password.label }}
+                </label>
+
+                {{ form.password }}
+
+                {% for error in form.password.errors %}
+                    <p class="mt-1 text-sm text-red-600">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+
+            </div>
+
+            <button
+                type="submit"
+                class="
+                    inline-flex w-full items-center justify-center
+                    rounded-md
+                    bg-axcio-light
+                    px-4 py-2
+                    text-sm font-medium
+                    text-white
+                "
+            >
+                Se connecter
+            </button>
+
+        </form>
+
+    </main>
+
+</body>
+</html>

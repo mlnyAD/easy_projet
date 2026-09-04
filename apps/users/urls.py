@@ -7,13 +7,34 @@ from .views import (
     AccountUpdateView,
     UserCreateView,
     UserListView,
+    UserLoginView,
+    UserTemporaryPasswordResendView,
     UserUpdateView,
+    RequiredPasswordChangeView
 )
-
 
 app_name = "users"
 
 urlpatterns = [
+    path(
+        "login/",
+        UserLoginView.as_view(),
+        name="login",
+    ),
+    path(
+        "password/change-required/",
+        RequiredPasswordChangeView.as_view(),
+        name="password-change-required",
+    ),
+    path(
+        "logout/",
+        LogoutView.as_view(
+            next_page=reverse_lazy(
+                "users:login"
+            ),
+        ),
+        name="logout",
+    ),
     path(
         "",
         UserListView.as_view(),
@@ -30,11 +51,9 @@ urlpatterns = [
         name="update",
     ),
     path(
-        "logout/",
-        LogoutView.as_view(
-            next_page=reverse_lazy("home"),
-        ),
-        name="logout",
+        "<uuid:pk>/temporary-password/resend/",
+        UserTemporaryPasswordResendView.as_view(),
+        name="temporary-password-resend",
     ),
     path(
         "account/",

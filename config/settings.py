@@ -77,6 +77,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 
     "apps.core.middleware.dev_auto_login.DevelopmentAutoLoginMiddleware",
+    "apps.core.middleware.password_change_required.PasswordChangeRequiredMiddleware",
     "apps.core.middleware.active_company.ActiveCompanyMiddleware",
 
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -152,9 +153,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr-fr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Paris'
 
 USE_I18N = True
 
@@ -213,6 +214,10 @@ DEV_AUTO_LOGIN_EMAIL = os.environ.get(
     "EASY_PROJET_DEV_AUTO_LOGIN_EMAIL",
     "",
 )
+
+LOGIN_URL = "users:login"
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "users:login"
 
 # ***********************************
 # Google Maps

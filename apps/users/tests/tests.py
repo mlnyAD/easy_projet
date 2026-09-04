@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.urls import reverse
+from django.core import mail
+from django.test import TestCase, override_settings
+
+from unittest.mock import patch
 
 from apps.catalogs.models import CatalogType, CatalogValue
 from apps.companies.models import Company
-
 from apps.users.forms import UserForm
+from apps.users.services import TemporaryPasswordService
 
 
 User = get_user_model()
@@ -332,11 +335,22 @@ class UserViewTests(
             "edf/form/view.html",
         )
 
+    @override_settings(
+        EMAIL_BACKEND=(
+            "django.core.mail.backends.locmem.EmailBackend"
+        ),
+        DEFAULT_FROM_EMAIL="noreply@easy-projet.test",
+    )
     def test_create_view_creates_user(self):
-        response = self.client.post(
-            reverse("users:create"),
-            data=self.make_form_data(),
-        )
+        with patch.object(
+            TemporaryPasswordService,
+            "generate_password",
+            return_value="Abcdef12!xyz",
+        ):
+            response = self.client.post(
+                reverse("users:create"),
+                data=self.make_form_data(),
+            )
 
         self.assertRedirects(
             response,
@@ -347,8 +361,71 @@ class UserViewTests(
             email="jean.dupont@example.com",
         )
 
-        self.assertFalse(user.has_usable_password())
+        self.assertTrue(
+            user.has_usable_password()
+        )
 
+        self.assertTrue(
+            user.check_password(
+                "Abcdef12!xyz"
+            )
+        )
+
+        self.assertTrue(
+            user.must_change_password
+        )
+
+        self.assertIsNotNone(
+            user.temporary_password_sent_at
+        )
+
+        self.assertEqual(
+            len(mail.outbox),
+            1,
+        )
+
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            email.to,
+            [
+                "jean.dupont@example.com",
+            ],
+        )
+
+        self.assertIn(
+            "Abcdef12!xyz",
+            email.body,
+        )
+        
+    @override_settings(
+        EMAIL_BACKEND=(
+            "django.core.mail.backends.locmem.EmailBackend"
+        ),
+    )
+    def test_create_view_rolls_back_when_email_fails(self):
+        with patch(
+            (
+                "apps.users.services."
+                "temporary_password_service."
+                "EmailMessage.send"
+            ),
+            side_effect=RuntimeError(
+                "SMTP indisponible"
+            ),
+        ):
+            with self.assertRaises(RuntimeError):
+                self.client.post(
+                    reverse("users:create"),
+                    data=self.make_form_data(),
+                )
+
+        self.assertFalse(
+            User.objects.filter(
+                email="jean.dupont@example.com",
+            ).exists()
+        )        
+        
     def test_update_view_modifies_user(self):
         user = self.create_user()
 
@@ -383,3 +460,685 @@ class UserViewTests(
         )
 
         self.assertEqual(response.status_code, 404)
+        
+    @override_settings(
+        EMAIL_BACKEND=(
+            "django.core.mail.backends.locmem.EmailBackend"
+        ),
+        DEFAULT_FROM_EMAIL="noreply@easy-projet.test",
+    )
+    def test_resend_temporary_password(self):
+        user = self.create_user(
+            email="alice@example.com",
+        )
+
+        user.set_password(
+            "OldPassword1!"
+        )
+        user.save()
+
+        with patch.object(
+            TemporaryPasswordService,
+            "generate_password",
+            return_value="NewPassword2!",
+        ):
+            response = self.client.post(
+                reverse(
+                    "users:temporary-password-resend",
+                    kwargs={
+                        "pk": user.pk,
+                    },
+                )
+            )
+
+        self.assertRedirects(
+            response,
+            reverse("users:list"),
+        )
+
+        user.refresh_from_db()
+
+        self.assertFalse(
+            user.check_password(
+                "OldPassword1!"
+            )
+        )
+
+        self.assertTrue(
+            user.check_password(
+                "NewPassword2!"
+            )
+        )
+
+        self.assertTrue(
+            user.must_change_password
+        )
+
+        self.assertIsNotNone(
+            user.temporary_password_sent_at
+        )
+
+        self.assertEqual(
+            len(mail.outbox),
+            1,
+        )
+
+        self.assertEqual(
+            mail.outbox[0].to,
+            [
+                "alice@example.com",
+            ],
+        )
+
+
+    def test_resend_temporary_password_rejects_get(self):
+        user = self.create_user()
+
+        response = self.client.get(
+            reverse(
+                "users:temporary-password-resend",
+                kwargs={
+                    "pk": user.pk,
+                },
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            405,
+        )
+
+
+    def test_resend_temporary_password_returns_404_for_unknown_user(
+        self,
+    ):
+        response = self.client.post(
+            reverse(
+                "users:temporary-password-resend",
+                kwargs={
+                    "pk": (
+                        "00000000-0000-0000-0000-000000000000"
+                    ),
+                },
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+
+@override_settings(
+    EMAIL_BACKEND=(
+        "django.core.mail.backends.locmem.EmailBackend"
+    ),
+    DEFAULT_FROM_EMAIL="noreply@easy-projet.test",
+)
+class TemporaryPasswordServiceTests(
+    UserTestDataMixin,
+    TestCase,
+):
+    def test_generate_password_has_expected_length(self):
+        password = (
+            TemporaryPasswordService.generate_password()
+        )
+
+        self.assertEqual(
+            len(password),
+            12,
+        )
+
+    def test_generate_password_contains_required_characters(self):
+        password = (
+            TemporaryPasswordService.generate_password()
+        )
+
+        self.assertTrue(
+            any(
+                character.islower()
+                for character in password
+            )
+        )
+
+        self.assertTrue(
+            any(
+                character.isupper()
+                for character in password
+            )
+        )
+
+        self.assertTrue(
+            any(
+                character.isdigit()
+                for character in password
+            )
+        )
+
+        self.assertTrue(
+            any(
+                character
+                in TemporaryPasswordService.SYMBOLS
+                for character in password
+            )
+        )
+
+    def test_reset_and_send_assigns_temporary_password(self):
+        user = self.create_user()
+
+        self.assertFalse(
+            user.has_usable_password()
+        )
+
+        with patch.object(
+            TemporaryPasswordService,
+            "generate_password",
+            return_value="Abcdef12!xyz",
+        ):
+            TemporaryPasswordService.reset_and_send(
+                user=user,
+            )
+
+        user.refresh_from_db()
+
+        self.assertTrue(
+            user.has_usable_password()
+        )
+
+        self.assertTrue(
+            user.check_password(
+                "Abcdef12!xyz"
+            )
+        )
+
+        self.assertTrue(
+            user.must_change_password
+        )
+
+        self.assertIsNotNone(
+            user.temporary_password_sent_at
+        )
+
+    def test_reset_and_send_sends_email(self):
+        user = self.create_user(
+            email="alice@example.com",
+        )
+
+        with patch.object(
+            TemporaryPasswordService,
+            "generate_password",
+            return_value="Abcdef12!xyz",
+        ):
+            TemporaryPasswordService.reset_and_send(
+                user=user,
+            )
+
+        self.assertEqual(
+            len(mail.outbox),
+            1,
+        )
+
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            email.to,
+            [
+                "alice@example.com",
+            ],
+        )
+
+        self.assertIn(
+            "Abcdef12!xyz",
+            email.body,
+        )
+
+        self.assertIn(
+            "alice@example.com",
+            email.body,
+        )
+
+    def test_resend_invalidates_previous_password(self):
+        user = self.create_user()
+
+        with patch.object(
+            TemporaryPasswordService,
+            "generate_password",
+            return_value="FirstPwd1!xy",
+        ):
+            TemporaryPasswordService.reset_and_send(
+                user=user,
+            )
+
+        user.refresh_from_db()
+
+        self.assertTrue(
+            user.check_password(
+                "FirstPwd1!xy"
+            )
+        )
+
+        with patch.object(
+            TemporaryPasswordService,
+            "generate_password",
+            return_value="SecondPwd2!x",
+        ):
+            TemporaryPasswordService.reset_and_send(
+                user=user,
+            )
+
+        user.refresh_from_db()
+
+        self.assertFalse(
+            user.check_password(
+                "FirstPwd1!xy"
+            )
+        )
+
+        self.assertTrue(
+            user.check_password(
+                "SecondPwd2!x"
+            )
+        )
+
+    def test_reset_and_send_rejects_inactive_user(self):
+        user = self.create_user()
+        user.is_active = False
+        user.save(
+            update_fields=[
+                "is_active",
+                "updated_at",
+            ]
+        )
+
+        with self.assertRaises(ValueError):
+            TemporaryPasswordService.reset_and_send(
+                user=user,
+            )
+
+        self.assertEqual(
+            len(mail.outbox),
+            0,
+        )
+
+    def test_reset_and_send_rolls_back_when_email_fails(self):
+        user = self.create_user()
+
+        old_password = user.password
+
+        with patch(
+            (
+                "apps.users.services."
+                "temporary_password_service."
+                "EmailMessage.send"
+            ),
+            side_effect=RuntimeError(
+                "SMTP indisponible"
+            ),
+        ):
+            with self.assertRaises(RuntimeError):
+                TemporaryPasswordService.reset_and_send(
+                    user=user,
+                )
+
+        user.refresh_from_db()
+
+        self.assertEqual(
+            user.password,
+            old_password,
+        )
+
+        self.assertFalse(
+            user.must_change_password
+        )
+
+        self.assertIsNone(
+            user.temporary_password_sent_at
+        )
+        
+class UserAuthenticationTests(
+    UserTestDataMixin,
+    TestCase,
+):
+    TEMPORARY_PASSWORD = "TempPwd1!"
+    PERSONAL_PASSWORD = "Z7!qP2#m"
+
+    def create_auth_user(
+        self,
+        *,
+        email: str = "auth.user@example.com",
+        must_change_password: bool = False,
+        password: str | None = None,
+    ):
+        user = self.create_user(
+            email=email,
+        )
+
+        user.set_password(
+            password
+            or self.PERSONAL_PASSWORD
+        )
+
+        user.must_change_password = (
+            must_change_password
+        )
+
+        user.save(
+            update_fields=[
+                "password",
+                "must_change_password",
+                "updated_at",
+            ]
+        )
+
+        return user
+
+    # ------------------------------------------------------------------
+    # Login
+    # ------------------------------------------------------------------
+
+    def test_login_with_valid_credentials(self):
+        user = self.create_auth_user()
+
+        response = self.client.post(
+            reverse("users:login"),
+            data={
+                "username": user.email,
+                "password": self.PERSONAL_PASSWORD,
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("home"),
+        )
+
+        self.assertEqual(
+            str(
+                self.client.session[
+                    "_auth_user_id"
+                ]
+            ),
+            str(user.pk),
+        )
+
+    def test_login_rejects_invalid_password(self):
+        user = self.create_auth_user()
+
+        response = self.client.post(
+            reverse("users:login"),
+            data={
+                "username": user.email,
+                "password": "WrongPassword!",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertFalse(
+            response.context["form"].is_valid()
+        )
+
+        self.assertNotIn(
+            "_auth_user_id",
+            self.client.session,
+        )
+
+    # ------------------------------------------------------------------
+    # Mot de passe provisoire
+    # ------------------------------------------------------------------
+
+    def test_temporary_password_redirects_to_required_change(
+        self,
+    ):
+        user = self.create_auth_user(
+            must_change_password=True,
+            password=self.TEMPORARY_PASSWORD,
+        )
+
+        response = self.client.post(
+            reverse("users:login"),
+            data={
+                "username": user.email,
+                "password": self.TEMPORARY_PASSWORD,
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "users:password-change-required"
+            ),
+        )
+
+    def test_required_password_change_cannot_be_bypassed(
+        self,
+    ):
+        user = self.create_auth_user(
+            must_change_password=True,
+            password=self.TEMPORARY_PASSWORD,
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        response = self.client.get(
+            "/projects/"
+        )
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "users:password-change-required"
+            ),
+            fetch_redirect_response=False,
+        )
+
+    # ------------------------------------------------------------------
+    # Nouveau mot de passe
+    # ------------------------------------------------------------------
+
+    def test_required_password_change_updates_password(
+        self,
+    ):
+        user = self.create_auth_user(
+            must_change_password=True,
+            password=self.TEMPORARY_PASSWORD,
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        response = self.client.post(
+            reverse(
+                "users:password-change-required"
+            ),
+            data={
+                "new_password": (
+                    self.PERSONAL_PASSWORD
+                ),
+                "new_password_confirmation": (
+                    self.PERSONAL_PASSWORD
+                ),
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("home"),
+        )
+
+        user.refresh_from_db()
+
+        self.assertFalse(
+            user.must_change_password
+        )
+
+        self.assertFalse(
+            user.check_password(
+                self.TEMPORARY_PASSWORD
+            )
+        )
+
+        self.assertTrue(
+            user.check_password(
+                self.PERSONAL_PASSWORD
+            )
+        )
+
+    def test_required_password_change_rejects_short_password(
+        self,
+    ):
+        user = self.create_auth_user(
+            must_change_password=True,
+            password=self.TEMPORARY_PASSWORD,
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        response = self.client.post(
+            reverse(
+                "users:password-change-required"
+            ),
+            data={
+                "new_password": "Ab1!xyz",
+                "new_password_confirmation": "Ab1!xyz",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertIn(
+            "new_password",
+            response.context["form"].errors,
+        )
+
+        user.refresh_from_db()
+
+        self.assertTrue(
+            user.must_change_password
+        )
+
+    def test_session_is_preserved_after_password_change(
+        self,
+    ):
+        user = self.create_auth_user(
+            must_change_password=True,
+            password=self.TEMPORARY_PASSWORD,
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        self.client.post(
+            reverse(
+                "users:password-change-required"
+            ),
+            data={
+                "new_password": (
+                    self.PERSONAL_PASSWORD
+                ),
+                "new_password_confirmation": (
+                    self.PERSONAL_PASSWORD
+                ),
+            },
+        )
+
+        response = self.client.get(
+            reverse("home")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertEqual(
+            str(
+                self.client.session[
+                    "_auth_user_id"
+                ]
+            ),
+            str(user.pk),
+        )
+
+    # ------------------------------------------------------------------
+    # Logout / reconnexion
+    # ------------------------------------------------------------------
+
+    def test_logout_ends_authenticated_session(
+        self,
+    ):
+        user = self.create_auth_user()
+
+        self.client.force_login(
+            user
+        )
+
+        response = self.client.post(
+            reverse("users:logout")
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("users:login"),
+        )
+
+        self.assertNotIn(
+            "_auth_user_id",
+            self.client.session,
+        )
+
+    def test_user_can_login_again_with_personal_password(
+        self,
+    ):
+        user = self.create_auth_user(
+            must_change_password=True,
+            password=self.TEMPORARY_PASSWORD,
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        self.client.post(
+            reverse(
+                "users:password-change-required"
+            ),
+            data={
+                "new_password": (
+                    self.PERSONAL_PASSWORD
+                ),
+                "new_password_confirmation": (
+                    self.PERSONAL_PASSWORD
+                ),
+            },
+        )
+
+        self.client.post(
+            reverse("users:logout")
+        )
+
+        response = self.client.post(
+            reverse("users:login"),
+            data={
+                "username": user.email,
+                "password": (
+                    self.PERSONAL_PASSWORD
+                ),
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("home"),
+        )

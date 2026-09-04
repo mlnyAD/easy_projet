@@ -152,6 +152,27 @@ class User(
         default=False,
         verbose_name=_("Accès à l'administration"),
     )
+    
+    # ------------------------------------------------------------------
+    # Authentification
+    # ------------------------------------------------------------------
+
+    must_change_password = models.BooleanField(
+        default=False,
+        verbose_name=_(
+            "Changement de mot de passe obligatoire"
+        ),
+    )
+
+    temporary_password_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name=_(
+            "Mot de passe provisoire envoyé le"
+        ),
+    )
+
     # ------------------------------------------------------------------
     # Préférences
     # ------------------------------------------------------------------

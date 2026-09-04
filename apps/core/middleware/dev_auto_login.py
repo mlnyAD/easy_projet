@@ -23,6 +23,7 @@ class DevelopmentAutoLoginMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        
         if (
             settings.DEBUG
             and settings.DEV_AUTO_LOGIN

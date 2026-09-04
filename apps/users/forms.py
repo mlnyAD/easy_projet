@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 
 from apps.catalogs.models import CatalogValue
 from apps.companies.models import Company
@@ -28,6 +29,164 @@ from django.contrib.auth.password_validation import (
 from django.core.exceptions import ValidationError
 
 
+class UserLoginForm(AuthenticationForm):
+    """
+    Formulaire de connexion Easy Projet.
+
+    L'identifiant fonctionnel est l'adresse électronique.
+    """
+
+    FIELD_CLASSES = (
+        "block w-full rounded-md "
+        "border border-axcio-border-light "
+        "bg-axcio-surface "
+        "px-3 py-2 "
+        "text-sm text-axcio-text "
+        "placeholder:text-axcio-text-muted "
+        "focus:border-axcio-clair "
+        "focus:outline-none "
+        "focus:ring-1 focus:ring-axcio-clair "
+        "dark:border-axcio-border-dark "
+        "dark:bg-axcio-surface-dark "
+        "dark:text-axcio-text-dark "
+        "dark:placeholder:text-axcio-text-muted-dark"
+    )
+
+    username = forms.EmailField(
+        label="Adresse électronique",
+        widget=forms.EmailInput(
+            attrs={
+                "autofocus": True,
+                "autocomplete": "email",
+                "placeholder": "prenom.nom@entreprise.fr",
+                "class": FIELD_CLASSES,
+            }
+        ),
+    )
+
+    password = forms.CharField(
+        label="Mot de passe",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "autocomplete": "current-password",
+                "class": FIELD_CLASSES,
+            }
+        ),
+    )
+    
+class RequiredPasswordChangeForm(forms.Form):
+    """
+    Définition obligatoire du mot de passe personnel
+    après connexion avec un mot de passe provisoire.
+    """
+
+    FIELD_CLASSES = (
+        "block w-full rounded-md "
+        "border border-axcio-border-light "
+        "bg-axcio-surface "
+        "px-3 py-2 "
+        "text-sm text-axcio-text "
+        "focus:border-axcio-clair "
+        "focus:outline-none "
+        "focus:ring-1 focus:ring-axcio-clair "
+        "dark:border-axcio-border-dark "
+        "dark:bg-axcio-surface-dark "
+        "dark:text-axcio-text-dark"
+    )
+
+    new_password = forms.CharField(
+        label="Nouveau mot de passe",
+        strip=False,
+        help_text=password_validators_help_text_html(),
+        widget=forms.PasswordInput(
+            attrs={
+                "autocomplete": "new-password",
+                "class": FIELD_CLASSES,
+            }
+        ),
+    )
+
+    new_password_confirmation = forms.CharField(
+        label="Confirmation du nouveau mot de passe",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "autocomplete": "new-password",
+                "class": FIELD_CLASSES,
+            }
+        ),
+    )
+
+    def __init__(
+        self,
+        *args,
+        user: User,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
+        self.user = user
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        new_password = cleaned_data.get(
+            "new_password"
+        )
+
+        confirmation = cleaned_data.get(
+            "new_password_confirmation"
+        )
+
+        if (
+            new_password
+            and confirmation
+            and new_password != confirmation
+        ):
+            self.add_error(
+                "new_password_confirmation",
+                "Les deux mots de passe ne correspondent pas.",
+            )
+
+        if new_password:
+            try:
+                validate_password(
+                    new_password,
+                    user=self.user,
+                )
+            except ValidationError as error:
+                self.add_error(
+                    "new_password",
+                    error,
+                )
+
+        return cleaned_data
+
+    def save(self) -> User:
+        password = self.cleaned_data[
+            "new_password"
+        ]
+
+        self.user.set_password(
+            password
+        )
+
+        self.user.must_change_password = False
+
+        self.user.save(
+            update_fields=[
+                "password",
+                "must_change_password",
+                "updated_at",
+            ]
+        )
+
+        return self.user    
+    
 class UserForm(forms.ModelForm):
     """
     Formulaire de création et de modification d'un utilisateur.
