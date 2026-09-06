@@ -9,7 +9,6 @@ from django.forms import (
 )
 
 from apps.catalogs.models import CatalogValue
-from apps.projects.models import Project
 from apps.users.models import User
 from common.constants.meeting import (
     MEETING_COMMENTS_LENGTH,
@@ -22,7 +21,9 @@ from common.constants.meeting import (
 from common.forms.fields import CatalogModelChoiceField
 
 from .models import Meeting, MeetingParticipant
-
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 class MeetingForm(forms.ModelForm):
     """
@@ -152,8 +153,12 @@ class MeetingForm(forms.ModelForm):
                 }
             ),
         }
-
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        user=None,
+        **kwargs,
+    ) -> None:
         super().__init__(*args, **kwargs)
 
         self.fields["reference"].required = False
@@ -164,18 +169,27 @@ class MeetingForm(forms.ModelForm):
             "%Y-%m-%d %H:%M",
         )
 
-        self.fields["project"].queryset = (
-            Project.objects
-            .filter(is_active=True)
-            .select_related(
-                "owner_company",
-                "project_manager",
+        if user is None:
+            self.fields["project"].queryset = (
+                self.fields["project"]
+                .queryset
+                .none()
             )
-            .order_by(
-                "reference",
-                "name",
+        else:
+            self.fields["project"].queryset = (
+                ProjectAccessService
+                .get_accessible_projects(
+                    user
+                )
+                .select_related(
+                    "owner_company",
+                    "project_manager",
+                )
+                .order_by(
+                    "reference",
+                    "name",
+                )
             )
-        )
 
         self.fields["organizer"].queryset = (
             User.objects
@@ -196,7 +210,7 @@ class MeetingForm(forms.ModelForm):
             self._apply_catalog_default(
                 "status"
             )
-
+            
     def _configure_catalog_field(
         self,
         *,

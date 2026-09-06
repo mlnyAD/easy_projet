@@ -22,6 +22,9 @@ from .services.resource_schedule import (
 from .services.workload import (
     WeeklyWorkloadService,
 )
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 
 class PlanningHomeView(TemplateView):
@@ -93,7 +96,16 @@ class PlanningHomeView(TemplateView):
             state_date=state_date,
         )
 
-        project = self._get_selected_project()
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
+        project = self._get_selected_project(
+            accessible_projects=accessible_projects,
+        )
 
         selected_view = (
             self._get_selected_view()
@@ -108,9 +120,9 @@ class PlanningHomeView(TemplateView):
             .build(
                 period=period,
                 project=project,
+                accessible_projects=accessible_projects,
             )
         )
-
         # --------------------------------------------------------------
         # Plan de charge
         # --------------------------------------------------------------
@@ -121,9 +133,9 @@ class PlanningHomeView(TemplateView):
                 date_from=date_from,
                 date_to=date_to,
                 project=project,
+                accessible_projects=accessible_projects,
             )
         )
-
         # --------------------------------------------------------------
         # Planning ressources
         # --------------------------------------------------------------
@@ -134,9 +146,9 @@ class PlanningHomeView(TemplateView):
                 date_from=date_from,
                 date_to=date_to,
                 project=project,
+                accessible_projects=accessible_projects,
             )
         )
-
         # --------------------------------------------------------------
         # Calendrier
         # --------------------------------------------------------------
@@ -167,9 +179,9 @@ class PlanningHomeView(TemplateView):
                 year=calendar_year,
                 month=calendar_month,
                 project=project,
+                accessible_projects=accessible_projects,
             )
         )
-
         # --------------------------------------------------------------
         # Contexte
         # --------------------------------------------------------------
@@ -187,14 +199,7 @@ class PlanningHomeView(TemplateView):
                 "view_workload": self.VIEW_WORKLOAD,
                 "view_resources": self.VIEW_RESOURCES,
                 "view_calendar": self.VIEW_CALENDAR,
-                "projects": (
-                    Project.objects
-                    .filter(is_active=True)
-                    .order_by(
-                        "reference",
-                        "name",
-                    )
-                ),
+                "projects": accessible_projects,
             }
         )
 
@@ -202,12 +207,15 @@ class PlanningHomeView(TemplateView):
 
     def _get_selected_project(
         self,
+        *,
+        accessible_projects,
     ) -> Project | None:
         """
-        Retourne le projet sélectionné dans les paramètres GET.
+        Retourne le projet sélectionné parmi les projets
+        accessibles à l'utilisateur.
 
-        En l'absence de sélection, le planning porte sur
-        l'ensemble des projets actifs.
+        Sans sélection, le planning porte sur l'ensemble
+        des projets accessibles.
         """
 
         project_pk = (
@@ -219,12 +227,10 @@ class PlanningHomeView(TemplateView):
             return None
 
         return get_object_or_404(
-            Project.objects.filter(
-                is_active=True
-            ),
+            accessible_projects,
             pk=project_pk,
         )
-
+        
     def _get_selected_view(
         self,
     ) -> str:

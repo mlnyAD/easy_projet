@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -16,13 +18,14 @@ from django.views import View
 
 from apps.documents.models import DocumentFolder
 from apps.documents.services import DocumentFolderService
-from apps.projects.models import Project
-from django.contrib import messages
-from django.core.exceptions import ValidationError
+from apps.documents.views.mixins import (
+    ProjectDocumentAccessMixin,
+)
 
 
 class DocumentFolderCreateView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -35,9 +38,8 @@ class DocumentFolderCreateView(
         *,
         project_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
 
         name = request.POST.get(
@@ -82,6 +84,7 @@ class DocumentFolderCreateView(
 
 class DocumentFolderRenameView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -95,9 +98,8 @@ class DocumentFolderRenameView(
         project_id,
         folder_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
 
         folder = get_object_or_404(
@@ -134,6 +136,7 @@ class DocumentFolderRenameView(
 
 class DocumentFolderDeleteView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -147,9 +150,8 @@ class DocumentFolderDeleteView(
         project_id,
         folder_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
 
         folder = get_object_or_404(
@@ -196,11 +198,11 @@ class DocumentFolderDeleteView(
             "documents:explorer",
             project_id=project.pk,
         )
-    
-    
-       
+
+
 class DocumentFolderMoveView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -214,9 +216,8 @@ class DocumentFolderMoveView(
         project_id,
         folder_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
 
         folder = get_object_or_404(

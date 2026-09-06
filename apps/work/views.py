@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
 
@@ -15,6 +15,9 @@ from framework.integrations.django.list_pagination import (
 from framework.integrations.django.views import (
     EPCreateView,
     EPUpdateView,
+)
+from apps.projects.services.access import (
+    ProjectAccessService,
 )
 from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
@@ -34,8 +37,18 @@ class WorkPackageListView(
     context_object_name = "work_packages"
 
     def get_queryset(self):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
         return (
             WorkPackage.objects
+            .filter(
+                project__in=accessible_projects,
+            )
             .select_related(
                 "project",
                 "manager",
@@ -113,7 +126,11 @@ class WorkPackageListByProjectView(WorkPackageListView):
     def get_project(self) -> Project:
         if not hasattr(self, "_project"):
             self._project = get_object_or_404(
-                Project.objects.select_related(
+                ProjectAccessService
+                .get_accessible_projects(
+                    self.request.user
+                )
+                .select_related(
                     "owner_company",
                     "project_manager",
                     "status",
@@ -174,12 +191,18 @@ class WorkPackageListByProjectView(WorkPackageListView):
 
         return context
 
-
 class WorkPackageCreateView(EPCreateView):
     model = WorkPackage
     form_class = WorkPackageForm
     definition = WORK_PACKAGE_FORM_DEFINITION
     template_name = "edf/form/view.html"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs["user"] = self.request.user
+
+        return kwargs
 
     def get_return_url(self):
         candidate = self.request.GET.get("next")
@@ -188,13 +211,17 @@ class WorkPackageCreateView(EPCreateView):
             candidate
             and url_has_allowed_host_and_scheme(
                 candidate,
-                allowed_hosts={self.request.get_host()},
-                require_https=self.request.is_secure(),
+                allowed_hosts={
+                    self.request.get_host()
+                },
+                require_https=(
+                    self.request.is_secure()
+                ),
             )
         ):
             return candidate
 
-        return reverse_lazy("work:list")
+        return reverse("work:list")
 
     def get_success_url(self):
         return self.get_return_url()
@@ -209,7 +236,10 @@ class WorkPackageCreateView(EPCreateView):
 
         if project_pk:
             project = (
-                Project.objects
+                ProjectAccessService
+                .get_accessible_projects(
+                    self.request.user
+                )
                 .filter(
                     pk=project_pk,
                     is_active=True,
@@ -232,12 +262,38 @@ class WorkPackageCreateView(EPCreateView):
 
         return response
 
-
 class WorkPackageUpdateView(EPUpdateView):
     model = WorkPackage
     form_class = WorkPackageForm
     definition = WORK_PACKAGE_FORM_DEFINITION
     template_name = "edf/form/view.html"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs["user"] = self.request.user
+
+        return kwargs
+
+    def get_queryset(self):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
+        return (
+            WorkPackage.objects
+            .filter(
+                project__in=accessible_projects,
+            )
+            .select_related(
+                "project",
+                "manager",
+                "status",
+            )
+        )
 
     def get_return_url(self):
         candidate = self.request.GET.get("next")
@@ -246,13 +302,17 @@ class WorkPackageUpdateView(EPUpdateView):
             candidate
             and url_has_allowed_host_and_scheme(
                 candidate,
-                allowed_hosts={self.request.get_host()},
-                require_https=self.request.is_secure(),
+                allowed_hosts={
+                    self.request.get_host()
+                },
+                require_https=(
+                    self.request.is_secure()
+                ),
             )
         ):
             return candidate
 
-        return reverse_lazy("work:list")
+        return reverse("work:list")
 
     def get_success_url(self):
         return self.get_return_url()

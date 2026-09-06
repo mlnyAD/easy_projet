@@ -431,30 +431,30 @@ class ActivityReportProjectReview(TimeStampedModel):
         verbose_name="Validé le",
     )
 
-class Meta:
-    db_table = "activity_report_project_review"
-    ordering = [
-        "-activity_report__period_start_date",
-        "project__reference",
-        "activity_report__user__last_name",
-        "activity_report__user__first_name",
-    ]
-    constraints = [
-        models.UniqueConstraint(
-            fields=[
-                "activity_report",
-                "project",
-            ],
-            name="uniq_activity_report_project_review",
-        ),
-    ]
-    permissions = [
-        (
-            "review_activity_reports",
-            "Peut consulter et valider les rapports d'activité",
-        ),
-    ]
-    verbose_name = "Validation de rapport d'activité par projet"
-    verbose_name_plural = (
-        "Validations de rapports d'activité par projet"
-    )
+    class Meta:
+        db_table = "activity_report_project_review"
+        ordering = [
+            "-activity_report__period_start_date",
+            "project__reference",
+            "activity_report__user__last_name",
+            "activity_report__user__first_name",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "activity_report",
+                    "project",
+                ],
+                name="uniq_activity_report_project_review",
+            ),
+        ]
+        permissions = [
+            (
+                "review_activity_reports",
+                "Peut consulter et valider les rapports d'activité",
+            ),
+        ]
+        verbose_name = "Validation de rapport d'activité par projet"
+        verbose_name_plural = (
+            "Validations de rapports d'activité par projet"
+        )

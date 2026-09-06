@@ -2,8 +2,7 @@
 
 from datetime import date
 
-from django.test import TestCase, override_settings
-from django.urls import reverse
+from django.test import TestCase
 
 from apps.catalogs.models import (
     CatalogType,
@@ -12,6 +11,9 @@ from apps.catalogs.models import (
 from apps.companies.models import Company
 from apps.core.models import ClientEnvironment
 from apps.licenses.models import License
+from apps.licenses.services.access import (
+    LicenseAccessService,
+)
 from apps.projects.models import (
     Project,
     ProjectMembership,
@@ -19,27 +21,18 @@ from apps.projects.models import (
 from apps.users.models import User
 
 
-@override_settings(
-    DEV_AUTO_LOGIN=False,
-)
-class LicenseAccessViewTests(TestCase):
+class LicenseAccessServiceTests(TestCase):
     """
-    Tests HTTP de la politique d'accès aux licences.
+    Tests de la politique d'accès aux licences.
 
-    Règles :
-    - SYSTEM_ADMIN :
-      consultation de toutes les licences,
-      création et modification autorisées.
-    - CLIENT_ADMIN :
-      consultation des licences de son environnement,
-      création et modification interdites.
-    - PROJECT_MANAGER :
-      consultation des licences des environnements
-      correspondant à ses projets accessibles,
-      création et modification interdites.
-    - USER :
-      aucune licence visible,
-      création et modification interdites.
+    Deux environnements clients A et B sont créés.
+
+    Les règles testées sont :
+    - SYSTEM_ADMIN voit et administre tout ;
+    - CLIENT_ADMIN voit uniquement son environnement ;
+    - PROJECT_MANAGER voit les licences des environnements
+      de ses projets accessibles ;
+    - USER ne voit aucune licence.
     """
 
     @classmethod
@@ -49,7 +42,7 @@ class LicenseAccessViewTests(TestCase):
         # --------------------------------------------------------------
 
         cls.company_a = Company.objects.create(
-            name="Société A - Licences HTTP",
+            name="Société A - Licences",
         )
 
         cls.environment_a = ClientEnvironment.objects.create(
@@ -57,7 +50,7 @@ class LicenseAccessViewTests(TestCase):
         )
 
         cls.company_b = Company.objects.create(
-            name="Société B - Licences HTTP",
+            name="Société B - Licences",
         )
 
         cls.environment_b = ClientEnvironment.objects.create(
@@ -65,7 +58,7 @@ class LicenseAccessViewTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Rôles globaux
+        # Catalogue des rôles globaux
         # --------------------------------------------------------------
 
         cls.global_role_type = CatalogType.objects.create(
@@ -102,12 +95,12 @@ class LicenseAccessViewTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Niveau d'accès
+        # Niveau d'accès utilisateur
         # --------------------------------------------------------------
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_LIC_HTTP_ACCESS_LEVEL",
-            label="Niveau accès test licences HTTP",
+            code="TEST_LICENSE_ACCESS_LEVEL",
+            label="Niveau accès test licences",
         )
 
         cls.access_level = CatalogValue.objects.create(
@@ -138,8 +131,8 @@ class LicenseAccessViewTests(TestCase):
         # --------------------------------------------------------------
 
         cls.project_status_type = CatalogType.objects.create(
-            code="TEST_LIC_HTTP_PRJ_STATUS",
-            label="Statut projet test licences HTTP",
+            code="TEST_LICENSE_PROJECT_STATUS",
+            label="Statut projet test licences",
         )
 
         cls.project_status = CatalogValue.objects.create(
@@ -171,7 +164,7 @@ class LicenseAccessViewTests(TestCase):
 
         cls.system_admin = User.objects.create(
             company=cls.company_a,
-            email="license-http-system@example.com",
+            email="license-system-admin@example.com",
             first_name="System",
             last_name="Admin",
             global_role=cls.system_admin_role,
@@ -180,17 +173,21 @@ class LicenseAccessViewTests(TestCase):
 
         cls.client_admin = User.objects.create(
             company=cls.company_a,
-            email="license-http-client@example.com",
+            email="license-client-admin@example.com",
             first_name="Client",
             last_name="Admin",
             global_role=cls.client_admin_role,
             access_level=cls.access_level,
         )
 
-        # Employé par A mais affecté à un projet B.
+        # Le chef de projet est volontairement employé par A,
+        # mais sera membre uniquement d'un projet de B.
+        #
+        # Cela vérifie que son accès aux licences ne dépend pas
+        # de user.company.client_environment.
         cls.project_manager = User.objects.create(
             company=cls.company_a,
-            email="license-http-pm@example.com",
+            email="license-project-manager@example.com",
             first_name="Chef",
             last_name="Projet",
             global_role=cls.project_manager_role,
@@ -199,7 +196,7 @@ class LicenseAccessViewTests(TestCase):
 
         cls.standard_user = User.objects.create(
             company=cls.company_a,
-            email="license-http-user@example.com",
+            email="license-user@example.com",
             first_name="Utilisateur",
             last_name="Standard",
             global_role=cls.user_role,
@@ -212,7 +209,7 @@ class LicenseAccessViewTests(TestCase):
 
         cls.license_a = License.objects.create(
             client_environment=cls.environment_a,
-            reference="LIC-HTTP-A",
+            reference="LIC-A",
             status=cls.license_status,
             project_capacity=1,
             granted_at=date(2026, 9, 1),
@@ -220,20 +217,20 @@ class LicenseAccessViewTests(TestCase):
 
         cls.license_b = License.objects.create(
             client_environment=cls.environment_b,
-            reference="LIC-HTTP-B",
+            reference="LIC-B",
             status=cls.license_status,
             project_capacity=1,
             granted_at=date(2026, 9, 1),
         )
 
         # --------------------------------------------------------------
-        # Projet B accessible au chef de projet
+        # Projet B
         # --------------------------------------------------------------
 
         cls.project_b = Project.objects.create(
             company=cls.company_b,
-            reference="PRJ-LIC-HTTP-B",
-            name="Projet licences HTTP B",
+            reference="PRJ-LIC-B",
+            name="Projet licences B",
             status=cls.project_status,
         )
 
@@ -244,228 +241,189 @@ class LicenseAccessViewTests(TestCase):
         )
 
     # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
-    def login(self, user):
-        self.client.force_login(user)
-
-    # ------------------------------------------------------------------
     # SYSTEM_ADMIN
     # ------------------------------------------------------------------
 
-    def test_system_admin_list_contains_all_licenses(self):
-        self.login(self.system_admin)
-
-        response = self.client.get(
-            reverse("licenses:list")
-        )
-
-        self.assertEqual(
-            response.status_code,
-            200,
-        )
-
-        self.assertContains(
-            response,
-            self.license_a.reference,
-        )
-
-        self.assertContains(
-            response,
-            self.license_b.reference,
-        )
-
-    def test_system_admin_create_returns_200(self):
-        self.login(self.system_admin)
-
-        response = self.client.get(
-            reverse("licenses:create")
-        )
-
-        self.assertEqual(
-            response.status_code,
-            200,
-        )
-
-    def test_system_admin_update_returns_200(self):
-        self.login(self.system_admin)
-
-        response = self.client.get(
-            reverse(
-                "licenses:update",
-                kwargs={
-                    "pk": self.license_a.pk,
-                },
+    def test_system_admin_can_see_all_licenses(self):
+        license_ids = set(
+            LicenseAccessService
+            .get_accessible_licenses(
+                self.system_admin
+            )
+            .values_list(
+                "pk",
+                flat=True,
             )
         )
 
         self.assertEqual(
-            response.status_code,
-            200,
+            license_ids,
+            {
+                self.license_a.pk,
+                self.license_b.pk,
+            },
+        )
+
+    def test_system_admin_can_create_license(self):
+        self.assertTrue(
+            LicenseAccessService.can_create_license(
+                self.system_admin
+            )
+        )
+
+    def test_system_admin_can_update_license(self):
+        self.assertTrue(
+            LicenseAccessService.can_update_license(
+                self.system_admin,
+                self.license_a,
+            )
         )
 
     # ------------------------------------------------------------------
     # CLIENT_ADMIN
     # ------------------------------------------------------------------
 
-    def test_client_admin_list_only_contains_own_environment(self):
-        self.login(self.client_admin)
-
-        response = self.client.get(
-            reverse("licenses:list")
-        )
-
-        self.assertEqual(
-            response.status_code,
-            200,
-        )
-
-        self.assertContains(
-            response,
-            self.license_a.reference,
-        )
-
-        self.assertNotContains(
-            response,
-            self.license_b.reference,
-        )
-
-    def test_client_admin_create_returns_403(self):
-        self.login(self.client_admin)
-
-        response = self.client.get(
-            reverse("licenses:create")
-        )
-
-        self.assertEqual(
-            response.status_code,
-            403,
-        )
-
-    def test_client_admin_update_returns_403(self):
-        self.login(self.client_admin)
-
-        response = self.client.get(
-            reverse(
-                "licenses:update",
-                kwargs={
-                    "pk": self.license_a.pk,
-                },
+    def test_client_admin_only_sees_own_environment(self):
+        license_ids = set(
+            LicenseAccessService
+            .get_accessible_licenses(
+                self.client_admin
+            )
+            .values_list(
+                "pk",
+                flat=True,
             )
         )
 
         self.assertEqual(
-            response.status_code,
-            403,
+            license_ids,
+            {
+                self.license_a.pk,
+            },
+        )
+
+    def test_client_admin_cannot_create_license(self):
+        self.assertFalse(
+            LicenseAccessService.can_create_license(
+                self.client_admin
+            )
+        )
+
+    def test_client_admin_cannot_update_license(self):
+        self.assertFalse(
+            LicenseAccessService.can_update_license(
+                self.client_admin,
+                self.license_a,
+            )
         )
 
     # ------------------------------------------------------------------
     # PROJECT_MANAGER
     # ------------------------------------------------------------------
 
-    def test_project_manager_list_uses_project_environment(self):
-        self.login(self.project_manager)
-
-        response = self.client.get(
-            reverse("licenses:list")
-        )
-
-        self.assertEqual(
-            response.status_code,
-            200,
-        )
-
-        self.assertNotContains(
-            response,
-            self.license_a.reference,
-        )
-
-        self.assertContains(
-            response,
-            self.license_b.reference,
-        )
-
-    def test_project_manager_create_returns_403(self):
-        self.login(self.project_manager)
-
-        response = self.client.get(
-            reverse("licenses:create")
-        )
-
-        self.assertEqual(
-            response.status_code,
-            403,
-        )
-
-    def test_project_manager_update_returns_403(self):
-        self.login(self.project_manager)
-
-        response = self.client.get(
-            reverse(
-                "licenses:update",
-                kwargs={
-                    "pk": self.license_b.pk,
-                },
+    def test_project_manager_sees_project_environment_licenses(self):
+        license_ids = set(
+            LicenseAccessService
+            .get_accessible_licenses(
+                self.project_manager
+            )
+            .values_list(
+                "pk",
+                flat=True,
             )
         )
 
         self.assertEqual(
-            response.status_code,
-            403,
+            license_ids,
+            {
+                self.license_b.pk,
+            },
+        )
+
+    def test_project_manager_does_not_use_employer_environment(self):
+        self.assertFalse(
+            LicenseAccessService.can_view_license(
+                self.project_manager,
+                self.license_a,
+            )
+        )
+
+        self.assertTrue(
+            LicenseAccessService.can_view_license(
+                self.project_manager,
+                self.license_b,
+            )
+        )
+
+    def test_project_manager_cannot_create_license(self):
+        self.assertFalse(
+            LicenseAccessService.can_create_license(
+                self.project_manager
+            )
+        )
+
+    def test_project_manager_cannot_update_license(self):
+        self.assertFalse(
+            LicenseAccessService.can_update_license(
+                self.project_manager,
+                self.license_b,
+            )
         )
 
     # ------------------------------------------------------------------
     # USER
     # ------------------------------------------------------------------
 
-    def test_standard_user_list_contains_no_license(self):
-        self.login(self.standard_user)
-
-        response = self.client.get(
-            reverse("licenses:list")
+    def test_standard_user_sees_no_license(self):
+        self.assertFalse(
+            LicenseAccessService
+            .get_accessible_licenses(
+                self.standard_user
+            )
+            .exists()
         )
 
-        self.assertEqual(
-            response.status_code,
-            200,
-        )
-
-        self.assertNotContains(
-            response,
-            self.license_a.reference,
-        )
-
-        self.assertNotContains(
-            response,
-            self.license_b.reference,
-        )
-
-    def test_standard_user_create_returns_403(self):
-        self.login(self.standard_user)
-
-        response = self.client.get(
-            reverse("licenses:create")
-        )
-
-        self.assertEqual(
-            response.status_code,
-            403,
-        )
-
-    def test_standard_user_update_returns_403(self):
-        self.login(self.standard_user)
-
-        response = self.client.get(
-            reverse(
-                "licenses:update",
-                kwargs={
-                    "pk": self.license_a.pk,
-                },
+    def test_standard_user_cannot_create_or_update_license(self):
+        self.assertFalse(
+            LicenseAccessService.can_create_license(
+                self.standard_user
             )
         )
 
-        self.assertEqual(
-            response.status_code,
-            403,
+        self.assertFalse(
+            LicenseAccessService.can_update_license(
+                self.standard_user,
+                self.license_a,
+            )
+        )
+
+    # ------------------------------------------------------------------
+    # Utilisateur inactif
+    # ------------------------------------------------------------------
+
+    def test_inactive_system_admin_has_no_access(self):
+        self.system_admin.is_active = False
+        self.system_admin.save(
+            update_fields=["is_active"]
+        )
+
+        self.assertFalse(
+            LicenseAccessService
+            .get_accessible_licenses(
+                self.system_admin
+            )
+            .exists()
+        )
+
+        self.assertFalse(
+            LicenseAccessService.can_create_license(
+                self.system_admin
+            )
+        )
+
+        self.assertFalse(
+            LicenseAccessService.can_update_license(
+                self.system_admin,
+                self.license_a,
+            )
         )

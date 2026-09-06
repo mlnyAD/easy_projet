@@ -75,6 +75,27 @@ class UserTestDataMixin:
             label="Standard",
             is_active=True,
         )
+        
+        cls.admin_user = User.objects.create(
+            last_name="ADMIN",
+            first_name="Client",
+            email="admin.client@example.com",
+            company=cls.company,
+            global_role=cls.global_role,
+            access_level=cls.access_level,
+            is_active=True,
+        )
+
+        cls.admin_user.set_password(
+            "TestPassword123!"
+        )
+
+        cls.admin_user.save(
+            update_fields=[
+                "password",
+                "updated_at",
+            ]
+        )
 
         cls.other_catalog = CatalogType.objects.create(
             code="OTHER_CATALOG",
@@ -171,6 +192,7 @@ class UserFormTests(
     def test_valid_form_creates_user(self):
         form = UserForm(
             data=self.make_form_data(),
+            user=self.admin_user,
         )
 
         self.assertTrue(
@@ -209,7 +231,9 @@ class UserFormTests(
         self.assertIn("email", form.errors)
 
     def test_only_active_companies_are_available(self):
-        form = UserForm()
+        form = UserForm(
+            user=self.admin_user,
+        )
 
         company_queryset = form.fields["company"].queryset
 
@@ -252,6 +276,7 @@ class UserFormTests(
                 email=user.email,
             ),
             instance=user,
+            user=self.admin_user,
         )
 
         self.assertTrue(
@@ -312,6 +337,11 @@ class UserViewTests(
     UserTestDataMixin,
     TestCase,
 ):
+    def setUp(self) -> None:
+        self.client.force_login(
+            self.admin_user
+        )
+        
     def test_list_view_is_accessible(self):
         response = self.client.get(
             reverse("users:list"),

@@ -27,6 +27,7 @@ from django.contrib.auth.password_validation import (
     validate_password,
 )
 from django.core.exceptions import ValidationError
+from apps.users.services.access import UserAccessService
 
 
 class UserLoginForm(AuthenticationForm):
@@ -294,14 +295,23 @@ class UserForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        user: User | None = None,
+        **kwargs,
+    ) -> None:
         super().__init__(*args, **kwargs)
 
-        self.fields["company"].queryset = (
-            Company.objects
-            .filter(is_active=True)
-            .order_by("name")
-        )
+        if user is None:
+            self.fields["company"].queryset = (
+                Company.objects.none()
+            )
+        else:
+            self.fields["company"].queryset = (
+                UserAccessService
+                .get_assignable_companies(user)
+            )
 
         self._configure_catalog_field(
             field_name="employment_type",

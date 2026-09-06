@@ -1,6 +1,7 @@
 
 
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse_lazy
 from django.views.generic import ListView
 
@@ -22,6 +23,7 @@ from .form_definition import (
 from .forms import LicenseForm
 from .lists import LICENSE_LIST_DEFINITION
 from .models import License
+from .services.access import LicenseAccessService
 
 
 class LicenseListView(
@@ -33,17 +35,8 @@ class LicenseListView(
     context_object_name = "licenses"
 
     def get_queryset(self):
-        return (
-            License.objects
-            .select_related(
-                "client_environment",
-                "client_environment__company",
-                "status",
-            )
-            .order_by(
-                "-granted_at",
-                "reference",
-            )
+        return LicenseAccessService.get_accessible_licenses(
+            self.request.user
         )
 
     def get_context_data(self, **kwargs):
@@ -81,6 +74,12 @@ class LicenseListView(
             "licenses/license_actions.html"
         )
 
+        context["can_create_license"] = (
+            LicenseAccessService.can_create_license(
+                self.request.user
+            )
+        )
+
         return context
 
 
@@ -92,6 +91,18 @@ class LicenseCreateView(EPCreateView):
 
     success_url = reverse_lazy("licenses:list")
     cancel_url = reverse_lazy("licenses:list")
+
+    def dispatch(self, request, *args, **kwargs):
+        if not LicenseAccessService.can_create_license(
+            request.user
+        ):
+            raise PermissionDenied
+
+        return super().dispatch(
+            request,
+            *args,
+            **kwargs,
+        )
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -115,6 +126,26 @@ class LicenseUpdateView(EPUpdateView):
 
     success_url = reverse_lazy("licenses:list")
     cancel_url = reverse_lazy("licenses:list")
+
+    def dispatch(self, request, *args, **kwargs):
+        if not LicenseAccessService.can_update_license(
+            request.user
+        ):
+            raise PermissionDenied
+
+        return super().dispatch(
+            request,
+            *args,
+            **kwargs,
+        )
+
+    def get_queryset(self):
+        return (
+            LicenseAccessService
+            .get_accessible_licenses(
+                self.request.user
+            )
+        )
 
     def form_valid(self, form):
         response = super().form_valid(form)

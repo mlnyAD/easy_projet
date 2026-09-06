@@ -12,7 +12,9 @@ from django.views import View
 
 from apps.documents.forms import DocumentCreateForm
 from apps.documents.services import DocumentService
-from apps.projects.models import Project
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 
 class DocumentCreateView(
@@ -32,12 +34,16 @@ class DocumentCreateView(
         project_id,
     ):
         return get_object_or_404(
-            Project.objects.select_related(
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+            .select_related(
                 "company",
             ),
             pk=project_id,
         )
-
+        
     def get(
         self,
         request,

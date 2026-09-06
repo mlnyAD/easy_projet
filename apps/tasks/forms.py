@@ -11,6 +11,7 @@ from django import forms
 from apps.catalogs.models import CatalogValue
 from apps.users.models import User
 from apps.work.models import WorkPackage
+from apps.projects.services.access import ProjectAccessService
 from common.constants.task import (
     TASK_ASSIGNMENT_DEFAULT_ALLOCATION_PERCENT,
     TASK_ASSIGNMENT_MAX_ALLOCATION_PERCENT,
@@ -141,21 +142,41 @@ class TaskForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        user=None,
+        **kwargs,
+    ) -> None:
         super().__init__(*args, **kwargs)
 
         self.fields["code"].required = False
 
-        self.fields["work_package"].queryset = (
-            WorkPackage.objects
-            .filter(is_active=True)
-            .select_related("project")
-            .order_by(
-                "project__reference",
-                "code",
-                "name",
+        if user is None:
+            self.fields["work_package"].queryset = (
+                self.fields["work_package"]
+                .queryset
+                .none()
             )
-        )
+        else:
+            accessible_projects = (
+                ProjectAccessService
+                .get_accessible_projects(user)
+            )
+
+            self.fields["work_package"].queryset = (
+                WorkPackage.objects
+                .filter(
+                    project__in=accessible_projects,
+                    is_active=True,
+                )
+                .select_related("project")
+                .order_by(
+                    "project__reference",
+                    "code",
+                    "name",
+                )
+            )
 
         self._configure_catalog_field(
             field_name="status",
@@ -164,7 +185,8 @@ class TaskForm(forms.ModelForm):
 
         if not self.is_bound and not self.instance.pk:
             self._apply_catalog_default("status")
-
+        
+        
     def _configure_catalog_field(
         self,
         *,

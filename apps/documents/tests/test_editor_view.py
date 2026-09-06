@@ -17,7 +17,10 @@ from apps.documents.models import (
 from apps.documents.services import DocumentService
 from apps.documents.storage import FileSystemDocumentStorage
 from apps.integrations.models import ExternalIntegration
-from apps.projects.models import Project
+from apps.projects.models import (
+    Project,
+    ProjectMembership,
+)
 from apps.users.models import User
 
 
@@ -106,11 +109,37 @@ class DocumentEditorViewTests(TestCase):
             sort_order=10,
         )
 
+        # --------------------------------------------------------------
+        # Catalogue USER_PROJECT_ROLE
+        # --------------------------------------------------------------
+
+        cls.project_role_type = CatalogType.objects.create(
+            code="USER_PROJECT_ROLE",
+            label="Rôle sur projet",
+        )
+
+        cls.project_role = CatalogValue.objects.create(
+            catalog_type=cls.project_role_type,
+            code="USER",
+            label="Utilisateur",
+            sort_order=10,
+        )
+
         cls.project = Project.objects.create(
             company=cls.company,
             reference="PRJ-GED-EDITOR-001",
             name="Projet éditeur GED",
             status=cls.project_status,
+        )
+        
+        # --------------------------------------------------------------
+        # Affectation au projet
+        # --------------------------------------------------------------
+
+        ProjectMembership.objects.create(
+            project=cls.project,
+            user=cls.user,
+            role=cls.project_role,
         )
 
         # --------------------------------------------------------------

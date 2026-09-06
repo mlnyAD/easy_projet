@@ -27,7 +27,9 @@ from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import (
     ListViewModelBuilder,
 )
-
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 from .form_definition import TASK_FORM_DEFINITION
 from .forms import (
     TaskAssignmentFormSet,
@@ -38,15 +40,27 @@ from .lists import TASK_LIST_DEFINITION
 from .models import Task
 
 
-def build_task_assignment_context():
+def build_task_assignment_context(
+    *,
+    user,
+):
     """
     Prépare les données nécessaires à la sélection dynamique
     des personnes affectables à une tâche.
+
+    Seuls les projets accessibles à l'utilisateur courant
+    sont exposés au navigateur.
     """
+
+    accessible_projects = (
+        ProjectAccessService
+        .get_accessible_projects(user)
+    )
 
     memberships = (
         ProjectMembership.objects
         .filter(
+            project__in=accessible_projects,
             is_active=True,
             user__is_active=True,
             project__is_active=True,
@@ -98,7 +112,10 @@ def build_task_assignment_context():
         }
         for work_package in (
             WorkPackage.objects
-            .filter(is_active=True)
+            .filter(
+                project__in=accessible_projects,
+                is_active=True,
+            )
             .select_related("project")
         )
     ]
@@ -109,7 +126,6 @@ def build_task_assignment_context():
             work_packages_data
         ),
     }
-
 
 class TaskListView(
     EPListPaginationMixin,
@@ -124,8 +140,20 @@ class TaskListView(
     context_object_name = "tasks"
 
     def get_queryset(self):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
         return (
             Task.objects
+            .filter(
+                work_package__project__in=(
+                    accessible_projects
+                ),
+            )
             .select_related(
                 "work_package",
                 "work_package__project",
@@ -138,7 +166,7 @@ class TaskListView(
                 "name",
             )
         )
-
+        
     def get_context_data(
         self,
         **kwargs,
@@ -228,9 +256,21 @@ class TaskListByWorkPackageView(
             self,
             "_work_package",
         ):
+            accessible_projects = (
+                ProjectAccessService
+                .get_accessible_projects(
+                    self.request.user
+                )
+            )
+
             self._work_package = (
                 get_object_or_404(
                     WorkPackage.objects
+                    .filter(
+                        project__in=(
+                            accessible_projects
+                        ),
+                    )
                     .select_related(
                         "project",
                     ),
@@ -469,6 +509,13 @@ class TaskFormCollectionsMixin:
             ),
         }
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs["user"] = self.request.user
+
+        return kwargs
+
     def get_context_data(
         self,
         **kwargs,
@@ -486,7 +533,9 @@ class TaskFormCollectionsMixin:
         context["current_project"] = project
 
         context.update(
-            build_task_assignment_context()
+            build_task_assignment_context(
+                user=self.request.user,
+            )
         )
 
         context["form_extra_template"] = (
@@ -588,10 +637,18 @@ class TaskCreateView(
         )
 
         if work_package_pk:
+            accessible_projects = (
+                ProjectAccessService
+                .get_accessible_projects(
+                    self.request.user
+                )
+            )
+
             work_package = (
                 WorkPackage.objects
                 .filter(
                     pk=work_package_pk,
+                    project__in=accessible_projects,
                     is_active=True,
                 )
                 .select_related(
@@ -644,10 +701,18 @@ class TaskCreateView(
         if not work_package_pk:
             return None
 
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
         work_package = (
             WorkPackage.objects
             .filter(
                 pk=work_package_pk,
+                project__in=accessible_projects,
                 is_active=True,
             )
             .select_related(
@@ -655,7 +720,7 @@ class TaskCreateView(
             )
             .first()
         )
-
+        
         if work_package is None:
             return None
 
@@ -676,8 +741,20 @@ class TaskUpdateView(
     )
 
     def get_queryset(self):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
         return (
             Task.objects
+            .filter(
+                work_package__project__in=(
+                    accessible_projects
+                ),
+            )
             .select_related(
                 "work_package",
                 "work_package__project",

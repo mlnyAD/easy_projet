@@ -6,6 +6,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 
 from apps.documents.models import DocumentFavorite
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 
 class DocumentFavoriteListView(
@@ -13,7 +16,8 @@ class DocumentFavoriteListView(
     ListView,
 ):
     """
-    Liste des documents favoris de l'utilisateur connecté.
+    Liste des documents favoris accessibles
+    à l'utilisateur connecté.
     """
 
     model = DocumentFavorite
@@ -21,10 +25,20 @@ class DocumentFavoriteListView(
     context_object_name = "favorites"
 
     def get_queryset(self):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
         return (
             DocumentFavorite.objects
             .filter(
                 user=self.request.user,
+                document__project__in=(
+                    accessible_projects
+                ),
             )
             .select_related(
                 "document",

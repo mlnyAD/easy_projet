@@ -19,11 +19,13 @@ from apps.documents.services import (
     DocumentFavoriteService,
     DocumentService,
 )
-from apps.projects.models import Project
-
-
+from apps.documents.views.mixins import (
+    ProjectDocumentAccessMixin,
+)
+        
 class DocumentRenameView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -37,9 +39,8 @@ class DocumentRenameView(
         project_id,
         document_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
 
         document = get_object_or_404(
@@ -84,6 +85,7 @@ class DocumentRenameView(
 
 class DocumentMoveView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -97,9 +99,8 @@ class DocumentMoveView(
         project_id,
         document_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
 
         document = get_object_or_404(
@@ -158,6 +159,7 @@ class DocumentMoveView(
 
 class DocumentCopyView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -171,9 +173,8 @@ class DocumentCopyView(
         project_id,
         document_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
 
         document = get_object_or_404(
@@ -245,6 +246,7 @@ class DocumentCopyView(
 
 class DocumentFavoriteAddView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -258,9 +260,8 @@ class DocumentFavoriteAddView(
         project_id,
         document_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
 
         document = get_object_or_404(
@@ -290,6 +291,7 @@ class DocumentFavoriteAddView(
 
 class DocumentFavoriteRemoveView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -303,9 +305,8 @@ class DocumentFavoriteRemoveView(
         project_id,
         document_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
 
         document = get_object_or_404(
@@ -335,6 +336,7 @@ class DocumentFavoriteRemoveView(
 
 class DocumentDeleteView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -348,11 +350,10 @@ class DocumentDeleteView(
         project_id,
         document_id,
     ) -> HttpResponse:
-        project = get_object_or_404(
-            Project,
-            pk=project_id,
+        project = self.get_project(
+            project_id=project_id,
         )
-
+        
         document = get_object_or_404(
             Document.objects.select_related(
                 "folder",

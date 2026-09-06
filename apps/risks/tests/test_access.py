@@ -13,20 +13,19 @@ from apps.projects.models import (
     Project,
     ProjectMembership,
 )
+from apps.risks.models import Risk
 from apps.users.models import User
-
-from apps.work.models import WorkPackage
 
 
 @override_settings(
     DEV_AUTO_LOGIN=False,
 )
-class WorkPackageAccessTests(TestCase):
+class RiskAccessTests(TestCase):
     """
-    Tests de cloisonnement des lots de travaux par projet accessible.
+    Tests de cloisonnement des risques par projet accessible.
 
     L'utilisateur est affecté uniquement au projet A.
-    Le projet B appartient à un autre environnement client.
+    Il ne doit ni voir ni modifier les risques du projet B.
     """
 
     @classmethod
@@ -36,19 +35,23 @@ class WorkPackageAccessTests(TestCase):
         # --------------------------------------------------------------
 
         cls.company_a = Company.objects.create(
-            name="Société A - Work",
+            name="Société A - Risques",
         )
 
-        cls.environment_a = ClientEnvironment.objects.create(
-            company=cls.company_a,
+        cls.environment_a = (
+            ClientEnvironment.objects.create(
+                company=cls.company_a,
+            )
         )
 
         cls.company_b = Company.objects.create(
-            name="Société B - Work",
+            name="Société B - Risques",
         )
 
-        cls.environment_b = ClientEnvironment.objects.create(
-            company=cls.company_b,
+        cls.environment_b = (
+            ClientEnvironment.objects.create(
+                company=cls.company_b,
+            )
         )
 
         # --------------------------------------------------------------
@@ -56,8 +59,8 @@ class WorkPackageAccessTests(TestCase):
         # --------------------------------------------------------------
 
         cls.global_role_type = CatalogType.objects.create(
-            code="TEST_WORK_GLOBAL_ROLE",
-            label="Rôle global test Work",
+            code="TEST_RISK_GLOBAL_ROLE",
+            label="Rôle global test risques",
         )
 
         cls.global_role = CatalogValue.objects.create(
@@ -68,8 +71,8 @@ class WorkPackageAccessTests(TestCase):
         )
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_WORK_ACCESS_LEVEL",
-            label="Niveau accès test Work",
+            code="TEST_RISK_ACCESS_LEVEL",
+            label="Niveau accès test risques",
         )
 
         cls.access_level = CatalogValue.objects.create(
@@ -85,9 +88,9 @@ class WorkPackageAccessTests(TestCase):
 
         cls.user = User.objects.create(
             company=cls.company_a,
-            email="work-user@example.com",
+            email="risk-user@example.com",
             first_name="Jean",
-            last_name="Work",
+            last_name="Risque",
             global_role=cls.global_role,
             access_level=cls.access_level,
         )
@@ -113,8 +116,8 @@ class WorkPackageAccessTests(TestCase):
         # --------------------------------------------------------------
 
         cls.project_status_type = CatalogType.objects.create(
-            code="TEST_WORK_PROJECT_STATUS",
-            label="Statut projet test Work",
+            code="TEST_RISK_PROJECT_STATUS",
+            label="Statut projet test",
         )
 
         cls.project_status = CatalogValue.objects.create(
@@ -125,44 +128,24 @@ class WorkPackageAccessTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Statut lot de travaux
-        #
-        # Celui-ci utilise volontairement le vrai code attendu
-        # par WorkPackageForm.
-        # --------------------------------------------------------------
-
-        cls.work_status_type = CatalogType.objects.create(
-            code="WORK_PACKAGE_STATUS",
-            label="Statut lot de travaux",
-        )
-
-        cls.work_status = CatalogValue.objects.create(
-            catalog_type=cls.work_status_type,
-            code="IN_PROGRESS",
-            label="En cours",
-            sort_order=10,
-            is_default=True,
-        )
-
-        # --------------------------------------------------------------
         # Projets A et B
         # --------------------------------------------------------------
 
         cls.project_a = Project.objects.create(
             company=cls.company_a,
-            reference="PRJ-WORK-A",
-            name="Projet Work A",
+            reference="PRJ-RISK-A",
+            name="Projet risques A",
             status=cls.project_status,
         )
 
         cls.project_b = Project.objects.create(
             company=cls.company_b,
-            reference="PRJ-WORK-B",
-            name="Projet Work B",
+            reference="PRJ-RISK-B",
+            name="Projet risques B",
             status=cls.project_status,
         )
 
-        # L'utilisateur est affecté uniquement au projet A.
+        # L'utilisateur n'est affecté qu'au projet A.
 
         ProjectMembership.objects.create(
             project=cls.project_a,
@@ -171,19 +154,116 @@ class WorkPackageAccessTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Lots de travaux
+        # Catalogues Risk
         # --------------------------------------------------------------
 
-        cls.work_package_a = WorkPackage.objects.create(
-            project=cls.project_a,
-            status=cls.work_status,
-            name="Lot accessible A",
+        cls.origin = cls.create_catalog_value(
+            catalog_code="RISK_ORIGIN",
+            value_code="INTERNAL",
+            label="Interne",
         )
 
-        cls.work_package_b = WorkPackage.objects.create(
+        cls.risk_type = cls.create_catalog_value(
+            catalog_code="RISK_TYPE",
+            value_code="RISK",
+            label="Risque",
+        )
+
+        cls.risk_class = cls.create_catalog_value(
+            catalog_code="RISK_CLASS",
+            value_code="TECHNICAL",
+            label="Technique",
+        )
+
+        cls.impact = cls.create_catalog_value(
+            catalog_code="RISK_IMPACT",
+            value_code="COST",
+            label="Coût",
+        )
+
+        cls.severity = cls.create_catalog_value(
+            catalog_code="RISK_GRAVITY",
+            value_code="MEDIUM",
+            label="Moyenne",
+        )
+
+        cls.probability = cls.create_catalog_value(
+            catalog_code="RISK_PROBABILITY",
+            value_code="MEDIUM",
+            label="Moyenne",
+        )
+
+        cls.status = cls.create_catalog_value(
+            catalog_code="RISK_STATE",
+            value_code="ACTIVE",
+            label="Actif",
+        )
+
+        cls.criticality = cls.create_catalog_value(
+            catalog_code="RISK_CRITICALITY",
+            value_code="MEDIUM",
+            label="Moyenne",
+        )
+
+        cls.review_frequency = cls.create_catalog_value(
+            catalog_code="RISK_REVIEW_FREQUENCY",
+            value_code="MONTHLY",
+            label="Mensuelle",
+        )
+
+        # --------------------------------------------------------------
+        # Risques
+        # --------------------------------------------------------------
+
+        cls.risk_a = cls.create_risk(
+            project=cls.project_a,
+            title="Risque accessible A",
+        )
+
+        cls.risk_b = cls.create_risk(
             project=cls.project_b,
-            status=cls.work_status,
-            name="Lot inaccessible B",
+            title="Risque inaccessible B",
+        )
+
+    @classmethod
+    def create_catalog_value(
+        cls,
+        *,
+        catalog_code,
+        value_code,
+        label,
+    ):
+        catalog_type = CatalogType.objects.create(
+            code=catalog_code,
+            label=catalog_code,
+        )
+
+        return CatalogValue.objects.create(
+            catalog_type=catalog_type,
+            code=value_code,
+            label=label,
+            sort_order=10,
+        )
+
+    @classmethod
+    def create_risk(
+        cls,
+        *,
+        project,
+        title,
+    ):
+        return Risk.objects.create(
+            project=project,
+            origin=cls.origin,
+            risk_type=cls.risk_type,
+            risk_class=cls.risk_class,
+            impact=cls.impact,
+            severity=cls.severity,
+            probability=cls.probability,
+            status=cls.status,
+            criticality=cls.criticality,
+            review_frequency=cls.review_frequency,
+            title=title,
         )
 
     def setUp(self):
@@ -199,25 +279,35 @@ class WorkPackageAccessTests(TestCase):
         self,
         *,
         project,
-        work_package=None,
-        name="Lot formulaire",
+        risk=None,
+        title="Risque formulaire",
     ):
         return {
             "project": str(project.pk),
-            "code": (
-                work_package.code
-                if work_package is not None
+            "owner": "",
+            "origin": str(self.origin.pk),
+            "risk_type": str(self.risk_type.pk),
+            "risk_class": str(self.risk_class.pk),
+            "impact": str(self.impact.pk),
+            "severity": str(self.severity.pk),
+            "probability": str(self.probability.pk),
+            "status": str(self.status.pk),
+            "criticality": str(self.criticality.pk),
+            "review_frequency": str(
+                self.review_frequency.pk
+            ),
+            "reference": (
+                risk.reference
+                if risk is not None
                 else ""
             ),
-            "name": name,
+            "title": title,
             "description": "",
-            "status": str(self.work_status.pk),
-            "manager": "",
-            "initial_start_date": "",
-            "initial_end_date": "",
-            "start_date": "",
-            "end_date": "",
-            "planned_workload_hours": "0",
+            "occurrence_date": "",
+            "closure_date": "",
+            "estimated_cost": "",
+            "last_review_date": "",
+            "planned_actions": "",
             "is_active": "on",
         }
 
@@ -225,11 +315,11 @@ class WorkPackageAccessTests(TestCase):
     # Liste globale
     # ------------------------------------------------------------------
 
-    def test_global_list_only_contains_accessible_work_packages(
-        self,
-    ):
+    def test_global_list_only_contains_accessible_risks(self):
         response = self.client.get(
-            reverse("work:list")
+            reverse(
+                "risks:list",
+            )
         )
 
         self.assertEqual(
@@ -239,12 +329,12 @@ class WorkPackageAccessTests(TestCase):
 
         self.assertContains(
             response,
-            self.work_package_a.name,
+            self.risk_a.title,
         )
 
         self.assertNotContains(
             response,
-            self.work_package_b.name,
+            self.risk_b.title,
         )
 
     # ------------------------------------------------------------------
@@ -254,7 +344,7 @@ class WorkPackageAccessTests(TestCase):
     def test_accessible_project_list_returns_200(self):
         response = self.client.get(
             reverse(
-                "work:list-by-project",
+                "risks:list-by-project",
                 kwargs={
                     "project_pk": self.project_a.pk,
                 },
@@ -269,7 +359,7 @@ class WorkPackageAccessTests(TestCase):
     def test_inaccessible_project_list_returns_404(self):
         response = self.client.get(
             reverse(
-                "work:list-by-project",
+                "risks:list-by-project",
                 kwargs={
                     "project_pk": self.project_b.pk,
                 },
@@ -287,7 +377,9 @@ class WorkPackageAccessTests(TestCase):
 
     def test_create_form_only_contains_accessible_projects(self):
         response = self.client.get(
-            reverse("work:create")
+            reverse(
+                "risks:create",
+            )
         )
 
         self.assertEqual(
@@ -298,7 +390,9 @@ class WorkPackageAccessTests(TestCase):
         form = response.context["form"]
 
         project_ids = set(
-            form.fields["project"]
+            form.fields[
+                "project"
+            ]
             .queryset
             .values_list(
                 "pk",
@@ -318,10 +412,12 @@ class WorkPackageAccessTests(TestCase):
 
     def test_create_with_accessible_project_succeeds(self):
         response = self.client.post(
-            reverse("work:create"),
+            reverse(
+                "risks:create",
+            ),
             data=self.build_post_data(
                 project=self.project_a,
-                name="Nouveau lot A",
+                title="Nouveau risque A",
             ),
         )
 
@@ -331,15 +427,15 @@ class WorkPackageAccessTests(TestCase):
         )
 
         self.assertTrue(
-            WorkPackage.objects.filter(
+            Risk.objects.filter(
                 project=self.project_a,
-                name="Nouveau lot A",
+                title="Nouveau risque A",
             ).exists()
         )
 
     def test_create_with_inaccessible_project_is_rejected(self):
         initial_count = (
-            WorkPackage.objects
+            Risk.objects
             .filter(
                 project=self.project_b,
             )
@@ -347,10 +443,12 @@ class WorkPackageAccessTests(TestCase):
         )
 
         response = self.client.post(
-            reverse("work:create"),
+            reverse(
+                "risks:create",
+            ),
             data=self.build_post_data(
                 project=self.project_b,
-                name="Tentative lot B",
+                title="Tentative risque B",
             ),
         )
 
@@ -360,7 +458,7 @@ class WorkPackageAccessTests(TestCase):
         )
 
         self.assertEqual(
-            WorkPackage.objects
+            Risk.objects
             .filter(
                 project=self.project_b,
             )
@@ -372,12 +470,12 @@ class WorkPackageAccessTests(TestCase):
     # Modification
     # ------------------------------------------------------------------
 
-    def test_accessible_work_package_update_returns_200(self):
+    def test_accessible_risk_update_returns_200(self):
         response = self.client.get(
             reverse(
-                "work:update",
+                "risks:update",
                 kwargs={
-                    "pk": self.work_package_a.pk,
+                    "pk": self.risk_a.pk,
                 },
             )
         )
@@ -387,12 +485,12 @@ class WorkPackageAccessTests(TestCase):
             200,
         )
 
-    def test_inaccessible_work_package_update_returns_404(self):
+    def test_inaccessible_risk_update_returns_404(self):
         response = self.client.get(
             reverse(
-                "work:update",
+                "risks:update",
                 kwargs={
-                    "pk": self.work_package_b.pk,
+                    "pk": self.risk_b.pk,
                 },
             )
         )
@@ -402,20 +500,18 @@ class WorkPackageAccessTests(TestCase):
             404,
         )
 
-    def test_update_cannot_move_work_package_to_inaccessible_project(
-        self,
-    ):
+    def test_update_cannot_move_risk_to_inaccessible_project(self):
         response = self.client.post(
             reverse(
-                "work:update",
+                "risks:update",
                 kwargs={
-                    "pk": self.work_package_a.pk,
+                    "pk": self.risk_a.pk,
                 },
             ),
             data=self.build_post_data(
                 project=self.project_b,
-                work_package=self.work_package_a,
-                name=self.work_package_a.name,
+                risk=self.risk_a,
+                title=self.risk_a.title,
             ),
         )
 
@@ -424,9 +520,9 @@ class WorkPackageAccessTests(TestCase):
             200,
         )
 
-        self.work_package_a.refresh_from_db()
+        self.risk_a.refresh_from_db()
 
         self.assertEqual(
-            self.work_package_a.project_id,
+            self.risk_a.project_id,
             self.project_a.pk,
         )

@@ -19,6 +19,9 @@ from apps.documents.integrations import (
 from apps.documents.models import (
     DocumentVersion,
 )
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 
 class DocumentCadViewerView(
@@ -39,12 +42,24 @@ class DocumentCadViewerView(
         *,
         version_id,
     ):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                request.user
+            )
+        )
+
         version = get_object_or_404(
             DocumentVersion.objects
             .select_related(
                 "document",
                 "document__project",
                 "document__project__company",
+            )
+            .filter(
+                document__project__in=(
+                    accessible_projects
+                ),
             ),
             pk=version_id,
         )

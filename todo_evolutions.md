@@ -67,6 +67,7 @@ A faire :
 ### Sociétés
 SIRET : Placeholder affiche un format qui n'est pas repris après la saisie
 PAYS : Mettre par défaut la France en présaisie
+Liste des sociétés : mettre un badge sur les sociétés ayant au moins un licence
 
 ### Contacts
 1er caractère du prénom en MAJ
@@ -81,3 +82,18 @@ Liste : Revoir les critères de filtres
 
 ### Import photos
 Pour la suite, je garderais en tête deux évolutions seulement : preview_fit différencié entre photo utilisateur (cover) et logo société (contain), puis plus tard une vraie sélection de société active si le modèle multi-société évolue. Pour l’instant, ce n’est pas bloquant.
+
+### Login
+Donner la possibilité de visualiser le mot de passe lors de la saisie
+Dans la liste des utilisateurs, ne pas mettre les icônes superposées mais en ligne
+
+### Affichage des listes
+Si on sélectionne un article en page 2, après rafraichissement, on revient en page 1
+Rester sur la page en cours
+
+### Transaction projet
+Rubrique Chef de projet : ne proposer que des utilisateurs de sociétés l'environnement client
+Rubrique utilisateurs : ne proposer que des utilisateurs de sociétés l'environnement client
+
+### Transaction licences
+Liste des licences : n'afficher que les licences de la société de l'utilisateur

@@ -7,7 +7,10 @@ from apps.catalogs.models import CatalogType, CatalogValue
 from apps.companies.models import Company
 from apps.documents.models import DocumentFolder
 from apps.licenses.models import ClientEnvironment
-from apps.projects.models import Project
+from apps.projects.models import (
+    Project,
+    ProjectMembership,
+)
 from apps.users.models import User
 
 
@@ -81,11 +84,33 @@ class DocumentFolderViewTests(TestCase):
             )
         )
 
+        cls.project_role_type = (
+            CatalogType.objects.create(
+                code="USER_PROJECT_ROLE",
+                label="Rôle sur projet",
+            )
+        )
+
+        cls.project_role = (
+            CatalogValue.objects.create(
+                catalog_type=cls.project_role_type,
+                code="USER",
+                label="Utilisateur",
+                sort_order=10,
+            )
+        )
+
         cls.project = Project.objects.create(
             company=cls.company,
             reference="PRJ-GED-FOLDER-VIEW-001",
             name="Projet vues dossiers GED",
             status=cls.project_status,
+        )
+        
+        ProjectMembership.objects.create(
+            project=cls.project,
+            user=cls.user,
+            role=cls.project_role,
         )
 
     def setUp(self):
@@ -238,7 +263,7 @@ class DocumentFolderViewTests(TestCase):
             ).exists()
         )
 
-    def test_delete_non_empty_folder_returns_400(self):
+    def test_delete_non_empty_folder_redirects(self):
         parent = DocumentFolder.objects.create(
             project=self.project,
             name="Plans",
@@ -262,7 +287,7 @@ class DocumentFolderViewTests(TestCase):
 
         self.assertEqual(
             response.status_code,
-            400,
+            302,
         )
 
         self.assertTrue(

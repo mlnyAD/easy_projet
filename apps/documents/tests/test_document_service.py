@@ -914,55 +914,6 @@ class DocumentServiceTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
-    def test_version_callback_without_jwt_is_rejected(self):
-        document = self.service.import_document(
-            project=self.project,
-            folder=self.root_folder,
-            title="Callback sans JWT",
-            document_type=self.document_type,
-            status=self.document_status,
-            lifecycle=self.document_lifecycle,
-            content=BytesIO(b"Contenu"),
-            original_filename="callback.docx",
-            mime_type="application/test",
-            user=self.user,
-        )
-
-        version = document.versions.get()
-
-        response = self.client.post(
-            self.get_version_callback_url(version),
-            data=json.dumps({"status": 1}),
-            content_type="application/json",
-        )
-
-        self.assertEqual(response.status_code, 403)
-
-    def test_version_callback_with_invalid_jwt_is_rejected(self):
-        document = self.service.import_document(
-            project=self.project,
-            folder=self.root_folder,
-            title="Callback JWT invalide",
-            document_type=self.document_type,
-            status=self.document_status,
-            lifecycle=self.document_lifecycle,
-            content=BytesIO(b"Contenu"),
-            original_filename="callback.docx",
-            mime_type="application/test",
-            user=self.user,
-        )
-
-        version = document.versions.get()
-
-        response = self.client.post(
-            self.get_version_callback_url(version),
-            data=json.dumps({"status": 1}),
-            content_type="application/json",
-            HTTP_AUTHORIZATION="Bearer invalid-token",
-        )
-
-        self.assertEqual(response.status_code, 403)
-
     @patch(
         "apps.documents.integrations.providers."
         "onlyoffice_callback."

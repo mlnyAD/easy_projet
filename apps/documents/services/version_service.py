@@ -101,7 +101,7 @@ class DocumentVersionService:
                     BytesIO(content_bytes),
                 )
 
-                version = DocumentVersion.objects.create(
+                version = DocumentVersion(
                     document=locked_document,
                     version_number=version_number,
                     original_filename=filename,
@@ -112,7 +112,12 @@ class DocumentVersionService:
                     created_by=user,
                 )
 
+                version.full_clean()
+                version.save()
+
                 locked_document.current_version = version
+
+                locked_document.full_clean()
 
                 locked_document.save(
                     update_fields=[
@@ -121,7 +126,7 @@ class DocumentVersionService:
                     ]
                 )
 
-                DocumentHistory.objects.create(
+                history = DocumentHistory(
                     document=locked_document,
                     version=version,
                     action=(
@@ -133,6 +138,9 @@ class DocumentVersionService:
                         f"{version_number}."
                     ),
                 )
+
+                history.full_clean()
+                history.save()
 
                 return version
 

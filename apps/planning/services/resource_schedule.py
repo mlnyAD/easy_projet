@@ -93,6 +93,7 @@ class ResourceScheduleService:
         date_from: date,
         date_to: date,
         project=None,
+        accessible_projects,
     ) -> ResourceSchedule:
         """
         Construit le planning ressources sur la période.
@@ -108,6 +109,7 @@ class ResourceScheduleService:
             date_from=date_from,
             date_to=date_to,
             project=project,
+            accessible_projects=accessible_projects,
         )
 
         assignments_by_user = {}
@@ -185,6 +187,7 @@ class ResourceScheduleService:
         date_from: date,
         date_to: date,
         project=None,
+        accessible_projects,
     ):
         """
         Retourne les affectations pertinentes pour la période.
@@ -193,6 +196,9 @@ class ResourceScheduleService:
         queryset = (
             TaskAssignment.objects
             .filter(
+                task__work_package__project__in=(
+                    accessible_projects
+                ),
                 is_active=True,
                 user__is_active=True,
                 task__is_active=True,

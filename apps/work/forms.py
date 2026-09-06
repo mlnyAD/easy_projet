@@ -5,7 +5,7 @@ from __future__ import annotations
 from django import forms
 
 from apps.catalogs.models import CatalogValue
-from apps.projects.models import Project
+from apps.projects.services.access import ProjectAccessService
 from apps.users.models import User
 from common.constants.work_package import (
     WORK_PACKAGE_CODE_LENGTH,
@@ -114,20 +114,34 @@ class WorkPackageForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        user=None,
+        **kwargs,
+    ) -> None:
         super().__init__(*args, **kwargs)
 
         self.fields["code"].required = False
 
-        self.fields["project"].queryset = (
-            Project.objects
-            .filter(is_active=True)
-            .select_related("owner_company")
-            .order_by(
-                "reference",
-                "name",
+        if user is None:
+            self.fields["project"].queryset = (
+                self.fields["project"]
+                .queryset
+                .none()
             )
-        )
+        else:
+            self.fields["project"].queryset = (
+                ProjectAccessService
+                .get_accessible_projects(user)
+                .select_related(
+                    "owner_company",
+                )
+                .order_by(
+                    "reference",
+                    "name",
+                )
+            )
 
         self.fields["manager"].queryset = (
             User.objects

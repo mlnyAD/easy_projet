@@ -6,7 +6,9 @@ from __future__ import annotations
 from django import forms
 
 from apps.catalogs.models import CatalogValue
-from apps.projects.models import Project
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 from apps.users.models import User
 from common.constants.risk import (
     RISK_DESCRIPTION_LENGTH,
@@ -195,21 +197,45 @@ class RiskForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        user=None,
+        **kwargs,
+    ) -> None:
         super().__init__(*args, **kwargs)
 
         self.fields["reference"].required = False
 
-        self.fields["project"].queryset = (
-            Project.objects
-            .filter(is_active=True)
-            .select_related(
-                "owner_company",
-                "project_manager",
+        if user is None:
+            self.fields["project"].queryset = (
+                self.fields["project"]
+                .queryset
+                .none()
             )
+        else:
+            self.fields["project"].queryset = (
+                ProjectAccessService
+                .get_accessible_projects(
+                    user
+                )
+                .select_related(
+                    "owner_company",
+                    "project_manager",
+                )
+                .order_by(
+                    "reference",
+                    "name",
+                )
+            )
+
+        self.fields["owner"].queryset = (
+            User.objects
+            .filter(is_active=True)
+            .select_related("company")
             .order_by(
-                "reference",
-                "name",
+                "last_name",
+                "first_name",
             )
         )
 

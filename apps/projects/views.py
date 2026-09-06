@@ -46,6 +46,10 @@ from .current_project import (
     set_current_project,
 )
 
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
+
 
 class ProjectListView(
     EPListPaginationMixin,
@@ -222,7 +226,10 @@ class ProjectWorkspaceView(DetailView):
 
     def get_queryset(self):
         return (
-            Project.objects
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
             .select_related(
                 "client_environment",
                 "client_environment__company",
@@ -240,7 +247,7 @@ class ProjectWorkspaceView(DetailView):
                 "memberships__role",
             )
         )
-
+        
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -519,7 +526,10 @@ class ProjectDashboardView(DetailView):
 
     def get_queryset(self):
         return (
-            Project.objects
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
             .select_related(
                 "company",
                 "owner_company",

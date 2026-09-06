@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView
-from django.contrib.auth.views import LoginView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
-from django.views.generic import FormView
+from django.views.generic import FormView, ListView
 
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
@@ -37,6 +37,7 @@ from .forms import (
 from .lists import USER_LIST_DEFINITION
 from .models import User
 from .services import TemporaryPasswordService
+from .services.access import UserAccessService
 
 
 class UserLoginView(LoginView):
@@ -45,15 +46,13 @@ class UserLoginView(LoginView):
     redirect_authenticated_user = True
 
     def get_success_url(self):
-        if (
-            self.request.user
-            .must_change_password
-        ):
+        if self.request.user.must_change_password:
             return reverse_lazy(
                 "users:password-change-required"
             )
 
         return super().get_success_url()
+
 
 class UserListView(
     EPListPaginationMixin,
@@ -64,19 +63,8 @@ class UserListView(
     context_object_name = "users"
 
     def get_queryset(self):
-        return (
-            User.objects
-            .select_related(
-                "company",
-                "global_role",
-                "access_level",
-                "employment_type",
-                "job",
-            )
-            .order_by(
-                "last_name",
-                "first_name",
-            )
+        return UserAccessService.get_accessible_users(
+            self.request.user
         )
 
     def get_context_data(self, **kwargs):
@@ -124,6 +112,28 @@ class UserCreateView(EPCreateView):
     success_url = reverse_lazy("users:list")
     cancel_url = reverse_lazy("users:list")
 
+    def dispatch(
+        self,
+        request,
+        *args,
+        **kwargs,
+    ):
+        if not UserAccessService.can_create_user(
+            request.user
+        ):
+            raise PermissionDenied
+
+        return super().dispatch(
+            request,
+            *args,
+            **kwargs,
+        )
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
     @transaction.atomic
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -152,6 +162,27 @@ class UserUpdateView(EPUpdateView):
 
     success_url = reverse_lazy("users:list")
     cancel_url = reverse_lazy("users:list")
+
+    def get_queryset(self):
+        return UserAccessService.get_accessible_users(
+            self.request.user
+        )
+
+    def get_object(self, queryset=None):
+        user = super().get_object(queryset)
+
+        if not UserAccessService.can_update_user(
+            self.request.user,
+            user,
+        ):
+            raise Http404
+
+        return user
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -182,9 +213,20 @@ class UserTemporaryPasswordResendView(View):
         pk,
     ):
         user = get_object_or_404(
-            User,
+            UserAccessService.get_accessible_users(
+                request.user
+            ),
             pk=pk,
         )
+
+        if not (
+            UserAccessService
+            .can_reset_temporary_password(
+                request.user,
+                user,
+            )
+        ):
+            raise Http404
 
         TemporaryPasswordService.reset_and_send(
             user=user,
@@ -234,7 +276,8 @@ class AccountUpdateView(EPUpdateView):
         )
 
         return response
-    
+
+
 class RequiredPasswordChangeView(
     LoginRequiredMixin,
     FormView,

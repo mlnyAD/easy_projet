@@ -387,8 +387,8 @@ class DocumentVersionServiceTests(TestCase):
 
     def test_database_failure_removes_physical_file(self):
         with patch.object(
-            DocumentVersion.objects,
-            "create",
+            DocumentVersion,
+            "save",
             side_effect=IntegrityError(
                 "Erreur volontaire de test"
             ),

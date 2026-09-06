@@ -116,6 +116,7 @@ class WeeklyWorkloadService:
         date_from: date,
         date_to: date,
         project=None,
+        accessible_projects,
     ) -> WorkloadPlan:
         """
         Construit le plan de charge sur la période demandée.
@@ -139,6 +140,7 @@ class WeeklyWorkloadService:
             date_from=date_from,
             date_to=date_to,
             project=project,
+            accessible_projects=accessible_projects,
         )
 
         assignments_by_user: dict[
@@ -255,12 +257,13 @@ class WeeklyWorkloadService:
     # Affectations
     # ------------------------------------------------------------------
 
+    @staticmethod
     def _get_assignments(
-        self,
         *,
         date_from: date,
         date_to: date,
         project=None,
+        accessible_projects,
     ):
         """
         Retourne les affectations actives dont la tâche intersecte
@@ -270,6 +273,9 @@ class WeeklyWorkloadService:
         queryset = (
             TaskAssignment.objects
             .filter(
+                task__work_package__project__in=(
+                    accessible_projects
+                ),
                 is_active=True,
                 user__is_active=True,
                 task__is_active=True,
@@ -277,6 +283,7 @@ class WeeklyWorkloadService:
                 task__end_date__isnull=False,
                 task__start_date__lte=date_to,
                 task__end_date__gte=date_from,
+
             )
             .select_related(
                 "user",

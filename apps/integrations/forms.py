@@ -9,6 +9,7 @@ from apps.core.models import ClientEnvironment
 from common.forms.fields import CatalogModelChoiceField
 
 from .models import ExternalIntegration
+from .services.access import IntegrationAccessService
 
 
 class ExternalIntegrationForm(forms.ModelForm):
@@ -92,15 +93,23 @@ class ExternalIntegrationForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        user=None,
+        **kwargs,
+    ) -> None:
         super().__init__(*args, **kwargs)
 
-        self.fields["client_environment"].queryset = (
-            ClientEnvironment.objects
-            .filter(is_active=True)
-            .select_related("company")
-            .order_by("company__name")
-        )
+        if user is None:
+            self.fields["client_environment"].queryset = (
+                ClientEnvironment.objects.none()
+            )
+        else:
+            self.fields["client_environment"].queryset = (
+                IntegrationAccessService
+                .get_assignable_environments(user)
+            )
 
         catalog_fields = (
             (

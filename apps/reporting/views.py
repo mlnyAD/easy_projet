@@ -39,6 +39,8 @@ from apps.reporting.services import (
 from apps.reporting.permissions import (
     can_review_activity_reports,
 )
+from apps.projects.services.access import ProjectAccessService
+
 
 # ======================================================================
 # Rapport d'activité utilisateur
@@ -695,26 +697,14 @@ class ActivityReportReviewListView(
         # Périmètre
         # --------------------------------------------------------------
 
-        if (
-            user.global_role.code
-            == "SYSTEM_ADMIN"
-        ):
-            pass
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(user)
+        )
 
-        elif (
-            user.global_role.code
-            == "CLIENT_ADMIN"
-        ):
-
-            queryset = queryset.filter(
-                project__company=user.company,
-            )
-
-        else:
-
-            queryset = queryset.filter(
-                project__project_manager=user,
-            )
+        queryset = queryset.filter(
+            project__in=accessible_projects,
+        )
 
         # --------------------------------------------------------------
         # Filtre état
@@ -838,7 +828,12 @@ class ActivityReportReviewDetailView(
 
         user = self.request.user
 
-        queryset = (
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(user)
+        )
+
+        return (
             ActivityReportProjectReview.objects
             .select_related(
                 "activity_report",
@@ -848,27 +843,11 @@ class ActivityReportReviewDetailView(
                 "project__project_manager",
                 "reviewed_by",
             )
-        )
-
-        if (
-            user.global_role.code
-            == "SYSTEM_ADMIN"
-        ):
-            return queryset
-
-        if (
-            user.global_role.code
-            == "CLIENT_ADMIN"
-        ):
-
-            return queryset.filter(
-                project__company=user.company,
+            .filter(
+                project__in=accessible_projects,
             )
-
-        return queryset.filter(
-            project__project_manager=user,
         )
-
+        
     # ------------------------------------------------------------------
     # Entrées du rapport
     # ------------------------------------------------------------------
@@ -879,11 +858,21 @@ class ActivityReportReviewDetailView(
             self.object.activity_report
         )
 
+        project = (
+            self.object.project
+        )
+
         return (
             ActivityReportEntry.objects
             .filter(
-                activity_report_line__activity_report=report,
+                activity_report_line__activity_report=(
+                    report
+                ),
                 activity_report_line__is_active=True,
+                activity_report_line__task__isnull=False,
+                activity_report_line__task__work_package__project=(
+                    project
+                ),
             )
             .select_related(
                 "activity_report_line",
@@ -899,17 +888,13 @@ class ActivityReportReviewDetailView(
                     "activity_report_line__"
                     "task__work_package__project"
                 ),
-                (
-                    "activity_report_line__"
-                    "line_type"
-                ),
             )
             .order_by(
                 "activity_report_line__created_at",
                 "activity_date",
             )
         )
-
+        
     # ------------------------------------------------------------------
     # Présentation
     # ------------------------------------------------------------------

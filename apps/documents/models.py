@@ -180,9 +180,25 @@ class DocumentFolder(TimeStampedModel):
                     "parent",
                     "name",
                 ],
+                condition=models.Q(
+                    parent__isnull=False,
+                ),
                 name=(
                     "uniq_document_folder_"
                     "name_by_parent"
+                ),
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "project",
+                    "name",
+                ],
+                condition=models.Q(
+                    parent__isnull=True,
+                ),
+                name=(
+                    "uniq_document_root_folder_"
+                    "name_by_project"
                 ),
             ),
         ]
@@ -930,6 +946,28 @@ class DocumentHistory(TimeStampedModel):
         blank=True,
         verbose_name="Détails",
     )
+
+    def clean(self) -> None:
+        """
+        Vérifie que la version historisée appartient
+        au document concerné.
+        """
+        super().clean()
+
+        if (
+            self.version_id is not None
+            and self.document_id is not None
+            and self.version.document_id
+            != self.document_id
+        ):
+            raise ValidationError(
+                {
+                    "version": (
+                        "La version historisée doit "
+                        "appartenir au document."
+                    ),
+                }
+            )
 
     class Meta:
         db_table = "document_history"

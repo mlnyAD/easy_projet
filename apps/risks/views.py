@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
 
@@ -23,6 +23,9 @@ from .form_definition import RISK_FORM_DEFINITION
 from .forms import RiskForm
 from .lists import RISK_LIST_DEFINITION
 from .models import Risk
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 
 class RiskListView(
@@ -38,8 +41,18 @@ class RiskListView(
     context_object_name = "risks"
 
     def get_queryset(self):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
         return (
             Risk.objects
+            .filter(
+                project__in=accessible_projects,
+            )
             .select_related(
                 "project",
                 "owner",
@@ -59,7 +72,6 @@ class RiskListView(
                 "title",
             )
         )
-
     # ------------------------------------------------------------------
     # Navigation
     # ------------------------------------------------------------------
@@ -216,7 +228,11 @@ class RiskListByProjectView(RiskListView):
         ):
             self._project = (
                 get_object_or_404(
-                    Project.objects.select_related(
+                    ProjectAccessService
+                    .get_accessible_projects(
+                        self.request.user
+                    )
+                    .select_related(
                         "owner_company",
                         "project_manager",
                         "status",
@@ -228,7 +244,7 @@ class RiskListByProjectView(RiskListView):
             )
 
         return self._project
-
+    
     def get_queryset(self):
         return (
             super()
@@ -303,6 +319,13 @@ class RiskCreateView(EPCreateView):
     definition = RISK_FORM_DEFINITION
     template_name = "edf/form/view.html"
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs["user"] = self.request.user
+
+        return kwargs
+
     def get_return_url(self):
         candidate = self.request.GET.get(
             "next"
@@ -322,7 +345,7 @@ class RiskCreateView(EPCreateView):
         ):
             return candidate
 
-        return reverse_lazy(
+        return reverse(
             "risks:list"
         )
 
@@ -341,7 +364,10 @@ class RiskCreateView(EPCreateView):
 
         if project_pk:
             project = (
-                Project.objects
+                ProjectAccessService
+                .get_accessible_projects(
+                    self.request.user
+                )
                 .filter(
                     pk=project_pk,
                     is_active=True,
@@ -366,12 +392,46 @@ class RiskCreateView(EPCreateView):
 
         return response
 
-
 class RiskUpdateView(EPUpdateView):
     model = Risk
     form_class = RiskForm
     definition = RISK_FORM_DEFINITION
     template_name = "edf/form/view.html"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs["user"] = self.request.user
+
+        return kwargs
+
+    def get_queryset(self):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
+        return (
+            Risk.objects
+            .filter(
+                project__in=accessible_projects,
+            )
+            .select_related(
+                "project",
+                "owner",
+                "origin",
+                "risk_type",
+                "risk_class",
+                "impact",
+                "severity",
+                "probability",
+                "status",
+                "criticality",
+                "review_frequency",
+            )
+        )
 
     def get_return_url(self):
         candidate = self.request.GET.get(
@@ -392,7 +452,7 @@ class RiskUpdateView(EPUpdateView):
         ):
             return candidate
 
-        return reverse_lazy(
+        return reverse(
             "risks:list"
         )
 

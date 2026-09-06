@@ -12,7 +12,9 @@ from apps.documents.models import (
     DocumentFolder,
 )
 from apps.projects.models import Project
-
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 class DocumentExplorerView(
     LoginRequiredMixin,
@@ -32,12 +34,16 @@ class DocumentExplorerView(
 
     def get_project(self) -> Project:
         return get_object_or_404(
-            Project.objects.select_related(
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+            .select_related(
                 "company",
             ),
             pk=self.kwargs["project_id"],
         )
-
+        
     def get_current_folder(
         self,
         project: Project,

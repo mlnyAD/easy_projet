@@ -496,3 +496,28 @@ class DocumentHistoryTests(DocumentModelTestCase):
             history.version,
             version,
         )
+        
+    def test_history_version_must_belong_to_document(self):
+        document_1 = self.create_document(
+            title="Document 1",
+        )
+
+        document_2 = self.create_document(
+            title="Document 2",
+        )
+
+        version = self.create_version(
+            document_2,
+            1,
+        )
+
+        history = DocumentHistory(
+            document=document_1,
+            version=version,
+            action=DocumentHistory.Action.VERSION_CREATED,
+            user=self.user,
+            details="Version incohérente.",
+        )
+
+        with self.assertRaises(ValidationError):
+            history.full_clean()

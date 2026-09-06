@@ -132,6 +132,7 @@ class PlanningCalendarService:
         year: int,
         month: int,
         project: Project | None = None,
+        accessible_projects,
     ) -> PlanningCalendar:
         """
         Construit le calendrier pour le mois demandé.
@@ -165,6 +166,7 @@ class PlanningCalendarService:
             date_from=calendar_start,
             date_to=calendar_end,
             project=project,
+            accessible_projects=accessible_projects,
         )
 
         events_by_date: dict[
@@ -226,6 +228,7 @@ class PlanningCalendarService:
         date_from: date,
         date_to: date,
         project: Project | None,
+        accessible_projects,
     ) -> tuple[
         PlanningCalendarEvent,
         ...
@@ -242,6 +245,7 @@ class PlanningCalendarService:
             date_from=date_from,
             date_to=date_to,
             project=project,
+            accessible_projects=accessible_projects,
         )
 
         project_ids = [
@@ -336,13 +340,11 @@ class PlanningCalendarService:
         date_from: date,
         date_to: date,
         project: Project | None,
+        accessible_projects,
     ) -> list[Project]:
-        """
-        Retourne les projets pouvant produire au moins un événement.
-        """
 
         queryset = (
-            Project.objects
+            accessible_projects
             .filter(is_active=True)
             .order_by(
                 "reference",

@@ -35,7 +35,9 @@ from apps.documents.services.access_token_service import (
 from apps.documents.storage import (
     get_document_storage,
 )
-
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 class DocumentVersionContentView(View):
     """
@@ -233,10 +235,23 @@ class DocumentVersionView(
         *,
         version_id,
     ):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                request.user
+            )
+        )
+
         version = get_object_or_404(
-            DocumentVersion.objects.select_related(
+            DocumentVersion.objects
+            .select_related(
                 "document",
                 "document__project",
+            )
+            .filter(
+                document__project__in=(
+                    accessible_projects
+                ),
             ),
             pk=version_id,
         )
@@ -288,10 +303,23 @@ class DocumentVersionDownloadView(
         *,
         version_id,
     ):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                request.user
+            )
+        )
+
         version = get_object_or_404(
-            DocumentVersion.objects.select_related(
+            DocumentVersion.objects
+            .select_related(
                 "document",
                 "document__project",
+            )
+            .filter(
+                document__project__in=(
+                    accessible_projects
+                ),
             ),
             pk=version_id,
         )

@@ -22,6 +22,9 @@ from apps.documents.models import DocumentVersion
 from apps.documents.services import (
     DocumentEditLockService,
 )
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 
 class DocumentEditorView(
@@ -56,12 +59,25 @@ class DocumentEditorView(
         *,
         version_id,
     ):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                request.user
+            )
+        )
+
         version = get_object_or_404(
-            DocumentVersion.objects.select_related(
+            DocumentVersion.objects
+            .select_related(
                 "document",
                 "document__project",
                 "document__project__company",
                 "document__current_version",
+            )
+            .filter(
+                document__project__in=(
+                    accessible_projects
+                ),
             ),
             pk=version_id,
         )
@@ -235,10 +251,23 @@ class DocumentEditLockRefreshView(
         *,
         version_id,
     ):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                request.user
+            )
+        )
+
         version = get_object_or_404(
-            DocumentVersion.objects.select_related(
+            DocumentVersion.objects
+            .select_related(
                 "document",
                 "document__current_version",
+            )
+            .filter(
+                document__project__in=(
+                    accessible_projects
+                ),
             ),
             pk=version_id,
         )

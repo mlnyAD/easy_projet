@@ -3,7 +3,9 @@
 from urllib.parse import urlencode
 
 from django.contrib import messages
-from django.urls import reverse, reverse_lazy
+from django.core.exceptions import PermissionDenied
+from django.http import Http404
+from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
 
@@ -23,6 +25,7 @@ from .form_definition import (
 from .forms import ExternalIntegrationForm
 from .lists import EXTERNAL_INTEGRATION_LIST_DEFINITION
 from .models import ExternalIntegration
+from .services.access import IntegrationAccessService
 
 
 def get_allowed_return_url(
@@ -53,7 +56,7 @@ class ExternalIntegrationListView(
     ListView,
 ):
     """
-    Liste des intégrations externes.
+    Liste des intégrations externes accessibles.
     """
 
     model = ExternalIntegration
@@ -62,19 +65,9 @@ class ExternalIntegrationListView(
 
     def get_queryset(self):
         return (
-            ExternalIntegration.objects
-            .select_related(
-                "client_environment",
-                "client_environment__company",
-                "service_type",
-                "provider",
-                "connection_status",
-            )
-            .order_by(
-                "client_environment__company__name",
-                "service_type__sort_order",
-                "priority",
-                "name",
+            IntegrationAccessService
+            .get_accessible_integrations(
+                self.request.user
             )
         )
 
@@ -128,17 +121,29 @@ class ExternalIntegrationListView(
         context["page_back_url"] = None
         context["page_back_label"] = None
 
-        context["page_action_label"] = (
-            "Nouvelle intégration"
+        can_create = (
+            IntegrationAccessService
+            .can_create_integration(
+                self.request.user
+            )
         )
-        context["page_action_icon"] = "plus"
 
-        context["page_action_url"] = (
-            f"{reverse('integrations:create')}?"
-            f"{urlencode({
-                'next': self.request.get_full_path(),
-            })}"
-        )
+        if can_create:
+            context["page_action_label"] = (
+                "Nouvelle intégration"
+            )
+            context["page_action_icon"] = "plus"
+
+            context["page_action_url"] = (
+                f"{reverse('integrations:create')}?"
+                f"{urlencode({
+                    'next': self.request.get_full_path(),
+                })}"
+            )
+        else:
+            context["page_action_label"] = None
+            context["page_action_icon"] = None
+            context["page_action_url"] = None
 
         return context
 
@@ -153,10 +158,27 @@ class ExternalIntegrationCreateView(EPCreateView):
     definition = EXTERNAL_INTEGRATION_FORM_DEFINITION
     template_name = "edf/form/view.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        if not IntegrationAccessService.can_create_integration(
+            request.user
+        ):
+            raise PermissionDenied
+
+        return super().dispatch(
+            request,
+            *args,
+            **kwargs,
+        )
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
     def get_return_url(self):
         return get_allowed_return_url(
             self.request,
-            default_url=reverse_lazy(
+            default_url=reverse(
                 "integrations:list"
             ),
         )
@@ -190,20 +212,32 @@ class ExternalIntegrationUpdateView(EPUpdateView):
 
     def get_queryset(self):
         return (
-            ExternalIntegration.objects
-            .select_related(
-                "client_environment",
-                "client_environment__company",
-                "service_type",
-                "provider",
-                "connection_status",
+            IntegrationAccessService
+            .get_accessible_integrations(
+                self.request.user
             )
         )
+
+    def get_object(self, queryset=None):
+        integration = super().get_object(queryset)
+
+        if not IntegrationAccessService.can_update_integration(
+            self.request.user,
+            integration,
+        ):
+            raise Http404
+
+        return integration
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
     def get_return_url(self):
         return get_allowed_return_url(
             self.request,
-            default_url=reverse_lazy(
+            default_url=reverse(
                 "integrations:list"
             ),
         )

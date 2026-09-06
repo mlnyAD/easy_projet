@@ -11,7 +11,10 @@ from apps.meetings.models import (
     Meeting,
     MeetingParticipant,
 )
-from apps.projects.models import Project
+from apps.projects.models import (
+    Project,
+    ProjectMembership,
+)
 from apps.users.models import User
 
 
@@ -108,7 +111,30 @@ class MeetingViewTests(TestCase):
             name="Projet test réunions",
             status=cls.project_status,
         )
+        cls.project_role_type = (
+            CatalogType.objects.create(
+                code="USER_PROJECT_ROLE",
+                label="Rôle projet",
+            )
+        )
 
+        cls.project_role = (
+            CatalogValue.objects.create(
+                catalog_type=cls.project_role_type,
+                code="USER",
+                label="Utilisateur",
+                sort_order=10,
+            )
+        )
+
+        cls.project_membership = (
+            ProjectMembership.objects.create(
+                project=cls.project,
+                user=cls.user,
+                role=cls.project_role,
+            )
+        )
+            
         cls.meeting = Meeting.objects.create(
             project=cls.project,
             organizer=cls.user,

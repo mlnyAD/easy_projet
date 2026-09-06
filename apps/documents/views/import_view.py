@@ -1,5 +1,5 @@
 
-        
+
 from __future__ import annotations
 
 from django.contrib import messages
@@ -17,11 +17,14 @@ from apps.documents.forms_import import (
 )
 from apps.documents.models import DocumentFolder
 from apps.documents.services import DocumentService
-from apps.projects.models import Project
+from apps.documents.views.mixins import (
+    ProjectDocumentAccessMixin,
+)
 
 
 class DocumentImportView(
     LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
     View,
 ):
     """
@@ -31,12 +34,6 @@ class DocumentImportView(
     template_name = (
         "documents/document_import.html"
     )
-
-    def get_project(self):
-        return get_object_or_404(
-            Project,
-            pk=self.kwargs["project_id"],
-        )
 
     def get_folder(
         self,
@@ -155,4 +152,4 @@ class DocumentImportView(
             "documents:folder",
             project_id=project.pk,
             folder_id=folder.pk,
-        )        
+        )

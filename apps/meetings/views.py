@@ -10,6 +10,9 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
 
 from apps.projects.models import Project
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
 )
@@ -55,7 +58,7 @@ class MeetingListView(
     ListView,
 ):
     """
-    Liste globale des réunions.
+    Liste globale des réunions accessibles.
     """
 
     model = Meeting
@@ -63,8 +66,18 @@ class MeetingListView(
     context_object_name = "meetings"
 
     def get_queryset(self):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
         return (
             Meeting.objects
+            .filter(
+                project__in=accessible_projects,
+            )
             .select_related(
                 "project",
                 "organizer",
@@ -136,13 +149,17 @@ class MeetingListView(
 
 class MeetingListByProjectView(MeetingListView):
     """
-    Liste des réunions d'un projet.
+    Liste des réunions d'un projet accessible.
     """
 
     def get_project(self) -> Project:
         if not hasattr(self, "_project"):
             self._project = get_object_or_404(
-                Project.objects.select_related(
+                ProjectAccessService
+                .get_accessible_projects(
+                    self.request.user
+                )
+                .select_related(
                     "owner_company",
                     "project_manager",
                     "status",
@@ -254,6 +271,13 @@ class MeetingCompositeFormMixin:
             instance=instance,
             prefix="external",
         )
+        
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs["user"] = self.request.user
+
+        return kwargs
 
     def get_formsets(
         self,
@@ -353,7 +377,10 @@ class MeetingCreateView(
 
         if project_pk:
             project = (
-                Project.objects
+                ProjectAccessService
+                .get_accessible_projects(
+                    self.request.user
+                )
                 .filter(
                     pk=project_pk,
                     is_active=True,
@@ -383,3 +410,23 @@ class MeetingUpdateView(
     success_message = (
         "La réunion a été modifiée avec succès."
     )
+
+    def get_queryset(self):
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
+        return (
+            Meeting.objects
+            .filter(
+                project__in=accessible_projects,
+            )
+            .select_related(
+                "project",
+                "organizer",
+                "status",
+            )
+        )

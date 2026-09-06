@@ -56,7 +56,7 @@ class DocumentService:
             template_service
             or DocumentTemplateService()
         )
-    
+
     def create_document(
         self,
         *,
@@ -110,7 +110,7 @@ class DocumentService:
 
             with transaction.atomic():
 
-                document = Document.objects.create(
+                document = Document(
                     project=project,
                     folder=folder,
                     title=normalized_title,
@@ -121,6 +121,9 @@ class DocumentService:
                     created_by=user,
                 )
 
+                document.full_clean()
+                document.save()
+
                 version = self.version_service.create_version(
                     document=document,
                     content=content,
@@ -129,7 +132,7 @@ class DocumentService:
                     user=user,
                 )
 
-                DocumentHistory.objects.create(
+                history = DocumentHistory(
                     document=document,
                     version=version,
                     action=DocumentHistory.Action.CREATED,
@@ -140,8 +143,11 @@ class DocumentService:
                     ),
                 )
 
+                history.full_clean()
+                history.save()
+
                 return document
-        
+
     def import_document(
         self,
         *,
@@ -180,7 +186,7 @@ class DocumentService:
 
         with transaction.atomic():
 
-            document = Document.objects.create(
+            document = Document(
                 project=project,
                 folder=folder,
                 title=normalized_title,
@@ -190,6 +196,9 @@ class DocumentService:
                 is_doe=is_doe,
                 created_by=user,
             )
+
+            document.full_clean()
+            document.save()
 
             version = (
                 self.version_service.create_version(
@@ -201,7 +210,7 @@ class DocumentService:
                 )
             )
 
-            DocumentHistory.objects.create(
+            history = DocumentHistory(
                 document=document,
                 version=version,
                 action=DocumentHistory.Action.IMPORTED,
@@ -212,8 +221,11 @@ class DocumentService:
                 ),
             )
 
+            history.full_clean()
+            history.save()
+
             return document
-        
+
     @staticmethod
     @transaction.atomic
     def rename_document(
@@ -244,6 +256,8 @@ class DocumentService:
 
         document.title = normalized_title
 
+        document.full_clean()
+
         document.save(
             update_fields=[
                 "title",
@@ -251,7 +265,7 @@ class DocumentService:
             ]
         )
 
-        DocumentHistory.objects.create(
+        history = DocumentHistory(
             document=document,
             version=document.current_version,
             action=DocumentHistory.Action.RENAMED,
@@ -262,8 +276,11 @@ class DocumentService:
             ),
         )
 
+        history.full_clean()
+        history.save()
+
         return document
-    
+
     @staticmethod
     @transaction.atomic
     def move_document(
@@ -308,7 +325,7 @@ class DocumentService:
             ]
         )
 
-        DocumentHistory.objects.create(
+        history = DocumentHistory(
             document=document,
             version=document.current_version,
             action=DocumentHistory.Action.MOVED,
@@ -319,8 +336,11 @@ class DocumentService:
             ),
         )
 
+        history.full_clean()
+        history.save()
+
         return document
-    
+
     @transaction.atomic
     def copy_document(
         self,
@@ -383,18 +403,19 @@ class DocumentService:
             source_version.storage_key
         ) as source_content:
 
-            copied_document = (
-                Document.objects.create(
-                    project=document.project,
-                    folder=destination,
-                    title=normalized_title,
-                    document_type=document.document_type,
-                    status=document.status,
-                    lifecycle=document.lifecycle,
-                    is_doe=document.is_doe,
-                    created_by=user,
-                )
+            copied_document = Document(
+                project=document.project,
+                folder=destination,
+                title=normalized_title,
+                document_type=document.document_type,
+                status=document.status,
+                lifecycle=document.lifecycle,
+                is_doe=document.is_doe,
+                created_by=user,
             )
+
+            copied_document.full_clean()
+            copied_document.save()
 
             copied_version = (
                 self.version_service.create_version(
@@ -410,7 +431,7 @@ class DocumentService:
                 )
             )
 
-        DocumentHistory.objects.create(
+        history = DocumentHistory(
             document=copied_document,
             version=copied_version,
             action=DocumentHistory.Action.COPIED,
@@ -420,8 +441,11 @@ class DocumentService:
             ),
         )
 
+        history.full_clean()
+        history.save()
+
         return copied_document
-    
+
     def delete_document(
         self,
         *,
@@ -465,6 +489,8 @@ class DocumentService:
                 is not None
             ):
                 locked_document.current_version = None
+
+                locked_document.full_clean()
 
                 locked_document.save(
                     update_fields=[

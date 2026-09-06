@@ -217,6 +217,7 @@ class PlanningConsolidationService:
         *,
         period: PlanningPeriod,
         project: Project | None = None,
+        accessible_projects,
     ) -> PlanningData:
         """
         Construit les données du planning pour la période demandée.
@@ -226,9 +227,9 @@ class PlanningConsolidationService:
             self._get_projects(
                 period=period,
                 project=project,
+                accessible_projects=accessible_projects,
             )
         )
-
         structure = []
 
         task_ids = []
@@ -412,12 +413,13 @@ class PlanningConsolidationService:
         *,
         period: PlanningPeriod,
         project: Project | None,
+        accessible_projects,
     ) -> Iterable[Project]:
 
         queryset = (
-            Project.objects
+            accessible_projects
             .filter(
-                is_active=True
+                is_active=True,
             )
             .select_related(
                 "status",
@@ -438,16 +440,12 @@ class PlanningConsolidationService:
             current_project
             for current_project in queryset
             if self._intersects_period(
-                start_date=(
-                    current_project.start_date
-                ),
-                end_date=(
-                    current_project.end_date
-                ),
+                start_date=current_project.start_date,
+                end_date=current_project.end_date,
                 period=period,
             )
         ]
-
+        
     def _get_work_packages(
         self,
         *,
