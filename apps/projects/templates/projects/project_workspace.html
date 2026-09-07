@@ -103,11 +103,12 @@
                 <dl class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <dt class="text-xs uppercase tracking-wide
-                                   text-axcio-text-muted">
-                            Chef de projet
+                                text-axcio-text-muted">
+                            Chef de projet titulaire
                         </dt>
+
                         <dd class="mt-1 text-sm font-medium">
-                            {{ project.project_manager|default:"Non renseigné" }}
+                            {{ responsible_project_manager|default:"Non renseigné" }}
                         </dd>
                     </div>
 

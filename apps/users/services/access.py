@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 
 from apps.companies.models import Company
 from apps.users.models import User
@@ -10,28 +10,44 @@ from apps.users.models import User
 
 class UserAccessService:
     """
-    Centralise les règles d'accès à l'administration
-    des utilisateurs.
+    Centralise les règles d'accès aux utilisateurs.
 
-    Règles :
-    - SYSTEM_ADMIN :
-      accès à tous les utilisateurs ;
-      toutes les sociétés sont assignables ;
-      création, modification et réinitialisation
-      du mot de passe provisoire autorisées.
-    - CLIENT_ADMIN :
-      accès aux utilisateurs de sa société ;
-      seule sa société est assignable ;
-      création, modification et réinitialisation
-      autorisées dans ce périmètre.
+    Trois notions sont distinguées :
+
+    - visibilité :
+      utilisateurs que l'acteur peut connaître
+      dans son périmètre ;
+
+    - administration du compte :
+      modification des données globales du compte ;
+
+    - participation projet :
+      gérée séparément par les mécanismes projet.
+
+    Règles de visibilité :
+    - administrateur système :
+      tous les utilisateurs ;
+    - administrateur client :
+      utilisateurs connus des environnements clients
+      qu'il administre ;
+    - utilisateur ayant accès à des projets :
+      utilisateurs connus des environnements clients
+      de ces projets ;
+    - utilisateur inactif :
+      aucun utilisateur.
+
+    Règles d'administration :
+    - administrateur système :
+      tous les comptes ;
+    - administrateur client :
+      comptes connus des environnements clients
+      qu'il administre ;
     - autres utilisateurs :
-      aucun accès à l'administration utilisateurs.
+      aucune administration globale de compte.
+
+    La société de l'utilisateur représente son employeur.
+    Elle ne constitue pas un périmètre d'autorisation.
     """
-
-    GLOBAL_ROLE_CATALOG = "USER_GLOBAL_ROLE"
-
-    ROLE_SYSTEM_ADMIN = "SYSTEM_ADMIN"
-    ROLE_CLIENT_ADMIN = "CLIENT_ADMIN"
 
     @classmethod
     def get_accessible_users(
@@ -39,27 +55,67 @@ class UserAccessService:
         user: User,
     ) -> QuerySet[User]:
         """
-        Retourne les utilisateurs visibles dans
-        l'administration.
+        Retourne les utilisateurs visibles
+        par l'utilisateur courant.
         """
 
         if not user.is_active:
             return User.objects.none()
 
-        global_role_code = cls._get_global_role_code(user)
-
-        if global_role_code == cls.ROLE_SYSTEM_ADMIN:
+        if user.is_system_admin:
             return cls._base_queryset()
 
-        if global_role_code == cls.ROLE_CLIENT_ADMIN:
-            if user.company_id is None:
-                return User.objects.none()
+        environment_ids = (
+            cls._get_visible_environment_ids(user)
+        )
 
-            return cls._base_queryset().filter(
-                company_id=user.company_id,
+        if not environment_ids:
+            return User.objects.none()
+
+        return (
+            cls._base_queryset()
+            .filter(
+                client_environment_memberships__client_environment_id__in=(
+                    environment_ids
+                ),
+                client_environment_memberships__is_active=True,
             )
+            .distinct()
+        )
 
-        return User.objects.none()
+    @classmethod
+    def get_administrable_users(
+        cls,
+        user: User,
+    ) -> QuerySet[User]:
+        """
+        Retourne les comptes dont les données globales
+        peuvent être administrées par l'utilisateur.
+        """
+
+        if not user.is_active:
+            return User.objects.none()
+
+        if user.is_system_admin:
+            return cls._base_queryset()
+
+        environment_ids = (
+            cls._get_administered_environment_ids(user)
+        )
+
+        if not environment_ids:
+            return User.objects.none()
+
+        return (
+            cls._base_queryset()
+            .filter(
+                client_environment_memberships__client_environment_id__in=(
+                    environment_ids
+                ),
+                client_environment_memberships__is_active=True,
+            )
+            .distinct()
+        )
 
     @classmethod
     def get_assignable_companies(
@@ -67,36 +123,23 @@ class UserAccessService:
         user: User,
     ) -> QuerySet[Company]:
         """
-        Retourne les sociétés qu'un utilisateur
-        peut affecter à un compte administré.
+        Retourne les sociétés pouvant être utilisées
+        comme employeur lors de l'administration
+        d'un compte.
+
+        Company constitue un annuaire global.
+        Un administrateur autorisé à créer un compte
+        peut donc sélectionner toute société active.
         """
 
-        if not user.is_active:
+        if not cls.can_create_user(user):
             return Company.objects.none()
 
-        global_role_code = cls._get_global_role_code(user)
-
-        if global_role_code == cls.ROLE_SYSTEM_ADMIN:
-            return (
-                Company.objects
-                .filter(is_active=True)
-                .order_by("name")
-            )
-
-        if global_role_code == cls.ROLE_CLIENT_ADMIN:
-            if user.company_id is None:
-                return Company.objects.none()
-
-            return (
-                Company.objects
-                .filter(
-                    pk=user.company_id,
-                    is_active=True,
-                )
-                .order_by("name")
-            )
-
-        return Company.objects.none()
+        return (
+            Company.objects
+            .filter(is_active=True)
+            .order_by("name")
+        )
 
     @classmethod
     def can_create_user(
@@ -104,16 +147,20 @@ class UserAccessService:
         user: User,
     ) -> bool:
         """
-        Indique si l'utilisateur peut créer un compte.
+        Indique si l'utilisateur peut créer
+        un compte global.
         """
 
         if not user.is_active:
             return False
 
-        return cls._get_global_role_code(user) in {
-            cls.ROLE_SYSTEM_ADMIN,
-            cls.ROLE_CLIENT_ADMIN,
-        }
+        if user.is_system_admin:
+            return True
+
+        return (
+            cls._get_administered_environment_ids(user)
+            .exists()
+        )
 
     @classmethod
     def can_update_user(
@@ -123,24 +170,20 @@ class UserAccessService:
     ) -> bool:
         """
         Indique si l'utilisateur peut modifier
-        le compte cible.
+        les données globales du compte cible.
         """
 
         if not user.is_active:
             return False
 
-        global_role_code = cls._get_global_role_code(user)
-
-        if global_role_code == cls.ROLE_SYSTEM_ADMIN:
+        if user.is_system_admin:
             return True
 
-        if global_role_code == cls.ROLE_CLIENT_ADMIN:
-            return (
-                user.company_id is not None
-                and target_user.company_id == user.company_id
-            )
-
-        return False
+        return (
+            cls.get_administrable_users(user)
+            .filter(pk=target_user.pk)
+            .exists()
+        )
 
     @classmethod
     def can_reset_temporary_password(
@@ -162,13 +205,17 @@ class UserAccessService:
     def _base_queryset(
         cls,
     ) -> QuerySet[User]:
+        """
+        QuerySet de base des utilisateurs.
+
+        Seules les relations appartenant réellement
+        au modèle User sont chargées ici.
+        """
+
         return (
             User.objects
             .select_related(
                 "company",
-                "global_role",
-                "access_level",
-                "employment_type",
                 "job",
             )
             .order_by(
@@ -178,16 +225,61 @@ class UserAccessService:
         )
 
     @classmethod
-    def _get_global_role_code(
+    def _get_administered_environment_ids(
         cls,
         user: User,
-    ) -> str | None:
-        role = user.global_role
+    ) -> QuerySet:
+        """
+        Retourne les identifiants des environnements
+        clients administrés par l'utilisateur.
+        """
 
-        if role is None:
-            return None
+        return (
+            user.client_environment_memberships
+            .filter(
+                is_active=True,
+                is_client_admin=True,
+                client_environment__is_active=True,
+            )
+            .values_list(
+                "client_environment_id",
+                flat=True,
+            )
+        )
 
-        if role.catalog_type.code != cls.GLOBAL_ROLE_CATALOG:
-            return None
+    @classmethod
+    def _get_visible_environment_ids(
+        cls,
+        user: User,
+    ):
+        """
+        Retourne les environnements dans lesquels
+        l'utilisateur peut connaître des contacts.
 
-        return role.code
+        Le périmètre est constitué :
+        - des environnements qu'il administre ;
+        - des environnements de ses participations
+          actives à des projets actifs.
+        """
+
+        administered_environment_ids = (
+            cls._get_administered_environment_ids(user)
+        )
+
+        project_environment_ids = (
+            user.project_memberships
+            .filter(
+                is_active=True,
+                project__is_active=True,
+                project__client_environment__is_active=True,
+            )
+            .values_list(
+                "project__client_environment_id",
+                flat=True,
+            )
+        )
+
+        return (
+            administered_environment_ids
+            .union(project_environment_ids)
+        )

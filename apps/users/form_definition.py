@@ -5,6 +5,7 @@ from framework.form import (
     FormDefinition,
     SectionDefinition,
 )
+
 from framework.types.field_width import FieldWidth
 
 
@@ -15,8 +16,12 @@ USER_FORM_DEFINITION = FormDefinition(
         SectionDefinition(
             title="Identité",
             fields=[
-                FieldDefinition(name="last_name"),
-                FieldDefinition(name="first_name"),
+                FieldDefinition(
+                    name="last_name"
+                ),
+                FieldDefinition(
+                    name="first_name"
+                ),
                 FieldDefinition(
                     name="is_active",
                     required=False,
@@ -29,24 +34,26 @@ USER_FORM_DEFINITION = FormDefinition(
         SectionDefinition(
             title="Coordonnées",
             fields=[
-                FieldDefinition(name="email"),
-                FieldDefinition(name="phone"),
-                FieldDefinition(name="mobile"),
+                FieldDefinition(
+                    name="email"
+                ),
+                FieldDefinition(
+                    name="phone"
+                ),
+                FieldDefinition(
+                    name="mobile"
+                ),
             ],
         ),
         SectionDefinition(
             title="Rattachement",
             fields=[
-                FieldDefinition(name="company"),
-                FieldDefinition(name="employment_type"),
-                FieldDefinition(name="job"),
-            ],
-        ),
-        SectionDefinition(
-            title="Autorisations",
-            fields=[
-                FieldDefinition(name="global_role"),
-                FieldDefinition(name="access_level"),
+                FieldDefinition(
+                    name="company"
+                ),
+                FieldDefinition(
+                    name="job"
+                ),
             ],
         ),
     ],

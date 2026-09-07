@@ -4,9 +4,15 @@ from __future__ import annotations
 
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.password_validation import (
+    password_validators_help_text_html,
+    validate_password,
+)
+from django.core.exceptions import ValidationError
 
 from apps.catalogs.models import CatalogValue
 from apps.companies.models import Company
+from apps.users.services.access import UserAccessService
 from common.constants.user import (
     USER_EMAIL_LENGTH,
     USER_FIRST_NAME_LENGTH,
@@ -21,13 +27,6 @@ from common.forms.widgets import (
 )
 
 from .models import User
-
-from django.contrib.auth.password_validation import (
-    password_validators_help_text_html,
-    validate_password,
-)
-from django.core.exceptions import ValidationError
-from apps.users.services.access import UserAccessService
 
 
 class UserLoginForm(AuthenticationForm):
@@ -75,7 +74,8 @@ class UserLoginForm(AuthenticationForm):
             }
         ),
     )
-    
+
+
 class RequiredPasswordChangeForm(forms.Form):
     """
     Définition obligatoire du mot de passe personnel
@@ -186,45 +186,31 @@ class RequiredPasswordChangeForm(forms.Form):
             ]
         )
 
-        return self.user    
-    
+        return self.user
+
+
 class UserForm(forms.ModelForm):
     """
-    Formulaire de création et de modification d'un utilisateur.
+    Formulaire de création et de modification
+    de l'identité globale d'un utilisateur.
 
-    Le mot de passe et les préférences personnelles ne sont jamais
-    saisis dans ce formulaire d'administration.
+    Les appartenances aux environnements clients
+    et aux projets sont administrées séparément.
 
-    Un nouvel utilisateur est créé avec un mot de passe inutilisable,
-    dans l'attente de la validation de son invitation.
+    Le mot de passe et les préférences personnelles
+    ne sont jamais saisis dans ce formulaire
+    d'administration.
+
+    Un nouvel utilisateur est créé avec un mot
+    de passe inutilisable, dans l'attente de la
+    validation de son invitation.
     """
-
-    employment_type = CatalogModelChoiceField(
-        queryset=CatalogValue.objects.none(),
-        catalog_code="USER_EMPLOYMENT_TYPE",
-        required=False,
-        label="Type d'emploi",
-    )
 
     job = CatalogModelChoiceField(
         queryset=CatalogValue.objects.none(),
         catalog_code="USER_JOB",
         required=False,
         label="Métier",
-    )
-
-    global_role = CatalogModelChoiceField(
-        queryset=CatalogValue.objects.none(),
-        catalog_code="USER_GLOBAL_ROLE",
-        required=True,
-        label="Rôle global",
-    )
-
-    access_level = CatalogModelChoiceField(
-        queryset=CatalogValue.objects.none(),
-        catalog_code="USER_LEVEL_ACCESS",
-        required=True,
-        label="Niveau d'accès",
     )
 
     class Meta:
@@ -237,10 +223,7 @@ class UserForm(forms.ModelForm):
             "phone",
             "mobile",
             "company",
-            "employment_type",
             "job",
-            "global_role",
-            "access_level",
             "is_active",
         )
 
@@ -314,30 +297,22 @@ class UserForm(forms.ModelForm):
             )
 
         self._configure_catalog_field(
-            field_name="employment_type",
-            catalog_code="USER_EMPLOYMENT_TYPE",
-        )
-        self._configure_catalog_field(
             field_name="job",
             catalog_code="USER_JOB",
         )
-        self._configure_catalog_field(
-            field_name="global_role",
-            catalog_code="USER_GLOBAL_ROLE",
-        )
-        self._configure_catalog_field(
-            field_name="access_level",
-            catalog_code="USER_LEVEL_ACCESS",
-        )
 
         if not self.is_bound and not self.instance.pk:
-            self._apply_catalog_default("employment_type")
-            self._apply_catalog_default("job")
-            self._apply_catalog_default("global_role")
-            self._apply_catalog_default("access_level")
+            self._apply_catalog_default(
+                "job"
+            )
 
-    def save(self, commit: bool = True) -> User:
-        user = super().save(commit=False)
+    def save(
+        self,
+        commit: bool = True,
+    ) -> User:
+        user = super().save(
+            commit=False
+        )
 
         if user._state.adding:
             user.set_unusable_password()
@@ -376,7 +351,9 @@ class UserForm(forms.ModelForm):
                 catalog_type__is_active=True,
                 is_active=True,
             )
-            .select_related("catalog_type")
+            .select_related(
+                "catalog_type"
+            )
             .order_by(
                 "level",
                 "sort_order",
@@ -390,10 +367,15 @@ class UserForm(forms.ModelForm):
             return
 
         field.catalog_is_editable = (
-            catalog["catalog_type__is_editable"]
+            catalog[
+                "catalog_type__is_editable"
+            ]
         )
+
         field.catalog_is_incremental = (
-            catalog["catalog_type__is_incremental"]
+            catalog[
+                "catalog_type__is_incremental"
+            ]
         )
 
     def _apply_catalog_default(
@@ -403,29 +385,31 @@ class UserForm(forms.ModelForm):
         default_value = (
             self.fields[field_name]
             .queryset
-            .filter(is_default=True)
+            .filter(
+                is_default=True
+            )
             .first()
         )
 
         if default_value is not None:
-            self.initial[field_name] = default_value.pk
-            
+            self.initial[
+                field_name
+            ] = default_value.pk
+
+
 class AccountForm(forms.ModelForm):
     """
     Formulaire personnel de l'utilisateur connecté.
 
-    Les données administratives sont affichées en lecture seule.
-    L'utilisateur peut modifier sa photo et son mot de passe.
+    Les données administratives sont affichées
+    en lecture seule.
+
+    L'utilisateur peut modifier sa photo
+    et son mot de passe.
     """
 
     company_display = forms.CharField(
         label="Société",
-        required=False,
-        disabled=True,
-    )
-
-    global_role_display = forms.CharField(
-        label="Rôle",
         required=False,
         disabled=True,
     )
@@ -492,15 +476,31 @@ class AccountForm(forms.ModelForm):
                 }
             ),
         }
-        
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        
+
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
         if not self.instance.has_usable_password():
-            self.fields["current_password"].required = False
-            self.fields["current_password"].disabled = True
-            self.fields["current_password"].help_text = (
-                "Aucun mot de passe n'est encore défini pour ce compte."
+            self.fields[
+                "current_password"
+            ].required = False
+
+            self.fields[
+                "current_password"
+            ].disabled = True
+
+            self.fields[
+                "current_password"
+            ].help_text = (
+                "Aucun mot de passe n'est encore "
+                "défini pour ce compte."
             )
 
         # Données administrées depuis Contacts.
@@ -508,15 +508,11 @@ class AccountForm(forms.ModelForm):
         self.fields["last_name"].disabled = True
         self.fields["email"].disabled = True
 
-        self.fields["company_display"].initial = (
+        self.fields[
+            "company_display"
+        ].initial = (
             self.instance.company.name
             if self.instance.company_id
-            else ""
-        )
-
-        self.fields["global_role_display"].initial = (
-            self.instance.global_role.label
-            if self.instance.global_role_id
             else ""
         )
 
@@ -526,9 +522,11 @@ class AccountForm(forms.ModelForm):
         current_password = cleaned_data.get(
             "current_password"
         )
+
         new_password = cleaned_data.get(
             "new_password"
         )
+
         confirmation = cleaned_data.get(
             "new_password_confirmation"
         )
@@ -550,12 +548,14 @@ class AccountForm(forms.ModelForm):
                     "current_password",
                     "Saisissez votre mot de passe actuel.",
                 )
-            elif not self.instance.check_password(current_password):
+            elif not self.instance.check_password(
+                current_password
+            ):
                 self.add_error(
                     "current_password",
                     "Le mot de passe actuel est incorrect.",
                 )
-                
+
         if not new_password:
             self.add_error(
                 "new_password",
@@ -592,15 +592,24 @@ class AccountForm(forms.ModelForm):
 
         return cleaned_data
 
-    def save(self, commit: bool = True) -> User:
-        user = super().save(commit=False)
+    def save(
+        self,
+        commit: bool = True,
+    ) -> User:
+        user = super().save(
+            commit=False
+        )
 
-        new_password = self.cleaned_data.get(
-            "new_password"
+        new_password = (
+            self.cleaned_data.get(
+                "new_password"
+            )
         )
 
         if new_password:
-            user.set_password(new_password)
+            user.set_password(
+                new_password
+            )
 
         if commit:
             user.save()

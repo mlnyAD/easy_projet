@@ -31,9 +31,6 @@ PROJECT_FORM_DEFINITION = FormDefinition(
                     name="company",
                 ),
                 FieldDefinition(
-                    name="project_manager",
-                ),
-                FieldDefinition(
                     name="status",
                 ),
                 FieldDefinition(
@@ -166,6 +163,16 @@ PROJECT_FORM_DEFINITION = FormDefinition(
                     name="role",
                     label="Rôle sur le projet",
                     field_name="role",
+                ),
+                FormCollectionColumnDefinition(
+                    name="access_level",
+                    label="Niveau d'accès",
+                    field_name="access_level",
+                ),
+                FormCollectionColumnDefinition(
+                    name="is_project_manager_responsible",
+                    label="Titulaire",
+                    field_name="is_project_manager_responsible",
                 ),
                 FormCollectionColumnDefinition(
                     name="is_active",

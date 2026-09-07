@@ -144,11 +144,6 @@ CATALOG_DEFINITIONS = [
     ),
 
     CatalogDefinition(
-        code="USER_GLOBAL_ROLE",
-        label="Rôle de l'utilisateur",
-    ),
-
-    CatalogDefinition(
         code="USER_PROJECT_ROLE",
         label="Rôle de l'utilisateur sur le projet",
     ),

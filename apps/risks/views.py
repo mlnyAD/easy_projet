@@ -234,7 +234,6 @@ class RiskListByProjectView(RiskListView):
                     )
                     .select_related(
                         "owner_company",
-                        "project_manager",
                         "status",
                     ),
                     pk=self.kwargs[

@@ -23,10 +23,12 @@ from common.models.base import TimeStampedModel
 
 from .managers import UserManager
 
+
 class Theme(models.TextChoices):
     SYSTEM = "system", _("Système")
     LIGHT = "light", _("Clair")
     DARK = "dark", _("Sombre")
+
 
 class User(
     AbstractBaseUser,
@@ -52,7 +54,7 @@ class User(
         "last_name",
         "first_name",
     ]
-    
+
     # ------------------------------------------------------------------
     # Identité
     # ------------------------------------------------------------------
@@ -78,7 +80,8 @@ class User(
         blank=True,
         null=True,
         verbose_name=_("Photo"),
-    )    
+    )
+
     # ------------------------------------------------------------------
     # Coordonnées
     # ------------------------------------------------------------------
@@ -99,7 +102,8 @@ class User(
         max_length=USER_MOBILE_LENGTH,
         blank=True,
         verbose_name=_("Téléphone mobile"),
-    )    
+    )
+
     # ------------------------------------------------------------------
     # Rattachement
     # ------------------------------------------------------------------
@@ -111,15 +115,6 @@ class User(
         verbose_name=_("Société"),
     )
 
-    employment_type = models.ForeignKey(
-        CatalogValue,
-        on_delete=models.PROTECT,
-        related_name="employment_type_users",
-        null=True,
-        blank=True,
-        verbose_name=_("Type d'emploi"),
-    )
-
     job = models.ForeignKey(
         CatalogValue,
         on_delete=models.PROTECT,
@@ -129,30 +124,21 @@ class User(
         verbose_name=_("Métier"),
     )
 
-    global_role = models.ForeignKey(
-        CatalogValue,
-        on_delete=models.PROTECT,
-        related_name="global_role_users",
-        verbose_name=_("Rôle global"),
-    )
-
-    access_level = models.ForeignKey(
-        CatalogValue,
-        on_delete=models.PROTECT,
-        related_name="access_level_users",
-        verbose_name=_("Niveau d'accès"),
-    )
-
     is_active = models.BooleanField(
         default=True,
         verbose_name=_("Actif"),
     )
-    
+
+    is_system_admin = models.BooleanField(
+        default=False,
+        verbose_name=_("Administrateur système"),
+    )
+
     is_staff = models.BooleanField(
         default=False,
         verbose_name=_("Accès à l'administration"),
     )
-    
+
     # ------------------------------------------------------------------
     # Authentification
     # ------------------------------------------------------------------
@@ -183,7 +169,7 @@ class User(
         default=Theme.SYSTEM,
         verbose_name=_("Thème"),
     )
-            
+
     class Meta:
         db_table = "user"
         ordering = [

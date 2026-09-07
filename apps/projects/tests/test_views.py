@@ -42,34 +42,6 @@ class ProjectViewTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Catalogues utilisateur
-        # --------------------------------------------------------------
-
-        cls.global_role_type = CatalogType.objects.create(
-            code="USER_GLOBAL_ROLE",
-            label="Rôle global utilisateur",
-        )
-
-        cls.access_level_type = CatalogType.objects.create(
-            code="TEST_PROJECT_ACCESS",
-            label="Niveau accès test projets",
-        )
-
-        cls.system_admin_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="SYSTEM_ADMIN",
-            label="Administrateur système",
-            sort_order=10,
-        )
-
-        cls.access_level = CatalogValue.objects.create(
-            catalog_type=cls.access_level_type,
-            code="STANDARD",
-            label="Standard",
-            sort_order=10,
-        )
-
-        # --------------------------------------------------------------
         # Utilisateurs
         # --------------------------------------------------------------
 
@@ -78,8 +50,7 @@ class ProjectViewTests(TestCase):
             email="project-admin@example.com",
             first_name="Jean",
             last_name="Administrateur",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
+            is_system_admin=True,
         )
 
         cls.participant_user = User.objects.create(
@@ -87,8 +58,6 @@ class ProjectViewTests(TestCase):
             email="project-participant@example.com",
             first_name="Paul",
             last_name="Participant",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
         )
 
         cls.new_participant_user = User.objects.create(
@@ -96,8 +65,6 @@ class ProjectViewTests(TestCase):
             email="project-new-participant@example.com",
             first_name="Marie",
             last_name="Nouvelle",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -138,6 +105,23 @@ class ProjectViewTests(TestCase):
             code="PROJECT_MANAGER",
             label="Chef de projet",
             sort_order=20,
+        )
+
+        # --------------------------------------------------------------
+        # Niveau d'accès projet
+        # --------------------------------------------------------------
+
+        cls.project_access_type = CatalogType.objects.create(
+            code="USER_LEVEL_ACCESS",
+            label="Niveau d'accès au projet",
+        )
+
+        cls.project_access = CatalogValue.objects.create(
+            catalog_type=cls.project_access_type,
+            code="STANDARD",
+            label="Standard",
+            sort_order=10,
+            is_default=True,
         )
 
         # --------------------------------------------------------------
@@ -183,6 +167,7 @@ class ProjectViewTests(TestCase):
             project=cls.project,
             user=cls.participant_user,
             role=cls.project_role,
+            access_level=cls.project_access,
         )
 
         # --------------------------------------------------------------
@@ -246,7 +231,6 @@ class ProjectViewTests(TestCase):
             "name": self.project.name,
             "description": self.project.description,
             "company": str(self.company.pk),
-            "project_manager": "",
             "status": str(self.project_status.pk),
             "is_active": "on",
             "owner_company": "",
@@ -461,6 +445,9 @@ class ProjectViewTests(TestCase):
                 "memberships-0-role": str(
                     self.project_role.pk
                 ),
+                "memberships-0-access_level": str(
+                    self.project_access.pk
+                ),
                 "memberships-0-is_active": "on",
 
                 "memberships-1-id": "",
@@ -469,6 +456,9 @@ class ProjectViewTests(TestCase):
                 ),
                 "memberships-1-role": str(
                     self.project_role.pk
+                ),
+                "memberships-1-access_level": str(
+                    self.project_access.pk
                 ),
                 "memberships-1-is_active": "on",
             }
@@ -491,6 +481,7 @@ class ProjectViewTests(TestCase):
                 project=self.project,
                 user=self.new_participant_user,
                 role=self.project_role,
+                access_level=self.project_access,
             ).exists()
         )
 
@@ -512,6 +503,9 @@ class ProjectViewTests(TestCase):
                 ),
                 "memberships-0-role": str(
                     self.project_role_2.pk
+                ),
+                "memberships-0-access_level": str(
+                    self.project_access.pk
                 ),
                 "memberships-0-is_active": "on",
             }
@@ -536,6 +530,11 @@ class ProjectViewTests(TestCase):
             self.project_role_2,
         )
 
+        self.assertEqual(
+            self.membership.access_level,
+            self.project_access,
+        )
+
     def test_update_deletes_internal_participant(self):
         data = self.build_project_data()
 
@@ -554,6 +553,9 @@ class ProjectViewTests(TestCase):
                 ),
                 "memberships-0-role": str(
                     self.project_role.pk
+                ),
+                "memberships-0-access_level": str(
+                    self.project_access.pk
                 ),
                 "memberships-0-is_active": "on",
                 "memberships-0-DELETE": "on",

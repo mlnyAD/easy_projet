@@ -5,10 +5,13 @@ from framework.form import (
     FormDefinition,
     SectionDefinition,
 )
+
 from framework.form.file_upload import (
     FileUploadDefinition,
 )
+
 from framework.form.kinds import FieldKind
+
 from framework.types.field_width import (
     FieldWidth,
 )
@@ -56,9 +59,6 @@ ACCOUNT_FORM_DEFINITION = FormDefinition(
                 ),
                 FieldDefinition(
                     name="company_display"
-                ),
-                FieldDefinition(
-                    name="global_role_display"
                 ),
             ],
         ),

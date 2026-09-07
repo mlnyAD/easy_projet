@@ -12,6 +12,7 @@ from django.views.generic import (
     UpdateView,
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Prefetch
 from datetime import timedelta
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
@@ -35,7 +36,10 @@ from .forms import (
     ProjectPhotoForm,
 )
 from .lists import PROJECT_LIST_DEFINITION
-from .models import Project
+from .models import (
+    Project,
+    ProjectMembership,
+)
 from .services.access import ProjectAccessService
 from django.conf import settings
 from .services.geocoding import (
@@ -49,6 +53,10 @@ from .current_project import (
 from apps.projects.services.access import (
     ProjectAccessService,
 )
+from apps.projects.services.project_manager import (
+    ProjectManagerService,
+)
+from apps.projects.services.project_company import ProjectCompanyService
 
 
 class ProjectListView(
@@ -60,10 +68,36 @@ class ProjectListView(
     context_object_name = "projects"
 
     def get_queryset(self):
+        responsible_memberships = (
+            ProjectMembership.objects
+            .filter(
+                is_active=True,
+                is_project_manager_responsible=True,
+                role__catalog_type__code="USER_PROJECT_ROLE",
+                role__catalog_type__is_active=True,
+                role__code="PROJECT_MANAGER",
+                role__is_active=True,
+            )
+            .select_related(
+                "user",
+                "user__company",
+                "role",
+            )
+        )
+
         return (
             ProjectAccessService
             .get_accessible_projects(
                 self.request.user
+            )
+            .prefetch_related(
+                Prefetch(
+                    "memberships",
+                    queryset=responsible_memberships,
+                    to_attr=(
+                        "responsible_project_manager_memberships"
+                    ),
+                )
             )
         )
 
@@ -72,6 +106,20 @@ class ProjectListView(
 
         django_page = context["page_obj"]
 
+        for project in django_page.object_list:
+            memberships = getattr(
+                project,
+                "responsible_project_manager_memberships",
+                (),
+            )
+
+            if memberships:
+                project.responsible_project_manager = str(
+                    memberships[0].user
+                )
+            else:
+                project.responsible_project_manager = None
+        
         runtime = EPList(
             definition=PROJECT_LIST_DEFINITION,
             rows=django_page.object_list,
@@ -235,7 +283,6 @@ class ProjectWorkspaceView(DetailView):
                 "client_environment__company",
                 "company",
                 "owner_company",
-                "project_manager",
                 "status",
             )
             .prefetch_related(
@@ -252,6 +299,13 @@ class ProjectWorkspaceView(DetailView):
         context = super().get_context_data(**kwargs)
 
         project = self.object
+
+        context["responsible_project_manager"] = (
+            ProjectManagerService
+            .get_responsible_project_manager(
+                project
+            )
+        )
 
         set_current_project(
             self.request,
@@ -405,6 +459,10 @@ class ProjectFormCollectionsMixin:
 
         with transaction.atomic():
             self.object = form.save()
+            
+            ProjectCompanyService.ensure_responsible_company(
+                self.object
+            )
 
             membership_formset.instance = (
                 self.object
@@ -533,7 +591,6 @@ class ProjectDashboardView(DetailView):
             .select_related(
                 "company",
                 "owner_company",
-                "project_manager",
                 "status",
                 "project_type",
                 "client_environment",
@@ -548,6 +605,13 @@ class ProjectDashboardView(DetailView):
         context = super().get_context_data(**kwargs)
 
         project = self.object
+        
+        context["responsible_project_manager"] = (
+            ProjectManagerService
+            .get_responsible_project_manager(
+                project
+            )
+        )
 
         set_current_project(
             self.request,

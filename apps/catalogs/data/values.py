@@ -709,28 +709,6 @@ CATALOG_VALUE_DEFINITIONS = [
     ),    
 
     CatalogValueDefinition(
-        catalog="USER_GLOBAL_ROLE",
-        code="SYSTEM_ADMIN",
-        label="Administrateur système",
-        sort_order=10,
-    ),
-
-    CatalogValueDefinition(
-        catalog="USER_GLOBAL_ROLE",
-        code="CLIENT_ADMIN",
-        label="Administrateur client",
-        sort_order=20,
-    ),
-
-    CatalogValueDefinition(
-        catalog="USER_GLOBAL_ROLE",
-        code="USER",
-        label="Utilisateur",
-        sort_order=30,
-        is_default=True,
-    ),
-
-    CatalogValueDefinition(
         catalog="USER_PROJECT_ROLE",
         code="PROJECT_MANAGER",
         label="Chef de projet",

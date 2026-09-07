@@ -97,3 +97,20 @@ Rubrique utilisateurs : ne proposer que des utilisateurs de sociétés l'environ
 
 ### Transaction licences
 Liste des licences : n'afficher que les licences de la société de l'utilisateur
+
+
+### Fin recherche sécurité niveau 1
+Reste à faire
+Sujet restant	Nature	Priorité / moment
+OnlyOffice callback : endpoint volontairement sans validation JWT ; UUID de version + URL fournie au callback	Sécurité	À traiter en durcissement sécurité
+Téléchargement OnlyOffice depuis une URL fournie par le callback : risque potentiel de SSRF si origine/schéma non contrôlés	Sécurité	Important, avant production
+Locks d'édition : nettoyage des verrous expirés au démarrage	Maintenance	Plus tard
+Locks d'édition : outil admin pour débloquer un verrou coincé	Exploitation	Plus tard
+Documents : contrôle des fichiers orphelins / cohérence stockage-base	Maintenance	Plus tard
+Documents : contrôles complémentaires de cohérence des versions	Maintenance	Plus tard
+OnlyOffice JWT : remplacer le secret actuel par un secret ≥ 32 octets	Configuration sécurité	Avant production
+Licences / intégrations : masquer dans l'IHM les actions création/modification pour les rôles en lecture seule	Ergonomie / Niveau 2	Avec les droits/IHM
+Mot de passe : œil afficher/masquer	Ergonomie	TODO évolution
+Email catch-all Axcio Data : délais irréguliers	Infrastructure externe	À surveiller, pas bloquant
+ProjectCompany et visibilité des salariés des sociétés participantes	Autorisations métier	Niveau 2
+CLIENT_ADMIN pouvant potentiellement attribuer SYSTEM_ADMIN	Sécurité des autorisations	À traiter au début du Niveau 2

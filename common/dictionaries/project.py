@@ -73,12 +73,11 @@ PROJECT_DICTIONARY = {
             "required": True,
             "reference": "company",
         },
-
-        "project_manager": {
-            "label": "Chef de projet",
-            "data_type": "uuid",
+        
+        "responsible_project_manager": {
+            "label": "Chef de projet titulaire",
+            "data_type": "string",
             "required": False,
-            "reference": "user",
         },
 
         "status": {

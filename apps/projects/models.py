@@ -2,12 +2,14 @@
         
 from __future__ import annotations
 
+from django.db import models
+from django.db.models import Q
+
 from decimal import Decimal
 from uuid import uuid4
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import models
 
 from apps.catalogs.models import CatalogValue
 from apps.companies.models import Company
@@ -111,15 +113,6 @@ class Project(TimeStampedModel):
         on_delete=models.PROTECT,
         related_name="managed_projects",
         verbose_name="Société responsable",
-    )
-
-    project_manager = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        related_name="managed_projects",
-        null=True,
-        blank=True,
-        verbose_name="Chef de projet",
     )
 
     status = models.ForeignKey(
@@ -568,6 +561,68 @@ class Project(TimeStampedModel):
         return f"{self.reference} - {self.name}"
 
 
+class ProjectCompany(TimeStampedModel):
+    """
+    Société participant à un projet.
+
+    La société responsable du projet constitue une participation
+    obligatoire au projet.
+
+    Une société participante peut être extérieure à
+    l'environnement client du projet.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="project_companies",
+        verbose_name="Projet",
+    )
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name="project_participations",
+        verbose_name="Société",
+    )
+
+    class Meta:
+        db_table = "project_company"
+        ordering = [
+            "project",
+            "company__name",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "project",
+                    "company",
+                ],
+                name=(
+                    "uq_project_company_"
+                    "project_company"
+                ),
+            ),
+        ]
+        verbose_name = "Société participante au projet"
+        verbose_name_plural = (
+            "Sociétés participantes aux projets"
+        )
+
+    def __str__(self) -> str:
+        return (
+            f"{self.project.reference} - "
+            f"{self.company.name}"
+        )
+
+
 class ProjectMembership(TimeStampedModel):
     """
     Affectation d'un utilisateur à un projet.
@@ -575,6 +630,11 @@ class ProjectMembership(TimeStampedModel):
     Une affectation active matérialise l'appartenance de
     l'utilisateur au projet. Le rôle doit appartenir au
     catalogue USER_PROJECT_ROLE.
+
+    Un chef de projet peut être titulaire ou délégué.
+    Titulaire et délégués disposent des mêmes droits.
+    Au maximum un chef de projet actif peut être titulaire
+    sur un projet.
     """
 
     id = models.UUIDField(
@@ -605,6 +665,18 @@ class ProjectMembership(TimeStampedModel):
         verbose_name="Rôle sur le projet",
     )
 
+    access_level = models.ForeignKey(
+        CatalogValue,
+        on_delete=models.PROTECT,
+        related_name="project_access_memberships",
+        verbose_name="Niveau d'accès au projet",
+    )
+
+    is_project_manager_responsible = models.BooleanField(
+        default=False,
+        verbose_name="Chef de projet titulaire",
+    )
+
     is_active = models.BooleanField(
         default=True,
         verbose_name="Actif",
@@ -625,6 +697,19 @@ class ProjectMembership(TimeStampedModel):
                 ],
                 name="uq_project_membership_project_user",
             ),
+            models.UniqueConstraint(
+                fields=[
+                    "project",
+                ],
+                condition=Q(
+                    is_project_manager_responsible=True,
+                    is_active=True,
+                ),
+                name=(
+                    "uq_project_membership_"
+                    "active_responsible"
+                ),
+            ),
         ]
         verbose_name = "Affectation au projet"
         verbose_name_plural = "Affectations aux projets"
@@ -632,19 +717,44 @@ class ProjectMembership(TimeStampedModel):
     def clean(self):
         super().clean()
 
+        errors = {}
+
         if (
             self.role_id
             and self.role.catalog_type.code
             != "USER_PROJECT_ROLE"
         ):
-            raise ValidationError(
-                {
-                    "role": (
-                        "Le rôle doit appartenir au catalogue "
-                        "USER_PROJECT_ROLE."
-                    ),
-                }
+            errors["role"] = (
+                "Le rôle doit appartenir au catalogue "
+                "USER_PROJECT_ROLE."
             )
+
+        if (
+            self.access_level_id
+            and self.access_level.catalog_type.code
+            != "USER_LEVEL_ACCESS"
+        ):
+            errors["access_level"] = (
+                "Le niveau d'accès doit appartenir au catalogue "
+                "USER_LEVEL_ACCESS."
+            )
+
+        if (
+            self.is_project_manager_responsible
+            and (
+                not self.role_id
+                or self.role.catalog_type.code
+                != "USER_PROJECT_ROLE"
+                or self.role.code != "PROJECT_MANAGER"
+            )
+        ):
+            errors["is_project_manager_responsible"] = (
+                "Le chef de projet titulaire doit avoir le rôle "
+                "PROJECT_MANAGER."
+            )
+
+        if errors:
+            raise ValidationError(errors)
 
     def __str__(self) -> str:
         return (

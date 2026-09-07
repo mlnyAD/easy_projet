@@ -71,50 +71,6 @@ class ActivityReportLevel1AccessTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Rôles globaux
-        #
-        # USER_GLOBAL_ROLE doit porter exactement ce code car
-        # les services d'accès le contrôlent explicitement.
-        # --------------------------------------------------------------
-
-        cls.global_role_type = CatalogType.objects.create(
-            code="USER_GLOBAL_ROLE",
-            label="Rôle global",
-        )
-
-        cls.project_manager_role = (
-            CatalogValue.objects.create(
-                catalog_type=cls.global_role_type,
-                code="PROJECT_MANAGER",
-                label="Chef de projet",
-                sort_order=10,
-            )
-        )
-
-        cls.user_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=20,
-        )
-
-        # --------------------------------------------------------------
-        # Niveau d'accès utilisateur
-        # --------------------------------------------------------------
-
-        cls.access_level_type = CatalogType.objects.create(
-            code="TEST_REPORTING_ACCESS_LEVEL",
-            label="Niveau accès Reporting",
-        )
-
-        cls.access_level = CatalogValue.objects.create(
-            catalog_type=cls.access_level_type,
-            code="STANDARD",
-            label="Standard",
-            sort_order=10,
-        )
-
-        # --------------------------------------------------------------
         # Utilisateurs
         # --------------------------------------------------------------
 
@@ -123,8 +79,6 @@ class ActivityReportLevel1AccessTests(TestCase):
             email="report-user@example.com",
             first_name="Paul",
             last_name="Rapport",
-            global_role=cls.user_role,
-            access_level=cls.access_level,
         )
 
         cls.manager_b = User.objects.create(
@@ -132,8 +86,6 @@ class ActivityReportLevel1AccessTests(TestCase):
             email="manager-b@example.com",
             first_name="Bruno",
             last_name="Manager",
-            global_role=cls.project_manager_role,
-            access_level=cls.access_level,
         )
 
         cls.manager_c = User.objects.create(
@@ -141,8 +93,6 @@ class ActivityReportLevel1AccessTests(TestCase):
             email="manager-c@example.com",
             first_name="Claire",
             last_name="Manager",
-            global_role=cls.project_manager_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -170,11 +120,30 @@ class ActivityReportLevel1AccessTests(TestCase):
             label="Rôle sur projet",
         )
 
-        cls.project_role = CatalogValue.objects.create(
-            catalog_type=cls.project_role_type,
-            code="PROJECT_MANAGER",
-            label="Chef de projet",
+        cls.project_manager_role = (
+            CatalogValue.objects.create(
+                catalog_type=cls.project_role_type,
+                code="PROJECT_MANAGER",
+                label="Chef de projet",
+                sort_order=10,
+            )
+        )
+
+        # --------------------------------------------------------------
+        # Niveau d'accès projet
+        # --------------------------------------------------------------
+
+        cls.project_access_type = CatalogType.objects.create(
+            code="USER_LEVEL_ACCESS",
+            label="Niveau d'accès projet",
+        )
+
+        cls.project_access = CatalogValue.objects.create(
+            catalog_type=cls.project_access_type,
+            code="STANDARD",
+            label="Standard",
             sort_order=10,
+            is_default=True,
         )
 
         # --------------------------------------------------------------
@@ -186,7 +155,6 @@ class ActivityReportLevel1AccessTests(TestCase):
             reference="PRJ-REPORT-B",
             name="Projet Reporting B",
             status=cls.project_status,
-            project_manager=cls.manager_b,
         )
 
         cls.project_c = Project.objects.create(
@@ -194,22 +162,29 @@ class ActivityReportLevel1AccessTests(TestCase):
             reference="PRJ-REPORT-C",
             name="Projet Reporting C",
             status=cls.project_status,
-            project_manager=cls.manager_c,
         )
 
-        # ProjectAccessService utilise les memberships
-        # pour les utilisateurs non administrateurs.
+        # --------------------------------------------------------------
+        # Chefs de projet
+        #
+        # ProjectMembership est la source de vérité.
+        # Les deux managers sont titulaires de leur projet respectif.
+        # --------------------------------------------------------------
 
-        ProjectMembership.objects.create(
+        cls.membership_b = ProjectMembership.objects.create(
             project=cls.project_b,
             user=cls.manager_b,
-            role=cls.project_role,
+            role=cls.project_manager_role,
+            access_level=cls.project_access,
+            is_project_manager_responsible=True,
         )
 
-        ProjectMembership.objects.create(
+        cls.membership_c = ProjectMembership.objects.create(
             project=cls.project_c,
             user=cls.manager_c,
-            role=cls.project_role,
+            role=cls.project_manager_role,
+            access_level=cls.project_access,
+            is_project_manager_responsible=True,
         )
 
         # --------------------------------------------------------------

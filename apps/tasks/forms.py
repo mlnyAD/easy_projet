@@ -317,8 +317,6 @@ class TaskAssignmentForm(forms.ModelForm):
                 .select_related(
                     "company",
                     "job",
-                    "global_role",
-                    "access_level",
                 )
                 .distinct()
                 .order_by(

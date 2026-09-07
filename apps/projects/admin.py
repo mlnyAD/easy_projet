@@ -15,7 +15,6 @@ class ProjectAdmin(admin.ModelAdmin):
         "reference",
         "name",
         "company",
-        "project_manager",
         "status",
         "start_date",
         "end_date",
@@ -46,11 +45,15 @@ class ProjectMembershipAdmin(admin.ModelAdmin):
         "project",
         "user",
         "role",
+        "access_level",
+        "is_project_manager_responsible",
         "is_active",
     )
 
     list_filter = (
         "role",
+        "access_level",
+        "is_project_manager_responsible",
         "is_active",
     )
 

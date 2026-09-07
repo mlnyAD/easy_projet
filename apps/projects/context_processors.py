@@ -46,7 +46,6 @@ def current_project(request):
         .select_related(
             "company",
             "owner_company",
-            "project_manager",
             "status",
         )
         .first()

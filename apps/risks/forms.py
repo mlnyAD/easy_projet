@@ -221,7 +221,6 @@ class RiskForm(forms.ModelForm):
                 )
                 .select_related(
                     "owner_company",
-                    "project_manager",
                 )
                 .order_by(
                     "reference",

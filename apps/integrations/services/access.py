@@ -14,24 +14,20 @@ class IntegrationAccessService:
     Centralise les règles d'accès aux intégrations externes.
 
     Règles :
-    - SYSTEM_ADMIN :
+    - administrateur système :
       accès à toutes les intégrations ;
       accès à tous les environnements clients actifs ;
-      création et modification autorisées.
-    - CLIENT_ADMIN :
-      accès aux intégrations de son ClientEnvironment ;
-      seul son ClientEnvironment est assignable ;
-      création et modification autorisées dans ce périmètre.
+      création et modification autorisées ;
+
+    - administrateur client :
+      accès aux intégrations des environnements clients
+      qu'il administre ;
+      seuls ces environnements sont assignables ;
+      création et modification autorisées dans ce périmètre ;
+
     - autres utilisateurs :
-      aucun accès aux intégrations ;
-      aucun environnement assignable ;
-      création et modification interdites.
+      aucun accès aux intégrations.
     """
-
-    GLOBAL_ROLE_CATALOG = "USER_GLOBAL_ROLE"
-
-    ROLE_SYSTEM_ADMIN = "SYSTEM_ADMIN"
-    ROLE_CLIENT_ADMIN = "CLIENT_ADMIN"
 
     @classmethod
     def get_accessible_integrations(
@@ -45,22 +41,20 @@ class IntegrationAccessService:
         if not user.is_active:
             return ExternalIntegration.objects.none()
 
-        global_role_code = cls._get_global_role_code(user)
-
-        if global_role_code == cls.ROLE_SYSTEM_ADMIN:
+        if user.is_system_admin:
             return cls._base_queryset()
 
-        if global_role_code == cls.ROLE_CLIENT_ADMIN:
-            environment = cls._get_user_client_environment(user)
+        environment_ids = (
+            cls._get_administered_environment_ids(user)
+        )
 
-            if environment is None:
-                return ExternalIntegration.objects.none()
-
-            return cls._base_queryset().filter(
-                client_environment=environment,
+        return (
+            cls._base_queryset()
+            .filter(
+                client_environment_id__in=environment_ids,
             )
-
-        return ExternalIntegration.objects.none()
+            .distinct()
+        )
 
     @classmethod
     def get_assignable_environments(
@@ -76,30 +70,23 @@ class IntegrationAccessService:
         if not user.is_active:
             return ClientEnvironment.objects.none()
 
-        global_role_code = cls._get_global_role_code(user)
+        queryset = (
+            ClientEnvironment.objects
+            .filter(is_active=True)
+            .select_related("company")
+            .order_by("company__name")
+        )
 
-        if global_role_code == cls.ROLE_SYSTEM_ADMIN:
-            return (
-                ClientEnvironment.objects
-                .filter(is_active=True)
-                .select_related("company")
-                .order_by("company__name")
-            )
+        if user.is_system_admin:
+            return queryset
 
-        if global_role_code == cls.ROLE_CLIENT_ADMIN:
-            environment = cls._get_user_client_environment(user)
+        environment_ids = (
+            cls._get_administered_environment_ids(user)
+        )
 
-            if environment is None or not environment.is_active:
-                return ClientEnvironment.objects.none()
-
-            return (
-                ClientEnvironment.objects
-                .filter(pk=environment.pk)
-                .select_related("company")
-                .order_by("company__name")
-            )
-
-        return ClientEnvironment.objects.none()
+        return queryset.filter(
+            pk__in=environment_ids,
+        )
 
     @classmethod
     def can_view_integration(
@@ -108,7 +95,8 @@ class IntegrationAccessService:
         integration: ExternalIntegration,
     ) -> bool:
         """
-        Indique si l'utilisateur peut consulter une intégration.
+        Indique si l'utilisateur peut consulter
+        une intégration.
         """
 
         return (
@@ -123,16 +111,20 @@ class IntegrationAccessService:
         user: User,
     ) -> bool:
         """
-        Indique si l'utilisateur peut créer une intégration.
+        Indique si l'utilisateur peut créer
+        une intégration.
         """
 
         if not user.is_active:
             return False
 
-        return cls._get_global_role_code(user) in {
-            cls.ROLE_SYSTEM_ADMIN,
-            cls.ROLE_CLIENT_ADMIN,
-        }
+        if user.is_system_admin:
+            return True
+
+        return (
+            cls._get_administered_environment_ids(user)
+            .exists()
+        )
 
     @classmethod
     def can_update_integration(
@@ -141,28 +133,20 @@ class IntegrationAccessService:
         integration: ExternalIntegration,
     ) -> bool:
         """
-        Indique si l'utilisateur peut modifier une intégration.
-
-        La modification nécessite :
-        - un rôle autorisé ;
-        - l'appartenance de l'intégration au périmètre visible.
+        Indique si l'utilisateur peut modifier
+        une intégration.
         """
 
         if not user.is_active:
             return False
 
-        global_role_code = cls._get_global_role_code(user)
-
-        if global_role_code == cls.ROLE_SYSTEM_ADMIN:
+        if user.is_system_admin:
             return True
 
-        if global_role_code == cls.ROLE_CLIENT_ADMIN:
-            return cls.can_view_integration(
-                user,
-                integration,
-            )
-
-        return False
+        return cls.can_view_integration(
+            user,
+            integration,
+        )
 
     @classmethod
     def _base_queryset(
@@ -190,35 +174,24 @@ class IntegrationAccessService:
         )
 
     @classmethod
-    def _get_global_role_code(
+    def _get_administered_environment_ids(
         cls,
         user: User,
-    ) -> str | None:
+    ) -> QuerySet:
         """
-        Retourne le code du rôle global si celui-ci
-        appartient au catalogue USER_GLOBAL_ROLE.
-        """
-
-        role = user.global_role
-
-        if role is None:
-            return None
-
-        if role.catalog_type.code != cls.GLOBAL_ROLE_CATALOG:
-            return None
-
-        return role.code
-
-    @staticmethod
-    def _get_user_client_environment(
-        user: User,
-    ) -> ClientEnvironment | None:
-        """
-        Retourne le ClientEnvironment de la société
-        de l'utilisateur.
+        Retourne les environnements clients actifs
+        administrés par l'utilisateur.
         """
 
-        try:
-            return user.company.client_environment
-        except ClientEnvironment.DoesNotExist:
-            return None
+        return (
+            user.client_environment_memberships
+            .filter(
+                is_active=True,
+                is_client_admin=True,
+                client_environment__is_active=True,
+            )
+            .values_list(
+                "client_environment_id",
+                flat=True,
+            )
+        )

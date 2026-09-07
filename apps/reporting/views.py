@@ -38,6 +38,7 @@ from apps.reporting.services import (
 )
 from apps.reporting.permissions import (
     can_review_activity_reports,
+    can_validate_activity_report_project,
 )
 from apps.projects.services.access import ProjectAccessService
 
@@ -640,7 +641,6 @@ class ActivityReportReviewListView(
                 "activity_report__user",
                 "project",
                 "project__company",
-                "project__project_manager",
                 "reviewed_by",
             )
             .annotate(
@@ -840,7 +840,6 @@ class ActivityReportReviewDetailView(
                 "activity_report__user",
                 "project",
                 "project__company",
-                "project__project_manager",
                 "reviewed_by",
             )
             .filter(
@@ -1113,27 +1112,14 @@ class ActivityReportReviewDetailView(
         user = self.request.user
         project = self.object.project
 
-        is_admin = (
-            user.global_role.code
-            in {
-                "SYSTEM_ADMIN",
-                "CLIENT_ADMIN",
-            }
-        )
-
-        is_project_manager = (
-            project.project_manager_id
-            == user.pk
-        )
-
         can_validate = (
             not is_validated
-            and (
-                is_admin
-                or is_project_manager
+            and can_validate_activity_report_project(
+                user,
+                project,
             )
         )
-
+        
         # --------------------------------------------------------------
         # Contexte
         # --------------------------------------------------------------
@@ -1216,22 +1202,9 @@ class ActivityReportReviewDetailView(
         user = request.user
         project = self.object.project
 
-        is_admin = (
-            user.global_role.code
-            in {
-                "SYSTEM_ADMIN",
-                "CLIENT_ADMIN",
-            }
-        )
-
-        is_project_manager = (
-            project.project_manager_id
-            == user.pk
-        )
-
-        if not (
-            is_admin
-            or is_project_manager
+        if not can_validate_activity_report_project(
+            user,
+            project,
         ):
             raise Http404(
                 (

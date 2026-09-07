@@ -95,13 +95,6 @@ USER_DICTIONARY = {
             "reference": "company",
         },
 
-        "employment_type": {
-            "label": "Type d’emploi",
-            "data_type": "uuid",
-            "required": False,
-            "catalog": "USER_EMPLOYMENT_TYPE",
-        },
-
         "job": {
             "label": "Métier",
             "data_type": "uuid",
@@ -110,21 +103,14 @@ USER_DICTIONARY = {
         },
 
         # ------------------------------------------------------------------
-        # Autorisations
+        # Autorisations système
         # ------------------------------------------------------------------
 
-        "global_role": {
-            "label": "Rôle global",
-            "data_type": "uuid",
+        "is_system_admin": {
+            "label": "Administrateur système",
+            "data_type": "boolean",
             "required": True,
-            "catalog": "USER_GLOBAL_ROLE",
-        },
-
-        "access_level": {
-            "label": "Niveau d’accès",
-            "data_type": "uuid",
-            "required": True,
-            "catalog": "USER_LEVEL_ACCESS",
+            "default": False,
         },
 
         "is_active": {

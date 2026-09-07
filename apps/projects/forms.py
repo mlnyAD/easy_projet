@@ -56,7 +56,6 @@ class ProjectForm(forms.ModelForm):
             "name",
             "description",
             "company",
-            "project_manager",
             "status",
             "is_active",
 
@@ -311,19 +310,13 @@ class ProjectForm(forms.ModelForm):
         )
 
         self.fields["company"].queryset = active_companies
+        
+        if not self.instance._state.adding:
+            self.fields["company"].disabled = True
+        
         self.fields["owner_company"].queryset = active_companies
         self.fields["designer_company"].queryset = (
             active_companies
-        )
-
-        self.fields["project_manager"].queryset = (
-            User.objects
-            .filter(is_active=True)
-            .select_related("company")
-            .order_by(
-                "last_name",
-                "first_name",
-            )
         )
 
         self._configure_catalog_field(
@@ -414,16 +407,28 @@ class ProjectMembershipForm(forms.ModelForm):
         label="Rôle sur le projet",
     )
 
+    access_level = CatalogModelChoiceField(
+        queryset=CatalogValue.objects.none(),
+        catalog_code="USER_LEVEL_ACCESS",
+        required=True,
+        label="Niveau d'accès",
+    )
+
     class Meta:
         model = ProjectMembership
         fields = (
             "user",
             "role",
+            "access_level",
+            "is_project_manager_responsible",
             "is_active",
         )
 
         labels = {
             "user": "Utilisateur",
+            "is_project_manager_responsible": (
+                "Chef de projet titulaire"
+            ),
             "is_active": "Actif",
         }
 
@@ -457,6 +462,41 @@ class ProjectMembershipForm(forms.ModelForm):
         self.fields["role"].catalog_is_editable = False
         self.fields["role"].catalog_is_incremental = False
 
+        self.fields["access_level"].queryset = (
+            CatalogValue.objects
+            .filter(
+                catalog_type__code="USER_LEVEL_ACCESS",
+                catalog_type__is_active=True,
+                is_active=True,
+            )
+            .select_related("catalog_type")
+            .order_by(
+                "sort_order",
+                "label",
+            )
+        )
+
+        self.fields[
+            "access_level"
+        ].catalog_is_editable = False
+
+        self.fields[
+            "access_level"
+        ].catalog_is_incremental = False
+
+        if not self.is_bound and not self.instance.pk:
+            default_value = (
+                self.fields["access_level"]
+                .queryset
+                .filter(is_default=True)
+                .first()
+            )
+
+            if default_value is not None:
+                self.initial["access_level"] = (
+                    default_value.pk
+                )
+
 
 ProjectMembershipFormSet = forms.inlineformset_factory(
     Project,
@@ -465,6 +505,8 @@ ProjectMembershipFormSet = forms.inlineformset_factory(
     fields=(
         "user",
         "role",
+        "access_level",
+        "is_project_manager_responsible",
         "is_active",
     ),
     extra=0,

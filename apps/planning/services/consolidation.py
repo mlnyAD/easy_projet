@@ -423,7 +423,6 @@ class PlanningConsolidationService:
             )
             .select_related(
                 "status",
-                "project_manager",
             )
             .order_by(
                 "reference",

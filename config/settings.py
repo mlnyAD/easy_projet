@@ -316,3 +316,12 @@ CADVIEWER_CVKEY = os.getenv(
     "CADVIEWER_CVKEY",
     "",
 )
+
+
+# ***********************************
+# Admin_Sys email
+# ***********************************
+SYSTEM_ADMIN_EMAIL = os.getenv(
+    "EASY_PROJET_SYSTEM_ADMIN_EMAIL",
+    "",
+).strip().lower()

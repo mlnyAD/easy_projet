@@ -161,7 +161,6 @@ class MeetingListByProjectView(MeetingListView):
                 )
                 .select_related(
                     "owner_company",
-                    "project_manager",
                     "status",
                 ),
                 pk=self.kwargs["project_pk"],

@@ -51,9 +51,9 @@ PROJECT_LIST_DEFINITION = ListDefinition(
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
-                "project_manager"
+                "responsible_project_manager"
             ),
-            label="Chef de projet",
+            label="Chef de projet titulaire",
             width="md",
             truncate=True,
             order=40,
