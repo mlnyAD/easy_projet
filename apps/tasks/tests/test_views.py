@@ -1,5 +1,7 @@
 
 
+
+
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -51,22 +53,12 @@ class TaskViewTests(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="TEST_TASK_VIEW_USER_ROLE",
-            label="Rôle global test vues tâches",
-        )
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_TASK_VIEW_ACCESS_LEVEL",
+            code="USER_LEVEL_ACCESS",
             label="Niveau accès test vues tâches",
         )
 
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=10,
-        )
 
         cls.access_level = CatalogValue.objects.create(
             catalog_type=cls.access_level_type,
@@ -84,8 +76,6 @@ class TaskViewTests(TestCase):
             email="task-view@example.com",
             first_name="Jean",
             last_name="Tâche",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         cls.assigned_user = User.objects.create(
@@ -93,8 +83,6 @@ class TaskViewTests(TestCase):
             email="task-assigned@example.com",
             first_name="Paul",
             last_name="Affecté",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -204,12 +192,14 @@ class TaskViewTests(TestCase):
             project=cls.project,
             user=cls.user,
             role=cls.project_role,
+            access_level=cls.access_level,
         )
 
         ProjectMembership.objects.create(
             project=cls.project,
             user=cls.assigned_user,
             role=cls.project_role,
+            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------

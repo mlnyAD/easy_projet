@@ -40,29 +40,9 @@ class DocumentModelTestCase(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="TEST_USER_GLOBAL_ROLE",
-            label="Rôle global test",
-        )
 
-        cls.access_level_type = CatalogType.objects.create(
-            code="TEST_USER_ACCESS_LEVEL",
-            label="Niveau accès test",
-        )
 
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=10,
-        )
 
-        cls.access_level = CatalogValue.objects.create(
-            catalog_type=cls.access_level_type,
-            code="STANDARD",
-            label="Standard",
-            sort_order=10,
-        )
 
         # --------------------------------------------------------------
         # Utilisateur
@@ -73,8 +53,6 @@ class DocumentModelTestCase(TestCase):
             email="ged@example.com",
             first_name="Jean",
             last_name="Test",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------

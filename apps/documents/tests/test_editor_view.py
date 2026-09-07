@@ -56,22 +56,12 @@ class DocumentEditorViewTests(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="TEST_EDITOR_USER_GLOBAL_ROLE",
-            label="Rôle global test",
-        )
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_EDITOR_USER_ACCESS_LEVEL",
+            code="USER_LEVEL_ACCESS",
             label="Niveau accès test",
         )
 
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=10,
-        )
 
         cls.access_level = CatalogValue.objects.create(
             catalog_type=cls.access_level_type,
@@ -89,8 +79,6 @@ class DocumentEditorViewTests(TestCase):
             email="editor@example.com",
             first_name="Jean",
             last_name="Editeur",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -140,6 +128,7 @@ class DocumentEditorViewTests(TestCase):
             project=cls.project,
             user=cls.user,
             role=cls.project_role,
+            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------

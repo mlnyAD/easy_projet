@@ -49,37 +49,15 @@ class DocumentServiceTests(TestCase):
             )
         )
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="TEST_USER_GLOBAL_ROLE",
-            label="Rôle global test",
-        )
 
-        cls.access_level_type = CatalogType.objects.create(
-            code="TEST_USER_ACCESS_LEVEL",
-            label="Niveau accès test",
-        )
 
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=10,
-        )
 
-        cls.access_level = CatalogValue.objects.create(
-            catalog_type=cls.access_level_type,
-            code="STANDARD",
-            label="Standard",
-            sort_order=10,
-        )
 
         cls.user = User.objects.create(
             company=cls.company,
             email="ged-document@example.com",
             first_name="Jean",
             last_name="Document",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         cls.project_status_type = CatalogType.objects.create(

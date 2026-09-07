@@ -114,3 +114,7 @@ Mot de passe : œil afficher/masquer	Ergonomie	TODO évolution
 Email catch-all Axcio Data : délais irréguliers	Infrastructure externe	À surveiller, pas bloquant
 ProjectCompany et visibilité des salariés des sociétés participantes	Autorisations métier	Niveau 2
 CLIENT_ADMIN pouvant potentiellement attribuer SYSTEM_ADMIN	Sécurité des autorisations	À traiter au début du Niveau 2
+
+### Homogénéiser les arborescence
+dans apps certains ont des fichiers test dans la racine, d'autres les tests sont dans un répertoire dédieé.
+A harmoniser

@@ -7,6 +7,14 @@ from apps.catalogs.models import (
     CatalogValue,
 )
 from apps.companies.models import Company
+from apps.core.models import (
+    ClientEnvironment,
+    ClientEnvironmentMembership,
+)
+from apps.projects.models import (
+    Project,
+    ProjectMembership,
+)
 from apps.users.models import User
 from apps.users.services.access import UserAccessService
 
@@ -14,6 +22,16 @@ from apps.users.services.access import UserAccessService
 class UserAccessServiceTests(TestCase):
     """
     Tests de la politique d'accès à l'administration utilisateurs.
+
+    Architecture Level 2 :
+
+    - SYSTEM_ADMIN est porté par User.is_system_admin ;
+    - CLIENT_ADMIN est porté par ClientEnvironmentMembership ;
+    - PROJECT_MANAGER est porté par ProjectMembership ;
+    - la société de l'utilisateur représente son employeur
+      et ne constitue pas un périmètre d'autorisation ;
+    - la visibilité d'un utilisateur dépend des environnements
+      clients accessibles à l'acteur.
     """
 
     @classmethod
@@ -31,49 +49,56 @@ class UserAccessServiceTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Rôles globaux
+        # Environnements clients
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="USER_GLOBAL_ROLE",
-            label="Rôle global",
+        cls.environment_a = ClientEnvironment.objects.create(
+            company=cls.company_a,
         )
 
-        cls.system_admin_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="SYSTEM_ADMIN",
-            label="Administrateur système",
+        cls.environment_b = ClientEnvironment.objects.create(
+            company=cls.company_b,
+        )
+
+        # --------------------------------------------------------------
+        # Statut projet
+        # --------------------------------------------------------------
+
+        cls.project_status_type = CatalogType.objects.create(
+            code="PROJECT_STATUS",
+            label="Statut projet",
+        )
+
+        cls.project_status = CatalogValue.objects.create(
+            catalog_type=cls.project_status_type,
+            code="IN_PROGRESS",
+            label="En cours",
             sort_order=10,
         )
 
-        cls.client_admin_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="CLIENT_ADMIN",
-            label="Administrateur client",
-            sort_order=20,
+        # --------------------------------------------------------------
+        # Rôles projet
+        # --------------------------------------------------------------
+
+        cls.project_role_type = CatalogType.objects.create(
+            code="USER_PROJECT_ROLE",
+            label="Rôle sur projet",
         )
 
         cls.project_manager_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
+            catalog_type=cls.project_role_type,
             code="PROJECT_MANAGER",
             label="Chef de projet",
-            sort_order=30,
-        )
-
-        cls.user_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=40,
+            sort_order=10,
         )
 
         # --------------------------------------------------------------
-        # Niveau d'accès
+        # Niveau d'accès projet
         # --------------------------------------------------------------
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_USER_ACCESS_LEVEL",
-            label="Niveau accès test utilisateurs",
+            code="USER_LEVEL_ACCESS",
+            label="Niveau d'accès",
         )
 
         cls.access_level = CatalogValue.objects.create(
@@ -84,7 +109,7 @@ class UserAccessServiceTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Utilisateurs administrateurs
+        # Utilisateurs
         # --------------------------------------------------------------
 
         cls.system_admin = User.objects.create(
@@ -92,8 +117,7 @@ class UserAccessServiceTests(TestCase):
             email="users-system@example.com",
             first_name="System",
             last_name="Admin",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
+            is_system_admin=True,
         )
 
         cls.client_admin_a = User.objects.create(
@@ -101,8 +125,6 @@ class UserAccessServiceTests(TestCase):
             email="users-client-a@example.com",
             first_name="Client",
             last_name="Admin A",
-            global_role=cls.client_admin_role,
-            access_level=cls.access_level,
         )
 
         cls.project_manager = User.objects.create(
@@ -110,8 +132,6 @@ class UserAccessServiceTests(TestCase):
             email="users-pm@example.com",
             first_name="Chef",
             last_name="Projet",
-            global_role=cls.project_manager_role,
-            access_level=cls.access_level,
         )
 
         cls.standard_user = User.objects.create(
@@ -119,12 +139,14 @@ class UserAccessServiceTests(TestCase):
             email="users-standard@example.com",
             first_name="Utilisateur",
             last_name="Standard",
-            global_role=cls.user_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
-        # Utilisateurs cibles A / B
+        # Utilisateurs cibles
+        #
+        # target_a et target_b appartiennent volontairement
+        # à des employeurs différents et à des environnements
+        # clients différents.
         # --------------------------------------------------------------
 
         cls.target_a = User.objects.create(
@@ -132,8 +154,6 @@ class UserAccessServiceTests(TestCase):
             email="target-a@example.com",
             first_name="Cible",
             last_name="A",
-            global_role=cls.user_role,
-            access_level=cls.access_level,
         )
 
         cls.target_b = User.objects.create(
@@ -141,8 +161,60 @@ class UserAccessServiceTests(TestCase):
             email="target-b@example.com",
             first_name="Cible",
             last_name="B",
-            global_role=cls.user_role,
+        )
+
+        # --------------------------------------------------------------
+        # Appartenance aux environnements clients
+        # --------------------------------------------------------------
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.client_admin_a,
+            is_client_admin=True,
+            is_client_admin_responsible=True,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.project_manager,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.standard_user,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.target_a,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_b,
+            user=cls.target_b,
+        )
+
+        # --------------------------------------------------------------
+        # Projet de l'environnement A
+        # --------------------------------------------------------------
+
+        cls.project_a = Project.objects.create(
+            company=cls.company_a,
+            reference="PRJ-USERS-A",
+            name="Projet Users A",
+            status=cls.project_status,
+        )
+
+        # --------------------------------------------------------------
+        # Chef de projet
+        # --------------------------------------------------------------
+
+        ProjectMembership.objects.create(
+            project=cls.project_a,
+            user=cls.project_manager,
+            role=cls.project_manager_role,
             access_level=cls.access_level,
+            is_project_manager_responsible=True,
         )
 
     # ------------------------------------------------------------------
@@ -216,7 +288,7 @@ class UserAccessServiceTests(TestCase):
     # CLIENT_ADMIN
     # ------------------------------------------------------------------
 
-    def test_client_admin_only_sees_own_company_users(self):
+    def test_client_admin_sees_users_known_in_administered_environment(self):
         user_ids = set(
             UserAccessService
             .get_accessible_users(
@@ -238,7 +310,7 @@ class UserAccessServiceTests(TestCase):
             user_ids,
         )
 
-    def test_client_admin_only_assigns_own_company(self):
+    def test_client_admin_can_assign_all_active_companies(self):
         company_ids = set(
             UserAccessService
             .get_assignable_companies(
@@ -254,6 +326,7 @@ class UserAccessServiceTests(TestCase):
             company_ids,
             {
                 self.company_a.pk,
+                self.company_b.pk,
             },
         )
 
@@ -264,7 +337,9 @@ class UserAccessServiceTests(TestCase):
             )
         )
 
-    def test_client_admin_can_update_own_company_user(self):
+    def test_client_admin_can_update_user_known_in_administered_environment(
+        self,
+    ):
         self.assertTrue(
             UserAccessService.can_update_user(
                 self.client_admin_a,
@@ -272,7 +347,9 @@ class UserAccessServiceTests(TestCase):
             )
         )
 
-    def test_client_admin_cannot_update_foreign_user(self):
+    def test_client_admin_cannot_update_user_outside_administered_environment(
+        self,
+    ):
         self.assertFalse(
             UserAccessService.can_update_user(
                 self.client_admin_a,
@@ -280,7 +357,9 @@ class UserAccessServiceTests(TestCase):
             )
         )
 
-    def test_client_admin_can_reset_own_company_user(self):
+    def test_client_admin_can_reset_user_known_in_administered_environment(
+        self,
+    ):
         self.assertTrue(
             UserAccessService.can_reset_temporary_password(
                 self.client_admin_a,
@@ -288,7 +367,9 @@ class UserAccessServiceTests(TestCase):
             )
         )
 
-    def test_client_admin_cannot_reset_foreign_user(self):
+    def test_client_admin_cannot_reset_user_outside_administered_environment(
+        self,
+    ):
         self.assertFalse(
             UserAccessService.can_reset_temporary_password(
                 self.client_admin_a,
@@ -300,13 +381,28 @@ class UserAccessServiceTests(TestCase):
     # PROJECT_MANAGER
     # ------------------------------------------------------------------
 
-    def test_project_manager_has_no_admin_access(self):
-        self.assertFalse(
+    def test_project_manager_has_visibility_but_no_global_admin_access(
+        self,
+    ):
+        user_ids = set(
             UserAccessService
             .get_accessible_users(
                 self.project_manager
             )
-            .exists()
+            .values_list(
+                "pk",
+                flat=True,
+            )
+        )
+
+        self.assertIn(
+            self.target_a.pk,
+            user_ids,
+        )
+
+        self.assertNotIn(
+            self.target_b.pk,
+            user_ids,
         )
 
         self.assertFalse(
@@ -338,10 +434,12 @@ class UserAccessServiceTests(TestCase):
         )
 
     # ------------------------------------------------------------------
-    # USER
+    # USER SANS PROJET
     # ------------------------------------------------------------------
 
-    def test_standard_user_has_no_admin_access(self):
+    def test_standard_user_without_project_has_no_admin_or_visibility(
+        self,
+    ):
         self.assertFalse(
             UserAccessService
             .get_accessible_users(

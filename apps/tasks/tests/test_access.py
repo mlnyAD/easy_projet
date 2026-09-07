@@ -58,20 +58,10 @@ class TaskAccessTests(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="TEST_TASK_ACCESS_GLOBAL_ROLE",
-            label="Rôle global test accès tâches",
-        )
 
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=10,
-        )
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_TASK_ACCESS_LEVEL",
+            code="USER_LEVEL_ACCESS",
             label="Niveau accès test tâches",
         )
 
@@ -91,8 +81,6 @@ class TaskAccessTests(TestCase):
             email="task-access@example.com",
             first_name="Jean",
             last_name="Accès",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -196,6 +184,7 @@ class TaskAccessTests(TestCase):
             project=cls.project_a,
             user=cls.user,
             role=cls.project_role,
+            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------

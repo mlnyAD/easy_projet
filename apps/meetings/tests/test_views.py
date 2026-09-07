@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from apps.catalogs.models import CatalogType, CatalogValue
 from apps.companies.models import Company
-from apps.core.models import ClientEnvironment
+from apps.core.models import ClientEnvironment, ClientEnvironmentMembership
 from apps.meetings.models import (
     Meeting,
     MeetingParticipant,
@@ -38,21 +38,9 @@ class MeetingViewTests(TestCase):
             )
         )
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="TEST_MEETING_USER_ROLE",
-            label="Rôle global test réunions",
-        )
-
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_MEETING_ACCESS_LEVEL",
+            code="USER_LEVEL_ACCESS",
             label="Niveau accès test réunions",
-        )
-
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=10,
         )
 
         cls.access_level = CatalogValue.objects.create(
@@ -67,8 +55,6 @@ class MeetingViewTests(TestCase):
             email="meeting-view@example.com",
             first_name="Jean",
             last_name="Réunion",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         cls.participant_user = User.objects.create(
@@ -76,8 +62,16 @@ class MeetingViewTests(TestCase):
             email="meeting-participant@example.com",
             first_name="Paul",
             last_name="Participant",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.client_environment,
+            user=cls.user,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.client_environment,
+            user=cls.participant_user,
         )
 
         cls.project_status_type = CatalogType.objects.create(
@@ -132,6 +126,7 @@ class MeetingViewTests(TestCase):
                 project=cls.project,
                 user=cls.user,
                 role=cls.project_role,
+                access_level=cls.access_level,
             )
         )
             
@@ -414,8 +409,11 @@ class MeetingViewTests(TestCase):
             email="meeting-new-participant@example.com",
             first_name="Luc",
             last_name="Nouveau",
-            global_role=self.global_role,
-            access_level=self.access_level,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=self.client_environment,
+            user=new_participant,
         )
 
         data = self.build_update_post_data()

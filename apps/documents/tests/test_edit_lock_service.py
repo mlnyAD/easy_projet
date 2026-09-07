@@ -63,37 +63,9 @@ class DocumentEditLockServiceTests(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = (
-            CatalogType.objects.create(
-                code="TEST_EDIT_LOCK_GLOBAL_ROLE",
-                label="Rôle global test verrou",
-            )
-        )
 
-        cls.access_level_type = (
-            CatalogType.objects.create(
-                code="TEST_EDIT_LOCK_ACCESS_LEVEL",
-                label="Niveau accès test verrou",
-            )
-        )
 
-        cls.global_role = (
-            CatalogValue.objects.create(
-                catalog_type=cls.global_role_type,
-                code="USER",
-                label="Utilisateur",
-                sort_order=10,
-            )
-        )
 
-        cls.access_level = (
-            CatalogValue.objects.create(
-                catalog_type=cls.access_level_type,
-                code="STANDARD",
-                label="Standard",
-                sort_order=10,
-            )
-        )
 
         # --------------------------------------------------------------
         # Utilisateurs
@@ -104,8 +76,6 @@ class DocumentEditLockServiceTests(TestCase):
             email="edit-lock-a@example.com",
             first_name="Alice",
             last_name="Editeur",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         cls.user_b = User.objects.create(
@@ -113,8 +83,6 @@ class DocumentEditLockServiceTests(TestCase):
             email="edit-lock-b@example.com",
             first_name="Bob",
             last_name="Concurrent",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------

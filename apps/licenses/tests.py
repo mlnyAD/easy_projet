@@ -10,7 +10,7 @@ from apps.catalogs.models import (
     CatalogValue,
 )
 from apps.companies.models import Company
-from apps.core.models import ClientEnvironment
+from apps.core.models import ClientEnvironment, ClientEnvironmentMembership
 from apps.licenses.models import License
 from apps.projects.models import (
     Project,
@@ -65,48 +65,11 @@ class LicenseAccessViewTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Rôles globaux
-        # --------------------------------------------------------------
-
-        cls.global_role_type = CatalogType.objects.create(
-            code="USER_GLOBAL_ROLE",
-            label="Rôle global",
-        )
-
-        cls.system_admin_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="SYSTEM_ADMIN",
-            label="Administrateur système",
-            sort_order=10,
-        )
-
-        cls.client_admin_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="CLIENT_ADMIN",
-            label="Administrateur client",
-            sort_order=20,
-        )
-
-        cls.project_manager_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="PROJECT_MANAGER",
-            label="Chef de projet",
-            sort_order=30,
-        )
-
-        cls.user_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=40,
-        )
-
-        # --------------------------------------------------------------
         # Niveau d'accès
         # --------------------------------------------------------------
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_LIC_HTTP_ACCESS_LEVEL",
+            code="USER_LEVEL_ACCESS",
             label="Niveau accès test licences HTTP",
         )
 
@@ -138,7 +101,7 @@ class LicenseAccessViewTests(TestCase):
         # --------------------------------------------------------------
 
         cls.project_status_type = CatalogType.objects.create(
-            code="TEST_LIC_HTTP_PRJ_STATUS",
+            code="PROJECT_STATUS",
             label="Statut projet test licences HTTP",
         )
 
@@ -174,8 +137,7 @@ class LicenseAccessViewTests(TestCase):
             email="license-http-system@example.com",
             first_name="System",
             last_name="Admin",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
+            is_system_admin=True,
         )
 
         cls.client_admin = User.objects.create(
@@ -183,8 +145,6 @@ class LicenseAccessViewTests(TestCase):
             email="license-http-client@example.com",
             first_name="Client",
             last_name="Admin",
-            global_role=cls.client_admin_role,
-            access_level=cls.access_level,
         )
 
         # Employé par A mais affecté à un projet B.
@@ -193,8 +153,6 @@ class LicenseAccessViewTests(TestCase):
             email="license-http-pm@example.com",
             first_name="Chef",
             last_name="Projet",
-            global_role=cls.project_manager_role,
-            access_level=cls.access_level,
         )
 
         cls.standard_user = User.objects.create(
@@ -202,8 +160,27 @@ class LicenseAccessViewTests(TestCase):
             email="license-http-user@example.com",
             first_name="Utilisateur",
             last_name="Standard",
-            global_role=cls.user_role,
-            access_level=cls.access_level,
+        )
+
+        # --------------------------------------------------------------
+        # Appartenances aux environnements clients
+        # --------------------------------------------------------------
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.client_admin,
+            is_client_admin=True,
+            is_client_admin_responsible=True,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_b,
+            user=cls.project_manager,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.standard_user,
         )
 
         # --------------------------------------------------------------
@@ -241,6 +218,8 @@ class LicenseAccessViewTests(TestCase):
             project=cls.project_b,
             user=cls.project_manager,
             role=cls.project_role,
+            access_level=cls.access_level,
+            is_project_manager_responsible=True,
         )
 
     # ------------------------------------------------------------------

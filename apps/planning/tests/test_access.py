@@ -63,20 +63,10 @@ class PlanningAccessTests(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="TEST_PLAN_ACCESS_GLOBAL_ROLE",
-            label="Rôle global test Planning",
-        )
 
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=10,
-        )
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_PLAN_ACCESS_LEVEL",
+            code="USER_LEVEL_ACCESS",
             label="Niveau accès test Planning",
         )
 
@@ -96,8 +86,6 @@ class PlanningAccessTests(TestCase):
             email="planning-access@example.com",
             first_name="Jean",
             last_name="Planning",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         cls.resource_a = User.objects.create(
@@ -105,8 +93,6 @@ class PlanningAccessTests(TestCase):
             email="planning-resource-a@example.com",
             first_name="Alice",
             last_name="Ressource A",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         cls.resource_b = User.objects.create(
@@ -114,8 +100,6 @@ class PlanningAccessTests(TestCase):
             email="planning-resource-b@example.com",
             first_name="Bruno",
             last_name="Ressource B",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -247,6 +231,7 @@ class PlanningAccessTests(TestCase):
             project=cls.project_a,
             user=cls.user,
             role=cls.project_role,
+            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------

@@ -58,20 +58,10 @@ class RiskAccessTests(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="TEST_RISK_GLOBAL_ROLE",
-            label="Rôle global test risques",
-        )
 
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=10,
-        )
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_RISK_ACCESS_LEVEL",
+            code="USER_LEVEL_ACCESS",
             label="Niveau accès test risques",
         )
 
@@ -91,8 +81,6 @@ class RiskAccessTests(TestCase):
             email="risk-user@example.com",
             first_name="Jean",
             last_name="Risque",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -151,6 +139,7 @@ class RiskAccessTests(TestCase):
             project=cls.project_a,
             user=cls.user,
             role=cls.project_role,
+            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------

@@ -30,49 +30,16 @@ class UserTestDataMixin:
             is_active=False,
         )
 
-        cls.employment_type_catalog = CatalogType.objects.create(
-            code="USER_EMPLOYMENT_TYPE",
-            label="Types d'emploi",
-            is_active=True,
-        )
         cls.job_catalog = CatalogType.objects.create(
             code="USER_JOB",
             label="Métiers",
             is_active=True,
         )
-        cls.global_role_catalog = CatalogType.objects.create(
-            code="USER_GLOBAL_ROLE",
-            label="Rôles globaux",
-            is_active=True,
-        )
-        cls.access_level_catalog = CatalogType.objects.create(
-            code="USER_LEVEL_ACCESS",
-            label="Niveaux d'accès",
-            is_active=True,
-        )
 
-        cls.employment_type = CatalogValue.objects.create(
-            catalog_type=cls.employment_type_catalog,
-            code="EMPLOYEE",
-            label="Salarié",
-            is_active=True,
-        )
         cls.job = CatalogValue.objects.create(
             catalog_type=cls.job_catalog,
             code="PROJECT_MANAGER",
             label="Chef de projet",
-            is_active=True,
-        )
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_catalog,
-            code="CLIENT_ADMIN",
-            label="Administrateur client",
-            is_active=True,
-        )
-        cls.access_level = CatalogValue.objects.create(
-            catalog_type=cls.access_level_catalog,
-            code="STANDARD",
-            label="Standard",
             is_active=True,
         )
         
@@ -81,8 +48,7 @@ class UserTestDataMixin:
             first_name="Client",
             email="admin.client@example.com",
             company=cls.company,
-            global_role=cls.global_role,
-            access_level=cls.access_level,
+            is_system_admin=True,
             is_active=True,
         )
 
@@ -120,10 +86,7 @@ class UserTestDataMixin:
             "phone": "01 23 45 67 89",
             "mobile": "06 12 34 56 78",
             "company": self.company.pk,
-            "employment_type": self.employment_type.pk,
             "job": self.job.pk,
-            "global_role": self.global_role.pk,
-            "access_level": self.access_level.pk,
             "is_active": True,
             "theme": "light",
         }
@@ -140,10 +103,7 @@ class UserTestDataMixin:
             first_name="Alice",
             email=email,
             company=self.company,
-            employment_type=self.employment_type,
             job=self.job,
-            global_role=self.global_role,
-            access_level=self.access_level,
             is_active=True,
         )
         user.set_unusable_password()
@@ -162,8 +122,6 @@ class UserModelTests(
             first_name="  alice  ",
             email="  ALICE.MARTIN@EXAMPLE.COM  ",
             company=self.company,
-            global_role=self.global_role,
-            access_level=self.access_level,
         )
         user.set_unusable_password()
         user.save()
@@ -258,14 +216,6 @@ class UserFormTests(
             form.fields["job"].queryset,
         )
 
-        self.assertIn(
-            self.global_role,
-            form.fields["global_role"].queryset,
-        )
-        self.assertNotIn(
-            self.other_value,
-            form.fields["global_role"].queryset,
-        )
 
     def test_editing_user_does_not_change_password_state(self):
         user = self.create_user()
@@ -305,15 +255,12 @@ class UserFormTests(
             job_field.label_from_instance(self.job),
         )
         
-    def test_global_role_displays_only_functional_label(self):
+    def test_form_does_not_expose_level2_authorization_fields(self):
         form = UserForm()
 
-        field = form.fields["global_role"]
-
-        self.assertEqual(
-            field.label_from_instance(self.global_role),
-            "Administrateur client",
-        )
+        self.assertNotIn("employment_type", form.fields)
+        self.assertNotIn("global_role", form.fields)
+        self.assertNotIn("access_level", form.fields)
         
     def test_catalog_field_exposes_catalog_metadata(self):
         form = UserForm()

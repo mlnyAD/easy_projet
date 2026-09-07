@@ -7,8 +7,9 @@ from apps.catalogs.models import (
     CatalogValue,
 )
 from apps.companies.models import Company
-from apps.core.models import ClientEnvironment
+from apps.core.models import ClientEnvironment, ClientEnvironmentMembership
 from apps.integrations.models import ExternalIntegration
+from apps.projects.models import Project, ProjectMembership
 from apps.integrations.services.access import (
     IntegrationAccessService,
 )
@@ -43,53 +44,40 @@ class IntegrationAccessServiceTests(TestCase):
         )
 
         # --------------------------------------------------------------
-        # Rôles globaux
+        # Catalogues projet
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="USER_GLOBAL_ROLE",
-            label="Rôle global",
+        cls.project_status_catalog = CatalogType.objects.create(
+            code="PROJECT_STATUS",
+            label="Statut projet",
         )
 
-        cls.system_admin_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="SYSTEM_ADMIN",
-            label="Administrateur système",
+        cls.project_status = CatalogValue.objects.create(
+            catalog_type=cls.project_status_catalog,
+            code="IN_PROGRESS",
+            label="En cours",
             sort_order=10,
         )
 
-        cls.client_admin_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="CLIENT_ADMIN",
-            label="Administrateur client",
-            sort_order=20,
+        cls.project_role_catalog = CatalogType.objects.create(
+            code="USER_PROJECT_ROLE",
+            label="Rôles projet",
         )
 
         cls.project_manager_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
+            catalog_type=cls.project_role_catalog,
             code="PROJECT_MANAGER",
             label="Chef de projet",
-            sort_order=30,
+            sort_order=10,
         )
 
-        cls.user_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=40,
-        )
-
-        # --------------------------------------------------------------
-        # Niveau d'accès
-        # --------------------------------------------------------------
-
-        cls.access_level_type = CatalogType.objects.create(
-            code="TEST_INT_ACCESS_LEVEL",
-            label="Niveau accès test intégrations",
+        cls.access_level_catalog = CatalogType.objects.create(
+            code="USER_LEVEL_ACCESS",
+            label="Niveaux d'accès",
         )
 
         cls.access_level = CatalogValue.objects.create(
-            catalog_type=cls.access_level_type,
+            catalog_type=cls.access_level_catalog,
             code="STANDARD",
             label="Standard",
             sort_order=10,
@@ -144,8 +132,7 @@ class IntegrationAccessServiceTests(TestCase):
             email="integration-system@example.com",
             first_name="System",
             last_name="Admin",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
+            is_system_admin=True,
         )
 
         cls.client_admin_a = User.objects.create(
@@ -153,8 +140,6 @@ class IntegrationAccessServiceTests(TestCase):
             email="integration-client-a@example.com",
             first_name="Client",
             last_name="Admin A",
-            global_role=cls.client_admin_role,
-            access_level=cls.access_level,
         )
 
         cls.client_admin_b = User.objects.create(
@@ -162,8 +147,6 @@ class IntegrationAccessServiceTests(TestCase):
             email="integration-client-b@example.com",
             first_name="Client",
             last_name="Admin B",
-            global_role=cls.client_admin_role,
-            access_level=cls.access_level,
         )
 
         cls.project_manager = User.objects.create(
@@ -171,8 +154,6 @@ class IntegrationAccessServiceTests(TestCase):
             email="integration-pm@example.com",
             first_name="Chef",
             last_name="Projet",
-            global_role=cls.project_manager_role,
-            access_level=cls.access_level,
         )
 
         cls.standard_user = User.objects.create(
@@ -180,8 +161,53 @@ class IntegrationAccessServiceTests(TestCase):
             email="integration-user@example.com",
             first_name="Utilisateur",
             last_name="Standard",
-            global_role=cls.user_role,
+        )
+
+        # --------------------------------------------------------------
+        # Appartenances aux environnements clients
+        # --------------------------------------------------------------
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.client_admin_a,
+            is_client_admin=True,
+            is_client_admin_responsible=True,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_b,
+            user=cls.client_admin_b,
+            is_client_admin=True,
+            is_client_admin_responsible=True,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.project_manager,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.standard_user,
+        )
+
+        # --------------------------------------------------------------
+        # Projet / rôle chef de projet
+        # --------------------------------------------------------------
+
+        cls.project_a = Project.objects.create(
+            company=cls.company_a,
+            reference="PRJ-INT-A",
+            name="Projet intégrations A",
+            status=cls.project_status,
+        )
+
+        ProjectMembership.objects.create(
+            project=cls.project_a,
+            user=cls.project_manager,
+            role=cls.project_manager_role,
             access_level=cls.access_level,
+            is_project_manager_responsible=True,
         )
 
         # --------------------------------------------------------------

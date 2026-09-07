@@ -1,5 +1,7 @@
 
 
+
+
 from __future__ import annotations
 
 from django.core.exceptions import ValidationError
@@ -71,37 +73,9 @@ class CommunicationModelTests(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = (
-            CatalogType.objects.create(
-                code="USER_GLOBAL_ROLE",
-                label="Rôle global utilisateur",
-            )
-        )
 
-        cls.access_level_type = (
-            CatalogType.objects.create(
-                code="COMMUNICATION_ACCESS_LEVEL",
-                label="Niveau accès communications",
-            )
-        )
 
-        cls.system_admin_role = (
-            CatalogValue.objects.create(
-                catalog_type=cls.global_role_type,
-                code="SYSTEM_ADMIN",
-                label="Administrateur système",
-                sort_order=10,
-            )
-        )
 
-        cls.access_level = (
-            CatalogValue.objects.create(
-                catalog_type=cls.access_level_type,
-                code="STANDARD",
-                label="Standard",
-                sort_order=10,
-            )
-        )
 
         # --------------------------------------------------------------
         # Utilisateurs
@@ -112,8 +86,6 @@ class CommunicationModelTests(TestCase):
             email="communication-user@example.com",
             first_name="Jean",
             last_name="Utilisateur",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
         )
 
         cls.recipient_user = User.objects.create(
@@ -121,8 +93,6 @@ class CommunicationModelTests(TestCase):
             email="communication-recipient@example.com",
             first_name="Paul",
             last_name="Destinataire",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -631,22 +601,12 @@ class CommunicationServiceTests(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="USER_GLOBAL_ROLE",
-            label="Rôle global utilisateur",
-        )
 
         cls.access_level_type = CatalogType.objects.create(
-            code="COMMUNICATION_SERVICE_ACCESS",
+            code="USER_LEVEL_ACCESS",
             label="Accès service communication",
         )
 
-        cls.system_admin_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="SYSTEM_ADMIN",
-            label="Administrateur système",
-            sort_order=10,
-        )
 
         cls.access_level = CatalogValue.objects.create(
             catalog_type=cls.access_level_type,
@@ -712,8 +672,6 @@ class CommunicationServiceTests(TestCase):
             email="service-author@example.com",
             first_name="Jean",
             last_name="Auteur",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
         )
 
         cls.recipient = User.objects.create(
@@ -721,8 +679,6 @@ class CommunicationServiceTests(TestCase):
             email="service-recipient@example.com",
             first_name="Paul",
             last_name="Destinataire",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
         )
 
         cls.other_user = User.objects.create(
@@ -730,8 +686,6 @@ class CommunicationServiceTests(TestCase):
             email="service-other@example.com",
             first_name="Marie",
             last_name="Externe",
-            global_role=cls.system_admin_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -760,6 +714,7 @@ class CommunicationServiceTests(TestCase):
             project=cls.project,
             user=cls.recipient,
             role=cls.project_role,
+            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------

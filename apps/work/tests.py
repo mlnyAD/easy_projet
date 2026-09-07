@@ -55,20 +55,10 @@ class WorkPackageAccessTests(TestCase):
         # Catalogues utilisateur
         # --------------------------------------------------------------
 
-        cls.global_role_type = CatalogType.objects.create(
-            code="TEST_WORK_GLOBAL_ROLE",
-            label="Rôle global test Work",
-        )
 
-        cls.global_role = CatalogValue.objects.create(
-            catalog_type=cls.global_role_type,
-            code="USER",
-            label="Utilisateur",
-            sort_order=10,
-        )
 
         cls.access_level_type = CatalogType.objects.create(
-            code="TEST_WORK_ACCESS_LEVEL",
+            code="USER_LEVEL_ACCESS",
             label="Niveau accès test Work",
         )
 
@@ -88,8 +78,6 @@ class WorkPackageAccessTests(TestCase):
             email="work-user@example.com",
             first_name="Jean",
             last_name="Work",
-            global_role=cls.global_role,
-            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
@@ -168,6 +156,7 @@ class WorkPackageAccessTests(TestCase):
             project=cls.project_a,
             user=cls.user,
             role=cls.project_role,
+            access_level=cls.access_level,
         )
 
         # --------------------------------------------------------------
