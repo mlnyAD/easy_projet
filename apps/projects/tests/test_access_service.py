@@ -20,7 +20,14 @@ class ProjectAccessServiceTests(TestCase):
     Ces tests utilisent le modèle de droits Niveau 2 :
     - User.is_system_admin pour l'administration système ;
     - ClientEnvironmentMembership pour l'administration client ;
-    - ProjectMembership pour l'accès direct à un projet.
+    - ProjectMembership pour l'accès direct à un projet ;
+    - un Chef de projet dispose également d'une visibilité
+      transverse en lecture sur les autres projets de la société
+      d'un projet qu'il dirige.
+
+    La visibilité transverse d'un Chef de projet est déterminée
+    par la société du projet dirigé, et non par la société
+    employeur du User.
     """
 
     @classmethod
@@ -77,6 +84,13 @@ class ProjectAccessServiceTests(TestCase):
             sort_order=10,
         )
 
+        cls.project_manager_role = CatalogValue.objects.create(
+            catalog_type=cls.project_role_type,
+            code="PROJECT_MANAGER",
+            label="Chef de projet",
+            sort_order=20,
+        )
+
         # --------------------------------------------------------------
         # Catalogue des niveaux d'accès projet
         # --------------------------------------------------------------
@@ -91,6 +105,7 @@ class ProjectAccessServiceTests(TestCase):
             code="STANDARD",
             label="Standard",
             sort_order=10,
+            is_default=True,
         )
 
         # --------------------------------------------------------------
@@ -118,9 +133,16 @@ class ProjectAccessServiceTests(TestCase):
             status=cls.project_status,
         )
 
-        cls.project_b_inactive = Project.objects.create(
+        cls.project_b2 = Project.objects.create(
             company=cls.company_b,
             reference="B-002",
+            name="Projet B2",
+            status=cls.project_status,
+        )
+
+        cls.project_b_inactive = Project.objects.create(
+            company=cls.company_b,
+            reference="B-003",
             name="Projet B inactif",
             status=cls.project_status,
             is_active=False,
@@ -157,6 +179,20 @@ class ProjectAccessServiceTests(TestCase):
             email="itinerant@example.com",
             first_name="Utilisateur",
             last_name="Itinérant",
+        )
+
+        cls.project_manager_a = User.objects.create(
+            company=cls.company_a,
+            email="project-manager-a@example.com",
+            first_name="Chef",
+            last_name="Projet A",
+        )
+
+        cls.itinerant_project_manager = User.objects.create(
+            company=cls.company_a,
+            email="itinerant-project-manager@example.com",
+            first_name="Chef",
+            last_name="Projet itinérant",
         )
 
         cls.inactive_user = User.objects.create(
@@ -227,6 +263,24 @@ class ProjectAccessServiceTests(TestCase):
         )
 
         ProjectMembership.objects.create(
+            project=cls.project_a1,
+            user=cls.project_manager_a,
+            role=cls.project_manager_role,
+            access_level=cls.project_access_level,
+            is_project_manager_responsible=True,
+            is_active=True,
+        )
+
+        ProjectMembership.objects.create(
+            project=cls.project_b1,
+            user=cls.itinerant_project_manager,
+            role=cls.project_manager_role,
+            access_level=cls.project_access_level,
+            is_project_manager_responsible=True,
+            is_active=True,
+        )
+
+        ProjectMembership.objects.create(
             project=cls.project_b1,
             user=cls.inactive_project_user,
             role=cls.project_user_role,
@@ -258,6 +312,7 @@ class ProjectAccessServiceTests(TestCase):
                 self.project_a1.pk,
                 self.project_a2.pk,
                 self.project_b1.pk,
+                self.project_b2.pk,
             },
         )
 
@@ -338,4 +393,72 @@ class ProjectAccessServiceTests(TestCase):
                 self.project_user,
                 self.project_a1,
             )
+        )
+
+    def test_project_manager_sees_other_projects_of_managed_company(
+        self,
+    ):
+        """
+        Un Chef de projet voit son projet ainsi que les autres
+        projets actifs de la société de ce projet.
+        """
+
+        self.assertEqual(
+            self.accessible_project_ids(
+                self.project_manager_a
+            ),
+            {
+                self.project_a1.pk,
+                self.project_a2.pk,
+            },
+        )
+
+    def test_project_manager_does_not_see_projects_of_other_company(
+        self,
+    ):
+        """
+        La visibilité transverse du Chef de projet ne franchit
+        pas la frontière de la société du projet dirigé.
+        """
+
+        self.assertNotIn(
+            self.project_b1.pk,
+            self.accessible_project_ids(
+                self.project_manager_a
+            ),
+        )
+
+        self.assertNotIn(
+            self.project_b2.pk,
+            self.accessible_project_ids(
+                self.project_manager_a
+            ),
+        )
+
+    def test_itinerant_project_manager_visibility_uses_project_company(
+        self,
+    ):
+        """
+        Le périmètre transverse du Chef de projet dépend de la
+        société du projet dirigé et non de son employeur.
+
+        L'utilisateur est employé par la société A mais Chef de
+        projet du projet B1.
+
+        Il voit donc :
+        - B1 par son ProjectMembership ;
+        - B2 par visibilité transverse de Chef de projet.
+
+        Son emploi par la société A ne lui donne aucun accès
+        automatique à A1 ou A2.
+        """
+
+        self.assertEqual(
+            self.accessible_project_ids(
+                self.itinerant_project_manager
+            ),
+            {
+                self.project_b1.pk,
+                self.project_b2.pk,
+            },
         )

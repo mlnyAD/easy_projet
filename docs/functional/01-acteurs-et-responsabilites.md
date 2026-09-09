@@ -24,3 +24,28 @@ Le statut titulaire/délégué est organisationnel, pas une différence de permi
 La vacance du titulaire est autorisée.
 Le périmètre reste exclusivement déterminé par ClientEnvironmentMembership et ProjectMembership : aucun changement au cloisonnement.
 Nous évitons donc les rôles ADJOINT et, à ce stade, les tables de délégation supplémentaires.
+
+Je propose de procéder par périmètre, en commençant par le plus central : les projets. Il faut maintenant formaliser et tester la matrice suivante :
+
+Acteur	Voir projet	Modifier projet	Gérer participants	Gérer sociétés projet	Données financières
+System Admin	Oui	Oui	Oui	Oui	Oui
+Client Admin du CE	Oui	Oui	Oui	Oui	Oui
+CP du projet, titulaire ou délégué	Oui	Oui	Oui	Oui	Oui
+Utilisateur membre	Oui	Selon access_level	Selon access_level	Non	Non
+Utilisateur hors projet	Non	Non	Non	Non	Non
+
+| Action                                      | Admin système | Admin client | CP sur son projet | CP sur autre projet de la société | Standard affecté | Lecture seule affecté |
+| ------------------------------------------- | :-----------: | :----------: | :---------------: | :-------------------------------: | :--------------: | :-------------------: |
+| Voir le projet                              |       ✓       |       ✓      |         ✓         |                 ✓                 |         ✓        |           ✓           |
+| Voir les participants                       |       ✓       |       ✓      |         ✓         |                 ✓                 |         ✓        |           ✓           |
+| Voir tâches / planning / réunions / risques |       ✓       |       ✓      |         ✓         |                 ✓                 |         ✓        |           ✓           |
+| Voir occupation / charge des ressources     |       ✓       |       ✓      |         ✓         |                 ✓                 |         ✓        |           ✓           |
+| Créer/modifier les données opérationnelles  |       ✓       |       ✓      |         ✓         |                 —                 |         ✓        |           —           |
+| Documents : déposer/versionner/éditer       |       ✓       |       ✓      |         ✓         |                 —                 |         ✓        |           —           |
+| Affecter des ressources aux tâches          |       ✓       |       ✓      |         ✓         |                 —                 |         ✓        |           —           |
+| Administrer les participants du projet      |       ✓       |       ✓      |         ✓         |                 —                 |         —        |           —           |
+| Administrer les sociétés intervenantes      |       ✓       |       ✓      |         ✓         |                 —                 |         —        |           —           |
+| Modifier les paramètres du projet           |       ✓       |       ✓      |         ✓         |                 —                 |         —        |           —           |
+| Clôturer le projet                          |       ✓       |       ✓      |         ✓         |                 —                 |         —        |           —           |
+| Voir les données financières                |       ✓       |       ✓      |         ✓         |                 —                 |         —        |           —           |
+| Modifier les données financières            |       ✓       |       ✓      |         ✓         |                 —                 |         —        |           —           |

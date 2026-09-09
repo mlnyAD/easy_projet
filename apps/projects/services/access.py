@@ -10,7 +10,7 @@ from apps.users.models import User
 
 class ProjectAccessService:
     """
-    Centralise les règles d'accès aux projets.
+    Centralise les règles de visibilité des projets.
 
     Règles :
     - utilisateur inactif :
@@ -20,14 +20,24 @@ class ProjectAccessService:
     - administrateur client :
       accès à tous les projets actifs des environnements
       clients qu'il administre ;
-    - autres utilisateurs :
-      accès aux projets pour lesquels un
-      ProjectMembership actif existe.
+    - membre d'un projet :
+      accès direct aux projets pour lesquels un
+      ProjectMembership actif existe ;
+    - Chef de projet :
+      accès en consultation aux autres projets actifs
+      des sociétés des projets qu'il dirige.
 
-    Un utilisateur peut cumuler plusieurs périmètres :
-    administration d'un ou plusieurs environnements clients
-    et participation directe à d'autres projets.
+    Un utilisateur peut cumuler plusieurs périmètres.
+
+    La visibilité transverse d'un Chef de projet est déterminée
+    par la société des projets qu'il dirige et non par sa société
+    employeur.
+
+    Ce service détermine uniquement si un projet est visible.
+    Il ne détermine pas les actions autorisées sur ce projet.
     """
+
+    PROJECT_MANAGER_ROLE_CODE = "PROJECT_MANAGER"
 
     @classmethod
     def get_accessible_projects(
@@ -35,8 +45,7 @@ class ProjectAccessService:
         user: User,
     ) -> QuerySet[Project]:
         """
-        Retourne les projets actifs accessibles
-        par l'utilisateur.
+        Retourne les projets actifs visibles par l'utilisateur.
         """
 
         if not user.is_active:
@@ -59,6 +68,20 @@ class ProjectAccessService:
                 "name",
             )
 
+        managed_company_ids = (
+            user.project_memberships
+            .filter(
+                is_active=True,
+                project__is_active=True,
+                role__catalog_type__code="USER_PROJECT_ROLE",
+                role__code=cls.PROJECT_MANAGER_ROLE_CODE,
+            )
+            .values_list(
+                "project__company_id",
+                flat=True,
+            )
+        )
+
         return (
             queryset
             .filter(
@@ -70,6 +93,9 @@ class ProjectAccessService:
                 | Q(
                     memberships__user=user,
                     memberships__is_active=True,
+                )
+                | Q(
+                    company_id__in=managed_company_ids,
                 )
             )
             .distinct()
@@ -86,8 +112,10 @@ class ProjectAccessService:
         project: Project,
     ) -> bool:
         """
-        Indique si l'utilisateur peut accéder
-        au projet.
+        Indique si l'utilisateur peut voir le projet.
+
+        Un résultat True ne signifie pas nécessairement que
+        l'utilisateur peut modifier ou administrer le projet.
         """
 
         return (

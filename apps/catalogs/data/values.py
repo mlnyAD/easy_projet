@@ -673,13 +673,6 @@ CATALOG_VALUE_DEFINITIONS = [
 
     CatalogValueDefinition(
         catalog="USER_LEVEL_ACCESS",
-        code="ADMIN",
-        label="Administrateur",
-        sort_order=10,
-    ),
-
-    CatalogValueDefinition(
-        catalog="USER_LEVEL_ACCESS",
         code="STANDARD",
         label="Standard",
         sort_order=20,
