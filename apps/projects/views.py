@@ -40,7 +40,6 @@ from .models import (
     Project,
     ProjectMembership,
 )
-from .services.access import ProjectAccessService
 from django.conf import settings
 from .services.geocoding import (
     ProjectGeocodingError,
@@ -49,13 +48,18 @@ from .services.geocoding import (
 from .current_project import (
     set_current_project,
 )
-
 from apps.projects.services.access import (
     ProjectAccessService,
 )
+
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
+)
+
 from apps.projects.services.project_manager import (
     ProjectManagerService,
 )
+
 from apps.projects.services.project_company import ProjectCompanyService
 
 
@@ -516,9 +520,9 @@ class ProjectUpdateView(
     )
 
     def get_queryset(self):
-        queryset = (
-            ProjectAccessService
-            .get_accessible_projects(
+        return (
+            ProjectAuthorizationService
+            .get_administrable_projects(
                 self.request.user
             )
             .select_related(
@@ -528,19 +532,7 @@ class ProjectUpdateView(
             )
         )
 
-        project_id = (
-            self.request.GET
-            .get("project")
-        )
 
-        if project_id:
-            queryset = queryset.filter(
-                pk=project_id
-            )
-
-        return queryset
-    
-            
 class ProjectPhotoUpdateView(
     LoginRequiredMixin,
     UpdateView,
@@ -552,6 +544,14 @@ class ProjectPhotoUpdateView(
     model = Project
     form_class = ProjectPhotoForm
     template_name = "projects/project_photo_form.html"
+
+    def get_queryset(self):
+        return (
+            ProjectAuthorizationService
+            .get_administrable_projects(
+                self.request.user
+            )
+        )
 
     def get_success_url(self):
         return reverse_lazy(
@@ -568,7 +568,7 @@ class ProjectPhotoUpdateView(
         )
 
         return super().form_valid(form)
-    
+   
 
 class ProjectDashboardView(DetailView):
     """

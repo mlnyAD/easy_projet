@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from django.db.models import Q, QuerySet
+
 from apps.projects.models import Project, ProjectMembership
 from apps.projects.services.access import ProjectAccessService
 from apps.projects.services.project_manager import ProjectManagerService
@@ -38,8 +40,80 @@ class ProjectAuthorizationService:
     et n'interviennent pas dans les autorisations.
     """
 
+    PROJECT_ROLE_CATALOG = "USER_PROJECT_ROLE"
+    PROJECT_MANAGER_ROLE = "PROJECT_MANAGER"
+
     ACCESS_LEVEL_CATALOG = "USER_LEVEL_ACCESS"
     STANDARD_ACCESS_LEVEL = "STANDARD"
+
+    @classmethod
+    def get_administrable_projects(
+        cls,
+        user: User,
+    ) -> QuerySet[Project]:
+        """
+        Retourne les projets actifs que l'utilisateur peut administrer.
+
+        Un projet est administrable lorsque l'utilisateur est :
+        - administrateur système ;
+        - administrateur client actif de l'environnement du projet ;
+        - chef de projet actif du projet.
+
+        La visibilité transverse d'un Chef de projet ne donne
+        aucun droit d'administration.
+
+        Les niveaux STANDARD et READ_ONLY ne donnent aucun droit
+        d'administration du projet.
+        """
+
+        if not user.is_active:
+            return Project.objects.none()
+
+        queryset = (
+            Project.objects
+            .filter(is_active=True)
+            .select_related(
+                "client_environment",
+                "client_environment__company",
+                "company",
+                "status",
+            )
+        )
+
+        if user.is_system_admin:
+            return queryset.order_by(
+                "reference",
+                "name",
+            )
+
+        return (
+            queryset
+            .filter(
+                Q(
+                    client_environment__user_memberships__user=user,
+                    client_environment__user_memberships__is_active=True,
+                    client_environment__user_memberships__is_client_admin=True,
+                    client_environment__is_active=True,
+                )
+                | Q(
+                    memberships__user=user,
+                    memberships__is_active=True,
+                    memberships__role__catalog_type__code=(
+                        cls.PROJECT_ROLE_CATALOG
+                    ),
+                    memberships__role__catalog_type__is_active=True,
+                    memberships__role__code=(
+                        cls.PROJECT_MANAGER_ROLE
+                    ),
+                    memberships__role__is_active=True,
+                )
+            )
+            .distinct()
+            .order_by(
+                "reference",
+                "name",
+            )
+        )
 
     @classmethod
     def can_view_project(
@@ -113,24 +187,10 @@ class ProjectAuthorizationService:
         participantes.
         """
 
-        if not cls.can_view_project(
-            user=user,
-            project=project,
-        ):
-            return False
-
-        if user.is_system_admin:
-            return True
-
-        if cls._is_client_admin_for_project(
-            user=user,
-            project=project,
-        ):
-            return True
-
-        return ProjectManagerService.is_project_manager(
-            user=user,
-            project=project,
+        return (
+            cls.get_administrable_projects(user)
+            .filter(pk=project.pk)
+            .exists()
         )
 
     @classmethod

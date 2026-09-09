@@ -261,6 +261,10 @@ class ProjectAuthorizationServiceTests(TestCase):
             is_active=True,
         )
 
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
     def assert_permissions(
         self,
         user,
@@ -302,6 +306,26 @@ class ProjectAuthorizationServiceTests(TestCase):
             ),
             financial,
         )
+
+    def assert_administrable_projects(
+        self,
+        user,
+        *projects,
+    ):
+        queryset = (
+            ProjectAuthorizationService
+            .get_administrable_projects(user)
+        )
+
+        self.assertQuerySetEqual(
+            queryset,
+            projects,
+            ordered=False,
+        )
+
+    # ------------------------------------------------------------------
+    # Autorisations unitaires
+    # ------------------------------------------------------------------
 
     def test_system_admin_has_all_permissions(self):
         self.assert_permissions(
@@ -401,4 +425,54 @@ class ProjectAuthorizationServiceTests(TestCase):
             work=False,
             administer=False,
             financial=False,
+        )
+
+    # ------------------------------------------------------------------
+    # Projets administrables
+    # ------------------------------------------------------------------
+
+    def test_system_admin_can_administer_all_active_projects(self):
+        self.assert_administrable_projects(
+            self.system_admin,
+            self.project_a1,
+            self.project_a2,
+            self.project_b1,
+        )
+
+    def test_client_admin_can_administer_environment_projects(self):
+        self.assert_administrable_projects(
+            self.client_admin,
+            self.project_a1,
+            self.project_a2,
+        )
+
+    def test_responsible_project_manager_administers_only_own_project(
+        self,
+    ):
+        self.assert_administrable_projects(
+            self.responsible_project_manager,
+            self.project_a1,
+        )
+
+    def test_delegate_project_manager_administers_only_own_project(
+        self,
+    ):
+        self.assert_administrable_projects(
+            self.delegate_project_manager,
+            self.project_a1,
+        )
+
+    def test_standard_member_has_no_administrable_project(self):
+        self.assert_administrable_projects(
+            self.standard_user,
+        )
+
+    def test_read_only_member_has_no_administrable_project(self):
+        self.assert_administrable_projects(
+            self.read_only_user,
+        )
+
+    def test_inactive_system_admin_has_no_administrable_project(self):
+        self.assert_administrable_projects(
+            self.inactive_system_admin,
         )
