@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import (
-    get_object_or_404,
     redirect,
     render,
 )
@@ -12,13 +11,14 @@ from django.views import View
 
 from apps.documents.forms import DocumentCreateForm
 from apps.documents.services import DocumentService
-from apps.projects.services.access import (
-    ProjectAccessService,
+from apps.documents.views.mixins import (
+    ProjectDocumentWorkMixin,
 )
 
 
 class DocumentCreateView(
     LoginRequiredMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -29,21 +29,6 @@ class DocumentCreateView(
         "documents/document_form.html"
     )
 
-    def get_project(
-        self,
-        project_id,
-    ):
-        return get_object_or_404(
-            ProjectAccessService
-            .get_accessible_projects(
-                self.request.user
-            )
-            .select_related(
-                "company",
-            ),
-            pk=project_id,
-        )
-        
     def get(
         self,
         request,
@@ -51,11 +36,11 @@ class DocumentCreateView(
         project_id,
     ):
         project = self.get_project(
-            project_id
+            project_id=project_id,
         )
 
         form = DocumentCreateForm(
-            project=project
+            project=project,
         )
 
         return render(
@@ -74,7 +59,7 @@ class DocumentCreateView(
         project_id,
     ):
         project = self.get_project(
-            project_id
+            project_id=project_id,
         )
 
         form = DocumentCreateForm(
@@ -92,41 +77,25 @@ class DocumentCreateView(
                 },
             )
 
-        service = DocumentService()
-
-        document = service.create_document(
+        document = DocumentService().create_document(
             project=project,
-            folder=form.cleaned_data[
-                "folder"
-            ],
-            title=form.cleaned_data[
-                "title"
-            ],
-            document_format=form.cleaned_data[
-                "document_format"
-            ],
-            document_type=form.cleaned_data[
-                "document_type"
-            ],
-            status=form.cleaned_data[
-                "status"
-            ],
-            lifecycle=form.cleaned_data[
-                "lifecycle"
-            ],
+            folder=form.cleaned_data["folder"],
+            title=form.cleaned_data["title"],
+            document_format=(
+                form.cleaned_data["document_format"]
+            ),
+            document_type=(
+                form.cleaned_data["document_type"]
+            ),
+            status=form.cleaned_data["status"],
+            lifecycle=form.cleaned_data["lifecycle"],
             user=request.user,
-            is_doe=form.cleaned_data[
-                "is_doe"
-            ],
+            is_doe=form.cleaned_data["is_doe"],
         )
 
         document.refresh_from_db()
 
-        version = (
-            document.current_version
-        )
-
         return redirect(
             "documents:version-edit",
-            version_id=version.pk,
+            version_id=document.current_version.pk,
         )

@@ -475,3 +475,90 @@ class DocumentEditorViewTests(TestCase):
             response.status_code,
             404,
         )
+        
+    def create_read_only_user(self):
+        read_only_access_level = (
+            CatalogValue.objects.create(
+                catalog_type=self.access_level_type,
+                code="READ_ONLY",
+                label="Lecture seule",
+                sort_order=20,
+            )
+        )
+
+        user = User.objects.create(
+            company=self.company,
+            email="readonly-editor@example.com",
+            first_name="Marie",
+            last_name="Lecture",
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=user,
+            role=self.project_role,
+            access_level=read_only_access_level,
+        )
+
+        return user
+
+    def test_read_only_user_opens_editor_in_view_mode(self):
+        document = self.create_document()
+        document.refresh_from_db()
+
+        read_only_user = self.create_read_only_user()
+
+        self.client.force_login(read_only_user)
+
+        response = self.client.get(
+            self.get_editor_url(
+                document.current_version
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertEqual(
+            response.context["onlyoffice_config"]
+            ["editorConfig"]["mode"],
+            "view",
+        )
+
+        self.assertTrue(
+            response.context[
+                "read_only_due_to_permission"
+            ]
+        )
+
+        self.assertIsNone(
+            response.context[
+                "edit_lock_heartbeat_url"
+            ]
+        )
+
+    def test_read_only_user_cannot_refresh_edit_lock(self):
+        document = self.create_document()
+        document.refresh_from_db()
+
+        read_only_user = self.create_read_only_user()
+
+        self.client.force_login(read_only_user)
+
+        response = self.client.post(
+            reverse(
+                "documents:version-edit-lock-refresh",
+                kwargs={
+                    "version_id": (
+                        document.current_version.pk
+                    ),
+                },
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            403,
+        )

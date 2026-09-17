@@ -118,6 +118,32 @@ class Company(TimeStampedModel):
         self.siret = "".join((self.siret or "").split())
         self.vat_number = (self.vat_number or "").strip().upper()
         super().save(*args, **kwargs)
+        
+    @property
+    def siret_display(self) -> str:
+        """
+        SIRET destiné à l'affichage.
+
+        La valeur stockée reste normalisée, sans espaces.
+        """
+        digits = "".join(
+            character
+            for character in self.siret
+            if character.isdigit()
+        )
+
+        groups = (
+            digits[:3],
+            digits[3:6],
+            digits[6:9],
+            digits[9:14],
+        )
+
+        return " ".join(
+            group
+            for group in groups
+            if group
+        )    
 
     class Meta:
         db_table = "company"

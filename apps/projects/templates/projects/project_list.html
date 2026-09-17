@@ -12,8 +12,12 @@
 
     <div class="ep-page">
 
-        {% include "edf/page/header.html" with page_title="Projets" page_action_label="Nouveau projet" page_action_url=project_create_url page_action_icon="plus" %}
-
+        {% if can_create_project %}
+            {% include "edf/page/header.html" with page_title="Projets" page_action_label="Nouveau projet" page_action_url=project_create_url page_action_icon="plus" %}
+        {% else %}
+            {% include "edf/page/header.html" with page_title="Projets" %}
+        {% endif %}
+        
         {% include "edf/list/list.html" %}
 
     </div>

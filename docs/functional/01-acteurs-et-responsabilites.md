@@ -49,3 +49,48 @@ Utilisateur hors projet	Non	Non	Non	Non	Non
 | Clôturer le projet                          |       ✓       |       ✓      |         ✓         |                 —                 |         —        |           —           |
 | Voir les données financières                |       ✓       |       ✓      |         ✓         |                 —                 |         —        |           —           |
 | Modifier les données financières            |       ✓       |       ✓      |         ✓         |                 —                 |         —        |           —           |
+
+
+le 12/09/2026
+Tableau de décision
+Rôle	Voir les données du projet	Administrer projet / lots	Travailler sur tâches, réunions, risques	Finances	Valider les rapports
+Administrateur système	Oui	Oui	Oui	Oui	Oui
+Administrateur client	Oui, dans son environnement	Oui	Oui	Oui	Oui
+Chef de projet du projet	Oui	Oui	Oui	Oui	Oui
+Chef de projet transverse	Oui	Non	Non	Non	Non
+Utilisateur STANDARD	Oui	Non	Oui	Non	Non
+Utilisateur READ_ONLY	Oui	Non	Non	Non	Non
+Hors périmètre	Non	Non	Non	Non	Non
+
+Règles déjà appliquées :
+
+Transaction	Lecture	Écriture
+Projet	Tous les rôles ayant visibilité	Administration projet
+Lot de travaux	Tous les rôles ayant visibilité	Administration projet
+Tâche	Tous les rôles ayant visibilité	Droit de travail
+Réunion	Tous les rôles ayant visibilité	Droit de travail
+Risque	Tous les rôles ayant visibilité	Droit de travail
+Rapport d’activité personnel	Son rédacteur	Son rédacteur, avant transmission
+Validation des rapports	Administrateurs projet	Administrateurs projet
+Finance	À implémenter	Administrateurs projet
+
+Pour les documents, la règle de base à mettre en œuvre sera : consultation pour les rôles ayant visibilité ; dépôt, modification, versionnement et suppression avec droit de travail. Les documents financiers devront ensuite être soumis au droit Finance.
+
+
+| Action                                                           | Accès                                                               |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Explorer, aperçu, téléchargement, CAO, favoris                   | Visibilité projet                                                   |
+| Créer, importer, renommer, déplacer, copier, supprimer, dossiers | Droit de travail                                                    |
+| Éditer avec OnlyOffice / prendre un verrou                       | Droit de travail                                                    |
+| Callback OnlyOffice                                              | Authentification technique du fournisseur, sans session utilisateur |
+
+
+
+| Fonction GED                                        | Lecture seule | Lecture / écriture |
+| --------------------------------------------------- | ------------: | -----------------: |
+| Explorateur, ouverture, aperçu, téléchargement, CAO |           Oui |                Oui |
+| Favoris personnels                                  |           Oui |                Oui |
+| Créer / importer un document                        |           Non |                Oui |
+| Renommer, déplacer, copier, supprimer un document   |           Non |                Oui |
+| Créer, renommer, déplacer, supprimer un dossier     |           Non |                Oui |
+| Édition OnlyOffice et renouvellement du verrou      |           Non |                Oui |

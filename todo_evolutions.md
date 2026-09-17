@@ -1,7 +1,12 @@
 
 ### Formulaires
-Voir si on peut afficher les champs sur 1, 2, 4 champs par ligne
-
+Reprendre les valeurs dans les fichiers xxx/form_definition.py
+exemple:
+FieldDefinition(
+    name="vat_number",
+    width=FieldWidth.SM,
+),
+Remplacer SM par MD ou autre pour changer la largeur du libellé
 
 ### Transaction Tâches
 - Étudier une fiche tâche unifiée présentant sur une même page :
@@ -40,7 +45,7 @@ Sans l'implémenter maintenant on pourrait aussi mettre un batch qui au démarra
 
 
 ### CSS
-Revoir les définition de bg-axcio-dark et bg-axcio-light
+Revoir les définitions de bg-axcio-dark et bg-axcio-light
 Nettoyage des couleurs en dur dans le code
 Faut-il conserver tailwind?
 
@@ -65,12 +70,10 @@ A faire :
 - choix des agrégats et navigation entre niveaux.
 
 ### Sociétés
-SIRET : Placeholder affiche un format qui n'est pas repris après la saisie
-PAYS : Mettre par défaut la France en présaisie
-Liste des sociétés : mettre un badge sur les sociétés ayant au moins un licence
+
 
 ### Contacts
-1er caractère du prénom en MAJ
+
 Liste : réduire la hauteur des lignes pour avoir une page entière à l'écran
 
 ### Formulaires
@@ -118,3 +121,16 @@ CLIENT_ADMIN pouvant potentiellement attribuer SYSTEM_ADMIN	Sécurité des autor
 ### Homogénéiser les arborescence
 dans apps certains ont des fichiers test dans la racine, d'autres les tests sont dans un répertoire dédieé.
 A harmoniser
+
+
+
+--------------------------------------------------------------------------
+### Feuille de route
+
+Je la formaliserais en trois grands blocs :
+
+Achever le cœur fonctionnel Easy Projet. Nous terminons les attributions métier des utilisateurs, les rôles, périmètres et autorisations Level 2, puis les éventuels points fonctionnels indispensables pour disposer d'une V1 réellement exploitable. Ensuite, tu constitues un jeu de données/test représentatif du fonctionnement réel d'une entreprise, nous faisons une campagne de tests fonctionnels et de non-régression, puis une passe d'ergonomie sur l'ensemble. Le résultat attendu est une première version opérationnelle et cohérente, indépendamment des enrichissements futurs.
+Consolider la documentation. Nous faisons l'inventaire de ce qui existe et de ce qui est devenu obsolète. À partir de cette matière et du logiciel réellement construit, nous reconstituons une chaîne documentaire cohérente : CdCF → conception générale → conception détaillée → framework → manuel utilisateur. Pour la conception générale, des figures PowerPoint sont effectivement adaptées : architecture fonctionnelle, silos ClientEnvironment, acteurs et périmètres, architecture applicative, flux documentaires, intégrations, etc. C'est également dans ce bloc que nous consoliderons toutes les règles métier décidées au fil du développement. Il faudra distinguer ce qui relève de la spécification de ce qui relève du manuel utilisateur.
+Reprendre les intégrations externes et l'IA. Une fois le noyau stabilisé et documenté, nous réévaluons les intégrations déjà expérimentées ou envisagées — GED, ONLYOFFICE, CADViewer, signature électronique, messagerie/Teams, workflows, etc. — avec une architecture d'orchestration homogène. Puis nous abordons l'IA sur une base métier stable : aide au découpage des tâches, ressources, rappels, comptes rendus, DOE, recherche documentaire, etc.
+
+Un point me paraît particulièrement important dans ton séquencement : ne pas chercher maintenant à produire le manuel utilisateur définitif. Nous devons bien enregistrer les règles métier au fur et à mesure, mais la rédaction structurée du manuel gagnera à intervenir après la stabilisation fonctionnelle et la passe ergonomique. Sinon nous documenterions des écrans et des parcours qui vont encore évoluer.

@@ -7,11 +7,14 @@ Formulaires du domaine des tâches.
 from __future__ import annotations
 
 from django import forms
+from django.db.models import Q
 
 from apps.catalogs.models import CatalogValue
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
+)
 from apps.users.models import User
 from apps.work.models import WorkPackage
-from apps.projects.services.access import ProjectAccessService
 from common.constants.task import (
     TASK_ASSIGNMENT_DEFAULT_ALLOCATION_PERCENT,
     TASK_ASSIGNMENT_MAX_ALLOCATION_PERCENT,
@@ -159,16 +162,25 @@ class TaskForm(forms.ModelForm):
                 .none()
             )
         else:
-            accessible_projects = (
-                ProjectAccessService
-                .get_accessible_projects(user)
+            workable_projects = (
+                ProjectAuthorizationService
+                .get_workable_projects(user)
             )
+
+            work_package_filter = Q(
+                project__in=workable_projects,
+                is_active=True,
+            )
+
+            if self.instance.pk:
+                work_package_filter |= Q(
+                    pk=self.instance.work_package_id,
+                )
 
             self.fields["work_package"].queryset = (
                 WorkPackage.objects
                 .filter(
-                    project__in=accessible_projects,
-                    is_active=True,
+                    work_package_filter,
                 )
                 .select_related("project")
                 .order_by(
@@ -185,8 +197,7 @@ class TaskForm(forms.ModelForm):
 
         if not self.is_bound and not self.instance.pk:
             self._apply_catalog_default("status")
-        
-        
+
     def _configure_catalog_field(
         self,
         *,

@@ -23,6 +23,9 @@
     --color-axcio-dark: #0D5262;
     --color-axcio-light: #248A8D;
     --color-axcio-light-hover: #1E7477;
+    --color-axcio-text-inverse: #FFFFFF;
+    --color-axcio-black: #000000;
+    --color-axcio-danger-hover: #B91C1C;
 
     /* Fonds */
     --color-axcio-page: #F3F4F6;

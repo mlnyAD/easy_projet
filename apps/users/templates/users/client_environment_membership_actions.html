@@ -3,10 +3,10 @@
 <div class="ep-list-row-actions">
 
     <a
-        href="{% url 'meetings:update' row.source_object.pk %}?next={{ return_url|urlencode }}"
+        href="{% url 'users:client-environment-membership-update' target_user.pk row.source_object.pk %}"
         class="ep-list-row-action"
-        title="Ouvrir la réunion"
-        aria-label="Ouvrir la réunion"
+        title="Modifier le rattachement"
+        aria-label="Modifier le rattachement client"
     >
         <i
             data-lucide="pen"

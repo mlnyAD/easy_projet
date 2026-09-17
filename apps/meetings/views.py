@@ -3,6 +3,7 @@
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -12,6 +13,9 @@ from django.views.generic import ListView
 from apps.projects.models import Project
 from apps.projects.services.access import (
     ProjectAccessService,
+)
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
 )
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
@@ -134,15 +138,26 @@ class MeetingListView(
         context["page_back_url"] = None
         context["page_back_label"] = None
 
-        context["page_action_label"] = "Nouvelle réunion"
-        context["page_action_icon"] = "plus"
+        if (
+            ProjectAuthorizationService
+            .get_workable_projects(
+                self.request.user
+            )
+            .exists()
+        ):
+            context["page_action_label"] = "Nouvelle réunion"
+            context["page_action_icon"] = "plus"
 
-        context["page_action_url"] = (
-            f"{reverse('meetings:create')}?"
-            f"{urlencode({
-                'next': self.request.get_full_path(),
-            })}"
-        )
+            context["page_action_url"] = (
+                f"{reverse('meetings:create')}?"
+                f"{urlencode({
+                    'next': self.request.get_full_path(),
+                })}"
+            )
+        else:
+            context["page_action_label"] = None
+            context["page_action_icon"] = None
+            context["page_action_url"] = None
 
         return context
 
@@ -211,13 +226,26 @@ class MeetingListByProjectView(MeetingListView):
         )
         context["page_back_label"] = "Retour au projet"
 
-        context["page_action_url"] = (
-            f"{reverse('meetings:create')}?"
-            f"{urlencode({
-                'next': context['return_url'],
-                'project': project.pk,
-            })}"
-        )
+        if (
+            ProjectAuthorizationService
+            .can_work_on_project(
+                user=self.request.user,
+                project=project,
+            )
+        ):
+            context["page_action_label"] = "Nouvelle réunion"
+            context["page_action_icon"] = "plus"
+            context["page_action_url"] = (
+                f"{reverse('meetings:create')}?"
+                f"{urlencode({
+                    'next': context['return_url'],
+                    'project': project.pk,
+                })}"
+            )
+        else:
+            context["page_action_label"] = None
+            context["page_action_icon"] = None
+            context["page_action_url"] = None
 
         return context
 
@@ -353,6 +381,7 @@ class MeetingCompositeFormMixin:
 
 
 class MeetingCreateView(
+    UserPassesTestMixin,
     MeetingCompositeFormMixin,
     EPCreateView,
 ):
@@ -369,6 +398,15 @@ class MeetingCreateView(
         "La réunion a été créée avec succès."
     )
 
+    def test_func(self):
+        return (
+            ProjectAuthorizationService
+            .get_workable_projects(
+                self.request.user
+            )
+            .exists()
+        )
+
     def get_initial(self):
         initial = super().get_initial()
 
@@ -376,8 +414,8 @@ class MeetingCreateView(
 
         if project_pk:
             project = (
-                ProjectAccessService
-                .get_accessible_projects(
+                ProjectAuthorizationService
+                .get_workable_projects(
                     self.request.user
                 )
                 .filter(
@@ -427,5 +465,21 @@ class MeetingUpdateView(
                 "project",
                 "organizer",
                 "status",
+            )
+        )
+
+    def can_edit_object(self) -> bool:
+        """
+        Indique si l'utilisateur peut modifier la réunion courante.
+
+        Une réunion visible sur un projet non modifiable est ouverte
+        en lecture seule.
+        """
+
+        return (
+            ProjectAuthorizationService
+            .can_work_on_project(
+                user=self.request.user,
+                project=self.object.project,
             )
         )

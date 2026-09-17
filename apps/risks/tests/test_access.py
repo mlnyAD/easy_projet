@@ -72,6 +72,13 @@ class RiskAccessTests(TestCase):
             sort_order=10,
         )
 
+        cls.read_only_access = CatalogValue.objects.create(
+            catalog_type=cls.access_level_type,
+            code="READ_ONLY",
+            label="Lecture seule",
+            sort_order=20,
+        )
+
         # --------------------------------------------------------------
         # Utilisateur connecté
         # --------------------------------------------------------------
@@ -81,6 +88,13 @@ class RiskAccessTests(TestCase):
             email="risk-user@example.com",
             first_name="Jean",
             last_name="Risque",
+        )
+
+        cls.read_only_user = User.objects.create(
+            company=cls.company_a,
+            email="risk-read-only@example.com",
+            first_name="Luc",
+            last_name="Lecture seule",
         )
 
         # --------------------------------------------------------------
@@ -140,6 +154,13 @@ class RiskAccessTests(TestCase):
             user=cls.user,
             role=cls.project_role,
             access_level=cls.access_level,
+        )
+
+        ProjectMembership.objects.create(
+            project=cls.project_a,
+            user=cls.read_only_user,
+            role=cls.project_role,
+            access_level=cls.read_only_access,
         )
 
         # --------------------------------------------------------------
@@ -474,6 +495,12 @@ class RiskAccessTests(TestCase):
             200,
         )
 
+        self.assertFalse(
+            response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
     def test_inaccessible_risk_update_returns_404(self):
         response = self.client.get(
             reverse(
@@ -514,4 +541,77 @@ class RiskAccessTests(TestCase):
         self.assertEqual(
             self.risk_a.project_id,
             self.project_a.pk,
+        )
+
+    def test_read_only_user_can_view_but_cannot_modify_risk(self):
+        self.client.force_login(
+            self.read_only_user
+        )
+
+        list_response = self.client.get(
+            reverse(
+                "risks:list-by-project",
+                kwargs={
+                    "project_pk": self.project_a.pk,
+                },
+            )
+        )
+
+        create_response = self.client.get(
+            reverse("risks:create")
+        )
+
+        update_response = self.client.get(
+            reverse(
+                "risks:update",
+                kwargs={
+                    "pk": self.risk_a.pk,
+                },
+            )
+        )
+
+        self.assertEqual(
+            list_response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            list_response,
+            reverse(
+                "risks:update",
+                kwargs={
+                    "pk": self.risk_a.pk,
+                },
+            ),
+        )
+
+        self.assertEqual(
+            create_response.status_code,
+            403,
+        )
+
+        self.assertEqual(
+            update_response.status_code,
+            200,
+        )
+
+        self.assertTrue(
+            update_response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
+        post_response = self.client.post(
+            reverse(
+                "risks:update",
+                kwargs={
+                    "pk": self.risk_a.pk,
+                },
+            ),
+            data={},
+        )
+
+        self.assertEqual(
+            post_response.status_code,
+            403,
         )

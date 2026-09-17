@@ -37,6 +37,21 @@ class ProjectAuthorizationServiceTests(TestCase):
       consultation uniquement ;
     - utilisateur sans périmètre :
       aucun droit.
+
+    Création d'un projet :
+    - administrateur système :
+      toute société active disposant d'un environnement client actif ;
+    - administrateur client :
+      sociétés des environnements clients actifs qu'il administre ;
+    - chef de projet :
+      sociétés des projets actifs qu'il dirige ;
+    - membre STANDARD ou READ_ONLY :
+      aucun droit de création ;
+    - utilisateur inactif :
+      aucun droit de création.
+
+    Le périmètre de création d'un chef de projet dépend des sociétés
+    des projets qu'il dirige et non de sa société employeur.
     """
 
     @classmethod
@@ -53,12 +68,24 @@ class ProjectAuthorizationServiceTests(TestCase):
             name="Société cliente B",
         )
 
+        cls.company_c = Company.objects.create(
+            name="Société cliente C",
+        )
+
+        cls.company_without_environment = Company.objects.create(
+            name="Société sans environnement",
+        )
+
         cls.environment_a = ClientEnvironment.objects.create(
             company=cls.company_a,
         )
 
         cls.environment_b = ClientEnvironment.objects.create(
             company=cls.company_b,
+        )
+
+        cls.environment_c = ClientEnvironment.objects.create(
+            company=cls.company_c,
         )
 
         # --------------------------------------------------------------
@@ -149,6 +176,13 @@ class ProjectAuthorizationServiceTests(TestCase):
             status=cls.project_status,
         )
 
+        cls.project_c1 = Project.objects.create(
+            company=cls.company_c,
+            reference="C-001",
+            name="Projet C1",
+            status=cls.project_status,
+        )
+
         # --------------------------------------------------------------
         # Utilisateurs
         # --------------------------------------------------------------
@@ -212,6 +246,20 @@ class ProjectAuthorizationServiceTests(TestCase):
             is_active=False,
         )
 
+        cls.itinerant_project_manager = User.objects.create(
+            company=cls.company_b,
+            email="itinerant-pm-auth@example.com",
+            first_name="Chef",
+            last_name="Projet itinérant",
+        )
+
+        cls.client_admin_and_project_manager = User.objects.create(
+            company=cls.company_a,
+            email="client-admin-pm-auth@example.com",
+            first_name="Admin et chef",
+            last_name="Projet",
+        )
+
         # --------------------------------------------------------------
         # Administration client
         # --------------------------------------------------------------
@@ -219,6 +267,13 @@ class ProjectAuthorizationServiceTests(TestCase):
         ClientEnvironmentMembership.objects.create(
             client_environment=cls.environment_a,
             user=cls.client_admin,
+            is_client_admin=True,
+            is_active=True,
+        )
+
+        ClientEnvironmentMembership.objects.create(
+            client_environment=cls.environment_a,
+            user=cls.client_admin_and_project_manager,
             is_client_admin=True,
             is_active=True,
         )
@@ -258,6 +313,22 @@ class ProjectAuthorizationServiceTests(TestCase):
             user=cls.read_only_user,
             role=cls.project_user_role,
             access_level=cls.read_only_access,
+            is_active=True,
+        )
+
+        ProjectMembership.objects.create(
+            project=cls.project_c1,
+            user=cls.itinerant_project_manager,
+            role=cls.project_manager_role,
+            access_level=cls.standard_access,
+            is_active=True,
+        )
+
+        ProjectMembership.objects.create(
+            project=cls.project_b1,
+            user=cls.client_admin_and_project_manager,
+            role=cls.project_manager_role,
+            access_level=cls.standard_access,
             is_active=True,
         )
 
@@ -320,6 +391,54 @@ class ProjectAuthorizationServiceTests(TestCase):
         self.assertQuerySetEqual(
             queryset,
             projects,
+            ordered=False,
+        )
+        
+    def assert_financially_accessible_projects(
+        self,
+        user,
+        *projects,
+    ):
+        queryset = (
+            ProjectAuthorizationService
+            .get_financially_accessible_projects(user)
+        )
+
+        self.assertQuerySetEqual(
+            queryset,
+            projects,
+            ordered=False,
+        )
+        
+    def assert_workable_projects(
+        self,
+        user,
+        *projects,
+    ):
+        queryset = (
+            ProjectAuthorizationService
+            .get_workable_projects(user)
+        )
+
+        self.assertQuerySetEqual(
+            queryset,
+            projects,
+            ordered=False,
+        )
+
+    def assert_project_creation_companies(
+        self,
+        user,
+        *companies,
+    ):
+        queryset = (
+            ProjectAuthorizationService
+            .get_project_creation_companies(user)
+        )
+
+        self.assertQuerySetEqual(
+            queryset,
+            companies,
             ordered=False,
         )
 
@@ -437,6 +556,7 @@ class ProjectAuthorizationServiceTests(TestCase):
             self.project_a1,
             self.project_a2,
             self.project_b1,
+            self.project_c1,
         )
 
     def test_client_admin_can_administer_environment_projects(self):
@@ -476,3 +596,220 @@ class ProjectAuthorizationServiceTests(TestCase):
         self.assert_administrable_projects(
             self.inactive_system_admin,
         )
+
+    # ------------------------------------------------------------------
+    # Sociétés autorisées pour la création d'un projet
+    # ------------------------------------------------------------------
+
+    def test_system_admin_can_create_project_for_all_active_environments(
+        self,
+    ):
+        self.assert_project_creation_companies(
+            self.system_admin,
+            self.company_a,
+            self.company_b,
+            self.company_c,
+        )
+
+    def test_company_without_environment_is_not_available_for_creation(
+        self,
+    ):
+        self.assertNotIn(
+            self.company_without_environment,
+            ProjectAuthorizationService
+            .get_project_creation_companies(self.system_admin),
+        )
+
+    def test_client_admin_can_create_project_for_administered_environment(
+        self,
+    ):
+        self.assert_project_creation_companies(
+            self.client_admin,
+            self.company_a,
+        )
+
+    def test_responsible_project_manager_can_create_for_managed_company(
+        self,
+    ):
+        self.assert_project_creation_companies(
+            self.responsible_project_manager,
+            self.company_a,
+        )
+
+    def test_delegate_project_manager_can_create_for_managed_company(
+        self,
+    ):
+        self.assert_project_creation_companies(
+            self.delegate_project_manager,
+            self.company_a,
+        )
+
+    def test_itinerant_project_manager_uses_managed_project_company(
+        self,
+    ):
+        self.assert_project_creation_companies(
+            self.itinerant_project_manager,
+            self.company_c,
+        )
+
+    def test_client_admin_and_project_manager_accumulate_creation_scope(
+        self,
+    ):
+        self.assert_project_creation_companies(
+            self.client_admin_and_project_manager,
+            self.company_a,
+            self.company_b,
+        )
+
+    def test_users_without_creation_role_have_no_creation_company(
+        self,
+    ):
+        for user in (
+            self.standard_user,
+            self.read_only_user,
+            self.outsider,
+            self.inactive_system_admin,
+        ):
+            with self.subTest(user=user.email):
+                self.assert_project_creation_companies(user)
+                
+        # ------------------------------------------------------------------
+    # Projets financièrement accessibles
+    # ------------------------------------------------------------------
+
+    def test_system_admin_can_access_financial_data_for_all_projects(
+        self,
+    ):
+        self.assert_financially_accessible_projects(
+            self.system_admin,
+            self.project_a1,
+            self.project_a2,
+            self.project_b1,
+            self.project_c1,
+        )
+
+    def test_client_admin_can_access_environment_financial_data(
+        self,
+    ):
+        self.assert_financially_accessible_projects(
+            self.client_admin,
+            self.project_a1,
+            self.project_a2,
+        )
+
+    def test_responsible_project_manager_can_access_own_financial_data(
+        self,
+    ):
+        self.assert_financially_accessible_projects(
+            self.responsible_project_manager,
+            self.project_a1,
+        )
+
+    def test_delegate_project_manager_can_access_own_financial_data(
+        self,
+    ):
+        self.assert_financially_accessible_projects(
+            self.delegate_project_manager,
+            self.project_a1,
+        )
+
+    def test_itinerant_project_manager_uses_managed_project_scope(
+        self,
+    ):
+        self.assert_financially_accessible_projects(
+            self.itinerant_project_manager,
+            self.project_c1,
+        )
+
+    def test_client_admin_and_project_manager_accumulate_financial_scope(
+        self,
+    ):
+        self.assert_financially_accessible_projects(
+            self.client_admin_and_project_manager,
+            self.project_a1,
+            self.project_a2,
+            self.project_b1,
+        )
+
+    def test_users_without_financial_access_have_no_project_scope(
+        self,
+    ):
+        for user in (
+            self.standard_user,
+            self.read_only_user,
+            self.outsider,
+            self.inactive_system_admin,
+        ):
+            with self.subTest(user=user.email):
+                self.assert_financially_accessible_projects(
+                    user,
+                )
+    
+    # ------------------------------------------------------------------
+    # Projets accessibles pour le travail opérationnel
+    # ------------------------------------------------------------------
+
+    def test_system_admin_can_work_on_all_projects(self):
+        self.assert_workable_projects(
+            self.system_admin,
+            self.project_a1,
+            self.project_a2,
+            self.project_b1,
+            self.project_c1,
+        )
+
+    def test_client_admin_can_work_on_environment_projects(self):
+        self.assert_workable_projects(
+            self.client_admin,
+            self.project_a1,
+            self.project_a2,
+        )
+
+    def test_responsible_project_manager_can_work_on_own_project_only(
+        self,
+    ):
+        self.assert_workable_projects(
+            self.responsible_project_manager,
+            self.project_a1,
+        )
+
+    def test_delegate_project_manager_can_work_on_own_project_only(
+        self,
+    ):
+        self.assert_workable_projects(
+            self.delegate_project_manager,
+            self.project_a1,
+        )
+
+    def test_standard_member_can_work_on_own_project_only(self):
+        self.assert_workable_projects(
+            self.standard_user,
+            self.project_a1,
+        )
+
+    def test_itinerant_project_manager_can_work_on_managed_project(
+        self,
+    ):
+        self.assert_workable_projects(
+            self.itinerant_project_manager,
+            self.project_c1,
+        )
+
+    def test_client_admin_and_project_manager_accumulate_work_scope(
+        self,
+    ):
+        self.assert_workable_projects(
+            self.client_admin_and_project_manager,
+            self.project_a1,
+            self.project_a2,
+            self.project_b1,
+        )
+
+    def test_users_without_work_right_have_no_project_scope(self):
+        for user in (
+            self.read_only_user,
+            self.outsider,
+            self.inactive_system_admin,
+        ):
+            with self.subTest(user=user.email):
+                self.assert_workable_projects(user)

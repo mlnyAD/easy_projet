@@ -1,0 +1,19 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="ep-page">
+
+        {% include "edf/page/header.html" with page_title=page_title page_subtitle=page_subtitle page_back_url=page_back_url page_back_label=page_back_label page_action_label=page_action_label page_action_url=page_action_url page_action_icon=page_action_icon %}
+
+        {% include "edf/list/list.html" %}
+
+    </div>
+
+{% endblock %}

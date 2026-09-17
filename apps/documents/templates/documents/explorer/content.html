@@ -4,6 +4,7 @@
     id="document-content"
 
     data-content-context
+    data-can-work-on-project="{% if can_work_on_project %}true{% else %}false{% endif %}"
     data-folder-create-url="{% url 'documents:folder-create' project.pk %}"
     data-current-folder-id="{% if current_folder %}{{ current_folder.pk }}{% endif %}"
     data-folder-import-url="{% if current_folder %}{% url 'documents:import' project.pk current_folder.pk %}{% endif %}"
@@ -14,34 +15,41 @@
            dark:bg-axcio-page-dark
            dark:text-axcio-text-dark"
 >
-
     <div
         class="flex min-h-10 items-center justify-between gap-3
-            border-b border-axcio-border-light
-            px-3
-            dark:border-axcio-border-dark"
+               border-b border-axcio-border-light
+               px-3
+               dark:border-axcio-border-dark"
     >
-        <button
-            type="button"
-            id="document-content-actions"
-            class="inline-flex items-center gap-2
-                rounded-md px-2 py-1.5
-                text-sm font-medium
-                text-axcio-dark
-                hover:bg-axcio-surface-alt
-                dark:text-axcio-light
-                dark:hover:bg-axcio-surface-alt-dark"
-        >
-            <i
-                data-lucide="file-plus-2"
-                class="h-4 w-4"
-                aria-hidden="true"
-            ></i>
+        {% if can_work_on_project %}
 
-            <span>
-                Insérer des documents
-            </span>
-        </button>
+            <button
+                type="button"
+                id="document-content-actions"
+                class="inline-flex items-center gap-2
+                       rounded-md px-2 py-1.5
+                       text-sm font-medium
+                       text-axcio-dark
+                       hover:bg-axcio-surface-alt
+                       dark:text-axcio-light
+                       dark:hover:bg-axcio-surface-alt-dark"
+            >
+                <i
+                    data-lucide="file-plus-2"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+
+                <span>
+                    Insérer des documents
+                </span>
+            </button>
+
+        {% else %}
+
+            <span></span>
+
+        {% endif %}
 
         <div class="flex items-center gap-1">
 
@@ -51,11 +59,11 @@
                 title="Mode icône"
                 aria-label="Mode icône"
                 class="inline-flex h-8 w-8 items-center
-                    justify-center rounded-md
-                    text-axcio-text-muted
-                    hover:bg-axcio-surface-alt
-                    dark:text-axcio-text-muted-dark
-                    dark:hover:bg-axcio-surface-alt-dark"
+                       justify-center rounded-md
+                       text-axcio-text-muted
+                       hover:bg-axcio-surface-alt
+                       dark:text-axcio-text-muted-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
             >
                 <i
                     data-lucide="grid-2x2"
@@ -70,7 +78,7 @@
                 title="Mode ligne"
                 aria-label="Mode ligne"
                 class="inline-flex h-8 w-8 items-center
-                    justify-center rounded-md"
+                       justify-center rounded-md"
             >
                 <i
                     data-lucide="list"
@@ -81,10 +89,6 @@
 
         </div>
     </div>
-
-    {# -------------------------------------------------------------- #}
-    {# En-tête des colonnes                                           #}
-    {# -------------------------------------------------------------- #}
 
     {% if documents %}
 
@@ -121,10 +125,6 @@
 
     {% endif %}
 
-    {# -------------------------------------------------------------- #}
-    {# Documents                                                      #}
-    {# -------------------------------------------------------------- #}
-
     {% for document in documents %}
 
         <div
@@ -136,10 +136,12 @@
             data-document-title="{{ document.title }}"
             data-document-folder-id="{{ document.folder_id }}"
 
-            data-document-rename-url="{% url 'documents:document-rename' project.pk document.pk %}"
-            data-document-move-url="{% url 'documents:document-move' project.pk document.pk %}"
-            data-document-copy-url="{% url 'documents:document-copy' project.pk document.pk %}"
-            data-document-delete-url="{% url 'documents:document-delete' project.pk document.pk %}"
+            {% if can_work_on_project %}
+                data-document-rename-url="{% url 'documents:document-rename' project.pk document.pk %}"
+                data-document-move-url="{% url 'documents:document-move' project.pk document.pk %}"
+                data-document-copy-url="{% url 'documents:document-copy' project.pk document.pk %}"
+                data-document-delete-url="{% url 'documents:document-delete' project.pk document.pk %}"
+            {% endif %}
 
             data-document-favorite-add-url="{% url 'documents:document-favorite-add' project.pk document.pk %}"
             data-document-favorite-remove-url="{% url 'documents:document-favorite-remove' project.pk document.pk %}"
@@ -266,7 +268,8 @@
                 {% else %}
                     {{ document.title }}
                 {% endif %}
-            </span>            
+            </span>
+
             <span
                 class="truncate text-xs
                        text-axcio-text-muted
@@ -297,11 +300,6 @@
         </div>
 
     {% endfor %}
-
-
-    {# -------------------------------------------------------------- #}
-    {# Dossier vide                                                   #}
-    {# -------------------------------------------------------------- #}
 
     {% if not documents %}
 

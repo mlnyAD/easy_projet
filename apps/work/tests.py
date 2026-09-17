@@ -79,7 +79,13 @@ class WorkPackageAccessTests(TestCase):
             first_name="Jean",
             last_name="Work",
         )
-
+        
+        cls.project_manager = User.objects.create(
+            company=cls.company_a,
+            email="work-project-manager@example.com",
+            first_name="Marie",
+            last_name="Chef de projet",
+        )
         # --------------------------------------------------------------
         # Rôle projet
         # --------------------------------------------------------------
@@ -95,7 +101,13 @@ class WorkPackageAccessTests(TestCase):
             label="Utilisateur",
             sort_order=10,
         )
-
+        
+        cls.project_manager_role = CatalogValue.objects.create(
+            catalog_type=cls.project_role_type,
+            code="PROJECT_MANAGER",
+            label="Chef de projet",
+            sort_order=20,
+        )
         # --------------------------------------------------------------
         # Statut projet
         # --------------------------------------------------------------
@@ -159,6 +171,13 @@ class WorkPackageAccessTests(TestCase):
             access_level=cls.access_level,
         )
 
+        ProjectMembership.objects.create(
+            project=cls.project_a,
+            user=cls.project_manager,
+            role=cls.project_manager_role,
+            access_level=cls.access_level,
+            is_active=True,
+        )
         # --------------------------------------------------------------
         # Lots de travaux
         # --------------------------------------------------------------
@@ -275,6 +294,11 @@ class WorkPackageAccessTests(TestCase):
     # ------------------------------------------------------------------
 
     def test_create_form_only_contains_accessible_projects(self):
+        
+        self.client.force_login(
+            self.project_manager
+        )
+                
         response = self.client.get(
             reverse("work:create")
         )
@@ -306,6 +330,11 @@ class WorkPackageAccessTests(TestCase):
         )
 
     def test_create_with_accessible_project_succeeds(self):
+        
+        self.client.force_login(
+            self.project_manager
+        )
+                        
         response = self.client.post(
             reverse("work:create"),
             data=self.build_post_data(
@@ -327,6 +356,10 @@ class WorkPackageAccessTests(TestCase):
         )
 
     def test_create_with_inaccessible_project_is_rejected(self):
+        self.client.force_login(
+            self.project_manager
+        )
+                        
         initial_count = (
             WorkPackage.objects
             .filter(
@@ -362,6 +395,10 @@ class WorkPackageAccessTests(TestCase):
     # ------------------------------------------------------------------
 
     def test_accessible_work_package_update_returns_200(self):
+        self.client.force_login(
+            self.project_manager
+        )
+                
         response = self.client.get(
             reverse(
                 "work:update",
@@ -376,7 +413,17 @@ class WorkPackageAccessTests(TestCase):
             200,
         )
 
+        self.assertFalse(
+            response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
     def test_inaccessible_work_package_update_returns_404(self):
+        self.client.force_login(
+            self.project_manager
+        )
+                
         response = self.client.get(
             reverse(
                 "work:update",
@@ -394,6 +441,10 @@ class WorkPackageAccessTests(TestCase):
     def test_update_cannot_move_work_package_to_inaccessible_project(
         self,
     ):
+        self.client.force_login(
+            self.project_manager
+        )
+                
         response = self.client.post(
             reverse(
                 "work:update",
@@ -418,4 +469,165 @@ class WorkPackageAccessTests(TestCase):
         self.assertEqual(
             self.work_package_a.project_id,
             self.project_a.pk,
+        )
+
+    def test_standard_user_cannot_access_create_view(self):
+        response = self.client.get(
+            reverse("work:create")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            403,
+        )
+
+    def test_standard_user_opens_visible_work_package_read_only(self):
+        response = self.client.get(
+            reverse(
+                "work:update",
+                kwargs={
+                    "pk": self.work_package_a.pk,
+                },
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertTrue(
+            response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
+        post_response = self.client.post(
+            reverse(
+                "work:update",
+                kwargs={
+                    "pk": self.work_package_a.pk,
+                },
+            ),
+            data=self.build_post_data(
+                project=self.project_a,
+                work_package=self.work_package_a,
+                name="Modification interdite",
+            ),
+        )
+
+        self.assertEqual(
+            post_response.status_code,
+            403,
+        )
+
+        self.work_package_a.refresh_from_db()
+
+        self.assertEqual(
+            self.work_package_a.name,
+            "Lot accessible A",
+        )
+    
+        # ------------------------------------------------------------------
+    # Interface lecture seule / lecture-écriture
+    # ------------------------------------------------------------------
+
+    def test_standard_user_sees_work_package_in_read_only_mode(self):
+        response = self.client.get(
+            reverse(
+                "work:list-by-project",
+                kwargs={
+                    "project_pk": self.project_a.pk,
+                },
+            )
+        )
+
+        task_list_url = reverse(
+            "tasks:list-by-work-package",
+            kwargs={
+                "work_package_pk": self.work_package_a.pk,
+            },
+        )
+
+        update_url = reverse(
+            "work:update",
+            kwargs={
+                "pk": self.work_package_a.pk,
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertIsNone(
+            response.context["page_action_url"]
+        )
+
+        self.assertContains(
+            response,
+            task_list_url,
+        )
+
+        self.assertContains(
+            response,
+            update_url,
+        )
+
+        self.assertNotContains(
+            response,
+            "Nouveau lot de travaux",
+        )
+
+    def test_project_manager_sees_work_package_in_edit_mode(self):
+        self.client.force_login(
+            self.project_manager
+        )
+
+        response = self.client.get(
+            reverse(
+                "work:list-by-project",
+                kwargs={
+                    "project_pk": self.project_a.pk,
+                },
+            )
+        )
+
+        task_list_url = reverse(
+            "tasks:list-by-work-package",
+            kwargs={
+                "work_package_pk": self.work_package_a.pk,
+            },
+        )
+
+        update_url = reverse(
+            "work:update",
+            kwargs={
+                "pk": self.work_package_a.pk,
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertIsNotNone(
+            response.context["page_action_url"]
+        )
+
+        self.assertContains(
+            response,
+            "Nouveau lot de travaux",
+        )
+
+        self.assertContains(
+            response,
+            task_list_url,
+        )
+
+        self.assertContains(
+            response,
+            update_url,
         )

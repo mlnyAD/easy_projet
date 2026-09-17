@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 from django import forms
+from django.db.models import Q
 from django.forms import (
     BaseInlineFormSet,
     inlineformset_factory,
 )
 
 from apps.catalogs.models import CatalogValue
+from apps.projects.models import Project
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
+)
 from apps.users.models import User
 from common.constants.meeting import (
     MEETING_COMMENTS_LENGTH,
@@ -21,9 +26,6 @@ from common.constants.meeting import (
 from common.forms.fields import CatalogModelChoiceField
 
 from .models import Meeting, MeetingParticipant
-from apps.projects.services.access import (
-    ProjectAccessService,
-)
 
 class MeetingForm(forms.ModelForm):
     """
@@ -176,11 +178,23 @@ class MeetingForm(forms.ModelForm):
                 .none()
             )
         else:
-            self.fields["project"].queryset = (
-                ProjectAccessService
-                .get_accessible_projects(
-                    user
+            workable_projects = (
+                ProjectAuthorizationService
+                .get_workable_projects(user)
+            )
+
+            project_filter = Q(
+                pk__in=workable_projects,
+            )
+
+            if self.instance.pk:
+                project_filter |= Q(
+                    pk=self.instance.project_id,
                 )
+
+            self.fields["project"].queryset = (
+                Project.objects
+                .filter(project_filter)
                 .select_related(
                     "owner_company",
                 )

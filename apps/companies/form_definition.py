@@ -15,18 +15,20 @@ from framework.types.field_width import FieldWidth
 COMPANY_FORM_DEFINITION = FormDefinition(
     name="company",
     title="Société",
+
     sections=[
         SectionDefinition(
             title="Informations générales",
             fields=[
                 FieldDefinition(
-                    name="name"
+                    name="name",
+                    width=FieldWidth.MD,
                 ),
                 FieldDefinition(
                     name="logo",
                     kind=FieldKind.FILE_UPLOAD,
                     required=False,
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.MD,
                     upload=FileUploadDefinition(
                         multiple=False,
                         allowed_extensions=(
@@ -47,15 +49,17 @@ COMPANY_FORM_DEFINITION = FormDefinition(
                     ),
                 ),
                 FieldDefinition(
-                    name="siret"
+                    name="siret",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
-                    name="vat_number"
+                    name="vat_number",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="is_active",
                     required=False,
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.SM,
                     checked_label="Active",
                     unchecked_label="Inactive",
                 ),
@@ -65,10 +69,12 @@ COMPANY_FORM_DEFINITION = FormDefinition(
             title="Coordonnées",
             fields=[
                 FieldDefinition(
-                    name="email"
+                    name="email",
+                    width=FieldWidth.LG,
                 ),
                 FieldDefinition(
-                    name="phone"
+                    name="phone",
+                    width=FieldWidth.SM,
                 ),
             ],
         ),
@@ -76,22 +82,28 @@ COMPANY_FORM_DEFINITION = FormDefinition(
             title="Adresse",
             fields=[
                 FieldDefinition(
-                    name="address_1"
+                    name="address_1",
+                    width=FieldWidth.MD,
                 ),
                 FieldDefinition(
-                    name="address_2"
+                    name="address_2",
+                    width=FieldWidth.MD,
                 ),
                 FieldDefinition(
-                    name="address_3"
+                    name="address_3",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
-                    name="postal_code"
+                    name="postal_code",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
-                    name="city"
+                    name="city",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
-                    name="country"
+                    name="country",
+                    width=FieldWidth.SM,
                 ),
             ],
         ),

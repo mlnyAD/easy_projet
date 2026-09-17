@@ -33,7 +33,7 @@
     border: 1px solid var(--color-axcio-border-light);
     border-radius: 0.5rem;
     background-color: var(--color-axcio-surface);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--color-axcio-black) 5%, transparent);
 }
 
 .dark .ep-list-table-container {
@@ -299,7 +299,7 @@
 .ep-list-pagination-select:focus {
     outline: none;
     border-color: var(--color-axcio-dark);
-    box-shadow: 0 0 0 2px rgb(13 82 98 / 0.20);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-axcio-dark) 20%, transparent);
 }
 
 
@@ -348,12 +348,12 @@
 
 .ep-list-pagination-button:hover {
     border-color: var(--color-axcio-light);
-    background-color: rgb(36 138 141 / 0.10);
+    background-color: color-mix(in srgb, var(--color-axcio-light) 10%, transparent);
 }
 
 .ep-list-pagination-button:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-axcio-light) 20%, transparent);
 }
 
 .ep-list-pagination-button-disabled {
@@ -396,7 +396,7 @@
 
 .dark .ep-list-pagination-button:hover {
     border-color: var(--color-axcio-light);
-    background-color: rgb(36 138 141 / 0.10);
+    background-color: color-mix(in srgb, var(--color-axcio-light) 10%, transparent);
 }
 
 .dark .ep-list-pagination-button-disabled {
@@ -422,11 +422,11 @@
  * - action Todo assignée à un autre utilisateur.
  */
 .ep-row-follow-up {
-    background-color: #e5e7eb;
+    background-color: var(--color-axcio-border-light);
 }
 
 .dark .ep-row-follow-up {
-    background-color: #374151;
+    background-color: var(--color-axcio-text-secondary);
 }
 
 /* ==========================================================================
@@ -528,13 +528,13 @@
 }
 
 .ep-list-row-action:hover {
-    background-color: rgb(36 138 141 / 0.10);
+    background-color: color-mix(in srgb, var(--color-axcio-light) 10%, transparent);
     color: var(--color-axcio-light-hover);
 }
 
 .ep-list-row-action:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-axcio-light) 20%, transparent);
 }
 
 

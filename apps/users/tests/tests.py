@@ -13,6 +13,10 @@ from apps.catalogs.models import CatalogType, CatalogValue
 from apps.companies.models import Company
 from apps.users.forms import UserForm
 from apps.users.services import TemporaryPasswordService
+from apps.core.models import (
+    ClientEnvironment,
+    ClientEnvironmentMembership,
+)
 
 
 User = get_user_model()
@@ -25,6 +29,13 @@ class UserTestDataMixin:
             name="Société active",
             is_active=True,
         )
+        
+        cls.client_environment = (
+            ClientEnvironment.objects.create(
+                company=cls.company,
+            )
+        )
+                
         cls.inactive_company = Company.objects.create(
             name="Société inactive",
             is_active=False,
@@ -89,8 +100,62 @@ class UserTestDataMixin:
             "job": self.job.pk,
             "is_active": True,
             "theme": "light",
+            "client_environments-TOTAL_FORMS": "0",
+            "client_environments-INITIAL_FORMS": "0",
+            "client_environments-MIN_NUM_FORMS": "0",
+            "client_environments-MAX_NUM_FORMS": "1000",
         }
         data.update(overrides)
+        return data
+    
+    def make_client_environment_formset_data(
+        self,
+        *rows,
+    ) -> dict[str, object]:
+        data: dict[str, object] = {
+            "client_environments-TOTAL_FORMS": str(
+                len(rows)
+            ),
+            "client_environments-INITIAL_FORMS": "0",
+            "client_environments-MIN_NUM_FORMS": "0",
+            "client_environments-MAX_NUM_FORMS": "1000",
+        }
+
+        for index, row in enumerate(rows):
+            prefix = (
+                f"client_environments-{index}"
+            )
+
+            data[
+                f"{prefix}-client_environment"
+            ] = str(
+                row["client_environment"].pk
+            )
+
+            data[
+                f"{prefix}-employment_type"
+            ] = str(
+                row.get("employment_type", "")
+            )
+
+            if row.get("is_active", True):
+                data[
+                    f"{prefix}-is_active"
+                ] = "on"
+
+            if row.get("is_client_admin", False):
+                data[
+                    f"{prefix}-is_client_admin"
+                ] = "on"
+
+            if row.get(
+                "is_client_admin_responsible",
+                False,
+            ):
+                data[
+                    f"{prefix}-is_client_admin_responsible"
+                ] = "on"
+
         return data
 
     def create_user(
@@ -127,7 +192,7 @@ class UserModelTests(
         user.save()
 
         self.assertEqual(user.last_name, "martin")
-        self.assertEqual(user.first_name, "alice")
+        self.assertEqual(user.first_name, "Alice")
         self.assertEqual(
             user.email,
             "alice.martin@example.com",
@@ -261,6 +326,7 @@ class UserFormTests(
         self.assertNotIn("employment_type", form.fields)
         self.assertNotIn("global_role", form.fields)
         self.assertNotIn("access_level", form.fields)
+        self.assertIn("is_system_admin", form.fields,)
         
     def test_catalog_field_exposes_catalog_metadata(self):
         form = UserForm()
@@ -544,6 +610,73 @@ class UserViewTests(
             response.status_code,
             404,
         )
+        
+    @override_settings(
+        EMAIL_BACKEND=(
+            "django.core.mail.backends.locmem.EmailBackend"
+        ),
+        DEFAULT_FROM_EMAIL="noreply@easy-projet.test",
+    )
+    def test_create_view_creates_client_admin_membership(
+        self,
+    ):
+        data = self.make_form_data(
+            email="admin.societe@example.com",
+        )
+
+        data.update(
+            self.make_client_environment_formset_data(
+                {
+                    "client_environment": (
+                        self.client_environment
+                    ),
+                    "is_active": True,
+                    "is_client_admin": True,
+                    "is_client_admin_responsible": True,
+                },
+            )
+        )
+
+        with patch.object(
+            TemporaryPasswordService,
+            "generate_password",
+            return_value="Abcdef12!xyz",
+        ):
+            response = self.client.post(
+                reverse("users:create"),
+                data=data,
+            )
+
+        self.assertRedirects(
+            response,
+            reverse("users:list"),
+        )
+
+        user = User.objects.get(
+            email="admin.societe@example.com",
+        )
+
+        membership = (
+            ClientEnvironmentMembership.objects.get(
+                user=user,
+                client_environment=(
+                    self.client_environment
+                ),
+            )
+        )
+
+        self.assertTrue(
+            membership.is_active
+        )
+
+        self.assertTrue(
+            membership.is_client_admin
+        )
+
+        self.assertTrue(
+            membership.is_client_admin_responsible
+        )
+        
 
 @override_settings(
     EMAIL_BACKEND=(

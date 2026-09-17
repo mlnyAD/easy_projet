@@ -501,6 +501,12 @@ class TaskAccessTests(TestCase):
             200,
         )
 
+        self.assertFalse(
+            response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
     def test_inaccessible_task_update_returns_404(
         self,
     ):
@@ -579,4 +585,282 @@ class TaskAccessTests(TestCase):
         self.assertNotIn(
             str(self.work_package_b.pk),
             work_package_ids,
+        )
+        
+        # ------------------------------------------------------------------
+    # Lecture seule et visibilité transverse
+    # ------------------------------------------------------------------
+
+    def create_read_only_user(self):
+        read_only_access = CatalogValue.objects.create(
+            catalog_type=self.access_level_type,
+            code="READ_ONLY",
+            label="Lecture seule",
+            sort_order=20,
+        )
+
+        user = User.objects.create(
+            company=self.company_a,
+            email="task-read-only@example.com",
+            first_name="Luc",
+            last_name="Lecture seule",
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project_a,
+            user=user,
+            role=self.project_role,
+            access_level=read_only_access,
+            is_active=True,
+        )
+
+        return user
+
+    def create_transverse_project_manager(self):
+        project_manager_role = CatalogValue.objects.create(
+            catalog_type=self.project_role_type,
+            code="PROJECT_MANAGER",
+            label="Chef de projet",
+            sort_order=20,
+        )
+
+        user = User.objects.create(
+            company=self.company_a,
+            email="task-transverse-manager@example.com",
+            first_name="Marie",
+            last_name="Chef transverse",
+        )
+
+        transverse_project = Project.objects.create(
+            company=self.company_a,
+            reference="PRJ-TASK-A2",
+            name="Projet Tasks transverse",
+            status=self.project_status,
+        )
+
+        transverse_work_package = WorkPackage.objects.create(
+            project=transverse_project,
+            status=self.work_package_status,
+            name="Lot transverse",
+        )
+
+        transverse_task = Task.objects.create(
+            work_package=transverse_work_package,
+            status=self.task_status,
+            name="Tâche transverse",
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project_a,
+            user=user,
+            role=project_manager_role,
+            access_level=self.access_level,
+            is_active=True,
+        )
+
+        return (
+            user,
+            transverse_work_package,
+            transverse_task,
+        )
+
+    def test_read_only_user_can_view_but_cannot_work_on_tasks(self):
+        read_only_user = self.create_read_only_user()
+
+        self.client.force_login(read_only_user)
+
+        list_response = self.client.get(
+            reverse(
+                "tasks:list-by-work-package",
+                kwargs={
+                    "work_package_pk": self.work_package_a.pk,
+                },
+            )
+        )
+
+        create_response = self.client.get(
+            reverse("tasks:create")
+        )
+
+        update_response = self.client.get(
+            reverse(
+                "tasks:update",
+                kwargs={
+                    "pk": self.task_a.pk,
+                },
+            )
+        )
+
+        self.assertEqual(
+            list_response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            list_response,
+            self.task_a.name,
+        )
+
+        self.assertEqual(
+            create_response.status_code,
+            403,
+        )
+
+        self.assertEqual(
+            update_response.status_code,
+            200,
+        )
+
+        self.assertTrue(
+            update_response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
+        update_post_response = self.client.post(
+            reverse(
+                "tasks:update",
+                kwargs={
+                    "pk": self.task_a.pk,
+                },
+            ),
+            data=self.build_post_data(
+                work_package=self.work_package_a,
+                task=self.task_a,
+                name="Modification interdite",
+            ),
+        )
+
+        self.assertEqual(
+            update_post_response.status_code,
+            403,
+        )
+
+        self.task_a.refresh_from_db()
+
+        self.assertEqual(
+            self.task_a.name,
+            "Tâche accessible A",
+        )
+
+    def test_transverse_project_manager_can_view_but_cannot_work(
+        self,
+    ):
+        (
+            transverse_manager,
+            transverse_work_package,
+            transverse_task,
+        ) = self.create_transverse_project_manager()
+
+        self.client.force_login(transverse_manager)
+
+        list_response = self.client.get(
+            reverse(
+                "tasks:list-by-work-package",
+                kwargs={
+                    "work_package_pk": transverse_work_package.pk,
+                },
+            )
+        )
+
+        create_response = self.client.get(
+            reverse("tasks:create")
+        )
+
+        update_response = self.client.get(
+            reverse(
+                "tasks:update",
+                kwargs={
+                    "pk": transverse_task.pk,
+                },
+            )
+        )
+
+        create_data = self.build_post_data(
+            work_package=transverse_work_package,
+            name="Tentative tâche transverse",
+        )
+
+        post_response = self.client.post(
+            reverse("tasks:create"),
+            data=create_data,
+        )
+
+        form = create_response.context["form"]
+
+        work_package_ids = set(
+            form.fields["work_package"]
+            .queryset
+            .values_list(
+                "pk",
+                flat=True,
+            )
+        )
+
+        self.assertEqual(
+            list_response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            list_response,
+            transverse_task.name,
+        )
+
+        self.assertEqual(
+            create_response.status_code,
+            200,
+        )
+
+        self.assertNotIn(
+            transverse_work_package.pk,
+            work_package_ids,
+        )
+
+        self.assertEqual(
+            update_response.status_code,
+            200,
+        )
+
+        self.assertTrue(
+            update_response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
+        update_post_response = self.client.post(
+            reverse(
+                "tasks:update",
+                kwargs={
+                    "pk": transverse_task.pk,
+                },
+            ),
+            data=self.build_post_data(
+                work_package=transverse_work_package,
+                task=transverse_task,
+                name="Modification transverse interdite",
+            ),
+        )
+
+        self.assertEqual(
+            update_post_response.status_code,
+            403,
+        )
+
+        transverse_task.refresh_from_db()
+
+        self.assertEqual(
+            transverse_task.name,
+            "Tâche transverse",
+        )
+
+        self.assertEqual(
+            post_response.status_code,
+            200,
+        )
+
+        self.assertFalse(
+            Task.objects.filter(
+                name="Tentative tâche transverse",
+            ).exists()
         )

@@ -437,15 +437,32 @@ class UserAccessServiceTests(TestCase):
     # USER SANS PROJET
     # ------------------------------------------------------------------
 
-    def test_standard_user_without_project_has_no_admin_or_visibility(
+    def test_standard_user_without_project_can_view_own_environment(
         self,
     ):
-        self.assertFalse(
+        accessible_users = (
             UserAccessService
             .get_accessible_users(
                 self.standard_user
             )
-            .exists()
+        )
+
+        self.assertTrue(
+            accessible_users.filter(
+                pk=self.standard_user.pk,
+            ).exists()
+        )
+
+        self.assertTrue(
+            accessible_users.filter(
+                pk=self.target_a.pk,
+            ).exists()
+        )
+
+        self.assertFalse(
+            accessible_users.filter(
+                pk=self.target_b.pk,
+            ).exists()
         )
 
         self.assertFalse(
@@ -475,7 +492,7 @@ class UserAccessServiceTests(TestCase):
                 self.target_a,
             )
         )
-
+        
     # ------------------------------------------------------------------
     # Inactif
     # ------------------------------------------------------------------

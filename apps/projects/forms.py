@@ -301,6 +301,11 @@ class ProjectForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs) -> None:
+        company_queryset = kwargs.pop(
+            "company_queryset",
+            None,
+        )
+
         super().__init__(*args, **kwargs)
 
         active_companies = (
@@ -309,11 +314,22 @@ class ProjectForm(forms.ModelForm):
             .order_by("name")
         )
 
-        self.fields["company"].queryset = active_companies
-        
-        if not self.instance._state.adding:
+        if self.instance._state.adding:
+            if company_queryset is None:
+                self.fields["company"].queryset = (
+                    active_companies
+                )
+            else:
+                self.fields["company"].queryset = (
+                    company_queryset
+                )
+        else:
+            self.fields["company"].queryset = (
+                Company.objects
+                .filter(pk=self.instance.company_id)
+            )
             self.fields["company"].disabled = True
-        
+
         self.fields["owner_company"].queryset = active_companies
         self.fields["designer_company"].queryset = (
             active_companies

@@ -11,7 +11,10 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import (
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+)
 from django.db.models import Prefetch
 from datetime import timedelta
 from framework.integrations.django.list_pagination import (
@@ -110,7 +113,32 @@ class ProjectListView(
 
         django_page = context["page_obj"]
 
-        for project in django_page.object_list:
+        page_projects = tuple(
+            django_page.object_list
+        )
+
+        administrable_project_ids = set(
+            ProjectAuthorizationService
+            .get_administrable_projects(
+                self.request.user
+            )
+            .filter(
+                pk__in=(
+                    project.pk
+                    for project in page_projects
+                )
+            )
+            .values_list(
+                "pk",
+                flat=True,
+            )
+        )
+        
+        for project in page_projects:
+            project.can_administer = (
+                project.pk
+                in administrable_project_ids
+            )
             memberships = getattr(
                 project,
                 "responsible_project_manager_memberships",
@@ -154,7 +182,15 @@ class ProjectListView(
         context["row_actions_template"] = (
             "projects/project_actions.html"
         )
-
+        
+        context["can_create_project"] = (
+            ProjectAuthorizationService
+            .get_project_creation_companies(
+                self.request.user
+            )
+            .exists()
+        )
+        
         return context
     
 class ProjectLocationView(ListView):
@@ -489,6 +525,7 @@ class ProjectFormCollectionsMixin:
         )
 
 class ProjectCreateView(
+    UserPassesTestMixin,
     ProjectFormCollectionsMixin,
     EPCreateView,
 ):
@@ -501,7 +538,35 @@ class ProjectCreateView(
         "Le projet a été créé avec succès."
     )
 
+    def get_creation_companies(self):
+        if not hasattr(
+            self,
+            "_creation_companies",
+        ):
+            self._creation_companies = (
+                ProjectAuthorizationService
+                .get_project_creation_companies(
+                    self.request.user
+                )
+            )
 
+        return self._creation_companies
+
+    def test_func(self):
+        return (
+            self.get_creation_companies()
+            .exists()
+        )
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs["company_queryset"] = (
+            self.get_creation_companies()
+        )
+
+        return kwargs
+    
 class ProjectUpdateView(
     ProjectFormCollectionsMixin,
     EPUpdateView,
@@ -521,14 +586,30 @@ class ProjectUpdateView(
 
     def get_queryset(self):
         return (
-            ProjectAuthorizationService
-            .get_administrable_projects(
+            ProjectAccessService
+            .get_accessible_projects(
                 self.request.user
             )
             .select_related(
                 "company",
                 "client_environment",
                 "client_environment__company",
+            )
+        )
+
+    def can_edit_object(self) -> bool:
+        """
+        Indique si l'utilisateur peut administrer le projet courant.
+
+        Un utilisateur bénéficiant uniquement d'un droit de
+        consultation ouvre le projet en lecture seule.
+        """
+
+        return (
+            ProjectAuthorizationService
+            .can_administer_project(
+                user=self.request.user,
+                project=self.object,
             )
         )
 

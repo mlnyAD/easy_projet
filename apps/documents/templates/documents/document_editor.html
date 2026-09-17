@@ -39,10 +39,6 @@
 
 <div class="flex h-screen flex-col">
 
-    {# -------------------------------------------------------------- #}
-    {# Barre supérieure                                                #}
-    {# -------------------------------------------------------------- #}
-
     <header
         class="flex h-14 shrink-0 items-center
                justify-between gap-4
@@ -53,7 +49,6 @@
                dark:border-axcio-border-dark
                dark:bg-axcio-surface-dark"
     >
-
         <div class="min-w-0">
 
             <h1
@@ -96,27 +91,18 @@
 
     </header>
 
-
-    {# -------------------------------------------------------------- #}
-    {# Information de verrou                                          #}
-    {# -------------------------------------------------------------- #}
-
     {% if read_only_due_to_lock %}
 
         <div
-            class="
-                shrink-0
-                border-b
-                border-amber-300
-                bg-amber-50
-                px-4
-                py-2
-                text-sm
-                text-amber-900
-                dark:border-amber-700
-                dark:bg-amber-950/40
-                dark:text-amber-200
-            "
+            class="shrink-0 border-b
+                   border-amber-300
+                   bg-amber-50
+                   px-4 py-2
+                   text-sm
+                   text-amber-900
+                   dark:border-amber-700
+                   dark:bg-amber-950/40
+                   dark:text-amber-200"
         >
             Ce document est actuellement en cours d'édition par
             <strong>
@@ -125,12 +111,24 @@
             Il est ouvert en lecture seule.
         </div>
 
+    {% elif read_only_due_to_permission %}
+
+        <div
+            class="shrink-0 border-b
+                   border-sky-300
+                   bg-sky-50
+                   px-4 py-2
+                   text-sm
+                   text-sky-900
+                   dark:border-sky-700
+                   dark:bg-sky-950/40
+                   dark:text-sky-200"
+        >
+            Vous disposez d'un accès en lecture seule
+            à ce document.
+        </div>
+
     {% endif %}
-
-
-    {# -------------------------------------------------------------- #}
-    {# ONLYOFFICE                                                     #}
-    {# -------------------------------------------------------------- #}
 
     <div
         id="onlyoffice-editor"
@@ -138,7 +136,6 @@
     ></div>
 
 </div>
-
 
 {{ onlyoffice_config|json_script:"onlyoffice-config" }}
 
@@ -188,8 +185,7 @@
                 )
                 || "system";
 
-            let effectiveTheme =
-                storedTheme;
+            let effectiveTheme = storedTheme;
 
             if (storedTheme === "system") {
                 effectiveTheme =
@@ -220,11 +216,6 @@
                 "onlyoffice-editor",
                 config
             );
-
-
-            // ---------------------------------------------------------
-            // Heartbeat du verrou d'édition
-            // ---------------------------------------------------------
 
             const heartbeatElement =
                 document.getElementById(
@@ -278,7 +269,6 @@
                                 response.status
                             );
                         }
-
                     } catch (error) {
                         console.warn(
                             "Heartbeat du verrou "
@@ -289,7 +279,7 @@
                 };
 
             const heartbeatIntervalMs =
-               5 * 60 * 1000;
+                5 * 60 * 1000;
 
             window.setInterval(
                 refreshEditLock,

@@ -3,6 +3,7 @@
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -25,6 +26,9 @@ from .lists import RISK_LIST_DEFINITION
 from .models import Risk
 from apps.projects.services.access import (
     ProjectAccessService,
+)
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
 )
 
 
@@ -200,9 +204,18 @@ class RiskListView(
             self.get_return_url()
         )
 
-        context["page_action_url"] = (
-            self.get_create_url()
-        )
+        if (
+            ProjectAuthorizationService
+            .get_workable_projects(
+                self.request.user
+            )
+            .exists()
+        ):
+            context["page_action_url"] = (
+                self.get_create_url()
+            )
+        else:
+            context["page_action_url"] = None
 
         # Page EDF
         context["page_title"] = (
@@ -309,14 +322,35 @@ class RiskListByProjectView(RiskListView):
         context["current_project"] = project
         context["is_project_context"] = True
 
+        if not (
+            ProjectAuthorizationService
+            .can_work_on_project(
+                user=self.request.user,
+                project=project,
+            )
+        ):
+            context["page_action_url"] = None
+
         return context
 
 
-class RiskCreateView(EPCreateView):
+class RiskCreateView(
+    UserPassesTestMixin,
+    EPCreateView,
+):
     model = Risk
     form_class = RiskForm
     definition = RISK_FORM_DEFINITION
     template_name = "edf/form/view.html"
+
+    def test_func(self):
+        return (
+            ProjectAuthorizationService
+            .get_workable_projects(
+                self.request.user
+            )
+            .exists()
+        )
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -363,8 +397,8 @@ class RiskCreateView(EPCreateView):
 
         if project_pk:
             project = (
-                ProjectAccessService
-                .get_accessible_projects(
+                ProjectAuthorizationService
+                .get_workable_projects(
                     self.request.user
                 )
                 .filter(
@@ -429,6 +463,19 @@ class RiskUpdateView(EPUpdateView):
                 "status",
                 "criticality",
                 "review_frequency",
+            )
+        )
+
+    def can_edit_object(self) -> bool:
+        """
+        Indique si l'utilisateur peut modifier le risque courant.
+        """
+
+        return (
+            ProjectAuthorizationService
+            .can_work_on_project(
+                user=self.request.user,
+                project=self.object.project,
             )
         )
 

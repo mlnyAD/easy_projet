@@ -54,19 +54,29 @@ class LicenseForm(forms.ModelForm):
                 }
             ),
             "granted_at": forms.DateInput(
+                format="%Y-%m-%d",
                 attrs={
                     "type": "date",
-                }
+                },
             ),
             "expiration_date": forms.DateInput(
+                format="%Y-%m-%d",
                 attrs={
                     "type": "date",
-                }
+                },
             ),
         }
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        
+        self.fields["granted_at"].input_formats = [
+            "%Y-%m-%d",
+        ]
+
+        self.fields["expiration_date"].input_formats = [
+            "%Y-%m-%d",
+        ]
 
         self.fields["company"].queryset = (
             Company.objects

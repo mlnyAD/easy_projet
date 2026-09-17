@@ -19,13 +19,13 @@ from django.views import View
 from apps.documents.models import DocumentFolder
 from apps.documents.services import DocumentFolderService
 from apps.documents.views.mixins import (
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
 )
 
 
 class DocumentFolderCreateView(
     LoginRequiredMixin,
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -84,7 +84,7 @@ class DocumentFolderCreateView(
 
 class DocumentFolderRenameView(
     LoginRequiredMixin,
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -136,7 +136,7 @@ class DocumentFolderRenameView(
 
 class DocumentFolderDeleteView(
     LoginRequiredMixin,
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -174,7 +174,6 @@ class DocumentFolderDeleteView(
                 request,
                 "Le répertoire a été supprimé.",
             )
-
         except ValueError as exc:
             messages.error(
                 request,
@@ -202,7 +201,7 @@ class DocumentFolderDeleteView(
 
 class DocumentFolderMoveView(
     LoginRequiredMixin,
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -249,7 +248,6 @@ class DocumentFolderMoveView(
                 folder=folder,
                 destination=destination,
             )
-
         except (
             ValueError,
             ValidationError,

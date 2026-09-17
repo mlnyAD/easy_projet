@@ -189,21 +189,19 @@ class RequiredPasswordChangeForm(forms.Form):
         return self.user
 
 
+
 class UserForm(forms.ModelForm):
     """
-    Formulaire de création et de modification
-    de l'identité globale d'un utilisateur.
+    Formulaire de création et de modification de l'identité
+    globale et des droits structurels d'un utilisateur.
 
-    Les appartenances aux environnements clients
-    et aux projets sont administrées séparément.
+    Les rattachements aux environnements clients sont gérés
+    par une collection associée à la vue.
 
-    Le mot de passe et les préférences personnelles
-    ne sont jamais saisis dans ce formulaire
-    d'administration.
+    Les rôles opérationnels restent gérés dans les projets.
 
-    Un nouvel utilisateur est créé avec un mot
-    de passe inutilisable, dans l'attente de la
-    validation de son invitation.
+    Le mot de passe et les préférences personnelles ne sont
+    jamais saisis dans ce formulaire d'administration.
     """
 
     job = CatalogModelChoiceField(
@@ -225,10 +223,14 @@ class UserForm(forms.ModelForm):
             "company",
             "job",
             "is_active",
+            "is_system_admin",
         )
 
         labels = {
             "is_active": "Utilisateur actif",
+            "is_system_admin": (
+                "Administrateur système"
+            ),
         }
 
         widgets = {
@@ -251,7 +253,9 @@ class UserForm(forms.ModelForm):
                 attrs={
                     "maxlength": USER_EMAIL_LENGTH,
                     "autocomplete": "email",
-                    "placeholder": "prenom.nom@entreprise.fr",
+                    "placeholder": (
+                        "prenom.nom@entreprise.fr"
+                    ),
                     "data-lowercase": True,
                     "data-trim": True,
                 }
@@ -286,6 +290,8 @@ class UserForm(forms.ModelForm):
     ) -> None:
         super().__init__(*args, **kwargs)
 
+        self.actor = user
+
         if user is None:
             self.fields["company"].queryset = (
                 Company.objects.none()
@@ -301,10 +307,66 @@ class UserForm(forms.ModelForm):
             catalog_code="USER_JOB",
         )
 
+        """
+        Le droit système n'est administrable que par un
+        administrateur système.
+
+        Le champ reste affiché, mais désactivé, pour que le
+        statut d'un utilisateur soit lisible par un
+        administrateur client sans lui permettre de le changer.
+        """
+        if (
+            user is None
+            or not user.is_system_admin
+        ):
+            self.fields[
+                "is_system_admin"
+            ].disabled = True
+
         if not self.is_bound and not self.instance.pk:
             self._apply_catalog_default(
                 "job"
             )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        is_system_admin = cleaned_data.get(
+            "is_system_admin",
+            False,
+        )
+
+        """
+        La désactivation du champ côté interface ne suffit
+        pas : la règle est également imposée côté serveur.
+        """
+        if (
+            self.actor is None
+            or not self.actor.is_system_admin
+        ):
+            cleaned_data["is_system_admin"] = (
+                self.instance.is_system_admin
+            )
+            return cleaned_data
+
+        """
+        Un administrateur système ne peut pas se retirer
+        lui-même ce droit depuis sa propre session.
+        """
+        if (
+            self.instance.pk == self.actor.pk
+            and self.instance.is_system_admin
+            and not is_system_admin
+        ):
+            self.add_error(
+                "is_system_admin",
+                (
+                    "Vous ne pouvez pas retirer votre propre "
+                    "rôle d'administrateur système."
+                ),
+            )
+
+        return cleaned_data
 
     def save(
         self,

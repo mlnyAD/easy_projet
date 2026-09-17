@@ -3,6 +3,8 @@
 from django import template
 from django.forms.boundfield import BoundField
 from django.template.loader import render_to_string
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from framework.form.kinds import FieldKind
 from framework.form.resolved_field import ResolvedField
@@ -12,6 +14,7 @@ from framework.integrations.django.field_renderer import (
 from framework.integrations.django.widget_adapter import (
     WidgetAdapter,
 )
+from framework.types.field_width import FieldWidth
 
 
 register = template.Library()
@@ -25,23 +28,16 @@ def render_ep_field(context, field) -> str:
     """
     Rend un champ standard Easy Projet.
 
-    Ce rendu est destiné aux formulaires classiques :
-    libellé, aide, erreurs et widget.
+    Chaque champ est enveloppé dans un élément de grille.
     """
 
-    bound_field = _prepare_bound_field(
-        field
-    )
+    bound_field = _prepare_bound_field(field)
 
     if isinstance(field, ResolvedField):
-        _apply_file_upload_configuration(
-            field
-        )
+        _apply_file_upload_configuration(field)
 
-    template_name = (
-        _field_renderer.get_template_name(
-            field
-        )
+    template_name = _field_renderer.get_template_name(
+        field
     )
 
     field_context = context.flatten()
@@ -51,10 +47,16 @@ def render_ep_field(context, field) -> str:
 
     request = context.get("request")
 
-    return render_to_string(
+    rendered_field = render_to_string(
         template_name=template_name,
         context=field_context,
         request=request,
+    )
+
+    return format_html(
+        '<div class="{}">{}</div>',
+        _get_grid_item_class(field),
+        mark_safe(rendered_field),
     )
 
 
@@ -65,13 +67,6 @@ def render_ep_collection_field(
 ) -> str:
     """
     Rend un champ compact dans une cellule de collection.
-
-    Contrairement au rendu standard :
-    - le libellé n'est pas répété ;
-    - le libellé est porté par l'en-tête de colonne ;
-    - seules le widget et ses erreurs sont affichés.
-
-    Le widget Django reste pleinement éditable.
     """
 
     bound_field = _prepare_bound_field(
@@ -83,9 +78,7 @@ def render_ep_collection_field(
         return ""
 
     if isinstance(field, ResolvedField):
-        _apply_file_upload_configuration(
-            field
-        )
+        _apply_file_upload_configuration(field)
 
     field_context = context.flatten()
 
@@ -103,6 +96,23 @@ def render_ep_collection_field(
     )
 
 
+def _get_grid_item_class(field) -> str:
+    """
+    Retourne la classe CSS correspondant à la largeur
+    déclarée dans FieldDefinition.
+    """
+
+    width = FieldWidth.AUTO
+
+    if isinstance(field, ResolvedField):
+        width = field.width
+
+    return (
+        "ep-form-grid-item "
+        f"ep-form-grid-item--width-{width.value}"
+    )
+
+
 def _prepare_bound_field(
     field,
     *,
@@ -110,14 +120,9 @@ def _prepare_bound_field(
 ) -> BoundField | None:
     """
     Prépare un BoundField avant son rendu.
-
-    Le WidgetAdapter applique les classes sémantiques EDF
-    et les attributs d'accessibilité.
     """
 
-    bound_field = _resolve_bound_field(
-        field
-    )
+    bound_field = _resolve_bound_field(field)
 
     if bound_field is None:
         return None
@@ -148,9 +153,6 @@ def _prepare_bound_field(
         ),
     )
 
-    # Dans une collection tabulaire, le libellé visible
-    # est porté par le <th>. L'aria-label conserve
-    # néanmoins l'information au niveau du contrôle.
     bound_field.field.widget.attrs.setdefault(
         "aria-label",
         str(bound_field.label),
@@ -185,14 +187,10 @@ def _apply_file_upload_configuration(
     field: ResolvedField,
 ) -> None:
     """
-    Applique au widget Django la configuration
-    déclarée par FileUploadDefinition.
+    Applique au widget la configuration d'import déclarée.
     """
 
-    if (
-        field.kind
-        != FieldKind.FILE_UPLOAD
-    ):
+    if field.kind != FieldKind.FILE_UPLOAD:
         return
 
     upload = field.upload
@@ -215,7 +213,6 @@ def _apply_file_upload_configuration(
     accept_values.extend(
         upload.allowed_mime_types
     )
-
     accept_values.extend(
         upload.allowed_extensions
     )

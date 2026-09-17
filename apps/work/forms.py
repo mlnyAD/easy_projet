@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from django import forms
+from django.db.models import Q
 
 from apps.catalogs.models import CatalogValue
-from apps.projects.services.access import ProjectAccessService
+from apps.projects.models import Project
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
+)
 from apps.users.models import User
 from common.constants.work_package import (
     WORK_PACKAGE_CODE_LENGTH,
@@ -131,9 +135,23 @@ class WorkPackageForm(forms.ModelForm):
                 .none()
             )
         else:
+            administrable_projects = (
+                ProjectAuthorizationService
+                .get_administrable_projects(user)
+            )
+
+            project_filter = Q(
+                pk__in=administrable_projects,
+            )
+
+            if self.instance.pk:
+                project_filter |= Q(
+                    pk=self.instance.project_id,
+                )
+
             self.fields["project"].queryset = (
-                ProjectAccessService
-                .get_accessible_projects(user)
+                Project.objects
+                .filter(project_filter)
                 .select_related(
                     "owner_company",
                 )

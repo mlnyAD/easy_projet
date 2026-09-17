@@ -18,6 +18,8 @@ from .models import Company
 
 
 class CompanyForm(forms.ModelForm):
+    DEFAULT_COUNTRY = "FRANCE"
+
     class Meta:
         model = Company
 
@@ -50,7 +52,9 @@ class CompanyForm(forms.ModelForm):
             "name": forms.TextInput(
                 attrs={
                     "maxlength": COMPANY_NAME_LENGTH,
-                    "placeholder": "Nom utilisé dans l'application",
+                    "placeholder": (
+                        "Nom utilisé dans l'application"
+                    ),
                     "autocomplete": "organization",
                     "data-uppercase": True,
                     "data-trim": True,
@@ -60,7 +64,9 @@ class CompanyForm(forms.ModelForm):
                 attrs={
                     "maxlength": COMPANY_EMAIL_LENGTH,
                     "autocomplete": "email",
-                    "placeholder": "contact@entreprise.fr",
+                    "placeholder": (
+                        "contact@entreprise.fr"
+                    ),
                     "data-lowercase": True,
                     "data-trim": True,
                 }
@@ -97,9 +103,14 @@ class CompanyForm(forms.ModelForm):
             ),
             "siret": forms.TextInput(
                 attrs={
-                    "maxlength": COMPANY_SIRET_LENGTH,
+                    # 14 chiffres + 3 espaces de présentation.
+                    "maxlength": (
+                        COMPANY_SIRET_LENGTH + 3
+                    ),
                     "placeholder": "123 456 789 00012",
                     "autocomplete": "off",
+                    "inputmode": "numeric",
+                    "data-siret": True,
                     "data-trim": True,
                 }
             ),
@@ -113,3 +124,63 @@ class CompanyForm(forms.ModelForm):
                 }
             ),
         }
+
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
+        if (
+            not self.is_bound
+            and self.instance._state.adding
+        ):
+            self.initial["country"] = (
+                self.DEFAULT_COUNTRY
+            )
+
+        if (
+            not self.is_bound
+            and self.instance.siret
+        ):
+            self.initial["siret"] = (
+                self.format_siret(
+                    self.instance.siret
+                )
+            )
+
+    def clean_siret(self) -> str:
+        """
+        La base conserve le SIRET normalisé, sans espaces.
+        """
+        siret = self.cleaned_data.get(
+            "siret",
+            "",
+        )
+
+        return "".join(siret.split())
+
+    @staticmethod
+    def format_siret(value: str) -> str:
+        digits = "".join(
+            character
+            for character in value
+            if character.isdigit()
+        )[:COMPANY_SIRET_LENGTH]
+
+        groups = (
+            digits[:3],
+            digits[3:6],
+            digits[6:9],
+            digits[9:14],
+        )
+
+        return " ".join(
+            group
+            for group in groups
+            if group
+        )

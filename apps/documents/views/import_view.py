@@ -18,13 +18,13 @@ from apps.documents.forms_import import (
 from apps.documents.models import DocumentFolder
 from apps.documents.services import DocumentService
 from apps.documents.views.mixins import (
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
 )
 
 
 class DocumentImportView(
     LoginRequiredMixin,
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -54,9 +54,7 @@ class DocumentImportView(
         folder_id,
     ):
         project = self.get_project()
-        folder = self.get_folder(
-            project
-        )
+        folder = self.get_folder(project)
 
         form = DocumentImportForm()
 
@@ -78,9 +76,7 @@ class DocumentImportView(
         folder_id,
     ):
         project = self.get_project()
-        folder = self.get_folder(
-            project
-        )
+        folder = self.get_folder(project)
 
         form = DocumentImportForm(
             request.POST,
@@ -98,9 +94,7 @@ class DocumentImportView(
                 },
             )
 
-        uploaded_file = (
-            form.cleaned_data["file"]
-        )
+        uploaded_file = form.cleaned_data["file"]
 
         lifecycle = get_object_or_404(
             CatalogValue,
@@ -122,25 +116,17 @@ class DocumentImportView(
         DocumentService().import_document(
             project=project,
             folder=folder,
-            title=form.cleaned_data[
-                "title"
-            ],
-            document_type=form.cleaned_data[
-                "document_type"
-            ],
-            status=form.cleaned_data[
-                "status"
-            ],
+            title=form.cleaned_data["title"],
+            document_type=(
+                form.cleaned_data["document_type"]
+            ),
+            status=form.cleaned_data["status"],
             lifecycle=lifecycle,
             content=uploaded_file,
-            original_filename=(
-                uploaded_file.name
-            ),
+            original_filename=uploaded_file.name,
             mime_type=mime_type,
             user=request.user,
-            is_doe=form.cleaned_data[
-                "is_doe"
-            ],
+            is_doe=form.cleaned_data["is_doe"],
         )
 
         messages.success(

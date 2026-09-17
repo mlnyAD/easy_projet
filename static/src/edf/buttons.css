@@ -50,7 +50,7 @@
 }
 
 .ep-button:focus-visible {
-    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.25);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-axcio-light) 25%, transparent);
 }
 
 .ep-button:disabled,
@@ -77,7 +77,7 @@
 .ep-button-execute {
     border: 1px solid var(--color-axcio-light);
     background-color: var(--color-axcio-light);
-    color: #ffffff;
+    color: var(--color-axcio-text-inverse);
 }
 
 .ep-button-execute:hover:not(:disabled) {
@@ -128,12 +128,12 @@
 .ep-button-danger {
     border: 1px solid var(--color-axcio-danger);
     background-color: var(--color-axcio-danger);
-    color: #ffffff;
+    color: var(--color-axcio-text-inverse);
 }
 
 .ep-button-danger:hover:not(:disabled) {
-    background-color: #b91c1c;
-    border-color: #b91c1c;
+    background-color: var(--color-axcio-danger-hover);
+    border-color: var(--color-axcio-danger-hover);
 }
 
 

@@ -3,21 +3,23 @@
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
 
 from apps.projects.models import Project
+from apps.projects.services.access import ProjectAccessService
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
+)
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
 )
 from framework.integrations.django.views import (
     EPCreateView,
     EPUpdateView,
-)
-from apps.projects.services.access import (
-    ProjectAccessService,
 )
 from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
@@ -66,15 +68,44 @@ class WorkPackageListView(
 
         django_page = context["page_obj"]
 
+        page_work_packages = tuple(
+            django_page.object_list
+        )
+
+        administrable_projects = (
+            ProjectAuthorizationService
+            .get_administrable_projects(
+                self.request.user
+            )
+        )
+
+        administrable_project_ids = set(
+            administrable_projects
+            .filter(
+                pk__in={
+                    work_package.project_id
+                    for work_package in page_work_packages
+                }
+            )
+            .values_list(
+                "pk",
+                flat=True,
+            )
+        )
+
+        for work_package in page_work_packages:
+            work_package.can_administer = (
+                work_package.project_id
+                in administrable_project_ids
+            )
+
         runtime = EPList(
             definition=WORK_PACKAGE_LIST_DEFINITION,
-            rows=django_page.object_list,
+            rows=page_work_packages,
         )
 
         framework_page = ListPage(
-            rows=tuple(
-                django_page.object_list
-            ),
+            rows=page_work_packages,
             page=django_page.number,
             page_size=django_page.paginator.per_page,
             total_items=django_page.paginator.count,
@@ -105,15 +136,22 @@ class WorkPackageListView(
         context["page_back_url"] = None
         context["page_back_label"] = None
 
-        context["page_action_label"] = "Nouveau lot de travaux"
-        context["page_action_icon"] = "plus"
+        if administrable_projects.exists():
+            context["page_action_label"] = (
+                "Nouveau lot de travaux"
+            )
+            context["page_action_icon"] = "plus"
 
-        context["page_action_url"] = (
-            f"{reverse('work:create')}?"
-            f"{urlencode({
-                'next': self.request.get_full_path(),
-            })}"
-        )
+            context["page_action_url"] = (
+                f"{reverse('work:create')}?"
+                f"{urlencode({
+                    'next': self.request.get_full_path(),
+                })}"
+            )
+        else:
+            context["page_action_label"] = None
+            context["page_action_icon"] = None
+            context["page_action_url"] = None
 
         return context
 
@@ -160,9 +198,20 @@ class WorkPackageListByProjectView(WorkPackageListView):
             },
         )
 
+        can_administer_project = (
+            ProjectAuthorizationService
+            .can_administer_project(
+                user=self.request.user,
+                project=project,
+            )
+        )
+
         context["project"] = project
         context["current_project"] = project
         context["is_project_context"] = True
+        context["can_administer_project"] = (
+            can_administer_project
+        )
         context["return_url"] = project_workspace_url
 
         context["page_title"] = (
@@ -175,26 +224,44 @@ class WorkPackageListByProjectView(WorkPackageListView):
         context["page_back_url"] = project_workspace_url
         context["page_back_label"] = "Retour au projet"
 
-        context["page_action_label"] = (
-            "Nouveau lot de travaux"
-        )
-        context["page_action_icon"] = "plus"
+        if can_administer_project:
+            context["page_action_label"] = (
+                "Nouveau lot de travaux"
+            )
+            context["page_action_icon"] = "plus"
 
-        context["page_action_url"] = (
-            f"{reverse('work:create')}?"
-            f"{urlencode({
-                'project': project.pk,
-                'next': project_workspace_url,
-            })}"
-        )
+            context["page_action_url"] = (
+                f"{reverse('work:create')}?"
+                f"{urlencode({
+                    'project': project.pk,
+                    'next': project_workspace_url,
+                })}"
+            )
+        else:
+            context["page_action_label"] = None
+            context["page_action_icon"] = None
+            context["page_action_url"] = None
 
         return context
 
-class WorkPackageCreateView(EPCreateView):
+
+class WorkPackageCreateView(
+    UserPassesTestMixin,
+    EPCreateView,
+):
     model = WorkPackage
     form_class = WorkPackageForm
     definition = WORK_PACKAGE_FORM_DEFINITION
     template_name = "edf/form/view.html"
+
+    def test_func(self):
+        return (
+            ProjectAuthorizationService
+            .get_administrable_projects(
+                self.request.user
+            )
+            .exists()
+        )
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -235,8 +302,8 @@ class WorkPackageCreateView(EPCreateView):
 
         if project_pk:
             project = (
-                ProjectAccessService
-                .get_accessible_projects(
+                ProjectAuthorizationService
+                .get_administrable_projects(
                     self.request.user
                 )
                 .filter(
@@ -260,6 +327,7 @@ class WorkPackageCreateView(EPCreateView):
         )
 
         return response
+
 
 class WorkPackageUpdateView(EPUpdateView):
     model = WorkPackage
@@ -291,6 +359,22 @@ class WorkPackageUpdateView(EPUpdateView):
                 "project",
                 "manager",
                 "status",
+            )
+        )
+
+    def can_edit_object(self) -> bool:
+        """
+        Indique si l'utilisateur peut administrer le lot courant.
+
+        Un utilisateur qui peut seulement consulter le projet ouvre
+        le lot en lecture seule.
+        """
+
+        return (
+            ProjectAuthorizationService
+            .can_administer_project(
+                user=self.request.user,
+                project=self.object.project,
             )
         )
 

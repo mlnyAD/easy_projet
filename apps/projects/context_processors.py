@@ -19,9 +19,33 @@ def current_project(request):
 
     Si le projet enregistré n'existe plus ou n'est plus accessible,
     la valeur de session est supprimée.
+
+    Certains rendus techniques du framework utilisent une requête
+    sans session ni utilisateur authentifié.
     """
 
-    project_id = request.session.get(
+    session = getattr(
+        request,
+        "session",
+        None,
+    )
+
+    user = getattr(
+        request,
+        "user",
+        None,
+    )
+
+    if (
+        session is None
+        or user is None
+        or not user.is_authenticated
+    ):
+        return {
+            "current_project": None,
+        }
+
+    project_id = session.get(
         CURRENT_PROJECT_SESSION_KEY
     )
 
@@ -30,16 +54,9 @@ def current_project(request):
             "current_project": None,
         }
 
-    if not request.user.is_authenticated:
-        return {
-            "current_project": None,
-        }
-
     project = (
         ProjectAccessService
-        .get_accessible_projects(
-            request.user
-        )
+        .get_accessible_projects(user)
         .filter(
             pk=project_id,
         )
@@ -52,7 +69,7 @@ def current_project(request):
     )
 
     if project is None:
-        request.session.pop(
+        session.pop(
             CURRENT_PROJECT_SESSION_KEY,
             None,
         )

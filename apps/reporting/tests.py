@@ -164,6 +164,13 @@ class ActivityReportLevel1AccessTests(TestCase):
             status=cls.project_status,
         )
 
+        cls.project_b_transverse = Project.objects.create(
+            company=cls.company_b,
+            reference="PRJ-REPORT-B2",
+            name="Projet Reporting B transverse",
+            status=cls.project_status,
+        )
+
         # --------------------------------------------------------------
         # Chefs de projet
         #
@@ -396,6 +403,13 @@ class ActivityReportLevel1AccessTests(TestCase):
             )
         )
 
+        cls.review_b_transverse = (
+            ActivityReportProjectReview.objects.create(
+                activity_report=cls.report,
+                project=cls.project_b_transverse,
+            )
+        )
+
     # ------------------------------------------------------------------
     # Détail Projet B
     # ------------------------------------------------------------------
@@ -560,6 +574,25 @@ class ActivityReportLevel1AccessTests(TestCase):
             404,
         )
 
+    def test_manager_b_cannot_access_transverse_review_by_uuid(self):
+        self.client.force_login(
+            self.manager_b
+        )
+
+        response = self.client.get(
+            reverse(
+                "reporting:review-detail",
+                kwargs={
+                    "pk": self.review_b_transverse.pk,
+                },
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+
     # ------------------------------------------------------------------
     # Liste des reviews
     # ------------------------------------------------------------------
@@ -596,5 +629,10 @@ class ActivityReportLevel1AccessTests(TestCase):
 
         self.assertNotIn(
             self.review_c.pk,
+            review_ids,
+        )
+
+        self.assertNotIn(
+            self.review_b_transverse.pk,
             review_ids,
         )

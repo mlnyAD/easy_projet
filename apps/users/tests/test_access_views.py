@@ -399,14 +399,25 @@ class UserAccessViewTests(TestCase):
             self.client_admin_a
         )
 
-        response = self.client.post(
-            reverse("users:create"),
-            data=self._form_data(
-                email="new.a@example.com",
-                company=self.company_a,
-            ),
+        data = self._form_data(
+            email="new.a@example.com",
+            company=self.company_a,
         )
 
+        data.update(
+            {
+                "client_environments-TOTAL_FORMS": "0",
+                "client_environments-INITIAL_FORMS": "0",
+                "client_environments-MIN_NUM_FORMS": "0",
+                "client_environments-MAX_NUM_FORMS": "1000",
+            }
+        )
+
+        response = self.client.post(
+            reverse("users:create"),
+            data=data,
+        )
+        
         self.assertEqual(
             response.status_code,
             302,
@@ -440,14 +451,25 @@ class UserAccessViewTests(TestCase):
             self.client_admin_a
         )
 
-        response = self.client.post(
-            reverse("users:create"),
-            data=self._form_data(
-                email="new.b@example.com",
-                company=self.company_b,
-            ),
+        data = self._form_data(
+            email="new.b@example.com",
+            company=self.company_b,
         )
 
+        data.update(
+            {
+                "client_environments-TOTAL_FORMS": "0",
+                "client_environments-INITIAL_FORMS": "0",
+                "client_environments-MIN_NUM_FORMS": "0",
+                "client_environments-MAX_NUM_FORMS": "1000",
+            }
+        )
+
+        response = self.client.post(
+            reverse("users:create"),
+            data=data,
+        )
+        
         self.assertEqual(
             response.status_code,
             302,
@@ -516,6 +538,35 @@ class UserAccessViewTests(TestCase):
             self.client_admin_a
         )
 
+        membership = (
+            ClientEnvironmentMembership.objects.get(
+                client_environment=self.environment_a,
+                user=self.target_a,
+            )
+        )
+
+        data = self._form_data(
+            email=self.target_a.email,
+            company=self.company_b,
+        )
+
+        data.update(
+            {
+                "client_environments-TOTAL_FORMS": "1",
+                "client_environments-INITIAL_FORMS": "1",
+                "client_environments-MIN_NUM_FORMS": "0",
+                "client_environments-MAX_NUM_FORMS": "1000",
+                "client_environments-0-id": str(
+                    membership.pk
+                ),
+                "client_environments-0-client_environment": str(
+                    self.environment_a.pk
+                ),
+                "client_environments-0-employment_type": "",
+                "client_environments-0-is_active": "on",
+            }
+        )
+
         response = self.client.post(
             reverse(
                 "users:update",
@@ -523,12 +574,9 @@ class UserAccessViewTests(TestCase):
                     "pk": self.target_a.pk,
                 },
             ),
-            data=self._form_data(
-                email=self.target_a.email,
-                company=self.company_b,
-            ),
+            data=data,
         )
-
+        
         self.assertEqual(
             response.status_code,
             302,
@@ -634,7 +682,9 @@ class UserAccessViewTests(TestCase):
     # USER SANS PROJET
     # ------------------------------------------------------------------
 
-    def test_standard_user_without_project_list_is_empty(self):
+    def test_standard_user_without_project_list_shows_own_environment(
+        self,
+    ):
         self.client.force_login(
             self.standard_user
         )
@@ -643,12 +693,18 @@ class UserAccessViewTests(TestCase):
             reverse("users:list")
         )
 
+      
         self.assertEqual(
             response.status_code,
             200,
         )
 
-        self.assertNotContains(
+        self.assertContains(
+            response,
+            self.standard_user.email,
+        )
+
+        self.assertContains(
             response,
             self.target_a.email,
         )
@@ -657,7 +713,6 @@ class UserAccessViewTests(TestCase):
             response,
             self.target_b.email,
         )
-
     def test_standard_user_create_is_forbidden(self):
         self.client.force_login(
             self.standard_user

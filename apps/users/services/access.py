@@ -2,51 +2,19 @@
 
 from __future__ import annotations
 
-from django.db.models import Q, QuerySet
+from django.db.models import QuerySet
 
 from apps.companies.models import Company
+from apps.core.models import (
+    ClientEnvironment,
+    ClientEnvironmentMembership,
+)
 from apps.users.models import User
 
 
 class UserAccessService:
     """
     Centralise les règles d'accès aux utilisateurs.
-
-    Trois notions sont distinguées :
-
-    - visibilité :
-      utilisateurs que l'acteur peut connaître
-      dans son périmètre ;
-
-    - administration du compte :
-      modification des données globales du compte ;
-
-    - participation projet :
-      gérée séparément par les mécanismes projet.
-
-    Règles de visibilité :
-    - administrateur système :
-      tous les utilisateurs ;
-    - administrateur client :
-      utilisateurs connus des environnements clients
-      qu'il administre ;
-    - utilisateur ayant accès à des projets :
-      utilisateurs connus des environnements clients
-      de ces projets ;
-    - utilisateur inactif :
-      aucun utilisateur.
-
-    Règles d'administration :
-    - administrateur système :
-      tous les comptes ;
-    - administrateur client :
-      comptes connus des environnements clients
-      qu'il administre ;
-    - autres utilisateurs :
-      aucune administration globale de compte.
-
-    La société de l'utilisateur représente son employeur.
-    Elle ne constitue pas un périmètre d'autorisation.
     """
 
     @classmethod
@@ -54,11 +22,6 @@ class UserAccessService:
         cls,
         user: User,
     ) -> QuerySet[User]:
-        """
-        Retourne les utilisateurs visibles
-        par l'utilisateur courant.
-        """
-
         if not user.is_active:
             return User.objects.none()
 
@@ -88,11 +51,6 @@ class UserAccessService:
         cls,
         user: User,
     ) -> QuerySet[User]:
-        """
-        Retourne les comptes dont les données globales
-        peuvent être administrées par l'utilisateur.
-        """
-
         if not user.is_active:
             return User.objects.none()
 
@@ -122,16 +80,6 @@ class UserAccessService:
         cls,
         user: User,
     ) -> QuerySet[Company]:
-        """
-        Retourne les sociétés pouvant être utilisées
-        comme employeur lors de l'administration
-        d'un compte.
-
-        Company constitue un annuaire global.
-        Un administrateur autorisé à créer un compte
-        peut donc sélectionner toute société active.
-        """
-
         if not cls.can_create_user(user):
             return Company.objects.none()
 
@@ -142,15 +90,146 @@ class UserAccessService:
         )
 
     @classmethod
+    def get_assignable_client_environments(
+        cls,
+        user: User,
+    ) -> QuerySet[ClientEnvironment]:
+        """
+        Retourne les environnements auxquels l'acteur
+        peut rattacher un utilisateur.
+        """
+
+        if not user.is_active:
+            return ClientEnvironment.objects.none()
+
+        if user.is_system_admin:
+            return (
+                ClientEnvironment.objects
+                .filter(
+                    is_active=True,
+                )
+                .select_related(
+                    "company",
+                )
+                .order_by(
+                    "company__name",
+                )
+            )
+
+        return (
+            ClientEnvironment.objects
+            .filter(
+                pk__in=(
+                    cls._get_administered_environment_ids(
+                        user
+                    )
+                ),
+                is_active=True,
+            )
+            .select_related(
+                "company",
+            )
+            .order_by(
+                "company__name",
+            )
+        )
+
+    @classmethod
+    def get_administrable_client_environment_memberships(
+        cls,
+        user: User,
+        target_user: User,
+    ) -> QuerySet[ClientEnvironmentMembership]:
+        """
+        Retourne les rattachements client du compte cible
+        pouvant être administrés par l'acteur.
+        """
+
+        queryset = (
+            ClientEnvironmentMembership.objects
+            .filter(
+                user=target_user,
+            )
+            .select_related(
+                "client_environment",
+                "client_environment__company",
+                "employment_type",
+                "user",
+            )
+            .order_by(
+                "client_environment__company__name",
+            )
+        )
+
+        if not user.is_active:
+            return queryset.none()
+
+        if user.is_system_admin:
+            return queryset
+
+        return queryset.filter(
+            client_environment_id__in=(
+                cls._get_administered_environment_ids(
+                    user
+                )
+            )
+        )
+
+    @classmethod
+    def can_create_client_environment_membership(
+        cls,
+        user: User,
+        target_user: User,
+    ) -> bool:
+        """
+        Indique si l'acteur peut créer un rattachement
+        client pour l'utilisateur cible.
+        """
+
+        if not user.is_active:
+            return False
+
+        if user.is_system_admin:
+            return True
+
+        return cls.can_update_user(
+            user,
+            target_user,
+        )
+
+    @classmethod
+    def can_update_client_environment_membership(
+        cls,
+        user: User,
+        membership: ClientEnvironmentMembership,
+    ) -> bool:
+        """
+        Indique si l'acteur peut modifier un rattachement
+        client existant.
+        """
+
+        if not user.is_active:
+            return False
+
+        if user.is_system_admin:
+            return True
+
+        return (
+            cls.get_administrable_client_environment_memberships(
+                user,
+                membership.user,
+            )
+            .filter(
+                pk=membership.pk,
+            )
+            .exists()
+        )
+
+    @classmethod
     def can_create_user(
         cls,
         user: User,
     ) -> bool:
-        """
-        Indique si l'utilisateur peut créer
-        un compte global.
-        """
-
         if not user.is_active:
             return False
 
@@ -168,11 +247,6 @@ class UserAccessService:
         user: User,
         target_user: User,
     ) -> bool:
-        """
-        Indique si l'utilisateur peut modifier
-        les données globales du compte cible.
-        """
-
         if not user.is_active:
             return False
 
@@ -191,11 +265,6 @@ class UserAccessService:
         user: User,
         target_user: User,
     ) -> bool:
-        """
-        Indique si l'utilisateur peut régénérer
-        le mot de passe provisoire du compte cible.
-        """
-
         return cls.can_update_user(
             user,
             target_user,
@@ -205,13 +274,6 @@ class UserAccessService:
     def _base_queryset(
         cls,
     ) -> QuerySet[User]:
-        """
-        QuerySet de base des utilisateurs.
-
-        Seules les relations appartenant réellement
-        au modèle User sont chargées ici.
-        """
-
         return (
             User.objects
             .select_related(
@@ -229,11 +291,6 @@ class UserAccessService:
         cls,
         user: User,
     ) -> QuerySet:
-        """
-        Retourne les identifiants des environnements
-        clients administrés par l'utilisateur.
-        """
-
         return (
             user.client_environment_memberships
             .filter(
@@ -253,17 +310,32 @@ class UserAccessService:
         user: User,
     ):
         """
-        Retourne les environnements dans lesquels
-        l'utilisateur peut connaître des contacts.
+        Retourne les environnements dans lesquels l'utilisateur
+        peut consulter les contacts.
 
         Le périmètre est constitué :
+        - des environnements auxquels il est directement rattaché ;
         - des environnements qu'il administre ;
-        - des environnements de ses participations
-          actives à des projets actifs.
+        - des environnements de ses participations actives
+          à des projets actifs.
         """
 
+        membership_environment_ids = (
+            user.client_environment_memberships
+            .filter(
+                is_active=True,
+                client_environment__is_active=True,
+            )
+            .values_list(
+                "client_environment_id",
+                flat=True,
+            )
+        )
+
         administered_environment_ids = (
-            cls._get_administered_environment_ids(user)
+            cls._get_administered_environment_ids(
+                user
+            )
         )
 
         project_environment_ids = (
@@ -280,6 +352,11 @@ class UserAccessService:
         )
 
         return (
-            administered_environment_ids
-            .union(project_environment_ids)
+            membership_environment_ids
+            .union(
+                administered_environment_ids,
+            )
+            .union(
+                project_environment_ids,
+            )
         )

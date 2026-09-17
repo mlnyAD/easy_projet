@@ -191,7 +191,12 @@ class User(
             self.email = self.email.strip().lower()
 
         self.last_name = self.last_name.strip()
-        self.first_name = self.first_name.strip()
+
+        self.first_name = (
+            self.normalize_first_name(
+                self.first_name
+            )
+        )
 
         initials = ""
 
@@ -204,3 +209,22 @@ class User(
         self.initials = initials
 
         super().save(*args, **kwargs)
+
+    @staticmethod
+    def normalize_first_name(value: str) -> str:
+        """
+        Normalise le prénom sans modifier les mots séparés
+        par un espace.
+
+        Exemples :
+        - didier -> Didier ;
+        - jean-pierre -> Jean-Pierre ;
+        - jean pierre -> Jean pierre.
+        """
+
+        normalized_value = value.strip().lower()
+
+        return "-".join(
+            part.capitalize()
+            for part in normalized_value.split("-")
+        )

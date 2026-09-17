@@ -1,38 +1,59 @@
 
 
-<a
-    href="{% url 'users:update' row.source_object.pk %}"
-    class="ep-list-row-action"
-    title="Modifier"
-    aria-label="Modifier"
->
-    <i
-        data-lucide="pen"
-        class="ep-list-row-action-icon"
-        aria-hidden="true"
-    ></i>
-</a>
+<div class="ep-list-row-actions">
 
-<form
-    method="post"
-    action="{% url 'users:temporary-password-resend' row.source_object.pk %}"
-    class="inline"
->
-    {% csrf_token %}
+    {% if can_manage_client_environments %}
 
-    <button
-        type="submit"
+        <a
+            href="{% url 'users:client-environment-membership-list' row.source_object.pk %}"
+            class="ep-list-row-action"
+            title="Gérer les accès client"
+            aria-label="Gérer les accès aux environnements clients"
+        >
+            <i
+                data-lucide="building-2"
+                class="ep-list-row-action-icon"
+                aria-hidden="true"
+            ></i>
+        </a>
+
+    {% endif %}
+
+    <a
+        href="{% url 'users:update' row.source_object.pk %}"
         class="ep-list-row-action"
-        title="Renvoyer un mot de passe provisoire"
-        aria-label="Renvoyer un mot de passe provisoire"
-        onclick="return confirm(
-            'Générer et envoyer un nouveau mot de passe provisoire à cet utilisateur ?'
-        );"
+        title="Modifier"
+        aria-label="Modifier"
     >
         <i
-            data-lucide="key-round"
+            data-lucide="pen"
             class="ep-list-row-action-icon"
             aria-hidden="true"
         ></i>
-    </button>
-</form>
+    </a>
+
+    <form
+        method="post"
+        action="{% url 'users:temporary-password-resend' row.source_object.pk %}"
+        class="inline"
+    >
+        {% csrf_token %}
+
+        <button
+            type="submit"
+            class="ep-list-row-action"
+            title="Renvoyer un mot de passe provisoire"
+            aria-label="Renvoyer un mot de passe provisoire"
+            onclick="return confirm(
+                'Générer et envoyer un nouveau mot de passe provisoire à cet utilisateur ?'
+            );"
+        >
+            <i
+                data-lucide="key-round"
+                class="ep-list-row-action-icon"
+                aria-hidden="true"
+            ></i>
+        </button>
+    </form>
+
+</div>

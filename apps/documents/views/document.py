@@ -21,11 +21,13 @@ from apps.documents.services import (
 )
 from apps.documents.views.mixins import (
     ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
 )
-        
+
+
 class DocumentRenameView(
     LoginRequiredMixin,
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -63,13 +65,11 @@ class DocumentRenameView(
                 title=title,
                 user=request.user,
             )
-
         except ValueError as exc:
             messages.error(
                 request,
                 str(exc),
             )
-
         else:
             messages.success(
                 request,
@@ -85,7 +85,7 @@ class DocumentRenameView(
 
 class DocumentMoveView(
     LoginRequiredMixin,
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -132,7 +132,6 @@ class DocumentMoveView(
                 destination=destination,
                 user=request.user,
             )
-
         except ValueError as exc:
             messages.error(
                 request,
@@ -159,7 +158,7 @@ class DocumentMoveView(
 
 class DocumentCopyView(
     LoginRequiredMixin,
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -216,7 +215,6 @@ class DocumentCopyView(
                     user=request.user,
                 )
             )
-
         except ValueError as exc:
             messages.error(
                 request,
@@ -336,7 +334,7 @@ class DocumentFavoriteRemoveView(
 
 class DocumentDeleteView(
     LoginRequiredMixin,
-    ProjectDocumentAccessMixin,
+    ProjectDocumentWorkMixin,
     View,
 ):
     """
@@ -353,7 +351,7 @@ class DocumentDeleteView(
         project = self.get_project(
             project_id=project_id,
         )
-        
+
         document = get_object_or_404(
             Document.objects.select_related(
                 "folder",
@@ -369,7 +367,6 @@ class DocumentDeleteView(
             DocumentService().delete_document(
                 document=document,
             )
-
         except Exception:
             messages.error(
                 request,

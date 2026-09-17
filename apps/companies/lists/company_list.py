@@ -27,7 +27,10 @@ COMPANY_LIST_DEFINITION = ListDefinition(
             order=10,
         ),
         ColumnDefinition(
-            field=_ENTITY_DEFINITION.get_field("siret"),
+            field=_ENTITY_DEFINITION.get_field(
+                "siret_display"
+            ),
+            sortable=False,
             order=20,
         ),
         ColumnDefinition(

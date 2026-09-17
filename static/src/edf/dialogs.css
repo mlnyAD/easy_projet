@@ -19,7 +19,7 @@
     align-items: center;
     justify-content: center;
 
-    background-color: rgb(0 0 0 / 0.30);
+    background-color: color-mix(in srgb, var(--color-axcio-black) 30%, transparent);
     padding: 1rem;
 }
 
@@ -43,8 +43,8 @@
     padding: 1.5rem;
 
     box-shadow:
-        0 20px 25px -5px rgb(0 0 0 / 0.10),
-        0 8px 10px -6px rgb(0 0 0 / 0.10);
+        0 20px 25px -5px color-mix(in srgb, var(--color-axcio-black) 10%, transparent),
+        0 8px 10px -6px color-mix(in srgb, var(--color-axcio-black) 10%, transparent);
 }
 
 .dark .ep-dialog {
@@ -127,7 +127,7 @@
 
 .ep-dialog-close:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-axcio-light) 20%, transparent);
 }
 
 .dark .ep-dialog-close {

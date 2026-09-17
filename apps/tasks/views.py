@@ -3,6 +3,7 @@
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db import transaction
 from django.shortcuts import (
     get_object_or_404,
@@ -15,7 +16,14 @@ from django.utils.http import (
 from django.views.generic import ListView
 
 from apps.projects.models import ProjectMembership
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
+)
 from apps.work.models import WorkPackage
+from framework.form import FormMode
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
 )
@@ -27,9 +35,7 @@ from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import (
     ListViewModelBuilder,
 )
-from apps.projects.services.access import (
-    ProjectAccessService,
-)
+
 from .form_definition import TASK_FORM_DEFINITION
 from .forms import (
     TaskAssignmentFormSet,
@@ -48,19 +54,19 @@ def build_task_assignment_context(
     Prépare les données nécessaires à la sélection dynamique
     des personnes affectables à une tâche.
 
-    Seuls les projets accessibles à l'utilisateur courant
+    Seuls les projets sur lesquels l'utilisateur peut travailler
     sont exposés au navigateur.
     """
 
-    accessible_projects = (
-        ProjectAccessService
-        .get_accessible_projects(user)
+    workable_projects = (
+        ProjectAuthorizationService
+        .get_workable_projects(user)
     )
 
     memberships = (
         ProjectMembership.objects
         .filter(
-            project__in=accessible_projects,
+            project__in=workable_projects,
             is_active=True,
             user__is_active=True,
             project__is_active=True,
@@ -84,12 +90,8 @@ def build_task_assignment_context(
             "project_id": str(
                 membership.project.pk
             ),
-            "last_name": (
-                membership.user.last_name
-            ),
-            "first_name": (
-                membership.user.first_name
-            ),
+            "last_name": membership.user.last_name,
+            "first_name": membership.user.first_name,
             "email": membership.user.email,
             "company": str(
                 membership.user.company
@@ -113,7 +115,7 @@ def build_task_assignment_context(
         for work_package in (
             WorkPackage.objects
             .filter(
-                project__in=accessible_projects,
+                project__in=workable_projects,
                 is_active=True,
             )
             .select_related("project")
@@ -126,6 +128,7 @@ def build_task_assignment_context(
             work_packages_data
         ),
     }
+
 
 class TaskListView(
     EPListPaginationMixin,
@@ -166,7 +169,7 @@ class TaskListView(
                 "name",
             )
         )
-        
+
     def get_context_data(
         self,
         **kwargs,
@@ -177,15 +180,44 @@ class TaskListView(
 
         django_page = context["page_obj"]
 
+        page_tasks = tuple(
+            django_page.object_list
+        )
+
+        workable_projects = (
+            ProjectAuthorizationService
+            .get_workable_projects(
+                self.request.user
+            )
+        )
+
+        workable_project_ids = set(
+            workable_projects
+            .filter(
+                pk__in={
+                    task.work_package.project_id
+                    for task in page_tasks
+                }
+            )
+            .values_list(
+                "pk",
+                flat=True,
+            )
+        )
+
+        for task in page_tasks:
+            task.can_work = (
+                task.work_package.project_id
+                in workable_project_ids
+            )
+
         runtime = EPList(
             definition=TASK_LIST_DEFINITION,
-            rows=django_page.object_list,
+            rows=page_tasks,
         )
 
         framework_page = ListPage(
-            rows=tuple(
-                django_page.object_list
-            ),
+            rows=page_tasks,
             page=django_page.number,
             page_size=(
                 django_page.paginator.per_page
@@ -226,18 +258,24 @@ class TaskListView(
         context["page_subtitle"] = None
         context["page_back_url"] = None
         context["page_back_label"] = None
+        context["return_url"] = self.request.get_full_path()
 
-        context["page_action_label"] = (
-            "Nouvelle tâche"
-        )
-        context["page_action_icon"] = "plus"
+        if workable_projects.exists():
+            context["page_action_label"] = (
+                "Nouvelle tâche"
+            )
+            context["page_action_icon"] = "plus"
 
-        context["page_action_url"] = (
-            f"{reverse('tasks:create')}?"
-            f"{urlencode({
-                'next': self.request.get_full_path(),
-            })}"
-        )
+            context["page_action_url"] = (
+                f"{reverse('tasks:create')}?"
+                f"{urlencode({
+                    'next': self.request.get_full_path(),
+                })}"
+            )
+        else:
+            context["page_action_label"] = None
+            context["page_action_icon"] = None
+            context["page_action_url"] = None
 
         return context
 
@@ -317,19 +355,25 @@ class TaskListByWorkPackageView(
             },
         )
 
+        can_work_on_project = (
+            ProjectAuthorizationService
+            .can_work_on_project(
+                user=self.request.user,
+                project=project,
+            )
+        )
+
         context["work_package"] = (
             work_package
         )
         context["project"] = project
         context["current_project"] = project
-        context[
-            "is_work_package_context"
-        ] = True
-
-        context["return_url"] = (
-            current_list_url
+        context["is_work_package_context"] = True
+        context["can_work_on_project"] = (
+            can_work_on_project
         )
 
+        context["return_url"] = current_list_url
         context["parent_return_url"] = (
             parent_return_url
         )
@@ -351,18 +395,23 @@ class TaskListByWorkPackageView(
             "Retour aux lots"
         )
 
-        context["page_action_label"] = (
-            "Nouvelle tâche"
-        )
-        context["page_action_icon"] = "plus"
+        if can_work_on_project:
+            context["page_action_label"] = (
+                "Nouvelle tâche"
+            )
+            context["page_action_icon"] = "plus"
 
-        context["page_action_url"] = (
-            f"{reverse('tasks:create')}?"
-            f"{urlencode({
-                'work_package': work_package.pk,
-                'next': current_list_url,
-            })}"
-        )
+            context["page_action_url"] = (
+                f"{reverse('tasks:create')}?"
+                f"{urlencode({
+                    'work_package': work_package.pk,
+                    'next': current_list_url,
+                })}"
+            )
+        else:
+            context["page_action_label"] = None
+            context["page_action_icon"] = None
+            context["page_action_url"] = None
 
         return context
 
@@ -532,15 +581,16 @@ class TaskFormCollectionsMixin:
 
         context["current_project"] = project
 
-        context.update(
-            build_task_assignment_context(
-                user=self.request.user,
+        if self.get_form_mode() is not FormMode.READONLY:
+            context.update(
+                build_task_assignment_context(
+                    user=self.request.user,
+                )
             )
-        )
 
-        context["form_extra_template"] = (
-            "tasks/task_form_script.html"
-        )
+            context["form_extra_template"] = (
+                "tasks/task_form_script.html"
+            )
 
         return context
 
@@ -615,6 +665,7 @@ class TaskFormCollectionsMixin:
 
 
 class TaskCreateView(
+    UserPassesTestMixin,
     TaskFormCollectionsMixin,
     EPCreateView,
 ):
@@ -627,6 +678,15 @@ class TaskCreateView(
         "La tâche a été créée avec succès."
     )
 
+    def test_func(self):
+        return (
+            ProjectAuthorizationService
+            .get_workable_projects(
+                self.request.user
+            )
+            .exists()
+        )
+
     def get_initial(self):
         initial = super().get_initial()
 
@@ -637,9 +697,9 @@ class TaskCreateView(
         )
 
         if work_package_pk:
-            accessible_projects = (
-                ProjectAccessService
-                .get_accessible_projects(
+            workable_projects = (
+                ProjectAuthorizationService
+                .get_workable_projects(
                     self.request.user
                 )
             )
@@ -648,7 +708,7 @@ class TaskCreateView(
                 WorkPackage.objects
                 .filter(
                     pk=work_package_pk,
-                    project__in=accessible_projects,
+                    project__in=workable_projects,
                     is_active=True,
                 )
                 .select_related(
@@ -701,9 +761,9 @@ class TaskCreateView(
         if not work_package_pk:
             return None
 
-        accessible_projects = (
-            ProjectAccessService
-            .get_accessible_projects(
+        workable_projects = (
+            ProjectAuthorizationService
+            .get_workable_projects(
                 self.request.user
             )
         )
@@ -712,7 +772,7 @@ class TaskCreateView(
             WorkPackage.objects
             .filter(
                 pk=work_package_pk,
-                project__in=accessible_projects,
+                project__in=workable_projects,
                 is_active=True,
             )
             .select_related(
@@ -720,7 +780,7 @@ class TaskCreateView(
             )
             .first()
         )
-        
+
         if work_package is None:
             return None
 
@@ -816,4 +876,24 @@ class TaskUpdateView(
             self.object
             .work_package
             .project
+        )
+
+    def can_edit_object(self) -> bool:
+        """
+        Indique si l'utilisateur peut modifier la tâche courante.
+
+        L'utilisateur qui peut seulement consulter le projet ouvre
+        la tâche en lecture seule.
+        """
+
+        return (
+            ProjectAuthorizationService
+            .can_work_on_project(
+                user=self.request.user,
+                project=(
+                    self.object
+                    .work_package
+                    .project
+                ),
+            )
         )

@@ -366,6 +366,12 @@ class ProjectViewTests(TestCase):
             200,
         )
 
+        self.assertFalse(
+            response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
     def test_update_page_uses_generic_edf_form_template(self):
         response = self.client.get(
             self.get_update_url()

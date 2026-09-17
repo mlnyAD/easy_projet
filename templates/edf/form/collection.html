@@ -11,7 +11,9 @@
 
         {% include "edf/form/collection_header.html" %}
 
-        {{ collection.management_form }}
+        {% if not form_view.is_readonly %}
+            {{ collection.management_form }}
+        {% endif %}
 
         {% if collection.non_form_errors %}
             <div
@@ -40,7 +42,7 @@
                             {% endif %}
                         {% endfor %}
 
-                        {% if collection.allow_delete %}
+                        {% if collection.allow_delete and not form_view.is_readonly %}
                             <th
                                 scope="col"
                                 class="ep-form-collection-action-heading"
@@ -69,7 +71,7 @@
 
         </div>
 
-        {% if collection.allow_add %}
+        {% if collection.allow_add and not form_view.is_readonly %}
 
             {% include "edf/form/collection_empty_row.html" %}
 

@@ -246,13 +246,17 @@ ONLYOFFICE_JWT_SECRET = os.environ.get(
     default="",
 )
 
-
 # ***********************************
 # Email
 # ***********************************
 
-EMAIL_BACKEND = (
-    "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    (
+        "django.core.mail.backends.console.EmailBackend"
+        if DEBUG
+        else "django.core.mail.backends.smtp.EmailBackend"
+    ),
 )
 
 EMAIL_HOST = os.getenv(
@@ -325,3 +329,10 @@ SYSTEM_ADMIN_EMAIL = os.getenv(
     "EASY_PROJET_SYSTEM_ADMIN_EMAIL",
     "",
 ).strip().lower()
+
+
+# ***********************************
+# Durée de session
+# ***********************************
+SESSION_COOKIE_AGE = 60 * 60
+SESSION_SAVE_EVERY_REQUEST = True

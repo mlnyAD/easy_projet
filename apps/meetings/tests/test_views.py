@@ -50,6 +50,13 @@ class MeetingViewTests(TestCase):
             sort_order=10,
         )
 
+        cls.read_only_access = CatalogValue.objects.create(
+            catalog_type=cls.access_level_type,
+            code="READ_ONLY",
+            label="Lecture seule",
+            sort_order=20,
+        )
+
         cls.user = User.objects.create(
             company=cls.company,
             email="meeting-view@example.com",
@@ -62,6 +69,13 @@ class MeetingViewTests(TestCase):
             email="meeting-participant@example.com",
             first_name="Paul",
             last_name="Participant",
+        )
+
+        cls.read_only_user = User.objects.create(
+            company=cls.company,
+            email="meeting-read-only@example.com",
+            first_name="Luc",
+            last_name="Lecture seule",
         )
 
         ClientEnvironmentMembership.objects.create(
@@ -128,6 +142,13 @@ class MeetingViewTests(TestCase):
                 role=cls.project_role,
                 access_level=cls.access_level,
             )
+        )
+
+        ProjectMembership.objects.create(
+            project=cls.project,
+            user=cls.read_only_user,
+            role=cls.project_role,
+            access_level=cls.read_only_access,
         )
             
         cls.meeting = Meeting.objects.create(
@@ -345,6 +366,12 @@ class MeetingViewTests(TestCase):
             200,
         )
 
+        self.assertFalse(
+            response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
     def test_update_page_uses_generic_edf_form_template(self):
         response = self.client.get(
             self.get_update_url()
@@ -397,6 +424,71 @@ class MeetingViewTests(TestCase):
             .django_form
             .instance,
             self.external_participant,
+        )
+
+    def test_read_only_user_can_view_but_cannot_modify_meeting(self):
+        self.client.force_login(
+            self.read_only_user
+        )
+
+        list_response = self.client.get(
+            reverse(
+                "meetings:list-by-project",
+                kwargs={
+                    "project_pk": self.project.pk,
+                },
+            )
+        )
+
+        create_response = self.client.get(
+            reverse("meetings:create")
+        )
+
+        update_response = self.client.get(
+            self.get_update_url()
+        )
+
+        self.assertEqual(
+            list_response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            list_response,
+            self.get_update_url(),
+        )
+
+        self.assertEqual(
+            create_response.status_code,
+            403,
+        )
+
+        self.assertEqual(
+            update_response.status_code,
+            200,
+        )
+
+        self.assertTrue(
+            update_response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
+        post_response = self.client.post(
+            self.get_update_url(),
+            data={},
+        )
+
+        self.assertEqual(
+            post_response.status_code,
+            403,
+        )
+
+        self.meeting.refresh_from_db()
+
+        self.assertEqual(
+            self.meeting.subject,
+            "Réunion de test",
         )
 
     # ------------------------------------------------------------------

@@ -41,6 +41,16 @@ COMPANY_DICTIONARY = {
             "required": False,
             "max_length": COMPANY_SIRET_LENGTH,
         },
+        
+        "siret_display": {
+            "label": "SIRET",
+            "data_type": "string",
+            "required": False,
+            "generated": True,
+            "max_length": (
+                COMPANY_SIRET_LENGTH + 3
+            ),
+        },
 
         "vat_number": {
             "label": "Numéro de TVA intracommunautaire",

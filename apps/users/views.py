@@ -23,7 +23,9 @@ from framework.integrations.django.views import (
 )
 from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
-
+from .client_environment_membership_form import (
+    ClientEnvironmentMembershipFormSet,
+)
 from .account_form_definition import (
     ACCOUNT_FORM_DEFINITION,
 )
@@ -99,11 +101,113 @@ class UserListView(
         context["row_actions_template"] = (
             "users/user_actions.html"
         )
+        context["can_manage_client_environments"] = (
+            UserAccessService.can_create_user(
+                self.request.user
+            )
+        )
 
         return context
 
 
-class UserCreateView(EPCreateView):
+class UserFormCollectionsMixin:
+    """
+    Gère la collection des rattachements aux environnements
+    clients associée au formulaire Utilisateur.
+    """
+
+    success_message = None
+
+    def get_client_environment_membership_formset(
+        self,
+        *,
+        data=None,
+    ):
+        return ClientEnvironmentMembershipFormSet(
+            data=data,
+            instance=self.object,
+            prefix="client_environments",
+            actor=self.request.user,
+        )
+
+    def get_formsets(
+        self,
+        *,
+        django_form,
+        context,
+    ) -> dict:
+        formset = context.get(
+            "client_environment_membership_formset"
+        )
+
+        if formset is None:
+            formset = (
+                self.get_client_environment_membership_formset(
+                    data=(
+                        self.request.POST
+                        if self.request.method == "POST"
+                        else None
+                    ),
+                )
+            )
+
+            context[
+                "client_environment_membership_formset"
+            ] = formset
+
+        return {
+            "client_environments": formset,
+        }
+
+    def after_user_and_formsets_saved(self) -> None:
+        """
+        Point d'extension exécuté dans la transaction après
+        l'enregistrement de l'utilisateur et des rattachements.
+        """
+
+    def form_valid(
+        self,
+        form,
+    ):
+        formset = (
+            self.get_client_environment_membership_formset(
+                data=self.request.POST,
+            )
+        )
+
+        if not formset.is_valid():
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form,
+                    client_environment_membership_formset=(
+                        formset
+                    ),
+                )
+            )
+
+        with transaction.atomic():
+            self.object = form.save()
+
+            formset.instance = self.object
+            formset.save()
+
+            self.after_user_and_formsets_saved()
+
+        if self.success_message:
+            messages.success(
+                self.request,
+                self.success_message,
+            )
+
+        return redirect(
+            self.get_success_url()
+        )
+        
+
+class UserCreateView(
+    UserFormCollectionsMixin,
+    EPCreateView,
+):
     model = User
     form_class = UserForm
     definition = USER_FORM_DEFINITION
@@ -111,6 +215,12 @@ class UserCreateView(EPCreateView):
 
     success_url = reverse_lazy("users:list")
     cancel_url = reverse_lazy("users:list")
+
+    success_message = (
+        "L'utilisateur a été créé avec succès. "
+        "Son mot de passe provisoire lui a été "
+        "envoyé par e-mail."
+    )
 
     def dispatch(
         self,
@@ -131,30 +241,26 @@ class UserCreateView(EPCreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+
         kwargs["user"] = self.request.user
+
         return kwargs
 
-    @transaction.atomic
-    def form_valid(self, form):
-        response = super().form_valid(form)
-
+    def after_user_and_formsets_saved(self) -> None:
+        """
+        L'envoi intervient dans la transaction. Une erreur
+        d'envoi annule donc aussi la création de l'utilisateur
+        et de ses rattachements.
+        """
         TemporaryPasswordService.reset_and_send(
             user=self.object,
         )
 
-        messages.success(
-            self.request,
-            (
-                "L'utilisateur a été créé avec succès. "
-                "Son mot de passe provisoire lui a été "
-                "envoyé par e-mail."
-            ),
-        )
 
-        return response
-
-
-class UserUpdateView(EPUpdateView):
+class UserUpdateView(
+    UserFormCollectionsMixin,
+    EPUpdateView,
+):
     model = User
     form_class = UserForm
     definition = USER_FORM_DEFINITION
@@ -162,6 +268,10 @@ class UserUpdateView(EPUpdateView):
 
     success_url = reverse_lazy("users:list")
     cancel_url = reverse_lazy("users:list")
+
+    success_message = (
+        "L'utilisateur a été modifié avec succès."
+    )
 
     def get_queryset(self):
         return UserAccessService.get_accessible_users(
@@ -181,19 +291,11 @@ class UserUpdateView(EPUpdateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+
         kwargs["user"] = self.request.user
+
         return kwargs
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-
-        messages.success(
-            self.request,
-            "L'utilisateur a été modifié avec succès.",
-        )
-
-        return response
-
+    
 
 class UserTemporaryPasswordResendView(View):
     """

@@ -14,6 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
         "document-content"
     );
 
+    const canWorkOnProject =
+        documentContent.dataset
+            .canWorkOnProject
+        === "true";
+
     const dialog = document.getElementById(
         "folder-dialog"
     );
@@ -232,11 +237,15 @@ document.addEventListener("DOMContentLoaded", () => {
             )}px`;
     }
 
-
     function showFolderMenu(
         event,
         element
     ) {
+
+        if (!canWorkOnProject) {
+            return;
+        }
+
         event.preventDefault();
 
         hideMenus();
@@ -1139,34 +1148,39 @@ document.addEventListener("DOMContentLoaded", () => {
     // Nouveau répertoire de niveau 1
     // -----------------------------------------------------------------
 
-    rootCreateFolder.addEventListener(
-        "click",
-        () => {
+    if (rootCreateFolder) {
 
-            hideMenus();
+        rootCreateFolder.addEventListener(
+            "click",
+            () => {
 
-            dialogTitle.textContent =
-                "Nouveau répertoire";
+                hideMenus();
 
-            dialogForm.action =
-                documentContent.dataset
-                    .folderCreateUrl;
+                dialogTitle.textContent =
+                    "Nouveau répertoire";
 
-            /*
-            * parent_id vide = dossier racine
-            * du projet.
-            */
-            parentInput.value = "";
+                dialogForm.action =
+                    documentContent.dataset
+                        .folderCreateUrl;
 
-            nameInput.value = "";
+                /*
+                 * parent_id vide = dossier racine
+                 * du projet.
+                 */
+                parentInput.value = "";
 
-            dialog.showModal();
+                nameInput.value = "";
 
-            nameInput.focus();
-        }
-    );
+                dialog.showModal();
+
+                nameInput.focus();
+            }
+        );
+    }
 
     // -----------------------------------------------------------------
+    // Nouveau répertoire depuis la zone documentaire
+    // -----------------------------------------------------------------    // -----------------------------------------------------------------
     // Nouveau répertoire depuis la zone documentaire
     // -----------------------------------------------------------------
 

@@ -15,6 +15,10 @@ from apps.projects.models import Project
 from apps.projects.services.access import (
     ProjectAccessService,
 )
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
+)
+
 
 class DocumentExplorerView(
     LoginRequiredMixin,
@@ -22,10 +26,6 @@ class DocumentExplorerView(
 ):
     """
     Explorateur documentaire d'un projet.
-
-    Le dossier courant est facultatif :
-    - sans folder_id : racine documentaire du projet ;
-    - avec folder_id : contenu du dossier sélectionné.
     """
 
     template_name = (
@@ -43,7 +43,7 @@ class DocumentExplorerView(
             ),
             pk=self.kwargs["project_id"],
         )
-        
+
     def get_current_folder(
         self,
         project: Project,
@@ -74,10 +74,8 @@ class DocumentExplorerView(
 
         project = self.get_project()
 
-        current_folder = (
-            self.get_current_folder(
-                project
-            )
+        current_folder = self.get_current_folder(
+            project
         )
 
         destination_folders = (
@@ -93,10 +91,6 @@ class DocumentExplorerView(
                 "name",
             )
         )
-
-        # --------------------------------------------------------------
-        # Racines visibles dans l'arbre gauche
-        # --------------------------------------------------------------
 
         root_folders = (
             DocumentFolder.objects
@@ -124,16 +118,11 @@ class DocumentExplorerView(
             )
             current = current.parent
 
-        # --------------------------------------------------------------
-        # Contenu du panneau droit
-        # --------------------------------------------------------------
-
         favorite_document_ids = set()
 
         if current_folder is None:
             child_folders = root_folders
             documents = Document.objects.none()
-
         else:
             child_folders = (
                 DocumentFolder.objects
@@ -161,7 +150,7 @@ class DocumentExplorerView(
                     "current_version",
                 )
                 .order_by(
-                    "title"
+                    "title",
                 )
             )
 
@@ -184,10 +173,8 @@ class DocumentExplorerView(
                 "root_folders": root_folders,
                 "child_folders": child_folders,
                 "documents": documents,
-                "breadcrumbs": (
-                    self.build_breadcrumbs(
-                        current_folder
-                    )
+                "breadcrumbs": self.build_breadcrumbs(
+                    current_folder
                 ),
                 "open_folder_ids": open_folder_ids,
                 "destination_folders": (
@@ -196,6 +183,13 @@ class DocumentExplorerView(
                 "favorite_document_ids": (
                     favorite_document_ids
                 ),
+                "can_work_on_project": (
+                    ProjectAuthorizationService
+                    .can_work_on_project(
+                        user=self.request.user,
+                        project=project,
+                    ),
+                )
             }
         )
 

@@ -199,7 +199,7 @@
 
 .ep-topbar-icon-button:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-axcio-light) 20%, transparent);
 }
 
 .dark .ep-topbar-icon-button {
@@ -289,7 +289,7 @@
 .ep-topbar-search-input:focus {
     outline: none;
     border-color: var(--color-axcio-dark);
-    box-shadow: 0 0 0 2px rgb(13 82 98 / 0.20);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-axcio-dark) 20%, transparent);
 }
 
 .dark .ep-topbar-search-input {
@@ -304,7 +304,7 @@
 
 .dark .ep-topbar-search-input:focus {
     border-color: var(--color-axcio-light);
-    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-axcio-light) 20%, transparent);
 }
 
 
@@ -471,7 +471,7 @@
     background-color: var(--color-axcio-danger);
     padding: 0 0.25rem;
 
-    color: #ffffff;
+    color: var(--color-axcio-text-inverse);
     font-size: 0.75rem;
     line-height: 1rem;
     font-weight: 600;
@@ -515,8 +515,8 @@
     padding: 0.25rem 0;
 
     box-shadow:
-        0 10px 15px -3px rgb(0 0 0 / 0.10),
-        0 4px 6px -4px rgb(0 0 0 / 0.10);
+        0 10px 15px -3px color-mix(in srgb, var(--color-axcio-black) 10%, transparent),
+        0 4px 6px -4px color-mix(in srgb, var(--color-axcio-black) 10%, transparent);
 }
 
 .dark .ep-topbar-dropdown {
@@ -679,7 +679,7 @@
 
 .ep-footer-support:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgb(36 138 141 / 0.20);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-axcio-light) 20%, transparent);
 }
 
 .ep-footer-support:disabled {

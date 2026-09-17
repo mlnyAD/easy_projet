@@ -50,8 +50,8 @@
 
     opacity: 0;
     box-shadow:
-        0 10px 15px -3px rgb(0 0 0 / 0.1),
-        0 4px 6px -4px rgb(0 0 0 / 0.1);
+        0 10px 15px -3px color-mix(in srgb, var(--color-axcio-black) 10%, transparent),
+        0 4px 6px -4px color-mix(in srgb, var(--color-axcio-black) 10%, transparent);
 
     transition:
         opacity 200ms ease-out,
@@ -202,7 +202,7 @@
 }
 
 .ep-toast-close:hover {
-    background-color: rgb(0 0 0 / 0.05);
+    background-color: color-mix(in srgb, var(--color-axcio-black) 5%, transparent);
     color: var(--color-axcio-text);
 }
 
@@ -216,7 +216,7 @@
 }
 
 .dark .ep-toast-close:hover {
-    background-color: rgb(255 255 255 / 0.1);
+    background-color: color-mix(in srgb, var(--color-axcio-text-inverse) 10%, transparent);
     color: var(--color-axcio-text-dark);
 }
 

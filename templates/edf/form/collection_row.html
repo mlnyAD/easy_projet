@@ -7,16 +7,23 @@
     data-ep-form-row
 >
 
-    {% for hidden_field in row.django_form.hidden_fields %}
-        {{ hidden_field }}
-    {% endfor %}
-
+    {% if not form_view.is_readonly %}
+        {% for hidden_field in row.django_form.hidden_fields %}
+            {{ hidden_field }}
+        {% endfor %}
+    {% endif %}
 
     {% for cell in row.cells %}
 
         <td class="ep-form-collection-cell">
 
-            {% if cell.bound_field %}
+            {% if form_view.is_readonly %}
+
+                <span class="ep-form-collection-value">
+                    {{ cell.display_value|default_if_none:"" }}
+                </span>
+
+            {% elif cell.bound_field %}
 
                 {% render_ep_collection_field cell.bound_field %}
 
@@ -32,8 +39,7 @@
 
     {% endfor %}
 
-
-    {% if collection.allow_delete %}
+    {% if collection.allow_delete and not form_view.is_readonly %}
 
         <td class="ep-form-collection-action-cell">
 

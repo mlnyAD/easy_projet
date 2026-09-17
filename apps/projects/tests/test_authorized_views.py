@@ -301,6 +301,132 @@ class ProjectAuthorizedViewTests(TestCase):
 
         self.client.logout()
 
+    def assert_project_update_read_only(
+        self,
+        *,
+        user,
+        project,
+    ):
+        """
+        Vérifie l'ouverture en lecture seule d'un projet visible.
+
+        La photo reste une opération d'administration et demeure
+        inaccessible à l'utilisateur non administrateur.
+        """
+
+        self.client.force_login(user)
+
+        update_response = self.client.get(
+            self.get_update_url(project)
+        )
+
+        self.assertEqual(
+            update_response.status_code,
+            200,
+        )
+
+        self.assertTrue(
+            update_response.context[
+                "form_view"
+            ].is_readonly,
+        )
+
+        update_post_response = self.client.post(
+            self.get_update_url(project),
+            data={},
+        )
+
+        self.assertEqual(
+            update_post_response.status_code,
+            403,
+        )
+
+        photo_response = self.client.get(
+            self.get_photo_url(project)
+        )
+
+        self.assertEqual(
+            photo_response.status_code,
+            404,
+        )
+
+        self.client.logout()
+
+    def get_create_url(self):
+        return reverse("projects:create")
+
+    def get_creation_company_queryset(self, user):
+        self.client.force_login(user)
+
+        response = self.client.get(
+            self.get_create_url()
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        queryset = (
+            response.context["form"]
+            .fields["company"]
+            .queryset
+        )
+
+        self.client.logout()
+
+        return queryset
+
+    def build_creation_data(
+        self,
+        *,
+        company,
+        reference,
+    ):
+        return {
+            "reference": reference,
+            "name": f"Projet {reference}",
+            "description": "",
+            "company": str(company.pk),
+            "status": str(self.project_status.pk),
+            "is_active": "on",
+            "owner_company": "",
+            "designer_company": "",
+            "project_type": "",
+            "contract_reference": "",
+            "comments": "",
+            "address_1": "",
+            "address_2": "",
+            "address_3": "",
+            "postal_code": "",
+            "city": "",
+            "country": "",
+            "planned_workload_hours": "0",
+            "initial_start_date": "",
+            "initial_end_date": "",
+            "start_date": "",
+            "end_date": "",
+            "initial_receipt_date": "",
+            "receipt_date": "",
+            "initial_delivery_date": "",
+            "delivery_date": "",
+            "amount_quote_ht": "0.00",
+            "amount_quote_ttc": "0.00",
+            "amount_order_ht": "0.00",
+            "amount_order_ttc": "0.00",
+            "currency": "EUR",
+            "budget_comments": "",
+
+            "memberships-TOTAL_FORMS": "0",
+            "memberships-INITIAL_FORMS": "0",
+            "memberships-MIN_NUM_FORMS": "0",
+            "memberships-MAX_NUM_FORMS": "1000",
+
+            "external_participants-TOTAL_FORMS": "0",
+            "external_participants-INITIAL_FORMS": "0",
+            "external_participants-MIN_NUM_FORMS": "0",
+            "external_participants-MAX_NUM_FORMS": "1000",
+        }
     # ------------------------------------------------------------------
     # Utilisateurs autorisés
     # ------------------------------------------------------------------
@@ -348,25 +474,22 @@ class ProjectAuthorizedViewTests(TestCase):
             expected_status=404,
         )
 
-    def test_project_manager_cannot_administer_transverse_project(self):
-        self.assert_view_status(
+    def test_project_manager_opens_transverse_project_read_only(self):
+        self.assert_project_update_read_only(
             user=self.responsible_project_manager,
             project=self.project_a2,
-            expected_status=404,
         )
 
-    def test_standard_member_cannot_access_administration_views(self):
-        self.assert_view_status(
+    def test_standard_member_opens_project_read_only(self):
+        self.assert_project_update_read_only(
             user=self.standard_user,
             project=self.project_a1,
-            expected_status=404,
         )
 
-    def test_read_only_member_cannot_access_administration_views(self):
-        self.assert_view_status(
+    def test_read_only_member_opens_project_read_only(self):
+        self.assert_project_update_read_only(
             user=self.read_only_user,
             project=self.project_a1,
-            expected_status=404,
         )
 
     def test_outsider_cannot_access_administration_views(self):
@@ -374,4 +497,185 @@ class ProjectAuthorizedViewTests(TestCase):
             user=self.outsider,
             project=self.project_a1,
             expected_status=404,
+        )
+        
+    # ------------------------------------------------------------------
+    # Création d'un projet
+    # ------------------------------------------------------------------
+
+    def test_system_admin_sees_all_creation_companies(self):
+        queryset = self.get_creation_company_queryset(
+            self.system_admin
+        )
+
+        self.assertQuerySetEqual(
+            queryset,
+            (
+                self.company_a,
+                self.company_b,
+            ),
+            ordered=False,
+        )
+
+    def test_client_admin_sees_administered_company_only(self):
+        queryset = self.get_creation_company_queryset(
+            self.client_admin
+        )
+
+        self.assertQuerySetEqual(
+            queryset,
+            (
+                self.company_a,
+            ),
+            ordered=False,
+        )
+
+    def test_project_manager_sees_managed_project_company_only(self):
+        queryset = self.get_creation_company_queryset(
+            self.responsible_project_manager
+        )
+
+        self.assertQuerySetEqual(
+            queryset,
+            (
+                self.company_a,
+            ),
+            ordered=False,
+        )
+
+    def test_user_without_creation_scope_cannot_access_create_view(
+            self,
+        ):
+            self.client.force_login(
+                self.standard_user
+            )
+
+            response = self.client.get(
+                self.get_create_url()
+            )
+
+            self.assertEqual(
+                response.status_code,
+                403,
+            )
+        
+    def test_client_admin_can_create_project_for_administered_company(
+        self,
+    ):
+        self.client.force_login(
+            self.client_admin
+        )
+
+        data = self.build_creation_data(
+            company=self.company_a,
+            reference="CREATE-A-001",
+        )
+
+        response = self.client.post(
+            self.get_create_url(),
+            data,
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+
+        self.assertTrue(
+            Project.objects.filter(
+                reference="CREATE-A-001",
+                company=self.company_a,
+            ).exists()
+        )
+
+    def test_client_admin_cannot_create_project_for_other_company(
+        self,
+    ):
+        self.client.force_login(
+            self.client_admin
+        )
+
+        data = self.build_creation_data(
+            company=self.company_b,
+            reference="CREATE-B-FORBIDDEN",
+        )
+
+        response = self.client.post(
+            self.get_create_url(),
+            data,
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertIn(
+            "company",
+            response.context["form"].errors,
+        )
+
+        self.assertFalse(
+            Project.objects.filter(
+                reference="CREATE-B-FORBIDDEN",
+            ).exists()
+        )
+        
+        # ------------------------------------------------------------------
+    # Action de création dans la liste
+    # ------------------------------------------------------------------
+
+    def test_creation_action_is_visible_for_authorized_user(self):
+        self.client.force_login(
+            self.system_admin
+        )
+
+        response = self.client.get(
+            reverse("projects:list")
+        )
+
+        self.assertTrue(
+            response.context["can_create_project"]
+        )
+        self.assertContains(
+            response,
+            "Nouveau projet",
+        )
+
+    def test_creation_action_is_hidden_for_unauthorized_user(self):
+        self.client.force_login(
+            self.standard_user
+        )
+
+        response = self.client.get(
+            reverse("projects:list")
+        )
+
+        self.assertFalse(
+            response.context["can_create_project"]
+        )
+        self.assertNotContains(
+            response,
+            "Nouveau projet",
+        )
+
+    def test_standard_member_sees_project_open_action(self):
+        self.client.force_login(
+            self.standard_user
+        )
+
+        response = self.client.get(
+            reverse("projects:list")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            response,
+            self.get_update_url(
+                self.project_a1
+            ),
         )

@@ -40,7 +40,9 @@ from apps.reporting.permissions import (
     can_review_activity_reports,
     can_validate_activity_report_project,
 )
-from apps.projects.services.access import ProjectAccessService
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
+)
 
 
 # ======================================================================
@@ -697,13 +699,13 @@ class ActivityReportReviewListView(
         # Périmètre
         # --------------------------------------------------------------
 
-        accessible_projects = (
-            ProjectAccessService
-            .get_accessible_projects(user)
+        administrable_projects = (
+            ProjectAuthorizationService
+            .get_administrable_projects(user)
         )
 
         queryset = queryset.filter(
-            project__in=accessible_projects,
+            project__in=administrable_projects,
         )
 
         # --------------------------------------------------------------
@@ -828,9 +830,9 @@ class ActivityReportReviewDetailView(
 
         user = self.request.user
 
-        accessible_projects = (
-            ProjectAccessService
-            .get_accessible_projects(user)
+        administrable_projects = (
+            ProjectAuthorizationService
+            .get_administrable_projects(user)
         )
 
         return (
@@ -843,7 +845,7 @@ class ActivityReportReviewDetailView(
                 "reviewed_by",
             )
             .filter(
-                project__in=accessible_projects,
+                project__in=administrable_projects,
             )
         )
         
