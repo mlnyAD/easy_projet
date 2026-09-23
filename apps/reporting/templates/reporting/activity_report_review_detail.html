@@ -1,5 +1,7 @@
 
 
+
+
 {% extends "layout/base.html" %}
 
 {% block title %}
@@ -111,6 +113,21 @@
                         Validé
                     </span>
 
+                {% elif is_ignored %}
+
+                    <span
+                        class="inline-flex items-center
+                               rounded-full
+                               bg-axcio-surface-alt
+                               px-3 py-1
+                               text-xs font-medium
+                               text-axcio-text-secondary
+                               dark:bg-axcio-surface-alt-dark
+                               dark:text-axcio-text-secondary-dark"
+                    >
+                        Ignoré
+                    </span>
+
                 {% else %}
 
                     <span
@@ -164,7 +181,11 @@
                                        font-semibold uppercase
                                        tracking-wide
                                        text-axcio-text-muted
-                                       dark:text-axcio-text-muted-dark"
+                                       dark:text-axcio-text-muted-dark
+                                       {% if forloop.counter0 >= 5 %}
+                                           bg-axcio-page
+                                           dark:bg-axcio-page-dark
+                                       {% endif %}"
                             >
                                 <div>
                                     {{ day|date:"D" }}
@@ -293,7 +314,11 @@
                                 <td
                                     class="px-2 py-3 text-center
                                            text-axcio-text-secondary
-                                           dark:text-axcio-text-secondary-dark"
+                                           dark:text-axcio-text-secondary-dark
+                                           {% if forloop.counter0 >= 5 %}
+                                               bg-axcio-page/70
+                                               dark:bg-axcio-page-dark/70
+                                           {% endif %}"
                                 >
 
                                     <div>
@@ -379,7 +404,11 @@
                                     class="px-2 py-3
                                            text-center font-semibold
                                            text-axcio-text
-                                           dark:text-axcio-text-dark"
+                                           dark:text-axcio-text-dark
+                                           {% if forloop.counter0 >= 5 %}
+                                               bg-axcio-page
+                                               dark:bg-axcio-page-dark
+                                           {% endif %}"
                                 >
                                     {{ total|floatformat:2 }}
                                 </td>
@@ -467,6 +496,20 @@
                     le
                     {{ review.reviewed_at|date:"d/m/Y H:i" }}
 
+                {% elif is_ignored %}
+
+                    Ignoré par
+                    <span
+                        class="font-medium
+                               text-axcio-text
+                               dark:text-axcio-text-dark"
+                    >
+                        {{ review.reviewed_by }}
+                    </span>
+
+                    le
+                    {{ review.reviewed_at|date:"d/m/Y H:i" }}
+
                 {% else %}
 
                     Rapport à valider pour ce projet.
@@ -478,8 +521,48 @@
 
             {% if can_validate %}
 
-                <form method="post">
+                <form method="post" class="flex flex-wrap gap-3">
                     {% csrf_token %}
+
+                    <a
+                        href="{% url 'reporting:review-list' %}"
+                        class="inline-flex items-center
+                               justify-center rounded-lg border
+                               border-axcio-border-light
+                               px-4 py-2 text-sm font-medium
+                               text-axcio-text-secondary
+                               transition-colors
+                               hover:bg-axcio-surface-alt
+                               dark:border-axcio-border-dark
+                               dark:text-axcio-text-secondary-dark
+                               dark:hover:bg-axcio-surface-alt-dark"
+                    >
+                        Annuler
+                    </a>
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="ignore"
+                        class="inline-flex items-center
+                               justify-center rounded-lg border
+                               border-axcio-border-light
+                               px-4 py-2 text-sm font-medium
+                               text-axcio-text-secondary
+                               transition-colors
+                               hover:bg-axcio-surface-alt
+                               dark:border-axcio-border-dark
+                               dark:text-axcio-text-secondary-dark
+                               dark:hover:bg-axcio-surface-alt-dark"
+                    >
+                        <i
+                            data-lucide="circle-x"
+                            class="mr-2 h-4 w-4"
+                            aria-hidden="true"
+                        ></i>
+
+                        Ignorer
+                    </button>
 
                     <button
                         type="submit"

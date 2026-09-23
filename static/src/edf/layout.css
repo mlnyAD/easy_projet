@@ -1,5 +1,11 @@
 
 
+html,
+body.ep-app-body {
+    height: 100%;
+    overflow: hidden;
+}
+
 /* ==========================================================================
    EASY PROJET UI - LAYOUT
    ========================================================================== */
@@ -31,8 +37,9 @@
  */
 .ep-app {
     display: flex;
-    height: 100vh;
-    overflow: visible;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
 
@@ -50,9 +57,10 @@
 
     display: flex;
     min-width: 0;
+    min-height: 0;
     flex: 1 1 0%;
     flex-direction: column;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 
@@ -61,8 +69,10 @@
  * Zone scrollable contenant les écrans fonctionnels.
  */
 .ep-main-content {
+    min-height: 0;
     flex: 1 1 0%;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 
     background-color: var(--color-axcio-page);
 

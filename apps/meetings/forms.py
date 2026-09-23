@@ -219,7 +219,7 @@ class MeetingForm(forms.ModelForm):
             catalog_code="MEETING_STATUS",
         )
 
-        if not self.is_bound and not self.instance.pk:
+        if not self.is_bound and self.instance._state.adding:
             self._apply_catalog_default(
                 "status"
             )

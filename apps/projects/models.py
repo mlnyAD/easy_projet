@@ -301,6 +301,36 @@ class Project(TimeStampedModel):
         verbose_name="Livraison",
     )
 
+    @property
+    def effective_start_date(self):
+        """
+        Retourne la date de début actuellement applicable.
+
+        La date courante est prioritaire. La date initiale
+        constitue la référence lorsqu'aucune date courante
+        n'a encore été définie.
+        """
+
+        return (
+            self.start_date
+            or self.initial_start_date
+        )
+
+    @property
+    def effective_end_date(self):
+        """
+        Retourne la date de fin actuellement applicable.
+
+        La date courante est prioritaire. La date initiale
+        constitue la référence lorsqu'aucune date courante
+        n'a encore été définie.
+        """
+
+        return (
+            self.end_date
+            or self.initial_end_date
+        )
+        
     # ------------------------------------------------------------------
     # Données commerciales partageables
     # ------------------------------------------------------------------

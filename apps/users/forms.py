@@ -323,7 +323,7 @@ class UserForm(forms.ModelForm):
                 "is_system_admin"
             ].disabled = True
 
-        if not self.is_bound and not self.instance.pk:
+        if not self.is_bound and self.instance._state.adding:
             self._apply_catalog_default(
                 "job"
             )

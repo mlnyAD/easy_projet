@@ -1,0 +1,39 @@
+<div class="ep-planning-timeline-header">
+    <div class="ep-planning-calendar-months">
+        {% for month in planning.months %}
+            <div
+                class="ep-planning-calendar-month"
+                style="top: 0; bottom: 0;"
+                data-gantt-segment
+                data-left="{{ month.left_percent }}"
+                data-width="{{ month.width_percent }}"
+            >
+                {{ month.label }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="ep-planning-calendar-weeks">
+        {% for week in planning.weeks %}
+            <div
+                class="ep-planning-calendar-week"
+                style="top: 0; bottom: 0;"
+                data-gantt-segment
+                data-left="{{ week.left_percent }}"
+                data-width="{{ week.width_percent }}"
+            >
+                {{ week.label }}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if planning.state_date_percent != None %}
+        <div
+            class="ep-planning-state-marker"
+            style="left: {{ planning.state_date_percent }}%;"
+            data-gantt-state-marker
+            data-left="{{ planning.state_date_percent }}"
+            title="Date de situation : {{ period.state_date|date:'d/m/Y' }}"
+        ></div>
+    {% endif %}
+</div>

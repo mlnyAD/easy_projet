@@ -2,12 +2,44 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django import forms
 from django.forms import BaseModelFormSet, modelformset_factory
 
 from apps.reporting.models import ActivityReportEntry
+
+
+class ActivityReportHoursInput(forms.NumberInput):
+    """
+    Champ numérique compact pour les heures du rapport d'activité.
+
+    Les valeurs entières sont rendues sans décimales inutiles :
+    ``0.00`` devient ``0`` et ``7.00`` devient ``7``.
+    """
+
+    def format_value(
+        self,
+        value,
+    ):
+        if value in {
+            None,
+            "",
+        }:
+            return ""
+
+        try:
+            decimal_value = Decimal(str(value))
+        except (
+            InvalidOperation,
+            ValueError,
+        ):
+            return super().format_value(value)
+
+        return format(
+            decimal_value.normalize(),
+            "f",
+        )
 
 
 class ActivityReportEntryForm(forms.ModelForm):
@@ -24,11 +56,12 @@ class ActivityReportEntryForm(forms.ModelForm):
         )
 
         widgets = {
-            "regular_hours": forms.NumberInput(
+            "regular_hours": ActivityReportHoursInput(
                 attrs={
                     "min": "0",
                     "step": "0.25",
                     "inputmode": "decimal",
+                    "data-hour-input": "regular",
                     "class": (
                         "w-16 rounded-md border "
                         "border-axcio-border-light "
@@ -44,11 +77,12 @@ class ActivityReportEntryForm(forms.ModelForm):
                     ),
                 }
             ),
-            "overtime_hours": forms.NumberInput(
+            "overtime_hours": ActivityReportHoursInput(
                 attrs={
                     "min": "0",
                     "step": "0.25",
                     "inputmode": "decimal",
+                    "data-hour-input": "overtime",
                     "class": (
                         "w-16 rounded-md border "
                         "border-axcio-border-light "

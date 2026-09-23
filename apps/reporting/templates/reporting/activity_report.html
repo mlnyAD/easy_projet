@@ -1,5 +1,7 @@
 
 
+
+
 {% extends "layout/base.html" %}
 
 {% block title %}
@@ -28,7 +30,7 @@
                        text-axcio-text-muted
                        dark:text-axcio-text-muted-dark"
             >
-                Semaine du
+                Saisie en heures. Semaine du
                 {{ week_start|date:"d/m/Y" }}
                 au
                 {{ week_end|date:"d/m/Y" }}
@@ -38,7 +40,7 @@
         <div class="flex items-center gap-2">
 
             <a
-                href="{% url 'reporting:activity-report' %}?week={{ previous_week|date:'Y-m-d' }}"
+                href="{% url 'reporting:week' %}?week={{ previous_week|date:'Y-m-d' }}"
                 class="inline-flex h-9 w-9
                        items-center justify-center
                        rounded-md border
@@ -58,7 +60,7 @@
             </a>
 
             <a
-                href="{% url 'reporting:activity-report' %}"
+                href="{% url 'reporting:week' %}"
                 class="inline-flex items-center
                        rounded-md border
                        border-axcio-border-light
@@ -73,7 +75,7 @@
             </a>
 
             <a
-                href="{% url 'reporting:activity-report' %}?week={{ next_week|date:'Y-m-d' }}"
+                href="{% url 'reporting:week' %}?week={{ next_week|date:'Y-m-d' }}"
                 class="inline-flex h-9 w-9
                        items-center justify-center
                        rounded-md border
@@ -191,14 +193,27 @@
                             <th
                                 class="min-w-72 px-3 py-3
                                        text-left font-medium"
+                                rowspan="2"
                             >
                                 Activité
+                            </th>
+
+                            <th
+                                class="min-w-36 px-3 py-3
+                                       text-left font-medium"
+                                rowspan="2"
+                            >
+                                Type d'heures
                             </th>
 
                             {% for day in days %}
                                 <th
                                     class="min-w-24 px-2 py-3
-                                           text-center font-medium"
+                                           text-center font-medium
+                                           {% if forloop.counter0 >= 5 %}
+                                               bg-axcio-page
+                                               dark:bg-axcio-page-dark
+                                           {% endif %}"
                                 >
                                     <div>
                                         {{ day|date:"D" }}
@@ -218,9 +233,27 @@
                             <th
                                 class="min-w-20 px-3 py-3
                                        text-center font-medium"
+                                rowspan="2"
                             >
                                 Total
                             </th>
+                        </tr>
+
+                        <tr>
+                            {% for day in days %}
+                                <th
+                                    class="px-2 pb-3 text-center
+                                           text-xs font-normal
+                                           text-axcio-text-muted
+                                           dark:text-axcio-text-muted-dark
+                                           {% if forloop.counter0 >= 5 %}
+                                               bg-axcio-page
+                                               dark:bg-axcio-page-dark
+                                           {% endif %}"
+                                >
+                                    Heures
+                                </th>
+                            {% endfor %}
                         </tr>
                     </thead>
 
@@ -262,8 +295,25 @@
                                 </td>
 
 
+                                <th
+                                    scope="row"
+                                    class="px-3 pt-3 text-left
+                                           text-xs font-medium
+                                           text-axcio-text-secondary
+                                           dark:text-axcio-text-secondary-dark"
+                                >
+                                    Heures normales
+                                </th>
+
                                 {% for form in row.forms %}
-                                    <td class="px-2 pt-3 text-center">
+                                    <td
+                                        class="px-2 pt-3 text-center
+                                               {% if forloop.counter0 >= 5 %}
+                                                   bg-axcio-page/70
+                                                   dark:bg-axcio-page-dark/70
+                                               {% endif %}"
+                                        data-activity-day-index="{{ forloop.counter0 }}"
+                                    >
 
                                         {{ form.id }}
 
@@ -272,6 +322,7 @@
                                         {% else %}
                                             <span
                                                 data-hour-value="{{ form.instance.regular_hours }}"
+                                                data-hour-kind="regular"
                                             >
                                                 {{ form.instance.regular_hours }}
                                             </span>
@@ -293,7 +344,7 @@
                                            text-center font-medium"
                                     data-row-regular-total
                                 >
-                                    0.00
+                                    0
                                 </td>
 
                             </tr>
@@ -305,14 +356,32 @@
                                        dark:bg-axcio-surface-alt-dark/40"
                             >
 
+                                <th
+                                    scope="row"
+                                    class="px-3 pb-3 text-left
+                                           text-xs font-medium
+                                           text-axcio-text-secondary
+                                           dark:text-axcio-text-secondary-dark"
+                                >
+                                    Heures supplémentaires
+                                </th>
+
                                 {% for form in row.forms %}
-                                    <td class="px-2 pb-3 text-center">
+                                    <td
+                                        class="px-2 pb-3 text-center
+                                               {% if forloop.counter0 >= 5 %}
+                                                   bg-axcio-page/70
+                                                   dark:bg-axcio-page-dark/70
+                                               {% endif %}"
+                                        data-activity-day-index="{{ forloop.counter0 }}"
+                                    >
 
                                         {% if not is_submitted %}
                                             {{ form.overtime_hours }}
                                         {% else %}
                                             <span
                                                 data-hour-value="{{ form.instance.overtime_hours }}"
+                                                data-hour-kind="overtime"
                                             >
                                                 {{ form.instance.overtime_hours }}
                                             </span>
@@ -334,34 +403,15 @@
                                            text-center font-medium"
                                     data-row-overtime-total
                                 >
-                                    0.00
+                                    0
                                 </td>
 
                             </tr>
-
-
-                            <tr
-                                class="border-b
-                                       border-axcio-border-light
-                                       dark:border-axcio-border-dark"
-                            >
-                                <td
-                                    class="px-3 pb-2
-                                           text-xs italic
-                                           text-axcio-text-muted
-                                           dark:text-axcio-text-muted-dark"
-                                >
-                                    Heures normales / heures supplémentaires
-                                </td>
-
-                                <td colspan="8"></td>
-                            </tr>
-
                         {% empty %}
 
                             <tr>
                                 <td
-                                    colspan="9"
+                                    colspan="10"
                                     class="px-4 py-8 text-center
                                            text-sm
                                            text-axcio-text-muted
@@ -387,7 +437,7 @@
                         >
                             <tr>
 
-                                <td class="px-3 py-3">
+                                <td class="px-3 py-3" colspan="2">
                                     Total jour
                                 </td>
 
@@ -396,7 +446,7 @@
                                         class="px-2 py-3 text-center"
                                         data-day-total="{{ forloop.counter0 }}"
                                     >
-                                        0.00
+                                        0
                                     </td>
                                 {% endfor %}
 
@@ -404,7 +454,7 @@
                                     class="px-3 py-3 text-center"
                                     data-week-total
                                 >
-                                    0.00
+                                    0
                                 </td>
 
                             </tr>
@@ -505,7 +555,150 @@
 
 </div>
 
+<script>
+    (function () {
+        function parseHours(value) {
+            const normalizedValue = String(value || "")
+                .replace(",", ".");
+            const parsedValue = Number.parseFloat(
+                normalizedValue
+            );
 
-{% include "reporting/activity_report_script.html" %}
+            return Number.isFinite(parsedValue)
+                ? parsedValue
+                : 0;
+        }
+
+        function formatHours(value) {
+            return new Intl.NumberFormat(
+                "fr-FR",
+                {
+                    maximumFractionDigits: 2,
+                },
+            ).format(value);
+        }
+
+        function getCellHours(cell) {
+            const input = cell.querySelector(
+                "input[data-hour-input]",
+            );
+
+            if (input) {
+                return parseHours(input.value);
+            }
+
+            const displayedValue = cell.querySelector(
+                "[data-hour-value]",
+            );
+
+            return displayedValue
+                ? parseHours(
+                    displayedValue.dataset.hourValue,
+                )
+                : 0;
+        }
+
+        function updateTotals() {
+            const table = document.querySelector(
+                "[data-activity-report-table]",
+            );
+
+            if (!table) {
+                return;
+            }
+
+            const dayTotals = Array(7).fill(0);
+            let weekTotal = 0;
+
+            table.querySelectorAll(
+                "[data-activity-row], "
+                + "[data-activity-row-overtime]",
+            ).forEach(function (row) {
+                let rowTotal = 0;
+
+                row.querySelectorAll(
+                    "[data-activity-day-index]",
+                ).forEach(function (cell) {
+                    const dayIndex = Number.parseInt(
+                        cell.dataset.activityDayIndex,
+                        10,
+                    );
+                    const hours = getCellHours(cell);
+
+                    rowTotal += hours;
+                    dayTotals[dayIndex] += hours;
+                    weekTotal += hours;
+                });
+
+                const totalCell = row.querySelector(
+                    "[data-row-regular-total], "
+                    + "[data-row-overtime-total]",
+                );
+
+                if (totalCell) {
+                    totalCell.textContent = formatHours(
+                        rowTotal,
+                    );
+                }
+            });
+
+            dayTotals.forEach(function (total, index) {
+                const totalCell = table.querySelector(
+                    '[data-day-total="' + index + '"]',
+                );
+
+                if (totalCell) {
+                    totalCell.textContent = formatHours(total);
+                }
+            });
+
+            const weekTotalCell = table.querySelector(
+                "[data-week-total]",
+            );
+
+            if (weekTotalCell) {
+                weekTotalCell.textContent = formatHours(
+                    weekTotal,
+                );
+            }
+
+            table.querySelectorAll(
+                "[data-hour-value]",
+            ).forEach(function (element) {
+                element.textContent = formatHours(
+                    parseHours(element.dataset.hourValue),
+                );
+            });
+        }
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+                const table = document.querySelector(
+                    "[data-activity-report-table]",
+                );
+
+                if (!table) {
+                    return;
+                }
+
+                table.addEventListener(
+                    "input",
+                    function (event) {
+                        if (
+                            event.target.matches(
+                                "input[data-hour-input]",
+                            )
+                        ) {
+                            updateTotals();
+                        }
+                    },
+                );
+
+                updateTotals();
+            },
+        );
+    }());
+</script>
 
 {% endblock %}

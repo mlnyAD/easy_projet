@@ -1,5 +1,7 @@
 
 
+
+
 {% extends "layout/base.html" %}
 
 {% block title %}
@@ -103,6 +105,15 @@
                         {% endif %}
                     >
                         Validé
+                    </option>
+
+                    <option
+                        value="{{ ignored_status }}"
+                        {% if selected_status == ignored_status %}
+                            selected
+                        {% endif %}
+                    >
+                        Ignoré
                     </option>
 
                 </select>
@@ -359,7 +370,7 @@
                                         À valider
                                     </span>
 
-                                {% else %}
+                                {% elif review.status == validated_status %}
 
                                     <span
                                         class="inline-flex items-center
@@ -370,6 +381,21 @@
                                                text-green-700"
                                     >
                                         Validé
+                                    </span>
+
+                                {% else %}
+
+                                    <span
+                                        class="inline-flex items-center
+                                               rounded-full
+                                               bg-axcio-surface-alt
+                                               px-2.5 py-1
+                                               text-xs font-medium
+                                               text-axcio-text-secondary
+                                               dark:bg-axcio-surface-alt-dark
+                                               dark:text-axcio-text-secondary-dark"
+                                    >
+                                        Ignoré
                                     </span>
 
                                 {% endif %}

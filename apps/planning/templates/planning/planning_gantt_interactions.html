@@ -1,0 +1,282 @@
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const gantt = document.querySelector("[data-planning-gantt]");
+
+        if (!gantt) {
+            return;
+        }
+
+        const layout = gantt.querySelector("[data-planning-layout]");
+        const splitter = gantt.querySelector("[data-planning-splitter]");
+        const displayButtons = document.querySelectorAll(
+            "[data-planning-display-button]"
+        );
+        const desktopMedia = window.matchMedia("(min-width: 1200px)");
+        const modeStorageKey = "easy-projet-planning-display-mode";
+        const widthStorageKey = "easy-projet-planning-data-width";
+        const defaultWidth = 496;
+        const collapsedItemIds = new Set();
+        const planningRows = Array.from(
+            gantt.querySelectorAll("[data-planning-row]")
+        );
+        const planningToggles = Array.from(
+            gantt.querySelectorAll("[data-planning-toggle]")
+        );
+        const parentIdsByItemId = new Map();
+        let dependencyUpdateFrame = null;
+
+        planningRows.forEach(function (row) {
+            const itemId = row.dataset.planningItemId;
+            const parentId = row.dataset.planningParentId;
+
+            if (itemId && !parentIdsByItemId.has(itemId)) {
+                parentIdsByItemId.set(itemId, parentId || "");
+            }
+        });
+
+        function requestDependencyUpdate() {
+            if (dependencyUpdateFrame !== null) {
+                window.cancelAnimationFrame(dependencyUpdateFrame);
+            }
+
+            dependencyUpdateFrame = window.requestAnimationFrame(
+                function () {
+                    document.dispatchEvent(
+                        new CustomEvent("easy-projet:gantt-layout-changed")
+                    );
+                    dependencyUpdateFrame = null;
+                }
+            );
+        }
+
+        function clampDataWidth(width) {
+            const maximumWidth = Math.max(
+                240,
+                (layout ? layout.clientWidth : 0) - 320
+            );
+
+            return Math.min(
+                Math.max(width, 240),
+                Math.min(maximumWidth, 720)
+            );
+        }
+
+        function setDataWidth(width, persist) {
+            const normalizedWidth = clampDataWidth(width);
+
+            gantt.style.setProperty(
+                "--ep-planning-data-width",
+                normalizedWidth + "px"
+            );
+
+            requestDependencyUpdate();
+
+            if (persist) {
+                localStorage.setItem(widthStorageKey, String(normalizedWidth));
+            }
+        }
+
+        function setDisplayMode(mode, persist) {
+            const effectiveMode = desktopMedia.matches ? "split" : mode;
+
+            gantt.dataset.displayMode = effectiveMode;
+
+            displayButtons.forEach(function (button) {
+                button.setAttribute(
+                    "aria-pressed",
+                    String(button.dataset.displayMode === effectiveMode)
+                );
+            });
+
+            if (persist && !desktopMedia.matches) {
+                localStorage.setItem(modeStorageKey, mode);
+            }
+        }
+
+        function hasCollapsedAncestor(row) {
+            let parentId = row.dataset.planningParentId || "";
+            const visitedItemIds = new Set();
+
+            while (parentId && !visitedItemIds.has(parentId)) {
+                if (collapsedItemIds.has(parentId)) {
+                    return true;
+                }
+
+                visitedItemIds.add(parentId);
+                parentId = parentIdsByItemId.get(parentId) || "";
+            }
+
+            return false;
+        }
+
+        function updatePlanningHierarchy() {
+            planningRows.forEach(function (row) {
+                const isHidden = hasCollapsedAncestor(row);
+
+                row.hidden = isHidden;
+                row.setAttribute("aria-hidden", String(isHidden));
+            });
+
+            planningToggles.forEach(function (toggle) {
+                const itemId = toggle.dataset.planningToggleId;
+                const isExpanded = !collapsedItemIds.has(itemId);
+                const symbol = toggle.querySelector("span");
+                const itemName = toggle.closest("[data-planning-row]")
+                    .querySelector(".ep-planning-element-link")
+                    .textContent
+                    .trim();
+
+                toggle.setAttribute("aria-expanded", String(isExpanded));
+                toggle.setAttribute(
+                    "aria-label",
+                    (isExpanded ? "Replier " : "Déplier ") + itemName
+                );
+                toggle.title = isExpanded ? "Replier" : "Déplier";
+
+                if (symbol) {
+                    symbol.textContent = isExpanded ? "−" : "+";
+                }
+            });
+
+            requestDependencyUpdate();
+        }
+
+        planningToggles.forEach(function (toggle) {
+            toggle.addEventListener("click", function () {
+                const itemId = toggle.dataset.planningToggleId;
+
+                if (collapsedItemIds.has(itemId)) {
+                    collapsedItemIds.delete(itemId);
+                } else {
+                    collapsedItemIds.add(itemId);
+                }
+
+                updatePlanningHierarchy();
+            });
+        });
+
+        const storedWidth = Number(localStorage.getItem(widthStorageKey));
+
+        setDataWidth(
+            Number.isFinite(storedWidth) ? storedWidth : defaultWidth,
+            false
+        );
+
+        const storedMode = localStorage.getItem(modeStorageKey);
+
+        setDisplayMode(
+            storedMode === "timeline" ? "timeline" : "data",
+            false
+        );
+
+        displayButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                setDisplayMode(button.dataset.displayMode, true);
+            });
+        });
+
+        desktopMedia.addEventListener("change", function () {
+            setDisplayMode(
+                localStorage.getItem(modeStorageKey) === "timeline"
+                    ? "timeline"
+                    : "data",
+                false
+            );
+        });
+
+        const themeObserver = new MutationObserver(function () {
+            requestDependencyUpdate();
+            gantt.offsetHeight;
+        });
+
+        themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["class"],
+        });
+
+        window.addEventListener("resize", function () {
+            const width = parseFloat(
+                getComputedStyle(gantt).getPropertyValue(
+                    "--ep-planning-data-width"
+                )
+            );
+
+            if (Number.isFinite(width)) {
+                setDataWidth(width, false);
+            }
+        });
+
+        if (!splitter) {
+            return;
+        }
+
+        splitter.addEventListener("pointerdown", function (event) {
+            if (!desktopMedia.matches) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const startX = event.clientX;
+            const startWidth = parseFloat(
+                getComputedStyle(gantt).getPropertyValue(
+                    "--ep-planning-data-width"
+                )
+            );
+
+            splitter.setPointerCapture(event.pointerId);
+
+            function moveHandler(moveEvent) {
+                setDataWidth(
+                    startWidth + (moveEvent.clientX - startX),
+                    false
+                );
+            }
+
+            function endHandler() {
+                const width = parseFloat(
+                    getComputedStyle(gantt).getPropertyValue(
+                        "--ep-planning-data-width"
+                    )
+                );
+
+                setDataWidth(width, true);
+                splitter.removeEventListener("pointermove", moveHandler);
+                splitter.removeEventListener("pointerup", endHandler);
+                splitter.removeEventListener("pointercancel", endHandler);
+            }
+
+            splitter.addEventListener("pointermove", moveHandler);
+            splitter.addEventListener("pointerup", endHandler);
+            splitter.addEventListener("pointercancel", endHandler);
+        });
+
+        splitter.addEventListener("dblclick", function () {
+            setDataWidth(defaultWidth, true);
+        });
+
+        splitter.addEventListener("keydown", function (event) {
+            if (!desktopMedia.matches) {
+                return;
+            }
+
+            const width = parseFloat(
+                getComputedStyle(gantt).getPropertyValue(
+                    "--ep-planning-data-width"
+                )
+            );
+
+            if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                setDataWidth(width - 24, true);
+            }
+
+            if (event.key === "ArrowRight") {
+                event.preventDefault();
+                setDataWidth(width + 24, true);
+            }
+        });
+    });
+</script>

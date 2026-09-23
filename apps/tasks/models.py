@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from uuid import uuid4
 
 from django.core.exceptions import ValidationError
@@ -123,14 +124,28 @@ class Task(TimeStampedModel):
         verbose_name="Charge planifiée (h)",
     )
 
-    remaining_workload_hours = models.PositiveIntegerField(
-        default=TASK_DEFAULT_REMAINING_WORKLOAD_HOURS,
+    remaining_workload_hours = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal(
+            str(TASK_DEFAULT_REMAINING_WORKLOAD_HOURS)
+        ),
         verbose_name="Reste à faire (h)",
+    )
+
+    remaining_workload_hours_is_manual = models.BooleanField(
+        default=False,
+        verbose_name="Reste à faire corrigé manuellement",
     )
 
     progress_percent = models.PositiveSmallIntegerField(
         default=TASK_DEFAULT_PROGRESS_PERCENT,
         verbose_name="Avancement (%)",
+    )
+
+    progress_percent_is_manual = models.BooleanField(
+        default=False,
+        verbose_name="Avancement corrigé manuellement",
     )
 
     # ------------------------------------------------------------------

@@ -1,9 +1,11 @@
 
 
+
+
 <form
     method="get"
     class="
-        grid grid-cols-1 gap-4 rounded-lg border p-4
+        grid grid-cols-1 gap-3 rounded-lg border p-3
         border-axcio-border-light
         dark:border-axcio-border-dark
         md:grid-cols-2
@@ -21,7 +23,7 @@
     <div>
         <label
             for="id_project"
-            class="mb-1 block text-sm font-medium"
+            class="mb-0.5 block text-sm font-medium"
         >
             Projet
         </label>
@@ -30,7 +32,7 @@
             id="id_project"
             name="project"
             class="
-                w-full rounded-md border px-3 py-2
+                w-full rounded-md border px-3 py-1.5
                 border-axcio-border-light
                 bg-white
                 dark:border-axcio-border-dark
@@ -58,7 +60,7 @@
     <div>
         <label
             for="id_state_date"
-            class="mb-1 block text-sm font-medium"
+            class="mb-0.5 block text-sm font-medium"
         >
             Date de situation
         </label>
@@ -69,7 +71,7 @@
             name="state_date"
             value="{{ period.state_date|date:'Y-m-d' }}"
             class="
-                w-full rounded-md border px-3 py-2
+                w-full rounded-md border px-3 py-1.5
                 border-axcio-border-light
                 bg-white
                 dark:border-axcio-border-dark
@@ -82,7 +84,7 @@
     <div>
         <label
             for="id_date_from"
-            class="mb-1 block text-sm font-medium"
+            class="mb-0.5 block text-sm font-medium"
         >
             Début de période
         </label>
@@ -93,7 +95,7 @@
             name="date_from"
             value="{{ period.date_from|date:'Y-m-d' }}"
             class="
-                w-full rounded-md border px-3 py-2
+                w-full rounded-md border px-3 py-1.5
                 border-axcio-border-light
                 bg-white
                 dark:border-axcio-border-dark
@@ -106,7 +108,7 @@
     <div>
         <label
             for="id_date_to"
-            class="mb-1 block text-sm font-medium"
+            class="mb-0.5 block text-sm font-medium"
         >
             Fin de période
         </label>
@@ -117,7 +119,7 @@
             name="date_to"
             value="{{ period.date_to|date:'Y-m-d' }}"
             class="
-                w-full rounded-md border px-3 py-2
+                w-full rounded-md border px-3 py-1.5
                 border-axcio-border-light
                 bg-white
                 dark:border-axcio-border-dark
@@ -127,11 +129,48 @@
     </div>
 
 
-    <div class="flex items-end">
+    <div class="flex items-end gap-2">
+        {% if selected_view == view_gantt %}
+            <div
+                class="ep-planning-display-controls"
+                aria-label="Mode d'affichage du Gantt"
+            >
+                <button
+                    type="button"
+                    class="ep-planning-display-button"
+                    data-planning-display-button
+                    data-display-mode="data"
+                    aria-pressed="false"
+                >
+                    Données
+                </button>
+
+                <button
+                    type="button"
+                    class="ep-planning-display-button"
+                    data-planning-display-button
+                    data-display-mode="split"
+                    aria-pressed="true"
+                >
+                    Mixte
+                </button>
+
+                <button
+                    type="button"
+                    class="ep-planning-display-button"
+                    data-planning-display-button
+                    data-display-mode="timeline"
+                    aria-pressed="false"
+                >
+                    Chronologie
+                </button>
+            </div>
+        {% endif %}
+
         <button
             type="submit"
             class="
-                w-full rounded-md px-4 py-2
+                flex-1 rounded-md px-4 py-1.5
                 font-medium text-white
                 transition-colors
             "

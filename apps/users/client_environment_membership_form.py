@@ -89,7 +89,7 @@ class ClientEnvironmentMembershipForm(
 
         if (
             not self.is_bound
-            and not self.instance.pk
+            and self.instance._state.adding
         ):
             self.fields["is_active"].initial = True
 

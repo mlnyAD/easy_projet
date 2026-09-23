@@ -24,6 +24,15 @@ planification.
 
 comme fonction transversale de workflow / file d’actions
 
+Je recommande donc :
+- ne rien supprimer immédiatement du modèle ;
+- ne pas verrouiller les dates « initiales » dès la première sauvegarde ;
+- considérer les dates actuelles start_date / end_date comme le planning courant, pas comme le réel ;
+- conserver les dates initiales comme une première référence, mais les renommer ultérieurement Début/fin de référence ;
+- à terme, remplacer ces champs par une vraie transaction « Valider le planning de référence », qui crée un instantané complet du projet, de ses lots et de ses tâches.
+
+Ainsi, une erreur de saisie se corrige normalement sans devoir supprimer la tâche, et le décalage reste mesurable entre planning de référence et planning courant.
+
 
 ### Planning
 Faire du Master/détail quand c'est possible
@@ -31,6 +40,9 @@ tous les projets
   tous les lots
     toutes les âches
 Rendre les barres de tâche sélectionnables
+
+
+
 
 ### Documents
 Fonction de recherche des orphelins 
@@ -45,9 +57,7 @@ Sans l'implémenter maintenant on pourrait aussi mettre un batch qui au démarra
 
 
 ### CSS
-Revoir les définitions de bg-axcio-dark et bg-axcio-light
-Nettoyage des couleurs en dur dans le code
-Faut-il conserver tailwind?
+
 
 ### Ergonomie
 Fonction disponible → affichage normal et action active.
@@ -68,6 +78,10 @@ A faire :
 - dashboard Société ;
 - dashboard multi-projets / CP ;
 - choix des agrégats et navigation entre niveaux.
+
+### Rapports d'activité
+Traiter le cas où l'utilisateur ne peut pas créer son propre RA. A saisir par le CP.
+Quand un RA est à traiter par le CP, il faudrait le notifier avec le compteur des notifications.
 
 ### Sociétés
 

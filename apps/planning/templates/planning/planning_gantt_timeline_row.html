@@ -1,0 +1,83 @@
+
+
+<div
+    class="ep-planning-timeline-row"
+    data-planning-row
+    data-planning-item-id="{{ item.object_id }}"
+    data-planning-parent-id="{{ item.parent_id|default_if_none:'' }}"
+    data-planning-object-type="{{ item.object_type }}"
+    data-level="{{ item.level }}"
+>
+    {% for week in planning.weeks %}
+        <div
+            class="ep-planning-calendar-segment"
+            data-gantt-segment
+            data-left="{{ week.left_percent }}"
+            data-width="{{ week.width_percent }}"
+        ></div>
+    {% endfor %}
+
+    {% if planning.state_date_percent != None %}
+        <div
+            class="ep-planning-state-marker"
+            data-gantt-state-marker
+            data-left="{{ planning.state_date_percent }}"
+        ></div>
+    {% endif %}
+
+    {% if item.gantt_left_percent != None and item.gantt_width_percent != None %}
+        {% if item.object_type == "project" %}
+            <a
+                class="ep-planning-timeline-bar ep-planning-timeline-bar-project"
+                href="{% url 'projects:workspace' pk=item.object_id %}"
+                title="Ouvrir le projet {{ item.name }}"
+                data-gantt-bar
+                data-left="{{ item.gantt_left_percent }}"
+                data-width="{{ item.gantt_width_percent }}"
+            >
+                <span
+                    class="ep-planning-timeline-progress"
+                    data-gantt-part
+                    data-width="{{ item.progress_percent }}"
+                ></span>
+            </a>
+        {% elif item.object_type == "work_package" %}
+            <a
+                class="ep-planning-timeline-bar ep-planning-timeline-bar-work-package"
+                href="{% url 'work:update' pk=item.object_id %}"
+                title="Ouvrir le lot de travaux {{ item.name }}"
+                data-gantt-bar
+                data-left="{{ item.gantt_left_percent }}"
+                data-width="{{ item.gantt_width_percent }}"
+            >
+                <span
+                    class="ep-planning-timeline-progress"
+                    data-gantt-part
+                    data-width="{{ item.progress_percent }}"
+                ></span>
+            </a>
+        {% else %}
+            <a
+                class="ep-planning-timeline-bar ep-planning-timeline-bar-task"
+                href="{% url 'tasks:update' pk=item.object_id %}"
+                title="Ouvrir la tâche {{ item.name }}"
+                data-gantt-bar
+                data-task-id="{{ item.object_id }}"
+                data-left="{{ item.gantt_left_percent }}"
+                data-width="{{ item.gantt_width_percent }}"
+            >
+                <span
+                    class="ep-planning-timeline-progress"
+                    data-gantt-part
+                    data-width="{{ item.progress_percent }}"
+                ></span>
+
+                {% if item.resources %}
+                    <span class="ep-planning-timeline-bar-label">
+                        {{ item.resources|join:" · " }}
+                    </span>
+                {% endif %}
+            </a>
+        {% endif %}
+    {% endif %}
+</div>

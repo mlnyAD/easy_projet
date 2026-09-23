@@ -1,5 +1,7 @@
 
 
+
+
 <script>
 document.addEventListener(
     "DOMContentLoaded",
@@ -1224,13 +1226,15 @@ document.addEventListener(
         // Fusion des FS convergentes
         // =========================================================
 
-        function groupFinishToStartDependencies() {
+        function groupFinishToStartDependencies(
+            dependenciesToGroup
+        ) {
 
             const groups =
                 new Map();
 
 
-            dependencies.forEach(
+            dependenciesToGroup.forEach(
                 function (dependency) {
 
                     if (
@@ -1599,6 +1603,50 @@ document.addEventListener(
         // Tracé général
         // =========================================================
 
+        function isTaskVisible(
+            taskId
+        ) {
+
+            const taskBar =
+                document.querySelector(
+                    `[data-task-id="${taskId}"]`
+                );
+
+
+            if (!taskBar) {
+                return false;
+            }
+
+
+            const timelineRow =
+                taskBar.closest(
+                    "[data-planning-row]"
+                );
+
+
+            return (
+                !timelineRow
+                || !timelineRow.hidden
+            );
+
+        }
+
+
+        function isDependencyVisible(
+            dependency
+        ) {
+
+            return (
+                isTaskVisible(
+                    dependency.predecessorId
+                )
+                && isTaskVisible(
+                    dependency.successorId
+                )
+            );
+
+        }
+
         function drawGanttDependencies() {
 
             const svg =
@@ -1630,8 +1678,16 @@ document.addEventListener(
                 new Set();
 
 
+            const visibleDependencies =
+                dependencies.filter(
+                    isDependencyVisible
+                );
+
+
             const fsGroups =
-                groupFinishToStartDependencies();
+                groupFinishToStartDependencies(
+                    visibleDependencies
+                );
 
 
             fsGroups.forEach(
@@ -1674,7 +1730,7 @@ document.addEventListener(
              * FS, SS, FF et SF.
              */
 
-            dependencies.forEach(
+            visibleDependencies.forEach(
                 function (dependency) {
 
                     if (
@@ -1696,6 +1752,16 @@ document.addEventListener(
             );
 
         }
+
+
+        document.addEventListener(
+            "easy-projet:gantt-layout-changed",
+            function () {
+                window.requestAnimationFrame(
+                    drawGanttDependencies
+                );
+            }
+        );
 
 
         // =========================================================

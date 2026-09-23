@@ -28,6 +28,28 @@ from .models import (
 )
 
 
+PROJECT_DATE_FORMAT = "%Y-%m-%d"
+
+PROJECT_DATE_FIELD_NAMES = (
+    "initial_start_date",
+    "initial_end_date",
+    "start_date",
+    "end_date",
+    "initial_receipt_date",
+    "receipt_date",
+    "initial_delivery_date",
+    "delivery_date",
+)
+
+
+def project_date_input() -> forms.DateInput:
+    return forms.DateInput(
+        format=PROJECT_DATE_FORMAT,
+        attrs={
+            "type": "date",
+        },
+    )
+
 class ProjectForm(forms.ModelForm):
     """
     Formulaire de création et de modification d'un projet.
@@ -210,46 +232,14 @@ class ProjectForm(forms.ModelForm):
                     "inputmode": "numeric",
                 }
             ),
-            "initial_start_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "initial_end_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "start_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "end_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "initial_receipt_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "receipt_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "initial_delivery_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "delivery_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
+            "initial_start_date": project_date_input(),
+            "initial_end_date": project_date_input(),
+            "start_date": project_date_input(),
+            "end_date": project_date_input(),
+            "initial_receipt_date": project_date_input(),
+            "receipt_date": project_date_input(),
+            "initial_delivery_date": project_date_input(),
+            "delivery_date": project_date_input(),
             "amount_quote_ht": forms.NumberInput(
                 attrs={
                     "min": 0,
@@ -308,6 +298,11 @@ class ProjectForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        for field_name in PROJECT_DATE_FIELD_NAMES:
+            self.fields[field_name].input_formats = [
+                PROJECT_DATE_FORMAT,
+            ]
+            
         active_companies = (
             Company.objects
             .filter(is_active=True)
@@ -344,7 +339,7 @@ class ProjectForm(forms.ModelForm):
             catalog_code="PROJECT_TYPE",
         )
 
-        if not self.is_bound and not self.instance.pk:
+        if not self.is_bound and self.instance._state.adding:
             self._apply_catalog_default("status")
             self._apply_catalog_default("project_type")
 
@@ -500,7 +495,7 @@ class ProjectMembershipForm(forms.ModelForm):
             "access_level"
         ].catalog_is_incremental = False
 
-        if not self.is_bound and not self.instance.pk:
+        if not self.is_bound and self.instance._state.adding:
             default_value = (
                 self.fields["access_level"]
                 .queryset
@@ -615,7 +610,7 @@ class ProjectExternalParticipantForm(forms.ModelForm):
             "access_level"
         ].catalog_is_incremental = False
 
-        if not self.is_bound and not self.instance.pk:
+        if not self.is_bound and self.instance._state.adding:
             default_value = (
                 self.fields["access_level"]
                 .queryset

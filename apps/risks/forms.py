@@ -88,7 +88,7 @@ class RiskForm(forms.ModelForm):
         )
         for field_name, catalog_code in catalog_fields:
             self._configure_catalog_field(field_name=field_name, catalog_code=catalog_code)
-        if not self.is_bound and not self.instance.pk:
+        if not self.is_bound and self.instance._state.adding:
             for field_name, _ in catalog_fields:
                 self._apply_catalog_default(field_name)
 

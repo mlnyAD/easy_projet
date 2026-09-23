@@ -44,6 +44,7 @@ from .forms import (
 )
 from .lists import TASK_LIST_DEFINITION
 from .models import Task
+from .services import TaskWorkloadService
 
 
 def build_task_assignment_context(
@@ -165,7 +166,7 @@ class TaskListView(
             .order_by(
                 "work_package__project__reference",
                 "work_package__code",
-                "code",
+                "start_date",
                 "name",
             )
         )
@@ -182,6 +183,16 @@ class TaskListView(
 
         page_tasks = tuple(
             django_page.object_list
+        )
+
+        consumed_hours_by_task = (
+            TaskWorkloadService
+            .get_consumed_hours_by_task(
+                task_ids=(
+                    task.pk
+                    for task in page_tasks
+                ),
+            )
         )
 
         workable_projects = (
@@ -206,6 +217,13 @@ class TaskListView(
         )
 
         for task in page_tasks:
+            task.consumed_workload_hours = (
+                consumed_hours_by_task.get(
+                    task.pk,
+                    TaskWorkloadService.ZERO_HOURS,
+                )
+            )
+
             task.can_work = (
                 task.work_package.project_id
                 in workable_project_ids

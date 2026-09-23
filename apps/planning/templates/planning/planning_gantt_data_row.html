@@ -1,0 +1,88 @@
+
+
+<div
+    class="ep-planning-data-row"
+    data-planning-row
+    data-planning-item-id="{{ item.object_id }}"
+    data-planning-parent-id="{{ item.parent_id|default_if_none:'' }}"
+    data-planning-object-type="{{ item.object_type }}"
+    data-level="{{ item.level }}"
+>
+    <div class="ep-planning-data-cell">
+        {% if item.object_type == "project" or item.object_type == "work_package" %}
+            <button
+                type="button"
+                class="mr-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-sm leading-none text-axcio-text-secondary hover:bg-axcio-border-light focus:outline-none focus:ring-2 focus:ring-axcio-light dark:text-axcio-text-secondary-dark dark:hover:bg-axcio-border-dark"
+                data-planning-toggle
+                data-planning-toggle-id="{{ item.object_id }}"
+                aria-expanded="true"
+                aria-label="Replier {{ item.name }}"
+                title="Replier"
+            >
+                <span aria-hidden="true">−</span>
+            </button>
+        {% else %}
+            <span class="mr-1 inline-block h-5 w-5 shrink-0" aria-hidden="true"></span>
+        {% endif %}
+
+        {% if item.object_type == "project" %}
+            <a
+                class="ep-planning-element-link"
+                data-level="{{ item.level }}"
+                href="{% url 'projects:workspace' pk=item.object_id %}"
+            >
+                {{ item.name }}
+            </a>
+        {% elif item.object_type == "work_package" %}
+            <a
+                class="ep-planning-element-link"
+                data-level="{{ item.level }}"
+                href="{% url 'work:update' pk=item.object_id %}"
+            >
+                {{ item.name }}
+            </a>
+        {% else %}
+            <a
+                class="ep-planning-element-link"
+                data-level="{{ item.level }}"
+                href="{% url 'tasks:update' pk=item.object_id %}"
+            >
+                {{ item.name }}
+            </a>
+        {% endif %}
+
+        {% if item.object_type == "task" and item.resources %}
+            <span
+                class="ep-planning-resource-initials"
+                aria-label="Ressources : {{ item.resources|join:', ' }}"
+                title="Ressources : {{ item.resources|join:', ' }}"
+            >
+                {{ item.resources|join:" · " }}
+            </span>
+        {% endif %}
+    </div>
+
+    <div class="ep-planning-data-cell">
+        {% if item.start_date %}
+            {{ item.start_date|date:"d/m/Y" }}
+        {% else %}
+            —
+        {% endif %}
+    </div>
+
+    <div class="ep-planning-data-cell">
+        {% if item.end_date %}
+            {{ item.end_date|date:"d/m/Y" }}
+        {% else %}
+            —
+        {% endif %}
+    </div>
+
+    <div class="ep-planning-data-cell">
+        {% if item.duration_days %}
+            {{ item.duration_days }} j
+        {% else %}
+            —
+        {% endif %}
+    </div>
+</div>

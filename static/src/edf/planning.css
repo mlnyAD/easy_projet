@@ -1,0 +1,404 @@
+
+
+
+
+/* ========================================================================
+   EASY PROJET UI - PLANNING
+   ======================================================================== */
+
+.ep-planning-gantt {
+    --ep-planning-data-width: 31rem;
+    --ep-planning-timeline-width: 68rem;
+    --ep-planning-row-height: 2.5rem;
+}
+
+.ep-planning-display-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.25rem;
+}
+
+.ep-planning-display-button {
+    border: 1px solid var(--color-axcio-border-light);
+    border-radius: 0.375rem;
+    background-color: var(--color-axcio-surface);
+    padding: 0.375rem 0.625rem;
+    color: var(--color-axcio-text-secondary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.ep-planning-display-button[aria-pressed="true"] {
+    border-color: var(--color-axcio-light);
+    background-color: var(--color-axcio-light);
+    color: var(--color-axcio-text-inverse);
+}
+
+.ep-planning-layout {
+    display: flex;
+    width: calc(
+        var(--ep-planning-data-width)
+        + var(--ep-planning-timeline-width)
+        + 0.625rem
+    );
+    min-width: 100%;
+    align-items: stretch;
+}
+
+.ep-planning-gantt-shell {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.ep-planning-data-panel {
+    width: var(--ep-planning-data-width);
+    min-width: 15rem;
+    flex: 0 0 var(--ep-planning-data-width);
+}
+
+.ep-planning-splitter {
+    width: 0.625rem;
+    flex: 0 0 0.625rem;
+    border: 0;
+    background-color: var(--color-axcio-text-secondary);
+    cursor: col-resize;
+    touch-action: none;
+}
+
+.ep-planning-splitter:hover {
+    background-color: var(--color-axcio-dark);
+}
+
+.ep-planning-splitter:focus-visible {
+    outline: 2px solid var(--color-axcio-light);
+    outline-offset: -2px;
+}
+
+.ep-planning-timeline-panel {
+    width: var(--ep-planning-timeline-width);
+    min-width: var(--ep-planning-timeline-width);
+    flex: 0 0 var(--ep-planning-timeline-width);
+}
+
+.ep-planning-timeline-scroll {
+    overflow: visible;
+}
+
+.ep-planning-timeline-canvas {
+    position: relative;
+    width: var(--ep-planning-timeline-width);
+    min-width: var(--ep-planning-timeline-width);
+    background-color: var(--color-axcio-surface);
+}
+
+.ep-planning-data-header,
+.ep-planning-timeline-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 4rem;
+    border-bottom: 1px solid var(--color-axcio-border-light);
+    background-color: var(--color-axcio-surface);
+}
+
+.ep-planning-timeline-header {
+    position: relative;
+}
+
+.ep-planning-calendar-months,
+.ep-planning-calendar-weeks {
+    position: relative;
+    height: 2rem;
+}
+
+.ep-planning-calendar-months {
+    border-bottom: 1px solid var(--color-axcio-border-light);
+}
+
+.ep-planning-calendar-month,
+.ep-planning-calendar-week {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-right: 1px solid var(--color-axcio-border-light);
+    padding: 0 0.25rem;
+    font-size: 0.6875rem;
+    white-space: nowrap;
+}
+
+.ep-planning-calendar-month {
+    font-weight: 600;
+}
+
+.ep-planning-calendar-week {
+    color: var(--color-axcio-text-muted);
+}
+
+.ep-planning-data-header,
+.ep-planning-data-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) 5.5rem 5.5rem 4.5rem;
+}
+
+.ep-planning-data-header-cell,
+.ep-planning-data-cell {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    border-right: 1px solid var(--color-axcio-border-light);
+    padding: 0 0.5rem;
+}
+
+.ep-planning-data-header-cell {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.ep-planning-data-row,
+.ep-planning-timeline-row {
+    height: var(--ep-planning-row-height);
+    border-bottom: 1px solid var(--color-axcio-border-light);
+}
+
+.ep-planning-data-row[data-level="0"],
+.ep-planning-timeline-row[data-level="0"] {
+    background-color: var(--color-axcio-surface-alt);
+}
+
+.ep-planning-data-cell {
+    font-size: 0.75rem;
+}
+
+.ep-planning-data-cell:first-child {
+    gap: 0.375rem;
+}
+
+.ep-planning-element-link {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    color: inherit;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.ep-planning-element-link:hover {
+    color: var(--color-axcio-light);
+    text-decoration: underline;
+}
+
+.ep-planning-element-link[data-level="0"] {
+    font-weight: 600;
+}
+
+.ep-planning-element-link[data-level="1"] {
+    padding-left: 1rem;
+    font-weight: 500;
+}
+
+.ep-planning-element-link[data-level="2"] {
+    padding-left: 2rem;
+}
+
+.ep-planning-resource-initials {
+    flex: 0 0 auto;
+    margin-left: 0.375rem;
+    color: var(--color-axcio-text-muted);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+}
+
+.ep-planning-timeline-row {
+    position: relative;
+    background-color: var(--color-axcio-surface);
+}
+
+.ep-planning-calendar-segment {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid var(--color-axcio-border-light);
+}
+
+.ep-planning-timeline-bar {
+    position: absolute;
+    top: 50%;
+    z-index: 10;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    transform: translateY(-50%);
+    overflow: hidden;
+    border-radius: 0.25rem;
+    text-decoration: none;
+}
+
+.ep-planning-timeline-bar-project {
+    height: 1.25rem;
+    background-color: var(--color-axcio-dark);
+}
+
+.ep-planning-timeline-bar-work-package {
+    height: 1rem;
+    background-color: var(--color-axcio-light);
+}
+
+.ep-planning-timeline-bar-task {
+    height: 0.75rem;
+    background-color: color-mix(
+        in srgb,
+        var(--color-axcio-info) 70%,
+        var(--color-axcio-surface)
+    );
+}
+
+.ep-planning-timeline-progress {
+    height: 100%;
+    flex: 0 0 auto;
+    background-color: var(--color-axcio-info);
+}
+
+.ep-planning-timeline-bar-project .ep-planning-timeline-progress {
+    background-color: var(--color-axcio-light);
+}
+
+.ep-planning-timeline-bar-work-package .ep-planning-timeline-progress {
+    background-color: var(--color-axcio-dark);
+}
+
+.ep-planning-timeline-bar-label {
+    overflow: hidden;
+    margin-left: 0.25rem;
+    color: var(--color-axcio-text-inverse);
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ep-planning-state-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 15;
+    width: 2px;
+    background-color: var(--color-axcio-danger);
+    pointer-events: none;
+}
+
+.dark .ep-planning-display-button {
+    border-color: var(--color-axcio-border-dark);
+    background-color: var(--color-axcio-surface-dark);
+    color: var(--color-axcio-text-secondary-dark);
+}
+
+.dark .ep-planning-data-header,
+.dark .ep-planning-timeline-header {
+    border-color: var(--color-axcio-border-dark);
+    background-color: var(--color-axcio-surface-dark);
+}
+
+.dark .ep-planning-data-header-cell,
+.dark .ep-planning-data-cell,
+.dark .ep-planning-data-row,
+.dark .ep-planning-timeline-row,
+.dark .ep-planning-calendar-segment,
+.dark .ep-planning-splitter {
+    border-color: var(--color-axcio-border-dark);
+}
+
+.dark .ep-planning-calendar-months,
+.dark .ep-planning-calendar-month,
+.dark .ep-planning-calendar-week {
+    border-color: var(--color-axcio-border-dark);
+}
+
+.dark .ep-planning-splitter {
+    background-color: var(--color-axcio-text-secondary-dark);
+}
+
+.dark .ep-planning-timeline-canvas,
+.dark .ep-planning-timeline-row {
+    background-color: var(--color-axcio-surface-dark);
+}
+
+.dark .ep-planning-timeline-bar-project,
+.dark .ep-planning-timeline-bar-work-package {
+    background-color: var(--color-axcio-text-secondary-dark);
+}
+
+.dark .ep-planning-timeline-bar-task {
+    background-color: color-mix(
+        in srgb,
+        var(--color-axcio-info) 70%,
+        var(--color-axcio-surface-dark)
+    );
+}
+
+.dark .ep-planning-data-row[data-level="0"],
+.dark .ep-planning-timeline-row[data-level="0"] {
+    background-color: var(--color-axcio-surface-alt-dark);
+}
+
+@media (max-width: 1199px) {
+    .ep-planning-gantt {
+        --ep-planning-timeline-width: 60rem;
+    }
+
+    .ep-planning-gantt-shell {
+        overflow-x: hidden;
+    }
+
+    .ep-planning-gantt[data-display-mode="timeline"] .ep-planning-gantt-shell {
+        overflow-x: auto;
+    }
+
+    .ep-planning-gantt[data-display-mode="data"] .ep-planning-timeline-panel,
+    .ep-planning-gantt[data-display-mode="data"] .ep-planning-splitter {
+        display: none;
+    }
+
+    .ep-planning-gantt[data-display-mode="data"] .ep-planning-data-panel {
+        width: 100%;
+        flex-basis: 100%;
+    }
+
+    .ep-planning-gantt[data-display-mode="data"] .ep-planning-layout {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    .ep-planning-gantt[data-display-mode="timeline"] .ep-planning-data-panel {
+        width: 15rem;
+        flex-basis: 15rem;
+    }
+
+    .ep-planning-gantt[data-display-mode="timeline"] .ep-planning-splitter {
+        display: none;
+    }
+
+    .ep-planning-gantt[data-display-mode="timeline"] .ep-planning-data-header,
+    .ep-planning-gantt[data-display-mode="timeline"] .ep-planning-data-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ep-planning-gantt[data-display-mode="timeline"] .ep-planning-data-header-cell:not(:first-child),
+    .ep-planning-gantt[data-display-mode="timeline"] .ep-planning-data-cell:not(:first-child) {
+        display: none;
+    }
+
+    .ep-planning-display-button[data-display-mode="split"] {
+        display: none;
+    }
+}
+
+@media (min-width: 1200px) {
+    .ep-planning-display-button[data-display-mode="data"],
+    .ep-planning-display-button[data-display-mode="timeline"] {
+        display: none;
+    }
+}

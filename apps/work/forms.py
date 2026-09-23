@@ -21,6 +21,25 @@ from common.forms.fields import CatalogModelChoiceField
 from .models import WorkPackage
 
 
+WORK_PACKAGE_DATE_FORMAT = "%Y-%m-%d"
+
+WORK_PACKAGE_DATE_FIELD_NAMES = (
+    "initial_start_date",
+    "initial_end_date",
+    "start_date",
+    "end_date",
+)
+
+
+def work_package_date_input() -> forms.DateInput:
+    return forms.DateInput(
+        format=WORK_PACKAGE_DATE_FORMAT,
+        attrs={
+            "type": "date",
+        },
+    )
+
+
 class WorkPackageForm(forms.ModelForm):
     """
     Formulaire de création et de modification d'un lot de travaux.
@@ -89,26 +108,10 @@ class WorkPackageForm(forms.ModelForm):
                     "data-trim": True,
                 }
             ),
-            "initial_start_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "initial_end_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "start_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "end_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
+            "initial_start_date": work_package_date_input(),
+            "initial_end_date": work_package_date_input(),
+            "start_date": work_package_date_input(),
+            "end_date": work_package_date_input(),
             "planned_workload_hours": forms.NumberInput(
                 attrs={
                     "min": 0,
@@ -125,6 +128,11 @@ class WorkPackageForm(forms.ModelForm):
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
+
+        for field_name in WORK_PACKAGE_DATE_FIELD_NAMES:
+            self.fields[field_name].input_formats = [
+                WORK_PACKAGE_DATE_FORMAT,
+            ]
 
         self.fields["code"].required = False
 
@@ -176,7 +184,7 @@ class WorkPackageForm(forms.ModelForm):
             catalog_code="WORK_PACKAGE_STATUS",
         )
 
-        if not self.is_bound and not self.instance.pk:
+        if not self.is_bound and self.instance._state.adding:
             self._apply_catalog_default("status")
 
     def _configure_catalog_field(

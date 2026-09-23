@@ -1,5 +1,3 @@
-
-
 from framework.form import (
     FieldDefinition,
     FormCollectionColumnDefinition,
@@ -13,7 +11,6 @@ from framework.types.field_width import FieldWidth
 TASK_FORM_DEFINITION = FormDefinition(
     name="task",
     title="Tâche",
-
     sections=[
         SectionDefinition(
             title="Rattachement",
@@ -22,18 +19,13 @@ TASK_FORM_DEFINITION = FormDefinition(
                     name="work_package",
                     width=FieldWidth.FULL,
                 ),
-                FieldDefinition(
-                    name="status",
-                ),
+                FieldDefinition(name="status"),
             ],
         ),
-
         SectionDefinition(
             title="Identification",
             fields=[
-                FieldDefinition(
-                    name="name",
-                ),
+                FieldDefinition(name="name"),
                 FieldDefinition(
                     name="description",
                     width=FieldWidth.FULL,
@@ -47,35 +39,20 @@ TASK_FORM_DEFINITION = FormDefinition(
                 ),
             ],
         ),
-
         SectionDefinition(
             title="Planning",
             fields=[
-                FieldDefinition(
-                    name="initial_start_date",
-                ),
-                FieldDefinition(
-                    name="initial_end_date",
-                ),
-                FieldDefinition(
-                    name="start_date",
-                ),
-                FieldDefinition(
-                    name="end_date",
-                ),
-                FieldDefinition(
-                    name="planned_workload_hours",
-                ),
-                FieldDefinition(
-                    name="remaining_workload_hours",
-                ),
-                FieldDefinition(
-                    name="progress_percent",
-                ),
+                FieldDefinition(name="initial_start_date"),
+                FieldDefinition(name="initial_end_date"),
+                FieldDefinition(name="start_date"),
+                FieldDefinition(name="end_date"),
+                FieldDefinition(name="planned_workload_hours"),
+                FieldDefinition(name="consumed_workload_hours"),
+                FieldDefinition(name="remaining_workload_hours"),
+                FieldDefinition(name="progress_percent"),
             ],
         ),
     ],
-
     collections=[
         FormCollectionDefinition(
             name="assignments",
@@ -107,7 +84,6 @@ TASK_FORM_DEFINITION = FormDefinition(
             add_label="Ajouter une personne",
             delete_label="Supprimer l'affectation",
         ),
-
         FormCollectionDefinition(
             name="dependencies",
             title="Enchaînements",

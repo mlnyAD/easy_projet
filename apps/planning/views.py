@@ -1,9 +1,10 @@
 
-        
+
 from __future__ import annotations
 
 from datetime import date, timedelta
 
+from django.db.models import Min
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 
@@ -41,8 +42,7 @@ class PlanningHomeView(TemplateView):
 
     template_name = "planning/planning_home.html"
 
-    DEFAULT_PERIOD_BEFORE_DAYS = 30
-    DEFAULT_PERIOD_AFTER_DAYS = 90
+    DEFAULT_PERIOD_AFTER_DAYS = 120
 
     VIEW_GANTT = "gantt"
     VIEW_WORKLOAD = "workload"
@@ -64,13 +64,23 @@ class PlanningHomeView(TemplateView):
             default=date.today(),
         )
 
+        accessible_projects = (
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
+            )
+        )
+
+        project = self._get_selected_project(
+            accessible_projects=accessible_projects,
+        )
+
         date_from = self._get_date_parameter(
             "date_from",
-            default=(
-                state_date
-                - timedelta(
-                    days=self.DEFAULT_PERIOD_BEFORE_DAYS
-                )
+            default=self._get_default_date_from(
+                accessible_projects=accessible_projects,
+                project=project,
+                state_date=state_date,
             ),
         )
 
@@ -94,17 +104,6 @@ class PlanningHomeView(TemplateView):
             date_from=date_from,
             date_to=date_to,
             state_date=state_date,
-        )
-
-        accessible_projects = (
-            ProjectAccessService
-            .get_accessible_projects(
-                self.request.user
-            )
-        )
-
-        project = self._get_selected_project(
-            accessible_projects=accessible_projects,
         )
 
         selected_view = (
@@ -230,6 +229,38 @@ class PlanningHomeView(TemplateView):
             accessible_projects,
             pk=project_pk,
         )
+
+    @staticmethod
+    def _get_default_date_from(
+        *,
+        accessible_projects,
+        project: Project | None,
+        state_date: date,
+    ) -> date:
+        """
+        Retourne la première date de début des projets affichés.
+
+        Sans projet sélectionné, tous les projets actifs accessibles
+        participent au calcul. En l'absence de date planifiée, la date
+        de situation est retenue afin de conserver une période valide.
+        """
+
+        projects = accessible_projects.filter(
+            is_active=True,
+        )
+
+        if project is not None:
+            projects = projects.filter(
+                pk=project.pk,
+            )
+
+        oldest_start_date = projects.aggregate(
+            oldest_start_date=Min(
+                "start_date"
+            ),
+        )["oldest_start_date"]
+
+        return oldest_start_date or state_date
         
     def _get_selected_view(
         self,

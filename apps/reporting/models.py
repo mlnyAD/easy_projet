@@ -1,4 +1,4 @@
-
+    
 
 from __future__ import annotations
 
@@ -376,6 +376,11 @@ class ActivityReportProjectReviewStatus(models.TextChoices):
     VALIDATED = (
         "VALIDATED",
         "Validé",
+    )
+
+    IGNORED = (
+        "IGNORED",
+        "Ignoré",
     )
 
 

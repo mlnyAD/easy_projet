@@ -90,11 +90,8 @@ PROJECT_FORM_DEFINITION = FormDefinition(
             ],
         ),
         SectionDefinition(
-            title="Charge et planning",
+            title="Planning et charge",
             fields=[
-                FieldDefinition(
-                    name="planned_workload_hours",
-                ),
                 FieldDefinition(
                     name="initial_start_date",
                 ),
@@ -118,6 +115,9 @@ PROJECT_FORM_DEFINITION = FormDefinition(
                 ),
                 FieldDefinition(
                     name="delivery_date",
+                ),
+                FieldDefinition(
+                    name="planned_workload_hours",
                 ),
             ],
         ),

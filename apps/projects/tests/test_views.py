@@ -2,6 +2,7 @@
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from datetime import date
 
 from apps.catalogs.models import (
     CatalogType,
@@ -760,4 +761,115 @@ class ProjectViewTests(TestCase):
             ProjectExternalParticipant.objects.filter(
                 pk=self.external_participant.pk,
             ).exists()
+        )
+
+    def test_create_saves_and_displays_distinct_planning_dates(
+        self,
+    ):
+        data = self.build_project_data()
+
+        data.update(
+            {
+                "reference": "PRJ-TEST-DATES",
+                "name": "Projet dates",
+                "initial_start_date": "2026-01-10",
+                "initial_end_date": "2026-01-20",
+                "start_date": "2026-01-11",
+                "end_date": "2026-01-19",
+            }
+        )
+
+        self.add_empty_membership_formset(data)
+        self.add_empty_external_formset(data)
+
+        response = self.client.post(
+            reverse("projects:create"),
+            data,
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+
+        project = Project.objects.get(
+            reference="PRJ-TEST-DATES",
+        )
+
+        self.assertEqual(
+            project.initial_start_date,
+            date(2026, 1, 10),
+        )
+        self.assertEqual(
+            project.initial_end_date,
+            date(2026, 1, 20),
+        )
+        self.assertEqual(
+            project.start_date,
+            date(2026, 1, 11),
+        )
+        self.assertEqual(
+            project.end_date,
+            date(2026, 1, 19),
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:update",
+                kwargs={
+                    "pk": project.pk,
+                },
+            )
+        )
+
+        self.assertContains(
+            response,
+            'value="2026-01-10"',
+        )
+        self.assertContains(
+            response,
+            'value="2026-01-20"',
+        )
+        self.assertContains(
+            response,
+            'value="2026-01-11"',
+        )
+        self.assertContains(
+            response,
+            'value="2026-01-19"',
+        )
+
+    def test_workspace_displays_effective_project_dates(
+        self,
+    ):
+        Project.objects.filter(
+            pk=self.project.pk,
+        ).update(
+            initial_start_date=date(2026, 1, 10),
+            initial_end_date=date(2026, 1, 20),
+            start_date=date(2026, 1, 11),
+            end_date=date(2026, 1, 19),
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:workspace",
+                kwargs={
+                    "pk": self.project.pk,
+                },
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            response,
+            "11/01/2026",
+        )
+        self.assertContains(
+            response,
+            "19/01/2026",
         )

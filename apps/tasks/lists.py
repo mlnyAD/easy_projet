@@ -1,8 +1,5 @@
-
-
 from common.constants import DEFAULT_PAGE_SIZE
 from common.dictionaries.task import TASK_DICTIONARY
-
 from framework.dictionary import (
     DictionaryValidator,
     EntityDefinition,
@@ -16,61 +13,47 @@ from framework.list import (
 
 DictionaryValidator().validate(TASK_DICTIONARY)
 
-TASK_ENTITY_DEFINITION = EntityDefinition(
-    TASK_DICTIONARY
-)
+TASK_ENTITY_DEFINITION = EntityDefinition(TASK_DICTIONARY)
 
 
 TASK_LIST_DEFINITION = ListDefinition(
     entity=TASK_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(
-            field=TASK_ENTITY_DEFINITION.get_field(
-                "work_package"
-            ),
+            field=TASK_ENTITY_DEFINITION.get_field("work_package"),
             label="Lot",
             width="md",
             truncate=True,
             order=10,
         ),
         ColumnDefinition(
-            field=TASK_ENTITY_DEFINITION.get_field(
-                "status"
-            ),
+            field=TASK_ENTITY_DEFINITION.get_field("status"),
             label="Statut",
             width="sm",
             order=20,
         ),
         ColumnDefinition(
-            field=TASK_ENTITY_DEFINITION.get_field(
-                "code"
-            ),
+            field=TASK_ENTITY_DEFINITION.get_field("code"),
             label="Code",
             width="sm",
             truncate=True,
             order=30,
         ),
         ColumnDefinition(
-            field=TASK_ENTITY_DEFINITION.get_field(
-                "name"
-            ),
+            field=TASK_ENTITY_DEFINITION.get_field("name"),
             label="Nom",
             width="lg",
             truncate=True,
             order=40,
         ),
         ColumnDefinition(
-            field=TASK_ENTITY_DEFINITION.get_field(
-                "start_date"
-            ),
+            field=TASK_ENTITY_DEFINITION.get_field("start_date"),
             label="Début",
             width="sm",
             order=50,
         ),
         ColumnDefinition(
-            field=TASK_ENTITY_DEFINITION.get_field(
-                "end_date"
-            ),
+            field=TASK_ENTITY_DEFINITION.get_field("end_date"),
             label="Fin",
             width="sm",
             order=60,
@@ -86,36 +69,39 @@ TASK_LIST_DEFINITION = ListDefinition(
         ),
         ColumnDefinition(
             field=TASK_ENTITY_DEFINITION.get_field(
-                "remaining_workload_hours"
+                "consumed_workload_hours"
             ),
-            label="RAF (h)",
+            label="Consommé (h)",
             width="sm",
             align="right",
             order=80,
         ),
         ColumnDefinition(
             field=TASK_ENTITY_DEFINITION.get_field(
-                "progress_percent"
+                "remaining_workload_hours"
             ),
-            label="Avancement",
+            label="RAF (h)",
             width="sm",
             align="right",
             order=90,
         ),
         ColumnDefinition(
-            field=TASK_ENTITY_DEFINITION.get_field(
-                "is_active"
-            ),
+            field=TASK_ENTITY_DEFINITION.get_field("progress_percent"),
+            label="Avancement",
+            width="sm",
+            align="right",
+            order=100,
+        ),
+        ColumnDefinition(
+            field=TASK_ENTITY_DEFINITION.get_field("is_active"),
             label="Active",
             width="xs",
             align="center",
-            order=100,
+            order=110,
         ),
     ),
     default_sort="work_package",
     page_size=DEFAULT_PAGE_SIZE,
 )
 
-ListValidator().validate(
-    TASK_LIST_DEFINITION
-)
+ListValidator().validate(TASK_LIST_DEFINITION)

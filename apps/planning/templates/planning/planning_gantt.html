@@ -1,85 +1,48 @@
 
 
+
+
 <div
-    class="
-        overflow-hidden rounded-lg border
-        border-axcio-border-light
-        dark:border-axcio-border-dark
-    "
+    class="ep-planning-gantt"
+    data-planning-gantt
+    data-display-mode="split"
 >
+    <div class="ep-planning-gantt-shell rounded-lg border border-axcio-border-light dark:border-axcio-border-dark">
+        {% if planning.items %}
+            <div class="ep-planning-layout" data-planning-layout>
+                <section class="ep-planning-data-panel">
+                    {% include "planning/planning_gantt_data_header.html" %}
+                    {% for item in planning.items %}
+                        {% include "planning/planning_gantt_data_row.html" %}
+                    {% endfor %}
+                </section>
 
-    <div class="overflow-x-auto">
+                <button type="button" class="ep-planning-splitter" data-planning-splitter aria-label="Redimensionner le panneau des données" title="Glisser pour redimensionner. Double-clic pour réinitialiser."></button>
 
-        <div
-            class="relative min-w-275"
-            data-gantt-container
-        >
+                <section class="ep-planning-timeline-panel">
+                    <div class="ep-planning-timeline-scroll" data-planning-timeline-scroll>
+                        <div class="ep-planning-timeline-canvas" data-gantt-container>
+                            {% include "planning/planning_gantt_timeline_header.html" %}
+                            {% for item in planning.items %}
+                                {% include "planning/planning_gantt_timeline_row.html" %}
+                            {% endfor %}
 
-            {% include "planning/planning_gantt_header.html" %}
+                            <svg id="gantt-dependency-layer" class="absolute inset-0 z-40" style="width: 100%; height: 100%; overflow: visible; pointer-events: none;" aria-hidden="true"></svg>
 
-
-            {% for item in planning.items %}
-
-                {% include "planning/planning_gantt_row.html" %}
-
-            {% empty %}
-
-                <div
-                    class="
-                        px-4 py-10 text-center
-                        text-axcio-text-muted
-                    "
-                >
-                    Aucun élément à afficher sur cette période.
-                </div>
-
-            {% endfor %}
-
-
-            <svg
-                id="gantt-dependency-layer"
-                class="
-                    absolute inset-0 z-40
-                "
-                style="
-                    width: 100%;
-                    height: 100%;
-                    overflow: visible;
-                    pointer-events: none;
-                "
-                aria-hidden="true"
-            ></svg>
-
-
-            <div
-                id="gantt-dependency-tooltip"
-                class="
-                    pointer-events-none
-                    absolute z-60 hidden
-                    rounded-md border px-3 py-2
-                    text-xs shadow-lg
-                    border-axcio-border-light
-                    bg-white
-                    text-axcio-text
-                    dark:border-axcio-border-dark
-                    dark:bg-axcio-surface-dark
-                    dark:text-axcio-text-dark
-                "
-                style="
-                    max-width: 320px;
-                    white-space: pre-line;
-                "
-            ></div>
-
-        </div>
-
+                            <div id="gantt-dependency-tooltip" class="pointer-events-none absolute z-60 hidden rounded-md border px-3 py-2 text-xs shadow-lg border-axcio-border-light bg-axcio-surface text-axcio-text dark:border-axcio-border-dark dark:bg-axcio-surface-dark dark:text-axcio-text-dark" style="max-width: 320px; white-space: pre-line;"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        {% else %}
+            <div class="px-4 py-10 text-center text-axcio-text-muted">
+                Aucun élément à afficher sur cette période.
+            </div>
+        {% endif %}
     </div>
-
 </div>
 
-
 {% include "planning/planning_gantt_legend.html" %}
-
 {% include "planning/planning_gantt_dependencies.html" %}
-
 {% include "planning/planning_gantt_script.html" %}
+{% include "planning/planning_gantt_interactions.html" %}

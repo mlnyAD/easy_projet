@@ -22,6 +22,7 @@ from apps.reporting.models import (
 )
 from apps.tasks.models import (
     Task,
+    TaskAssignment,
     TaskDependency,
 )
 from apps.work.models import WorkPackage
@@ -95,6 +96,10 @@ class PlanningItem:
 
     actual_hours: Decimal = Decimal("0.00")
 
+    resources: tuple[str, ...] = ()
+
+    progress_percent: int = 0
+
     parent_id: str | None = None
 
     # ------------------------------------------------------------------
@@ -113,6 +118,20 @@ class PlanningItem:
 
     realized_width_percent: float = 0.0
     forecast_width_percent: float = 100.0
+
+    @property
+    def duration_days(self) -> int | None:
+        """Retourne la durée courante en jours calendaires."""
+        if self.start_date is None and self.end_date is None:
+            return None
+
+        effective_start = self.start_date or self.end_date
+        effective_end = self.end_date or self.start_date
+
+        if effective_start is None or effective_end is None:
+            return None
+
+        return (effective_end - effective_start).days + 1
 
 @dataclass(frozen=True)
 class PlanningDependency:
@@ -288,6 +307,12 @@ class PlanningConsolidationService:
                 state_date=period.state_date,
             )
         )
+        
+        resources_by_task = (
+            self._get_resources_by_task(
+                task_ids=task_ids,
+            )
+        )
 
         # --------------------------------------------------------------
         # Dépendances entre tâches visibles
@@ -346,11 +371,29 @@ class PlanningConsolidationService:
                             task,
                             period=period,
                             actual_hours=actual_hours,
+                            resources=(
+                                resources_by_task.get(
+                                    task.pk,
+                                    (),
+                                )
+                            ),
                         )
                     )
 
                 project_actual_hours += (
                     work_package_actual_hours
+                )
+
+                work_package_resources = (
+                    self._collect_resources(
+                        task_items
+                    )
+                )
+
+                work_package_progress = (
+                    self._get_weighted_progress_percent(
+                        task_items
+                    )
                 )
 
                 project_items.append(
@@ -361,16 +404,39 @@ class PlanningConsolidationService:
                             actual_hours=(
                                 work_package_actual_hours
                             ),
+                            resources=(
+                                work_package_resources
+                            ),
+                            progress_percent=(
+                                work_package_progress
+                            ),
                         ),
                         task_items,
                     )
                 )
+
+            project_task_items = [
+                task_item
+                for _work_package_item, task_items
+                in project_items
+                for task_item in task_items
+            ]
 
             items.append(
                 self._build_project_item(
                     current_project,
                     period=period,
                     actual_hours=project_actual_hours,
+                    resources=(
+                        self._collect_resources(
+                            project_task_items
+                        )
+                    ),
+                    progress_percent=(
+                        self._get_weighted_progress_percent(
+                            project_task_items
+                        )
+                    ),
                 )
             )
 
@@ -403,7 +469,90 @@ class PlanningConsolidationService:
                 )
             ),
         )
-    
+
+    @staticmethod
+    def _get_resources_by_task(
+        *,
+        task_ids,
+    ) -> dict:
+        """
+        Retourne les ressources actives affectées
+        à chaque tâche visible dans le planning.
+        """
+
+        if not task_ids:
+            return {}
+
+        assignments = (
+            TaskAssignment.objects
+            .filter(
+                task_id__in=task_ids,
+                is_active=True,
+                user__is_active=True,
+                task__is_active=True,
+            )
+            .select_related(
+                "user",
+            )
+            .order_by(
+                "task_id",
+                "user__last_name",
+                "user__first_name",
+            )
+        )
+
+        resources_by_task = {}
+
+        for assignment in assignments:
+            resources_by_task.setdefault(
+                assignment.task_id,
+                [],
+            ).append(assignment.user.initials)
+
+        return {
+            task_id: tuple(dict.fromkeys(resources))
+            for task_id, resources
+            in resources_by_task.items()
+        }
+
+    @staticmethod
+    def _collect_resources(
+        items: Iterable[PlanningItem],
+    ) -> tuple[str, ...]:
+        """Agrège les initiales des ressources sans doublon."""
+        return tuple(
+            dict.fromkeys(
+                resource
+                for item in items
+                for resource in item.resources
+            )
+        )
+
+    @staticmethod
+    def _get_weighted_progress_percent(
+        items: Iterable[PlanningItem],
+    ) -> int:
+        """Calcule l'avancement pondéré par la charge planifiée."""
+        item_list = list(items)
+
+        total_workload = sum(
+            item.planned_workload_hours
+            for item in item_list
+        )
+
+        if total_workload <= 0:
+            return 0
+
+        weighted_progress = sum(
+            item.progress_percent
+            * item.planned_workload_hours
+            for item in item_list
+        )
+
+        return round(
+            weighted_progress / total_workload
+        )
+            
     # ------------------------------------------------------------------
     # Sélection
     # ------------------------------------------------------------------
@@ -703,6 +852,8 @@ class PlanningConsolidationService:
         *,
         period: PlanningPeriod,
         actual_hours: Decimal,
+        resources: tuple[str, ...],
+        progress_percent: int,
     ) -> PlanningItem:
 
         (
@@ -743,6 +894,8 @@ class PlanningConsolidationService:
                 project.planned_workload_hours
             ),
             actual_hours=actual_hours,
+            resources=resources,
+            progress_percent=progress_percent,
             gantt_left_percent=left,
             gantt_width_percent=width,
             realized_width_percent=(
@@ -759,6 +912,8 @@ class PlanningConsolidationService:
         *,
         period: PlanningPeriod,
         actual_hours: Decimal,
+        resources: tuple[str, ...],
+        progress_percent: int,
     ) -> PlanningItem:
 
         (
@@ -814,6 +969,8 @@ class PlanningConsolidationService:
                 work_package.planned_workload_hours
             ),
             actual_hours=actual_hours,
+            resources=resources,
+            progress_percent=progress_percent,
             gantt_left_percent=left,
             gantt_width_percent=width,
             realized_width_percent=(
@@ -830,8 +987,8 @@ class PlanningConsolidationService:
         *,
         period: PlanningPeriod,
         actual_hours: Decimal,
+        resources: tuple[str, ...],
     ) -> PlanningItem:
-
         (
             left,
             width,
@@ -873,6 +1030,8 @@ class PlanningConsolidationService:
                 task.planned_workload_hours
             ),
             actual_hours=actual_hours,
+            resources=resources,
+            progress_percent=task.progress_percent,
             gantt_left_percent=left,
             gantt_width_percent=width,
             realized_width_percent=(

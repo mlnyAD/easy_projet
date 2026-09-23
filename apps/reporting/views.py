@@ -29,6 +29,7 @@ from apps.reporting.forms import (
     ActivityReportEntryFormSet,
 )
 from apps.reporting.models import (
+    ActivityReport,
     ActivityReportEntry,
     ActivityReportProjectReview,
     ActivityReportProjectReviewStatus,
@@ -43,6 +44,7 @@ from apps.reporting.permissions import (
 from apps.projects.services.authorization import (
     ProjectAuthorizationService,
 )
+from apps.tasks.services import TaskWorkloadService
 
 
 # ======================================================================
@@ -415,6 +417,31 @@ class ActivityReportView(
 
         with transaction.atomic():
 
+            report = (
+                ActivityReport.objects
+                .select_for_update()
+                .select_related("status")
+                .get(pk=report.pk)
+            )
+
+            self._report = report
+
+            if report.status.code == "SUBMITTED":
+
+                messages.warning(
+                    request,
+                    (
+                        "Ce rapport a déjà été transmis "
+                        "et ne peut plus être modifié."
+                    ),
+                )
+
+                return redirect(
+                    self.get_report_url(
+                        report.period_start_date
+                    )
+                )
+
             formset.save()
 
             report.global_comment = (
@@ -507,6 +534,9 @@ class ActivityReportView(
                     "a été enregistré."
                 ),
             )
+
+        if action == "submit":
+            return redirect("home")
 
         return redirect(
             self.get_report_url(
@@ -721,6 +751,7 @@ class ActivityReportReviewListView(
         if status in {
             ActivityReportProjectReviewStatus.PENDING,
             ActivityReportProjectReviewStatus.VALIDATED,
+            ActivityReportProjectReviewStatus.IGNORED,
         }:
 
             queryset = queryset.filter(
@@ -767,6 +798,13 @@ class ActivityReportReviewListView(
         ] = (
             ActivityReportProjectReviewStatus
             .VALIDATED
+        )
+
+        context[
+            "ignored_status"
+        ] = (
+            ActivityReportProjectReviewStatus
+            .IGNORED
         )
 
         return context
@@ -1111,11 +1149,17 @@ class ActivityReportReviewDetailView(
             == ActivityReportProjectReviewStatus.VALIDATED
         )
 
+        is_ignored = (
+            self.object.status
+            == ActivityReportProjectReviewStatus.IGNORED
+        )
+
         user = self.request.user
         project = self.object.project
 
         can_validate = (
             not is_validated
+            and not is_ignored
             and can_validate_activity_report_project(
                 user,
                 project,
@@ -1146,6 +1190,7 @@ class ActivityReportReviewDetailView(
                 "is_validated": (
                     is_validated
                 ),
+                "is_ignored": is_ignored,
                 "can_validate": (
                     can_validate
                 ),
@@ -1170,7 +1215,10 @@ class ActivityReportReviewDetailView(
             "action"
         )
 
-        if action != "validate":
+        if action not in {
+            "validate",
+            "ignore",
+        }:
             raise Http404(
                 "Action inconnue."
             )
@@ -1181,13 +1229,13 @@ class ActivityReportReviewDetailView(
 
         if (
             self.object.status
-            == ActivityReportProjectReviewStatus.VALIDATED
+            != ActivityReportProjectReviewStatus.PENDING
         ):
 
             messages.warning(
                 request,
                 (
-                    "Ce rapport est déjà validé "
+                    "Ce rapport a déjà été traité "
                     "pour ce projet."
                 ),
             )
@@ -1209,10 +1257,7 @@ class ActivityReportReviewDetailView(
             project,
         ):
             raise Http404(
-                (
-                    "Vous n'êtes pas autorisé "
-                    "à valider ce projet."
-                )
+                "Vous n'êtes pas autorisé à traiter ce projet."
             )
 
         # --------------------------------------------------------------
@@ -1221,10 +1266,45 @@ class ActivityReportReviewDetailView(
 
         with transaction.atomic():
 
-            self.object.status = (
-                ActivityReportProjectReviewStatus
-                .VALIDATED
+            self.object = (
+                ActivityReportProjectReview.objects
+                .select_for_update()
+                .select_related("project")
+                .get(pk=self.object.pk)
             )
+
+            if (
+                self.object.status
+                != ActivityReportProjectReviewStatus.PENDING
+            ):
+                messages.warning(
+                    request,
+                    "Ce rapport a déjà été traité pour ce projet.",
+                )
+
+                return redirect(
+                    "reporting:review-detail",
+                    pk=self.object.pk,
+                )
+
+            if action == "validate":
+                self.object.status = (
+                    ActivityReportProjectReviewStatus
+                    .VALIDATED
+                )
+                message = (
+                    "Le rapport d'activité a été validé "
+                    "pour ce projet."
+                )
+            else:
+                self.object.status = (
+                    ActivityReportProjectReviewStatus
+                    .IGNORED
+                )
+                message = (
+                    "Le rapport d'activité a été ignoré "
+                    "pour ce projet."
+                )
 
             self.object.reviewed_by = (
                 user
@@ -1245,13 +1325,12 @@ class ActivityReportReviewDetailView(
                 ]
             )
 
-        messages.success(
-            request,
-            (
-                "Le rapport d'activité "
-                "a été validé pour ce projet."
-            ),
-        )
+            if action == "validate":
+                TaskWorkloadService.synchronize_project(
+                    project=project,
+                )
+
+        messages.success(request, message)
 
         return redirect(
             "reporting:review-detail",

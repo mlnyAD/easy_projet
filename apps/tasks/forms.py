@@ -6,6 +6,8 @@ Formulaires du domaine des tâches.
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from django import forms
 from django.db.models import Q
 
@@ -32,12 +34,43 @@ from .models import (
     TaskAssignment,
     TaskDependency,
 )
+from .services import TaskWorkloadService
 
+TASK_DATE_FORMAT = "%Y-%m-%d"
+
+TASK_DATE_FIELD_NAMES = (
+    "initial_start_date",
+    "initial_end_date",
+    "start_date",
+    "end_date",
+)
+
+
+def task_date_input() -> forms.DateInput:
+    return forms.DateInput(
+        format=TASK_DATE_FORMAT,
+        attrs={
+            "type": "date",
+        },
+    )
 
 class TaskForm(forms.ModelForm):
     """
     Formulaire de création et de modification d'une tâche.
     """
+
+    consumed_workload_hours = forms.DecimalField(
+        required=False,
+        disabled=True,
+        decimal_places=2,
+        label="Consommé (h)",
+        widget=forms.NumberInput(
+            attrs={
+                "step": "0.25",
+                "class": "ep-input",
+            }
+        ),
+    )
 
     status = CatalogModelChoiceField(
         queryset=CatalogValue.objects.none(),
@@ -101,26 +134,10 @@ class TaskForm(forms.ModelForm):
                     "data-trim": True,
                 }
             ),
-            "initial_start_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "initial_end_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "start_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
-            "end_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                }
-            ),
+            "initial_start_date": task_date_input(),
+            "initial_end_date": task_date_input(),
+            "start_date": task_date_input(),
+            "end_date": task_date_input(),
             "planned_workload_hours": forms.NumberInput(
                 attrs={
                     "min": 0,
@@ -131,8 +148,8 @@ class TaskForm(forms.ModelForm):
             "remaining_workload_hours": forms.NumberInput(
                 attrs={
                     "min": 0,
-                    "step": 1,
-                    "inputmode": "numeric",
+                    "step": "0.25",
+                    "inputmode": "decimal",
                 }
             ),
             "progress_percent": forms.NumberInput(
@@ -152,8 +169,51 @@ class TaskForm(forms.ModelForm):
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
+        
+        for field_name in TASK_DATE_FIELD_NAMES:
+            self.fields[field_name].input_formats = [
+                TASK_DATE_FORMAT,
+            ]
 
         self.fields["code"].required = False
+
+        self.fields["consumed_workload_hours"].help_text = (
+            "Calculé à partir des rapports d'activité validés."
+        )
+
+        if self.instance.remaining_workload_hours_is_manual:
+            self.fields["remaining_workload_hours"].help_text = (
+                "Valeur corrigée manuellement."
+            )
+        else:
+            self.fields["remaining_workload_hours"].help_text = (
+                "Calculé automatiquement à partir du consommé."
+            )
+
+        if self.instance.progress_percent_is_manual:
+            self.fields["progress_percent"].help_text = (
+                "Valeur corrigée manuellement."
+            )
+        else:
+            self.fields["progress_percent"].help_text = (
+                "Calculé automatiquement à partir du consommé."
+            )
+
+        if self.instance.pk:
+            consumed_hours = (
+                TaskWorkloadService
+                .get_consumed_hours_by_task(
+                    task_ids=(self.instance.pk,)
+                )
+                .get(
+                    self.instance.pk,
+                    Decimal("0.00"),
+                )
+            )
+
+            self.initial["consumed_workload_hours"] = (
+                consumed_hours
+            )
 
         if user is None:
             self.fields["work_package"].queryset = (
@@ -195,8 +255,60 @@ class TaskForm(forms.ModelForm):
             catalog_code="TASK_STATUS",
         )
 
-        if not self.is_bound and not self.instance.pk:
+        if (
+            not self.is_bound
+            and self.instance._state.adding
+        ):
             self._apply_catalog_default("status")
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        planned_hours = cleaned_data.get(
+            "planned_workload_hours"
+        )
+
+        if planned_hours is None:
+            return cleaned_data
+
+        if self.instance._state.adding:
+            if (
+                "remaining_workload_hours"
+                not in self.changed_data
+            ):
+                cleaned_data[
+                    "remaining_workload_hours"
+                ] = Decimal(planned_hours)
+            else:
+                self.instance.remaining_workload_hours_is_manual = (
+                    True
+                )
+
+            if "progress_percent" in self.changed_data:
+                self.instance.progress_percent_is_manual = True
+
+            return cleaned_data
+
+        if "remaining_workload_hours" in self.changed_data:
+            self.instance.remaining_workload_hours_is_manual = True
+
+        if "progress_percent" in self.changed_data:
+            self.instance.progress_percent_is_manual = True
+
+        return cleaned_data
+
+    def save(
+        self,
+        commit=True,
+    ) -> Task:
+        task = super().save(commit=commit)
+
+        if commit:
+            TaskWorkloadService.synchronize_tasks(
+                task_ids=(task.pk,)
+            )
+
+        return task
 
     def _configure_catalog_field(
         self,
@@ -258,9 +370,16 @@ class TaskForm(forms.ModelForm):
             .first()
         )
 
-        if default_value is not None:
-            self.initial[field_name] = default_value.pk
+        if default_value is None:
+            return
 
+        self.fields[field_name].initial = (
+            default_value.pk
+        )
+
+        self.initial[field_name] = (
+            default_value.pk
+        )
 
 class TaskAssignmentForm(forms.ModelForm):
     """
@@ -353,7 +472,7 @@ class TaskAssignmentForm(forms.ModelForm):
         self.fields["role"].catalog_is_editable = False
         self.fields["role"].catalog_is_incremental = False
 
-        if not self.is_bound and not self.instance.pk:
+        if not self.is_bound and self.instance._state.adding:
             default_value = (
                 self.fields["role"]
                 .queryset
@@ -492,7 +611,7 @@ class TaskDependencyForm(forms.ModelForm):
 
         if (
             not self.is_bound
-            and not self.instance.pk
+            and self.instance._state.adding
         ):
             self.initial["dependency_type"] = (
                 TaskDependency
