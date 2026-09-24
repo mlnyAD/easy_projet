@@ -35,14 +35,6 @@ Ainsi, une erreur de saisie se corrige normalement sans devoir supprimer la tâc
 
 
 ### Planning
-Faire du Master/détail quand c'est possible
-tous les projets
-  tous les lots
-    toutes les âches
-Rendre les barres de tâche sélectionnables
-
-
-
 
 ### Documents
 Fonction de recherche des orphelins 
@@ -57,6 +49,14 @@ Sans l'implémenter maintenant on pourrait aussi mettre un batch qui au démarra
 
 
 ### CSS
+
+### Réunions
+Mettre le champ Projet en 1/2 ligne et à côté le champ objet en 1/2 ligne
+Organisateur : ne proposer que les utiliateurs de la société
+Participants : ne proposer que les utiliateurs de la société
+Envoyer une notification aux particpants internes
+Envoyer un mail aux participants externes
+Ajouter les réunions dans le Planning - Calendrier
 
 
 ### Ergonomie
@@ -87,7 +87,6 @@ Quand un RA est à traiter par le CP, il faudrait le notifier avec le compteur d
 
 
 ### Contacts
-
 Liste : réduire la hauteur des lignes pour avoir une page entière à l'écran
 
 ### Formulaires

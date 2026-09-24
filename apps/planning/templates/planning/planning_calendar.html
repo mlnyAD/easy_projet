@@ -316,6 +316,13 @@
                                                     color: #1E40AF;
                                                 "
 
+                                            {% elif event.object_type == "meeting" %}
+                                                style="
+                                                    border-color: #7C3AED;
+                                                    background-color: #F3E8FF;
+                                                    color: #5B21B6;
+                                                "
+
                                             {% else %}
                                                 style="
                                                     border-color: #93C5FD;
@@ -434,6 +441,25 @@
 
             <span>
                 Tâche
+            </span>
+
+        </div>
+
+
+        <div class="flex items-center gap-2">
+
+            <span
+                class="inline-block rounded-sm"
+                style="
+                    width: 18px;
+                    height: 12px;
+                    background-color: #F3E8FF;
+                    border: 1px solid #7C3AED;
+                "
+            ></span>
+
+            <span>
+                Réunion
             </span>
 
         </div>

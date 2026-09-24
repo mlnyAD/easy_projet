@@ -8,9 +8,12 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.http import JsonResponse
+from django.core.exceptions import PermissionDenied
+from django.views import View
 from django.views.generic import ListView
 
-from apps.projects.models import Project
+from apps.projects.models import Project, ProjectMembership
 from apps.projects.services.access import (
     ProjectAccessService,
 )
@@ -26,6 +29,7 @@ from framework.integrations.django.views import (
 )
 from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
+from apps.users.models import User
 
 from .form_definition import MEETING_FORM_DEFINITION
 from .forms import (
@@ -35,6 +39,10 @@ from .forms import (
 )
 from .lists import MEETING_LIST_DEFINITION
 from .models import Meeting
+from .services.invitations import (
+    MeetingInvitationError,
+    MeetingInvitationService,
+)
 
 
 def get_allowed_return_url(
@@ -274,6 +282,7 @@ class MeetingCompositeFormMixin:
         *,
         data=None,
         instance=None,
+        project=None,
     ):
         if instance is None:
             instance = self.object
@@ -282,6 +291,8 @@ class MeetingCompositeFormMixin:
             data=data,
             instance=instance,
             prefix="internal",
+            project=project,
+            form_kwargs={"project": project},
         )
 
     def get_external_formset(
@@ -316,6 +327,9 @@ class MeetingCompositeFormMixin:
             return context["formsets"]
 
         instance = django_form.instance
+        project = self._get_form_project(
+            django_form=django_form,
+        )
 
         data = (
             self.request.POST
@@ -327,6 +341,7 @@ class MeetingCompositeFormMixin:
             "internal": self.get_internal_formset(
                 data=data,
                 instance=instance,
+                project=project,
             ),
             "external": self.get_external_formset(
                 data=data,
@@ -334,12 +349,34 @@ class MeetingCompositeFormMixin:
             ),
         }
 
+    @staticmethod
+    def _get_form_project(*, django_form):
+        if django_form.is_bound:
+            project_id = django_form.data.get(
+                django_form.add_prefix("project")
+            )
+            return django_form.fields["project"].queryset.filter(
+                pk=project_id,
+            ).first()
+
+        if django_form.instance.project_id:
+            return django_form.instance.project
+
+        project_id = django_form.initial.get("project")
+
+        return django_form.fields["project"].queryset.filter(
+            pk=project_id,
+        ).first()
+
     def form_valid(self, form):
         instance = form.instance
+        project = form.cleaned_data["project"]
+        meeting_changed = form.has_changed()
 
         internal_formset = self.get_internal_formset(
             data=self.request.POST,
             instance=instance,
+            project=project,
         )
         external_formset = self.get_external_formset(
             data=self.request.POST,
@@ -369,6 +406,26 @@ class MeetingCompositeFormMixin:
             internal_formset.save()
             external_formset.save()
 
+            if (
+                self.object.invitations_sent_at is not None
+                and (
+                    meeting_changed
+                    or internal_formset.has_changed()
+                    or external_formset.has_changed()
+                )
+            ):
+                self.object.invitations_sent_at = None
+                self.object.save(
+                    update_fields=[
+                        "invitations_sent_at",
+                        "updated_at",
+                    ]
+                )
+                messages.info(
+                    self.request,
+                    "Les invitations devront être envoyées à nouveau.",
+                )
+
         if self.success_message:
             messages.success(
                 self.request,
@@ -378,6 +435,28 @@ class MeetingCompositeFormMixin:
         return redirect(
             self.get_success_url()
         )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        meeting = getattr(self, "object", None)
+
+        if meeting is None or meeting.pk is None:
+            context["can_send_invitations"] = False
+            context["meeting_invitation_url"] = None
+            return context
+
+        can_send = ProjectAuthorizationService.can_work_on_project(
+            user=self.request.user,
+            project=meeting.project,
+        )
+
+        context["can_send_invitations"] = can_send
+        context["meeting_invitation_url"] = reverse(
+            "meetings:send-invitations",
+            kwargs={"pk": meeting.pk},
+        )
+
+        return context
 
 
 class MeetingCreateView(
@@ -392,7 +471,7 @@ class MeetingCreateView(
     model = Meeting
     form_class = MeetingForm
     definition = MEETING_FORM_DEFINITION
-    template_name = "edf/form/view.html"
+    template_name = "meetings/meeting_form.html"
 
     success_message = (
         "La réunion a été créée avec succès."
@@ -442,7 +521,7 @@ class MeetingUpdateView(
     model = Meeting
     form_class = MeetingForm
     definition = MEETING_FORM_DEFINITION
-    template_name = "edf/form/view.html"
+    template_name = "meetings/meeting_form.html"
 
     success_message = (
         "La réunion a été modifiée avec succès."
@@ -481,5 +560,94 @@ class MeetingUpdateView(
             .can_work_on_project(
                 user=self.request.user,
                 project=self.object.project,
+            )
+        )
+
+
+class MeetingProjectUsersView(View):
+    """Retourne les choix dépendant du projet du formulaire."""
+
+    def get(self, request):
+        project = get_object_or_404(
+            ProjectAuthorizationService.get_workable_projects(request.user),
+            pk=request.GET.get("project"),
+            is_active=True,
+        )
+
+        organizers = User.objects.filter(
+            company_id=project.company_id,
+            is_active=True,
+        ).order_by("last_name", "first_name")
+
+        participant_ids = ProjectMembership.objects.filter(
+            project=project,
+            is_active=True,
+            user__is_active=True,
+        ).values_list("user_id", flat=True)
+
+        participants = User.objects.filter(
+            pk__in=participant_ids,
+            is_active=True,
+        ).order_by("last_name", "first_name")
+
+        return JsonResponse(
+            {
+                "organizers": [
+                    {"id": str(user.pk), "label": str(user)}
+                    for user in organizers
+                ],
+                "participants": [
+                    {"id": str(user.pk), "label": str(user)}
+                    for user in participants
+                ],
+            }
+        )
+
+
+class MeetingSendInvitationsView(View):
+    """Déclenche volontairement l'envoi des invitations."""
+
+    def post(self, request, *, pk):
+        meeting = get_object_or_404(
+            Meeting.objects.select_related("project"),
+            pk=pk,
+            project__in=ProjectAccessService.get_accessible_projects(
+                request.user
+            ),
+        )
+
+        if not ProjectAuthorizationService.can_work_on_project(
+            user=request.user,
+            project=meeting.project,
+        ):
+            raise PermissionDenied
+
+        try:
+            result = MeetingInvitationService.send(
+                meeting=meeting,
+                author=request.user,
+            )
+        except MeetingInvitationError as error:
+            messages.error(request, str(error))
+        else:
+            if result.email_failed:
+                messages.warning(
+                    request,
+                    "La notification interne a été créée, mais "
+                    "l'envoi des emails externes a échoué.",
+                )
+            else:
+                messages.success(
+                    request,
+                    "Les invitations ont été envoyées.",
+                )
+
+        return redirect(
+            get_allowed_return_url(
+                request,
+                default_url=reverse(
+                    "meetings:update",
+                    kwargs={"pk": meeting.pk},
+                ),
             )
         )

@@ -8,6 +8,7 @@ from collections.abc import (
 )
 
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import transaction
 
 from apps.communications.models import (
@@ -55,6 +56,7 @@ class CommunicationService:
         external_recipients: Iterable[
             ProjectExternalParticipant
         ] = (),
+        direct_email_recipients: Iterable[str] = (),
         subject: str = "",
         recipient_purposes: Mapping[
             str,
@@ -94,6 +96,10 @@ class CommunicationService:
             )
         )
 
+        direct_email_list = cls._unique_email_addresses(
+            direct_email_recipients
+        )
+
         cls._validate_body(
             body
         )
@@ -101,6 +107,7 @@ class CommunicationService:
         cls._validate_at_least_one_recipient(
             internal_recipients=internal_list,
             external_recipients=external_list,
+            direct_email_recipients=direct_email_list,
         )
 
         if internal_list:
@@ -147,6 +154,12 @@ class CommunicationService:
             recipient_purposes=(
                 recipient_purposes
             ),
+        )
+
+        cls._create_direct_email_distributions(
+            message=message,
+            recipients=direct_email_list,
+            recipient_purposes=recipient_purposes,
         )
 
         return message
@@ -322,6 +335,31 @@ class CommunicationService:
             distribution.full_clean()
             distribution.save()
 
+    @classmethod
+    def _create_direct_email_distributions(
+        cls,
+        *,
+        message: CommunicationMessage,
+        recipients: list[str],
+        recipient_purposes: Mapping[str, str] | None,
+    ) -> None:
+        """Crée les distributions email sans intervenant projet."""
+
+        for recipient in recipients:
+            distribution = CommunicationMessageRecipient(
+                message=message,
+                destination_email=recipient,
+                purpose=cls._get_recipient_purpose(
+                    recipient_id=recipient,
+                    recipient_purposes=recipient_purposes,
+                ),
+                channel=(
+                    CommunicationMessageRecipient.Channel.EMAIL
+                ),
+            )
+            distribution.full_clean()
+            distribution.save()
+
     # ==================================================================
     # Validation
     # ==================================================================
@@ -363,6 +401,7 @@ class CommunicationService:
         external_recipients: list[
             ProjectExternalParticipant
         ],
+        direct_email_recipients: list[str],
     ) -> None:
         """
         Une communication doit posséder au moins
@@ -372,6 +411,7 @@ class CommunicationService:
         if (
             not internal_recipients
             and not external_recipients
+            and not direct_email_recipients
         ):
             raise ValidationError(
                 {
@@ -602,5 +642,35 @@ class CommunicationService:
             result.append(
                 recipient
             )
+
+        return result
+
+    @staticmethod
+    def _unique_email_addresses(
+        recipients: Iterable[str],
+    ) -> list[str]:
+        """Normalise et dédoublonne des adresses email directes."""
+
+        result = []
+        seen = set()
+
+        for value in recipients:
+            email = (value or "").strip().lower()
+
+            if not email:
+                continue
+
+            try:
+                validate_email(email)
+            except ValidationError as error:
+                raise ValidationError(
+                    {"recipients": "Une adresse email est invalide."}
+                ) from error
+
+            if email in seen:
+                continue
+
+            seen.add(email)
+            result.append(email)
 
         return result

@@ -8,6 +8,7 @@ from datetime import date
 from typing import Iterable
 
 from apps.projects.models import Project
+from apps.meetings.models import Meeting
 from apps.tasks.models import Task
 from apps.work.models import WorkPackage
 
@@ -109,6 +110,8 @@ class PlanningCalendarService:
 
     EVENT_TASK_START = "task_start"
     EVENT_TASK_END = "task_end"
+
+    EVENT_MEETING = "meeting"
 
     MONTH_NAMES = (
         "",
@@ -260,6 +263,27 @@ class PlanningCalendarService:
                     date_from=date_from,
                     date_to=date_to,
                 )
+            )
+
+        meetings = (
+            Meeting.objects
+            .filter(
+                project_id__in=project_ids,
+                is_active=True,
+                scheduled_at__date__gte=date_from,
+                scheduled_at__date__lte=date_to,
+            )
+            .select_related("project")
+            .order_by(
+                "scheduled_at",
+                "project__reference",
+                "reference",
+            )
+        )
+
+        for meeting in meetings:
+            events.append(
+                self._build_meeting_event(meeting=meeting)
             )
 
         if not project_ids:
@@ -414,6 +438,19 @@ class PlanningCalendarService:
                 result.append(
                     current_project
                 )
+                continue
+
+            if (
+                Meeting.objects
+                .filter(
+                    project=current_project,
+                    is_active=True,
+                    scheduled_at__date__gte=date_from,
+                    scheduled_at__date__lte=date_to,
+                )
+                .exists()
+            ):
+                result.append(current_project)
 
         return result
 
@@ -571,6 +608,27 @@ class PlanningCalendarService:
         )
 
         return events
+
+    def _build_meeting_event(
+        self,
+        *,
+        meeting: Meeting,
+    ) -> PlanningCalendarEvent:
+        scheduled_at = meeting.scheduled_at
+
+        return PlanningCalendarEvent(
+            event_type=self.EVENT_MEETING,
+            object_type="meeting",
+            object_id=str(meeting.pk),
+            title=f"Réunion — {meeting.reference}",
+            subtitle=(
+                f"{scheduled_at:%H:%M} — {meeting.subject}"
+            ),
+            event_date=scheduled_at.date(),
+            project_id=str(meeting.project.pk),
+            project_reference=meeting.project.reference,
+            project_name=meeting.project.name,
+        )
 
     def _append_event(
         self,

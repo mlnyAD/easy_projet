@@ -10,7 +10,7 @@ from django.forms import (
 )
 
 from apps.catalogs.models import CatalogValue
-from apps.projects.models import Project
+from apps.projects.models import Project, ProjectMembership
 from apps.projects.services.authorization import (
     ProjectAuthorizationService,
 )
@@ -204,15 +204,20 @@ class MeetingForm(forms.ModelForm):
                 )
             )
 
-        self.fields["organizer"].queryset = (
-            User.objects
-            .filter(is_active=True)
-            .select_related("company")
-            .order_by(
-                "last_name",
-                "first_name",
+        selected_project = self._get_selected_project()
+
+        if selected_project is None:
+            self.fields["organizer"].queryset = User.objects.none()
+        else:
+            self.fields["organizer"].queryset = (
+                User.objects
+                .filter(
+                    is_active=True,
+                    company_id=selected_project.company_id,
+                )
+                .select_related("company")
+                .order_by("last_name", "first_name")
             )
-        )
 
         self._configure_catalog_field(
             field_name="status",
@@ -223,6 +228,43 @@ class MeetingForm(forms.ModelForm):
             self._apply_catalog_default(
                 "status"
             )
+
+    def _get_selected_project(self):
+        project_id = None
+
+        if self.is_bound:
+            project_id = self.data.get(
+                self.add_prefix("project")
+            )
+        elif self.instance.project_id:
+            project_id = self.instance.project_id
+        else:
+            project_id = self.initial.get("project")
+
+        if not project_id:
+            return None
+
+        return self.fields["project"].queryset.filter(
+            pk=project_id,
+        ).first()
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        project = cleaned_data.get("project")
+        organizer = cleaned_data.get("organizer")
+
+        if (
+            project is not None
+            and organizer is not None
+            and organizer.company_id != project.company_id
+        ):
+            self.add_error(
+                "organizer",
+                "L'organisateur doit appartenir à la société du projet.",
+            )
+
+        return cleaned_data
             
     def _configure_catalog_field(
         self,
@@ -315,6 +357,7 @@ class InternalMeetingParticipantForm(
     def __init__(
         self,
         *args,
+        project=None,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -330,20 +373,25 @@ class InternalMeetingParticipantForm(
             "participant"
         ].label = "Participant"
 
-        self.fields[
-            "participant"
-        ].queryset = (
-            User.objects
+        if project is None:
+            self.fields["participant"].queryset = User.objects.none()
+            return
+
+        member_ids = (
+            ProjectMembership.objects
             .filter(
-                is_active=True
+                project=project,
+                is_active=True,
+                user__is_active=True,
             )
-            .select_related(
-                "company"
-            )
-            .order_by(
-                "last_name",
-                "first_name",
-            )
+            .values_list("user_id", flat=True)
+        )
+
+        self.fields["participant"].queryset = (
+            User.objects
+            .filter(pk__in=member_ids)
+            .select_related("company")
+            .order_by("last_name", "first_name")
         )
 
 
@@ -413,6 +461,10 @@ class InternalParticipantFormSet(
     Formset des participants internes.
     """
 
+    def __init__(self, *args, project=None, **kwargs):
+        self.project = project
+        super().__init__(*args, **kwargs)
+
     def get_queryset(self):
         return (
             super()
@@ -461,6 +513,28 @@ class InternalParticipantFormSet(
 
             participant_ids.add(
                 participant.pk
+            )
+
+        if self.project is None:
+            raise forms.ValidationError(
+                "Le projet de la réunion doit être renseigné."
+            )
+
+        valid_participant_ids = set(
+            ProjectMembership.objects
+            .filter(
+                project=self.project,
+                is_active=True,
+                user__is_active=True,
+                user_id__in=participant_ids,
+            )
+            .values_list("user_id", flat=True)
+        )
+
+        if participant_ids != valid_participant_ids:
+            raise forms.ValidationError(
+                "Les participants internes doivent être "
+                "des utilisateurs actifs rattachés au projet."
             )
 
 

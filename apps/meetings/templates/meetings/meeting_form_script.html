@@ -1,0 +1,82 @@
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const projectField = document.getElementById("id_project");
+        const organizerField = document.getElementById("id_organizer");
+
+        if (!projectField || !organizerField) {
+            return;
+        }
+
+        const endpoint = "{% url 'meetings:project-users' %}";
+
+        function replaceOptions(field, choices) {
+            if (!field) {
+                return;
+            }
+
+            const selectedValue = field.value;
+            field.replaceChildren();
+            field.add(new Option("---------", ""));
+
+            choices.forEach(function (choice) {
+                field.add(new Option(choice.label, choice.id));
+            });
+
+            field.value = choices.some(function (choice) {
+                return choice.id === selectedValue;
+            }) ? selectedValue : "";
+        }
+
+        function updateChoices(payload) {
+            replaceOptions(organizerField, payload.organizers);
+
+            document
+                .querySelectorAll('select[name$="-participant"]')
+                .forEach(function (field) {
+                    replaceOptions(field, payload.participants);
+                });
+        }
+
+        async function loadProjectUsers() {
+            if (!projectField.value) {
+                updateChoices({organizers: [], participants: []});
+                return;
+            }
+
+            const response = await fetch(
+                endpoint + "?project=" + encodeURIComponent(projectField.value),
+                {headers: {"X-Requested-With": "XMLHttpRequest"}}
+            );
+
+            if (!response.ok) {
+                return;
+            }
+
+            updateChoices(await response.json());
+        }
+
+        projectField.addEventListener("change", loadProjectUsers);
+
+        const observer = new MutationObserver(function (records) {
+            const participantAdded = records.some(function (record) {
+                return Array.from(record.addedNodes).some(function (node) {
+                    return (
+                        node.nodeType === Node.ELEMENT_NODE
+                        && node.querySelector(
+                            'select[name$="-participant"]'
+                        )
+                    );
+                });
+            });
+
+            if (participantAdded && projectField.value) {
+                loadProjectUsers();
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+    });
+</script>

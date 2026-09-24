@@ -407,6 +407,9 @@
   .mt-auto {
     margin-top: auto;
   }
+  .mr-1 {
+    margin-right: var(--spacing);
+  }
   .mr-2 {
     margin-right: calc(var(--spacing) * 2);
   }
@@ -604,6 +607,9 @@
   }
   .min-w-24 {
     min-width: calc(var(--spacing) * 24);
+  }
+  .min-w-36 {
+    min-width: calc(var(--spacing) * 36);
   }
   .min-w-48 {
     min-width: calc(var(--spacing) * 48);
@@ -885,6 +891,12 @@
   .bg-axcio-page {
     background-color: var(--color-axcio-page);
   }
+  .bg-axcio-page\/70 {
+    background-color: color-mix(in srgb, #F3F4F6 70%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-axcio-page) 70%, transparent);
+    }
+  }
   .bg-axcio-surface {
     background-color: var(--color-axcio-surface);
   }
@@ -1008,9 +1020,6 @@
   .pl-10 {
     padding-left: calc(var(--spacing) * 10);
   }
-  .pl-12 {
-    padding-left: calc(var(--spacing) * 12);
-  }
   .text-center {
     text-align: center;
   }
@@ -1057,6 +1066,10 @@
   .leading-4 {
     --tw-leading: calc(var(--spacing) * 4);
     line-height: calc(var(--spacing) * 4);
+  }
+  .leading-none {
+    --tw-leading: 1;
+    line-height: 1;
   }
   .font-medium {
     --tw-font-weight: var(--font-weight-medium);
@@ -1356,6 +1369,12 @@
   }
   .dark\:bg-axcio-page-dark:where(.dark, .dark *) {
     background-color: var(--color-axcio-page-dark);
+  }
+  .dark\:bg-axcio-page-dark\/70:where(.dark, .dark *) {
+    background-color: color-mix(in srgb, #0A0A0A 70%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-axcio-page-dark) 70%, transparent);
+    }
   }
   .dark\:bg-axcio-surface-alt-dark:where(.dark, .dark *) {
     background-color: var(--color-axcio-surface-alt-dark);

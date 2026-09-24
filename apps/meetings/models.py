@@ -167,6 +167,18 @@ class Meeting(TimeStampedModel):
         verbose_name="Réunion active",
     )
 
+    invitations_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Invitations envoyées le",
+    )
+
+    @property
+    def invitations_sent(self) -> bool:
+        """Indique si la version courante a été invitée."""
+
+        return self.invitations_sent_at is not None
+
     # ------------------------------------------------------------------
     # Validation
     # ------------------------------------------------------------------

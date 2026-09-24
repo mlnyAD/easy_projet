@@ -1,5 +1,3 @@
-
-
 from framework.form import (
     FieldDefinition,
     FormCollectionColumnDefinition,
@@ -17,33 +15,18 @@ MEETING_FORM_DEFINITION = FormDefinition(
         SectionDefinition(
             title="Identification",
             fields=[
-                FieldDefinition(
-                    name="project",
-                    width=FieldWidth.FULL,
-                ),
-                FieldDefinition(
-                    name="organizer",
-                ),
-                FieldDefinition(
-                    name="status",
-                ),
-                FieldDefinition(
-                    name="reference",
-                ),
-                FieldDefinition(
-                    name="subject",
-                ),
+                FieldDefinition(name="project"),
+                FieldDefinition(name="subject"),
+                FieldDefinition(name="organizer"),
+                FieldDefinition(name="status"),
+                FieldDefinition(name="reference"),
             ],
         ),
         SectionDefinition(
             title="Organisation",
             fields=[
-                FieldDefinition(
-                    name="scheduled_at",
-                ),
-                FieldDefinition(
-                    name="duration_hours",
-                ),
+                FieldDefinition(name="scheduled_at"),
+                FieldDefinition(name="duration_hours"),
                 FieldDefinition(
                     name="location",
                     width=FieldWidth.FULL,
@@ -85,7 +68,7 @@ MEETING_FORM_DEFINITION = FormDefinition(
             name="internal",
             title="Participants internes",
             description=(
-                "Utilisateurs disposant d'un compte Easy Projet."
+                "Utilisateurs actifs rattachés au projet."
             ),
             columns=(
                 FormCollectionColumnDefinition(
@@ -103,7 +86,7 @@ MEETING_FORM_DEFINITION = FormDefinition(
             name="external",
             title="Participants externes",
             description=(
-                "Personnes ne disposant pas d'un compte Easy Projet."
+                "Personnes sans accès au projet, invitées par email."
             ),
             columns=(
                 FormCollectionColumnDefinition(

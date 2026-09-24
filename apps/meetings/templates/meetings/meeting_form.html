@@ -1,0 +1,55 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+        novalidate
+        class="ep-form"
+    >
+        {% csrf_token %}
+
+        {% include "edf/form/header.html" %}
+        {% include "edf/form/messages.html" %}
+
+        {% if can_send_invitations %}
+            <div class="mb-4 flex items-center justify-between gap-3 rounded-lg border border-axcio-border-light bg-axcio-surface-alt px-4 py-3 dark:border-axcio-border-dark dark:bg-axcio-surface-alt-dark">
+                <span class="text-sm text-axcio-text-secondary dark:text-axcio-text-secondary-dark">
+                    {% if object.invitations_sent %}
+                        Invitations faites le {{ object.invitations_sent_at|date:"d/m/Y à H:i" }}.
+                    {% else %}
+                        Invitations non envoyées.
+                    {% endif %}
+                </span>
+
+                <button
+                    type="submit"
+                    formmethod="post"
+                    formaction="{{ meeting_invitation_url }}"
+                    class="ep-button ep-button-secondary"
+                    title="Envoie la version enregistrée de la réunion"
+                >
+                    <i data-lucide="send" aria-hidden="true"></i>
+                    Envoyer les invitations
+                </button>
+            </div>
+        {% endif %}
+
+        {% include "edf/form/sections.html" %}
+
+        {% if form_view.collections %}
+            <div class="ep-form-collections">
+                {% for collection in form_view.collections %}
+                    {% include "edf/form/collection.html" %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% include "edf/form/actions.html" %}
+    </form>
+
+    {% include "edf/catalogs/incremental_dialog.html" %}
+    {% include "meetings/meeting_form_script.html" %}
+
+{% endblock %}

@@ -1,11 +1,10 @@
-
-
 from __future__ import annotations
 
 from django.conf import settings
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.utils import timezone
+from django.utils.html import escape
 
 from apps.communications.models import (
     CommunicationMessage,
@@ -14,34 +13,10 @@ from apps.communications.models import (
 
 
 class CommunicationEmailService:
-    """
-    Distribution email des communications Easy Projet.
-
-    Un message Easy Projet donne lieu à un email groupé :
-
-    - les destinataires "Pour action" sont placés en To ;
-    - les destinataires "Pour information" sont placés en Cc.
-
-    Le service traite uniquement les distributions EMAIL
-    encore à l'état PENDING.
-    """
+    """Distribution des communications Easy Projet par email."""
 
     @classmethod
-    def send_pending_message(
-        cls,
-        *,
-        message_id,
-    ) -> bool:
-        """
-        Distribue les destinataires EMAIL en attente
-        d'une communication.
-
-        Retourne True si l'envoi a été effectué avec succès.
-
-        Retourne False lorsqu'il n'existe rien à envoyer
-        ou lorsque l'envoi échoue.
-        """
-
+    def send_pending_message(cls, *, message_id) -> bool:
         message = (
             CommunicationMessage.objects
             .select_related(
@@ -54,28 +29,14 @@ class CommunicationEmailService:
                 "recipients",
                 "recipients__external_participant",
             )
-            .get(
-                pk=message_id,
-            )
+            .get(pk=message_id)
         )
 
         distributions = list(
-            message.recipients
-            .filter(
-                channel=(
-                    CommunicationMessageRecipient
-                    .Channel
-                    .EMAIL
-                ),
-                status=(
-                    CommunicationMessageRecipient
-                    .Status
-                    .PENDING
-                ),
-            )
-            .order_by(
-                "created_at",
-            )
+            message.recipients.filter(
+                channel=CommunicationMessageRecipient.Channel.EMAIL,
+                status=CommunicationMessageRecipient.Status.PENDING,
+            ).order_by("created_at")
         )
 
         if not distributions:
@@ -83,315 +44,143 @@ class CommunicationEmailService:
 
         to_addresses = cls._build_addresses(
             distributions=distributions,
-            purpose=(
-                CommunicationMessageRecipient
-                .Purpose
-                .ACTION
-            ),
+            purpose=CommunicationMessageRecipient.Purpose.ACTION,
         )
-
         cc_addresses = cls._build_addresses(
             distributions=distributions,
-            purpose=(
-                CommunicationMessageRecipient
-                .Purpose
-                .INFORMATION
-            ),
+            purpose=CommunicationMessageRecipient.Purpose.INFORMATION,
         )
 
-        if (
-            not to_addresses
-            and not cc_addresses
-        ):
+        if not to_addresses and not cc_addresses:
             cls._mark_failed(
                 distributions=distributions,
-                error=(
-                    "Aucune adresse email "
-                    "de destination valide."
-                ),
+                error="Aucune adresse email de destination valide.",
             )
-
             return False
 
-        email = EmailMessage(
-            subject=cls._build_subject(
-                message=message,
-            ),
-            body=cls._build_body(
-                message=message,
-            ),
+        email = EmailMultiAlternatives(
+            subject=cls._build_subject(message=message),
+            body=cls._build_body(message=message),
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=to_addresses,
             cc=cc_addresses,
         )
+        email.attach_alternative(
+            cls._build_html_body(message=message),
+            "text/html",
+        )
 
-        if (
-            message.author
-            and message.author.email
-        ):
-            email.reply_to = [
-                message.author.email,
-            ]
+        if message.author and message.author.email:
+            email.reply_to = [message.author.email]
 
         try:
-            cls._attach_files(
-                email=email,
-                message=message,
-            )
-
-            sent_count = email.send(
-                fail_silently=False,
-            )
+            cls._attach_files(email=email, message=message)
+            sent_count = email.send(fail_silently=False)
 
             if sent_count != 1:
                 cls._mark_failed(
                     distributions=distributions,
                     error=(
-                        "Le serveur de messagerie "
-                        "n'a pas confirmé l'envoi."
+                        "Le serveur de messagerie n'a pas confirmé "
+                        "l'envoi."
                     ),
                 )
-
                 return False
-
         except Exception as error:
             cls._mark_failed(
                 distributions=distributions,
                 error=str(error),
             )
-
             return False
 
-        cls._mark_sent(
-            distributions=distributions,
-        )
-
+        cls._mark_sent(distributions=distributions)
         return True
 
     @staticmethod
-    def _build_addresses(
-        *,
-        distributions: list[
-            CommunicationMessageRecipient
-        ],
-        purpose: str,
-    ) -> list[str]:
-        """
-        Retourne les adresses correspondant
-        au type de diffusion demandé.
-
-        Les doublons sont supprimés tout en
-        conservant l'ordre initial.
-        """
-
+    def _build_addresses(*, distributions, purpose: str) -> list[str]:
         addresses = []
         seen = set()
 
         for distribution in distributions:
-
             if distribution.purpose != purpose:
                 continue
 
-            email = (
-                distribution.destination_email
-                or ""
-            ).strip().lower()
+            email = (distribution.destination_email or "").strip().lower()
 
-            if not email:
+            if not email or email in seen:
                 continue
 
-            if email in seen:
-                continue
-
-            seen.add(
-                email
-            )
-
-            addresses.append(
-                email
-            )
+            seen.add(email)
+            addresses.append(email)
 
         return addresses
 
     @staticmethod
-    def _build_subject(
-        *,
-        message: CommunicationMessage,
-    ) -> str:
-        """
-        Construit l'objet du mail.
+    def _build_subject(*, message: CommunicationMessage) -> str:
+        project = message.conversation.project
+        subject = (message.subject or "Communication projet").strip()
+        return f"[{project.reference}] {subject}"
 
-        La référence projet permet le classement
-        et la recherche dans les logiciels de messagerie.
-        """
+    @staticmethod
+    def _build_body(*, message: CommunicationMessage) -> str:
+        return (message.body or "").strip()
 
-        project = (
-            message.conversation.project
-        )
+    @classmethod
+    def _build_html_body(cls, *, message: CommunicationMessage) -> str:
+        """Conserve les retours à la ligne dans les clients HTML."""
 
-        subject = (
-            message.subject
-            or "Communication projet"
-        ).strip()
-
+        body = escape(cls._build_body(message=message))
         return (
-            f"[{project.reference}] "
-            f"{subject}"
+            '<div style="font-family: Arial, sans-serif;">'
+            f"{body.replace(chr(10), '<br>')}"
+            "</div>"
         )
 
     @staticmethod
-    def _build_body(
-        *,
-        message: CommunicationMessage,
-    ) -> str:
-        """
-        Construit le corps texte du mail.
-
-        Le corps correspond volontairement
-        au texte saisi par l'utilisateur.
-
-        Les informations projet, diffusion et auteur
-        ne sont pas répétées inutilement.
-        """
-
-        return (
-            message.body
-            or ""
-        ).strip()
-
-    @staticmethod
-    def _attach_files(
-        *,
-        email: EmailMessage,
-        message: CommunicationMessage,
-    ) -> None:
-        """
-        Ajoute au mail les fichiers directement déposés
-        dans la communication.
-        """
-
-        attachments = (
-            message.attachments
-            .all()
-            .order_by(
-                "created_at",
-            )
-        )
-
-        for attachment in attachments:
-
+    def _attach_files(*, email, message: CommunicationMessage) -> None:
+        for attachment in message.attachments.all().order_by("created_at"):
             if not attachment.uploaded_file:
                 continue
 
-            attachment.uploaded_file.open(
-                "rb"
-            )
-
+            attachment.uploaded_file.open("rb")
             try:
-                content = (
-                    attachment.uploaded_file.read()
-                )
-
+                content = attachment.uploaded_file.read()
             finally:
                 attachment.uploaded_file.close()
 
             email.attach(
-                filename=(
-                    attachment.original_filename
-                    or "piece-jointe"
-                ),
+                filename=attachment.original_filename or "piece-jointe",
                 content=content,
-                mimetype=(
-                    attachment.mime_type
-                    or "application/octet-stream"
-                ),
+                mimetype=attachment.mime_type or "application/octet-stream",
             )
 
     @staticmethod
     @transaction.atomic
-    def _mark_sent(
-        *,
-        distributions: list[
-            CommunicationMessageRecipient
-        ],
-    ) -> None:
-        """
-        Marque toutes les distributions du mail
-        comme envoyées.
-        """
-
+    def _mark_sent(*, distributions) -> None:
         now = timezone.now()
-
-        distribution_ids = [
-            distribution.pk
-            for distribution in distributions
-        ]
-
-        (
-            CommunicationMessageRecipient.objects
-            .filter(
-                pk__in=distribution_ids,
-                status=(
-                    CommunicationMessageRecipient
-                    .Status
-                    .PENDING
-                ),
-            )
-            .update(
-                status=(
-                    CommunicationMessageRecipient
-                    .Status
-                    .SENT
-                ),
-                sent_at=now,
-                error_details="",
-            )
+        distribution_ids = [distribution.pk for distribution in distributions]
+        CommunicationMessageRecipient.objects.filter(
+            pk__in=distribution_ids,
+            status=CommunicationMessageRecipient.Status.PENDING,
+        ).update(
+            status=CommunicationMessageRecipient.Status.SENT,
+            sent_at=now,
+            error_details="",
         )
 
     @staticmethod
     @transaction.atomic
-    def _mark_failed(
-        *,
-        distributions: list[
-            CommunicationMessageRecipient
-        ],
-        error: str,
-    ) -> None:
-        """
-        Marque les distributions concernées
-        comme étant en échec.
-        """
-
+    def _mark_failed(*, distributions, error: str) -> None:
         max_length = (
-            CommunicationMessageRecipient
-            ._meta
-            .get_field(
+            CommunicationMessageRecipient._meta.get_field(
                 "error_details"
-            )
-            .max_length
+            ).max_length
         )
-
-        error_details = (
-            error
-            or "Erreur d'envoi inconnue."
-        )[:max_length]
-
-        distribution_ids = [
-            distribution.pk
-            for distribution in distributions
-        ]
-
-        (
-            CommunicationMessageRecipient.objects
-            .filter(
-                pk__in=distribution_ids,
-            )
-            .update(
-                status=(
-                    CommunicationMessageRecipient
-                    .Status
-                    .FAILED
-                ),
-                error_details=error_details,
-            )
+        error_details = (error or "Erreur d'envoi inconnue.")[:max_length]
+        distribution_ids = [distribution.pk for distribution in distributions]
+        CommunicationMessageRecipient.objects.filter(
+            pk__in=distribution_ids,
+        ).update(
+            status=CommunicationMessageRecipient.Status.FAILED,
+            error_details=error_details,
         )
