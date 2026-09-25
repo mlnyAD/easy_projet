@@ -160,7 +160,7 @@
                 + '></i>'
             );
         }
-        
+
         if (pinned) {
             setOpen(true);
         }
@@ -354,13 +354,15 @@
         closeButton.addEventListener(
             "click",
             function () {
-                if (!isPinned()) {
-                    setOpen(false);
+                if (isPinned()) {
+                    setPinned(false, true);
                 }
+
+                setOpen(false);
             }
         );
     }
-
+    
     if (pinButton) {
         pinButton.addEventListener(
             "click",
