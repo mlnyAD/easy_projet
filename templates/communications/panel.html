@@ -2,30 +2,23 @@
 
 <aside
     class="ep-communication-panel"
-    aria-label="Communications du projet"
+    aria-label="Messagerie"
     aria-hidden="true"
     data-communication-panel
-    data-communication-read-url="{% url 'communications:project-mark-read' project_pk=project.pk %}"
+    data-communication-read-url="{% url 'communications:mark-read' %}"
 >
-
     <header class="ep-communication-panel-header">
-
         <div class="ep-communication-panel-heading">
-
             <h2 class="ep-communication-panel-title">
-                Communications
+                Messagerie
             </h2>
 
             <p class="ep-communication-panel-project">
-                {{ project.reference }}
-                — {{ project.name }}
+                Mes messages
             </p>
-
         </div>
 
-
         <div class="ep-communication-panel-header-actions">
-
             <button
                 type="button"
                 class="ep-communication-panel-pin"
@@ -42,11 +35,10 @@
                 ></i>
             </button>
 
-
             <button
                 type="button"
                 class="ep-communication-panel-close"
-                aria-label="Fermer les communications"
+                aria-label="Fermer la messagerie"
                 title="Fermer"
                 data-communication-close
             >
@@ -56,32 +48,22 @@
                     aria-hidden="true"
                 ></i>
             </button>
-
         </div>
-
     </header>
-
 
     <div
         class="ep-communication-panel-thread"
         data-communication-thread
     >
-
         {% if communication_messages %}
-
             {% for message in communication_messages %}
-
                 {% include "communications/message.html" %}
-
             {% endfor %}
-
         {% else %}
-
             <div
                 class="ep-communication-panel-empty"
                 data-communication-empty
             >
-
                 <i
                     data-lucide="messages-square"
                     class="ep-communication-panel-empty-icon"
@@ -89,27 +71,20 @@
                 ></i>
 
                 <p>
-                    Aucune communication pour ce projet.
+                    Aucun message.
                 </p>
-
             </div>
-
         {% endif %}
-
     </div>
 
-
     <footer class="ep-communication-composer">
-
         <button
             type="button"
             class="ep-communication-composer-toggle"
             aria-expanded="false"
             data-communication-composer-toggle
         >
-
             <span class="ep-communication-composer-toggle-label">
-
                 <i
                     data-lucide="square-pen"
                     class="ep-communication-panel-icon"
@@ -117,7 +92,6 @@
                 ></i>
 
                 Nouveau message
-
             </span>
 
             <i
@@ -126,50 +100,38 @@
                 aria-hidden="true"
                 data-communication-composer-toggle-icon
             ></i>
-
         </button>
-
 
         <div
             class="ep-communication-composer-content"
             hidden
             data-communication-composer-content
         >
-
             <form
                 method="post"
                 enctype="multipart/form-data"
-                action="{% url 'communications:project-message-create' project_pk=project.pk %}"
+                action="{% url 'communications:message-create' %}"
                 data-communication-form
             >
-
                 {% csrf_token %}
 
-
                 <div class="ep-communication-recipient-field">
-
                     <span class="ep-communication-recipient-label">
                         Destinataires
                     </span>
 
-
                     {% if communication_internal_recipients %}
-
                         <div class="ep-communication-recipient-group">
-
                             <div class="ep-communication-recipient-group-title">
                                 Utilisateurs Easy Projet
                             </div>
 
                             {% for recipient in communication_internal_recipients %}
-
                                 <div
                                     class="ep-communication-recipient-row"
                                     data-communication-recipient-row
                                 >
-
                                     <label class="ep-communication-recipient-identity">
-
                                         <input
                                             type="checkbox"
                                             name="internal_recipients"
@@ -179,116 +141,24 @@
                                         >
 
                                         <span class="ep-communication-recipient-row-avatar">
-
                                             {% if recipient.photo %}
-
                                                 <img
                                                     src="{{ recipient.photo.url }}"
                                                     alt=""
                                                     class="ep-communication-recipient-row-avatar-image"
                                                 >
-
                                             {% else %}
-
                                                 <span>
                                                     {{ recipient.initials }}
                                                 </span>
-
                                             {% endif %}
-
                                         </span>
 
                                         <span class="ep-communication-recipient-row-name">
                                             {{ recipient.first_name }}
                                             {{ recipient.last_name|upper }}
                                         </span>
-
                                     </label>
-
-
-                                    <select
-                                        name="recipient_purpose_{{ recipient.pk }}"
-                                        class="ep-communication-recipient-purpose-select"
-                                        disabled
-                                        data-communication-recipient-purpose
-                                    >
-                                        <option
-                                            value="ACTION"
-                                            selected>
-                                            A
-                                        </option>
-
-                                        <option
-                                            value="INFORMATION"
-                                        >
-                                            CC
-                                        </option>
-                                    </select>
-
-                                </div>
-
-                            {% endfor %}
-
-                        </div>
-
-                    {% endif %}
-
-
-                    {% if communication_external_recipients %}
-
-                        <div class="ep-communication-recipient-group">
-
-                            <div class="ep-communication-recipient-group-title">
-                                Intervenants externes
-                            </div>
-
-                            {% for recipient in communication_external_recipients %}
-
-                                <div
-                                    class="ep-communication-recipient-row"
-                                    data-communication-recipient-row
-                                >
-
-                                    <label class="ep-communication-recipient-identity">
-
-                                        <input
-                                            type="checkbox"
-                                            name="external_recipients"
-                                            value="{{ recipient.pk }}"
-                                            class="ep-communication-recipient-checkbox"
-                                            data-communication-recipient-checkbox
-                                        >
-
-                                        <span class="ep-communication-recipient-row-avatar">
-                                            <span>
-                                                {{ recipient.first_name|slice:":1" }}
-                                                {{ recipient.last_name|slice:":1" }}
-                                            </span>
-                                        </span>
-
-                                        <span class="ep-communication-recipient-row-content">
-
-                                            <span class="ep-communication-recipient-row-name">
-                                                {{ recipient.first_name }}
-                                                {{ recipient.last_name|upper }}
-                                            </span>
-
-                                            {% if recipient.company_name %}
-                                                <span class="ep-communication-recipient-row-company">
-                                                    {{ recipient.company_name }}
-                                                </span>
-                                            {% endif %}
-
-                                        </span>
-
-                                        <i
-                                            data-lucide="mail"
-                                            class="ep-communication-recipient-channel-icon"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                    </label>
-
 
                                     <select
                                         name="recipient_purpose_{{ recipient.pk }}"
@@ -307,20 +177,17 @@
                                             CC
                                         </option>
                                     </select>
-
                                 </div>
-
                             {% endfor %}
-
                         </div>
-
+                    {% else %}
+                        <p class="text-sm text-axcio-text-muted">
+                            Aucun destinataire disponible.
+                        </p>
                     {% endif %}
-
                 </div>
 
-
                 <div class="ep-communication-subject-field">
-
                     <label
                         for="communication-subject"
                         class="ep-communication-recipient-label"
@@ -337,9 +204,29 @@
                         placeholder="Objet de la communication"
                         data-communication-subject
                     >
-
                 </div>
 
+                <div class="ep-communication-subject-field">
+                    <label
+                        for="communication-projects"
+                        class="ep-communication-recipient-label"
+                    >
+                        Projets liés
+                    </label>
+
+                    <select
+                        id="communication-projects"
+                        name="projects"
+                        multiple
+                        class="ep-communication-subject-input"
+                    >
+                        {% for project in communication_projects %}
+                            <option value="{{ project.pk }}">
+                                {{ project.reference }} — {{ project.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
                 <textarea
                     name="body"
@@ -351,7 +238,6 @@
                     required
                 ></textarea>
 
-
                 <input
                     type="file"
                     name="attachments"
@@ -360,13 +246,11 @@
                     data-communication-file-input
                 >
 
-
                 <div
                     class="ep-communication-selected-files"
                     hidden
                     data-communication-selected-files
                 ></div>
-
 
                 <div
                     class="ep-communication-composer-error"
@@ -375,9 +259,7 @@
                     data-communication-error
                 ></div>
 
-
                 <div class="ep-communication-composer-actions">
-
                     <button
                         type="button"
                         class="ep-communication-composer-button"
@@ -391,7 +273,6 @@
                             aria-hidden="true"
                         ></i>
                     </button>
-
 
                     <button
                         type="submit"
@@ -407,15 +288,9 @@
                         <span>
                             Envoyer
                         </span>
-
                     </button>
-
                 </div>
-
             </form>
-
         </div>
-
     </footer>
-
 </aside>

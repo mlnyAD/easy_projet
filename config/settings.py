@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "apps.planning.apps.PlanningConfig",
     "apps.todos",
     "apps.communications.apps.CommunicationsConfig",
+    "apps.notifications.apps.NotificationsConfig",
 ]
 
 MIDDLEWARE = [
@@ -98,6 +99,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "apps.todos.context_processors.todo_context",
                 "apps.projects.context_processors.current_project",
+                "apps.notifications.context_processors.notification_context",
             ],
             "libraries": {
                 "ep_form_fields": (

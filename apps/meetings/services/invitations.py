@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import escape, linebreaks
 
-from apps.communications.email_service import CommunicationEmailService
-from apps.communications.models import (
-    CommunicationConversation,
-    CommunicationMessageRecipient,
-)
-from apps.communications.services import CommunicationService
 from apps.meetings.models import Meeting
+from apps.notifications.models import Notification
+from apps.notifications.services import NotificationService
 
 
 class MeetingInvitationError(Exception):
@@ -25,9 +25,7 @@ class MeetingInvitationResult:
 
 
 class MeetingInvitationService:
-    """Diffuse une convocation enregistrée, à la demande du rédacteur."""
-
-    CONVERSATION_TITLE = "Réunions"
+    """Diffuse les invitations internes et externes d'une réunion."""
 
     @classmethod
     def send(
@@ -37,14 +35,13 @@ class MeetingInvitationService:
         author,
     ) -> MeetingInvitationResult:
         meeting = (
-            Meeting.objects
-            .select_related("project", "organizer")
+            Meeting.objects.select_related("project", "organizer")
             .prefetch_related("participants__participant")
             .get(pk=meeting.pk)
         )
 
         internal_recipients = []
-        direct_email_recipients = []
+        external_email_recipients = []
 
         for participant in meeting.participants.filter(is_active=True):
             if participant.participant_id is not None:
@@ -52,61 +49,130 @@ class MeetingInvitationService:
                 continue
 
             if participant.external_email:
-                direct_email_recipients.append(
+                external_email_recipients.append(
                     participant.external_email
                 )
 
-        if not internal_recipients and not direct_email_recipients:
+        if (
+            not internal_recipients
+            and not external_email_recipients
+        ):
             raise MeetingInvitationError(
                 "La réunion ne possède aucun participant à inviter."
             )
 
-        conversation, _created = (
-            CommunicationConversation.objects.get_or_create(
-                project=meeting.project,
-                title=cls.CONVERSATION_TITLE,
-                is_active=True,
-                defaults={"created_by": author},
-            )
+        cls._create_internal_notifications(
+            meeting=meeting,
+            recipients=internal_recipients,
         )
 
-        message = CommunicationService.send_project_message(
-            conversation=conversation,
+        email_failed = not cls._send_external_emails(
+            meeting=meeting,
             author=author,
-            subject=(
-                f"Invitation — {meeting.reference} — {meeting.subject}"
-            ),
-            body=cls._build_body(meeting=meeting),
-            internal_recipients=internal_recipients,
-            direct_email_recipients=direct_email_recipients,
-            recipient_purposes={
-                email.strip().lower(): (
-                    CommunicationMessageRecipient.Purpose.ACTION
-                )
-                for email in direct_email_recipients
-            },
+            recipients=external_email_recipients,
         )
-
-        email_failed = False
-
-        if direct_email_recipients:
-            email_failed = not (
-                CommunicationEmailService.send_pending_message(
-                    message_id=message.pk,
-                )
-            )
 
         if not email_failed:
             meeting.invitations_sent_at = timezone.now()
             meeting.save(
-                update_fields=[
+                update_fields=(
                     "invitations_sent_at",
                     "updated_at",
-                ]
+                ),
             )
 
         return MeetingInvitationResult(
             email_failed=email_failed,
+        )
+
+    @classmethod
+    def _create_internal_notifications(
+        cls,
+        *,
+        meeting: Meeting,
+        recipients: list,
+    ) -> None:
+        target_url = reverse(
+            "meetings:update",
+            kwargs={"pk": meeting.pk},
+        )
+        source_key = f"meeting-invitation:{meeting.pk}"
+        title = f"Invitation — {meeting.subject}"
+        body = cls._build_notification_body(meeting=meeting)
+
+        for recipient in recipients:
+            NotificationService.upsert(
+                user=recipient,
+                project=meeting.project,
+                kind=Notification.Kind.MEETING_INVITATION,
+                source_key=source_key,
+                title=title,
+                body=body,
+                target_url=target_url,
+            )
+
+    @classmethod
+    def _send_external_emails(
+        cls,
+        *,
+        meeting: Meeting,
+        author,
+        recipients: list[str],
+    ) -> bool:
+        """Envoie l'invitation aux personnes sans compte Easy Projet."""
+
+        addresses = cls._deduplicate_addresses(recipients=recipients)
+
+        if not addresses:
+            return True
+
+        body = cls._build_body(meeting=meeting)
+        email = EmailMultiAlternatives(
+            subject=(
+                f"[{meeting.project.reference}] Invitation "
+                f"— {meeting.reference} — {meeting.subject}"
+            ),
+            body=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=addresses,
+        )
+
+        if author.email:
+            email.reply_to = [author.email]
+
+        email.attach_alternative(
+            str(linebreaks(escape(body))),
+            "text/html",
+        )
+
+        try:
+            return email.send(fail_silently=False) == 1
+        except Exception:
+            return False
+
+    @staticmethod
+    def _deduplicate_addresses(*, recipients: list[str]) -> list[str]:
+        addresses = []
+        seen = set()
+
+        for recipient in recipients:
+            address = recipient.strip().lower()
+
+            if not address or address in seen:
+                continue
+
+            seen.add(address)
+            addresses.append(address)
+
+        return addresses
+
+    @staticmethod
+    def _build_notification_body(*, meeting: Meeting) -> str:
+        scheduled_at = timezone.localtime(meeting.scheduled_at)
+
+        return (
+            f"{meeting.project.reference} — "
+            f"{scheduled_at:%d/%m/%Y à %H:%M}"
         )
 
     @staticmethod

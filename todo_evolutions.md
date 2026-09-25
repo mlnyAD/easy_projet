@@ -147,3 +147,19 @@ Consolider la documentation. Nous faisons l'inventaire de ce qui existe et de ce
 Reprendre les intégrations externes et l'IA. Une fois le noyau stabilisé et documenté, nous réévaluons les intégrations déjà expérimentées ou envisagées — GED, ONLYOFFICE, CADViewer, signature électronique, messagerie/Teams, workflows, etc. — avec une architecture d'orchestration homogène. Puis nous abordons l'IA sur une base métier stable : aide au découpage des tâches, ressources, rappels, comptes rendus, DOE, recherche documentaire, etc.
 
 Un point me paraît particulièrement important dans ton séquencement : ne pas chercher maintenant à produire le manuel utilisateur définitif. Nous devons bien enregistrer les règles métier au fur et à mesure, mais la rédaction structurée du manuel gagnera à intervenir après la stabilisation fonctionnelle et la passe ergonomique. Sinon nous documenterions des écrans et des parcours qui vont encore évoluer.
+
+
+### Messagerie interne , Notifications , ToDo
+Élément             Rôle
+Messagerie interne	Échanges humains, par projet, avec contenu, réponses et pièces jointes.
+Notifications	      Alerte système personnelle, courte, avec un lien vers l’objet concerné.
+Mes ToDO	          Travail que l’utilisateur doit effectuer ou suivre.
+Les notifications devraient couvrir uniquement les événements qui demandent une attention :
+- invitation, modification ou annulation de réunion ;
+- tâche affectée ou retirée ;
+- nouveau rapport d’activité à saisir ;
+- rapport d’activité à valider ou à reprendre ;
+- document à relire ou à valider ;
+- risque, réserve ou action assignée ;
+- nouveau message interne : la notification ouvre alors le message, mais ne le remplace pas ;
+- échéance proche ou dépassée.

@@ -100,6 +100,11 @@ urlpatterns = [
         "communications/",
         include("apps.communications.urls"),
     ),
+    path(
+        "notifications/",
+        include("apps.notifications.urls"),
+    ),
+
 ]
 
 

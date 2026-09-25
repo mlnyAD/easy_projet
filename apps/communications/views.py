@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from django.contrib.auth.mixins import (
-    LoginRequiredMixin,
-)
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.http import (
     FileResponse,
     Http404,
@@ -17,46 +16,76 @@ from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views import View
+from django.views.generic import TemplateView
 
 from apps.communications.models import (
     CommunicationConversation,
+    CommunicationMessage,
     CommunicationMessageAttachment,
     CommunicationMessageRecipient,
 )
-from apps.communications.services import (
-    CommunicationService,
-)
-from apps.projects.models import (
-    Project,
-    ProjectExternalParticipant,
-)
-from apps.projects.services.access import (
-    ProjectAccessService,
-)
+from apps.communications.services import CommunicationService
+from apps.projects.services.access import ProjectAccessService
 from apps.users.models import User
 
 
-class ProjectCommunicationMessageCreateView(
+class CommunicationInboxView(
+    LoginRequiredMixin,
+    TemplateView,
+):
+    """
+    Vue pleine page conservée comme point d'accès secondaire.
+
+    Le volet droit constitue l'accès habituel à la messagerie.
+    """
+
+    template_name = "communications/inbox.html"
+
+    def get_context_data(
+        self,
+        **kwargs,
+    ):
+        context = super().get_context_data(
+            **kwargs,
+        )
+
+        context["conversations"] = (
+            CommunicationConversation.objects
+            .filter(
+                is_active=True,
+            )
+            .filter(
+                Q(
+                    messages__author=self.request.user,
+                )
+                | Q(
+                    messages__recipients__user=self.request.user,
+                )
+            )
+            .prefetch_related(
+                "projects",
+            )
+            .distinct()
+            .order_by(
+                "-updated_at",
+                "-created_at",
+            )
+        )
+
+        return context
+
+
+class CommunicationMessageCreateView(
     LoginRequiredMixin,
     View,
 ):
     """
-    Ajout d'une communication au fil d'un projet.
+    Création d'un message personnel depuis le volet global.
 
-    Une communication peut être distribuée simultanément :
+    Les destinataires internes sont des utilisateurs actifs
+    de la même société que l'expéditeur.
 
-    - à des utilisateurs Easy Projet par messagerie interne ;
-    - à des intervenants externes par email.
-
-    Chaque destinataire possède son propre rôle :
-    - ACTION ;
-    - INFORMATION.
-
-    Les pièces jointes sont enregistrées avant
-    toute tentative d'envoi email.
-
-    La distribution email est réalisée après validation
-    de la transaction métier.
+    Les projets constituent seulement un contexte facultatif.
     """
 
     http_method_names = [
@@ -69,148 +98,108 @@ class ProjectCommunicationMessageCreateView(
         *args,
         **kwargs,
     ) -> JsonResponse:
-        project = self.get_project()
-
-        subject = (
-            request.POST.get(
-                "subject",
-                "",
-            )
-            or ""
-        )
-
-        body = (
-            request.POST.get(
-                "body",
-                "",
-            )
-            or ""
-        )
-
         internal_ids = request.POST.getlist(
             "internal_recipients"
         )
-
-        external_ids = request.POST.getlist(
-            "external_recipients"
-        )
-
-        internal_recipients = (
-            self.get_internal_recipients(
-                project=project,
-                recipient_ids=internal_ids,
-            )
-        )
-
-        external_recipients = (
-            self.get_external_recipients(
-                project=project,
-                recipient_ids=external_ids,
-            )
-        )
-
-        if (
-            len(internal_recipients)
-            != len(set(internal_ids))
-        ):
-            return JsonResponse(
-                {
-                    "ok": False,
-                    "error": (
-                        "Un ou plusieurs destinataires internes "
-                        "ne sont pas autorisés pour ce projet."
-                    ),
-                },
-                status=400,
-            )
-
-        if (
-            len(external_recipients)
-            != len(set(external_ids))
-        ):
-            return JsonResponse(
-                {
-                    "ok": False,
-                    "error": (
-                        "Un ou plusieurs intervenants externes "
-                        "ne sont pas autorisés pour ce projet."
-                    ),
-                },
-                status=400,
-            )
-
-        if (
-            not internal_recipients
-            and not external_recipients
-        ):
-            return JsonResponse(
-                {
-                    "ok": False,
-                    "error": (
-                        "Au moins un destinataire "
-                        "doit être sélectionné."
-                    ),
-                },
-                status=400,
-            )
-
-        recipient_purposes = {}
-
-        for recipient in internal_recipients:
-            recipient_purposes[
-                str(recipient.pk)
-            ] = (
-                request.POST.get(
-                    (
-                        "recipient_purpose_"
-                        f"{recipient.pk}"
-                    ),
-                    "INFORMATION",
-                )
-                or "INFORMATION"
-            )
-
-        for recipient in external_recipients:
-            recipient_purposes[
-                str(recipient.pk)
-            ] = (
-                request.POST.get(
-                    (
-                        "recipient_purpose_"
-                        f"{recipient.pk}"
-                    ),
-                    "INFORMATION",
-                )
-                or "INFORMATION"
-            )
-
-        uploaded_files = (
-            request.FILES.getlist(
-                "attachments"
-            )
+        project_ids = request.POST.getlist(
+            "projects"
         )
 
         try:
-            with transaction.atomic():
+            internal_recipients = (
+                self.get_internal_recipients(
+                    recipient_ids=internal_ids,
+                )
+            )
 
+            projects = self.get_projects(
+                project_ids=project_ids,
+            )
+
+            if (
+                len(internal_recipients)
+                != len(set(internal_ids))
+            ):
+                raise ValidationError(
+                    {
+                        "recipients": (
+                            "Un ou plusieurs destinataires "
+                            "internes ne sont pas autorisés."
+                        ),
+                    }
+                )
+
+            if len(projects) != len(set(project_ids)):
+                raise ValidationError(
+                    {
+                        "projects": (
+                            "Un ou plusieurs projets "
+                            "ne sont pas accessibles."
+                        ),
+                    }
+                )
+
+            recipient_purposes = {}
+
+            for recipient in internal_recipients:
+                recipient_purposes[
+                    str(recipient.pk)
+                ] = (
+                    request.POST.get(
+                        (
+                            "recipient_purpose_"
+                            f"{recipient.pk}"
+                        ),
+                        (
+                            CommunicationMessageRecipient
+                            .Purpose
+                            .INFORMATION
+                        ),
+                    )
+                    or (
+                        CommunicationMessageRecipient
+                        .Purpose
+                        .INFORMATION
+                    )
+                )
+
+            with transaction.atomic():
                 conversation = (
-                    self.get_or_create_conversation(
-                        project=project,
+                    CommunicationService
+                    .create_conversation(
+                        author=request.user,
+                        title=(
+                            request.POST.get(
+                                "subject",
+                                "",
+                            )
+                            or ""
+                        ),
+                        projects=projects,
                     )
                 )
 
                 message = (
                     CommunicationService
-                    .send_project_message(
+                    .send_message(
                         conversation=conversation,
                         author=request.user,
-                        subject=subject,
-                        body=body,
+                        subject=(
+                            request.POST.get(
+                                "subject",
+                                "",
+                            )
+                            or ""
+                        ),
+                        body=(
+                            request.POST.get(
+                                "body",
+                                "",
+                            )
+                            or ""
+                        ),
                         internal_recipients=(
                             internal_recipients
-                        ),
-                        external_recipients=(
-                            external_recipients
                         ),
                         recipient_purposes=(
                             recipient_purposes
@@ -218,55 +207,31 @@ class ProjectCommunicationMessageCreateView(
                     )
                 )
 
-                for uploaded_file in uploaded_files:
-
-                    attachment = (
-                        CommunicationMessageAttachment(
-                            message=message,
-                            uploaded_file=(
-                                uploaded_file
-                            ),
-                            original_filename=(
-                                uploaded_file.name
-                            ),
-                            mime_type=(
-                                uploaded_file.content_type
-                                or ""
-                            ),
-                            file_size=(
-                                uploaded_file.size
-                            ),
-                            uploaded_by=request.user,
-                        )
-                    )
-
-                    attachment.full_clean()
-                    attachment.save()
+                self.create_attachments(
+                    request=request,
+                    message=message,
+                )
 
         except ValidationError as error:
             return JsonResponse(
                 {
                     "ok": False,
-                    "error": (
-                        self.get_validation_message(
-                            error
-                        )
+                    "error": self.get_validation_message(
+                        error
                     ),
                 },
                 status=400,
             )
 
-        # --------------------------------------------------------------
-        # Rechargement du message pour le rendu du fil
-        # --------------------------------------------------------------
-
         message = (
-            message.__class__.objects
+            CommunicationMessage.objects
             .select_related(
                 "author",
                 "imported_by",
+                "conversation",
             )
             .prefetch_related(
+                "conversation__projects",
                 "attachments",
                 "recipients",
                 "recipients__user",
@@ -277,56 +242,28 @@ class ProjectCommunicationMessageCreateView(
             )
         )
 
-        message_html = render_to_string(
-            "communications/message.html",
-            {
-                "message": message,
-                "request": request,
-            },
-            request=request,
-        )
-
         return JsonResponse(
             {
                 "ok": True,
                 "message": {
-                    "id": str(
-                        message.pk
+                    "id": str(message.pk),
+                    "html": render_to_string(
+                        "communications/message.html",
+                        {
+                            "message": message,
+                            "request": request,
+                        },
+                        request=request,
                     ),
-                    "html": message_html,
                 },
             }
-        )
-
-    def get_project(self) -> Project:
-        """
-        Retourne le projet uniquement s'il est accessible
-        à l'utilisateur connecté.
-        """
-
-        return get_object_or_404(
-            ProjectAccessService
-            .get_accessible_projects(
-                self.request.user
-            ),
-            pk=self.kwargs[
-                "project_pk"
-            ],
         )
 
     def get_internal_recipients(
         self,
         *,
-        project: Project,
         recipient_ids: list[str],
     ) -> list[User]:
-        """
-        Retourne les utilisateurs Easy Projet sélectionnés.
-
-        Seuls les utilisateurs actifs disposant d'une
-        affectation active au projet sont acceptés.
-        """
-
         if not recipient_ids:
             return []
 
@@ -334,103 +271,69 @@ class ProjectCommunicationMessageCreateView(
             User.objects
             .filter(
                 pk__in=recipient_ids,
+                company=self.request.user.company,
                 is_active=True,
-                project_memberships__project=project,
-                project_memberships__is_active=True,
             )
             .exclude(
                 pk=self.request.user.pk,
             )
-            .distinct()
             .order_by(
                 "last_name",
                 "first_name",
             )
         )
 
-    def get_external_recipients(
+    def get_projects(
         self,
         *,
-        project: Project,
-        recipient_ids: list[str],
-    ) -> list[
-        ProjectExternalParticipant
-    ]:
-        """
-        Retourne les intervenants externes sélectionnés.
-
-        Un intervenant converti en utilisateur Easy Projet
-        n'est plus considéré comme destinataire externe.
-        """
-
-        if not recipient_ids:
+        project_ids: list[str],
+    ) -> list:
+        if not project_ids:
             return []
 
         return list(
-            ProjectExternalParticipant.objects
-            .filter(
-                pk__in=recipient_ids,
-                project=project,
-                is_active=True,
-                converted_user__isnull=True,
+            ProjectAccessService
+            .get_accessible_projects(
+                self.request.user
             )
-            .exclude(
-                email="",
+            .filter(
+                pk__in=project_ids,
             )
             .order_by(
-                "last_name",
-                "first_name",
+                "reference",
             )
         )
 
-    def get_or_create_conversation(
-        self,
+    @staticmethod
+    def create_attachments(
         *,
-        project: Project,
-    ) -> CommunicationConversation:
-        """
-        Retourne le fil principal actif du projet.
-
-        La conversation n'est créée qu'au premier message.
-        """
-
-        conversation = (
-            CommunicationConversation.objects
-            .filter(
-                project=project,
-                is_active=True,
+        request: HttpRequest,
+        message: CommunicationMessage,
+    ) -> None:
+        for uploaded_file in request.FILES.getlist(
+            "attachments"
+        ):
+            attachment = (
+                CommunicationMessageAttachment(
+                    message=message,
+                    uploaded_file=uploaded_file,
+                    original_filename=uploaded_file.name,
+                    mime_type=(
+                        uploaded_file.content_type
+                        or ""
+                    ),
+                    file_size=uploaded_file.size,
+                    uploaded_by=request.user,
+                )
             )
-            .order_by(
-                "created_at",
-            )
-            .first()
-        )
 
-        if conversation is not None:
-            return conversation
-
-        conversation = (
-            CommunicationConversation(
-                project=project,
-                title="Communications du projet",
-                created_by=self.request.user,
-            )
-        )
-
-        conversation.full_clean()
-        conversation.save()
-
-        return conversation
+            attachment.full_clean()
+            attachment.save()
 
     @staticmethod
     def get_validation_message(
         error: ValidationError,
     ) -> str:
-        """
-        Transforme une ValidationError métier
-        en message exploitable par le panneau.
-        """
-
         if hasattr(
             error,
             "message_dict",
@@ -440,9 +343,7 @@ class ProjectCommunicationMessageCreateView(
             for values in (
                 error.message_dict.values()
             ):
-                messages.extend(
-                    values
-                )
+                messages.extend(values)
 
             if messages:
                 return " ".join(
@@ -450,14 +351,59 @@ class ProjectCommunicationMessageCreateView(
                     for message in messages
                 )
 
-        if error.messages:
-            return " ".join(
-                str(message)
-                for message in error.messages
-            )
+        return " ".join(
+            str(message)
+            for message in error.messages
+        )
 
-        return (
-            "Le message n'a pas pu être envoyé."
+
+class CommunicationMarkReadView(
+    LoginRequiredMixin,
+    View,
+):
+    """
+    Marque comme lus les messages internes personnels
+    non lus de l'utilisateur connecté.
+    """
+
+    http_method_names = [
+        "post",
+    ]
+
+    def post(
+        self,
+        request: HttpRequest,
+        *args,
+        **kwargs,
+    ) -> JsonResponse:
+        updated_count = (
+            CommunicationMessageRecipient.objects
+            .filter(
+                user=request.user,
+                channel=(
+                    CommunicationMessageRecipient
+                    .Channel
+                    .INTERNAL
+                ),
+                read_at__isnull=True,
+                message__is_active=True,
+                message__conversation__is_active=True,
+            )
+            .update(
+                status=(
+                    CommunicationMessageRecipient
+                    .Status
+                    .READ
+                ),
+                read_at=timezone.now(),
+            )
+        )
+
+        return JsonResponse(
+            {
+                "ok": True,
+                "marked_read": updated_count,
+            }
         )
 
 
@@ -466,10 +412,10 @@ class CommunicationAttachmentDownloadView(
     View,
 ):
     """
-    Téléchargement protégé d'une pièce jointe.
+    Téléchargement sécurisé d'une pièce jointe.
 
-    L'utilisateur doit avoir accès au projet auquel
-    appartient la communication.
+    L'auteur ou un destinataire interne du message
+    peut télécharger la pièce jointe.
     """
 
     http_method_names = [
@@ -482,13 +428,6 @@ class CommunicationAttachmentDownloadView(
         *args,
         **kwargs,
     ):
-        accessible_projects = (
-            ProjectAccessService
-            .get_accessible_projects(
-                request.user
-            )
-        )
-
         attachment = get_object_or_404(
             CommunicationMessageAttachment.objects
             .select_related(
@@ -496,10 +435,14 @@ class CommunicationAttachmentDownloadView(
                 "message__conversation",
             )
             .filter(
-                message__conversation__project__in=(
-                    accessible_projects
-                ),
-            ),
+                Q(
+                    message__author=request.user,
+                )
+                | Q(
+                    message__recipients__user=request.user,
+                )
+            )
+            .distinct(),
             pk=self.kwargs["pk"],
         )
 
@@ -534,66 +477,4 @@ class CommunicationAttachmentDownloadView(
                 attachment.mime_type
                 or "application/octet-stream"
             ),
-        )
-
-
-class ProjectCommunicationMarkReadView(
-    LoginRequiredMixin,
-    View,
-):
-    """
-    Marque comme lues les communications internes
-    du projet destinées à l'utilisateur connecté.
-    """
-
-    http_method_names = [
-        "post",
-    ]
-
-    def post(
-        self,
-        request: HttpRequest,
-        *args,
-        **kwargs,
-    ) -> JsonResponse:
-        project = get_object_or_404(
-            ProjectAccessService
-            .get_accessible_projects(
-                request.user
-            ),
-            pk=self.kwargs[
-                "project_pk"
-            ],
-        )
-
-        now = timezone.now()
-
-        updated_count = (
-            CommunicationMessageRecipient.objects
-            .filter(
-                user=request.user,
-                channel=(
-                    CommunicationMessageRecipient
-                    .Channel
-                    .INTERNAL
-                ),
-                read_at__isnull=True,
-                message__is_active=True,
-                message__conversation__project=project,
-            )
-            .update(
-                status=(
-                    CommunicationMessageRecipient
-                    .Status
-                    .READ
-                ),
-                read_at=now,
-            )
-        )
-
-        return JsonResponse(
-            {
-                "ok": True,
-                "marked_read": updated_count,
-            }
         )

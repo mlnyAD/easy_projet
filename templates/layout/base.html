@@ -77,10 +77,7 @@
 
             </main>
 
-
-            {% if current_project %}
-                {% communication_panel current_project %}
-            {% endif %}
+            {% communication_panel current_project %}
 
         </div>
 
@@ -131,6 +128,10 @@
 
         <script
             src="{% static 'js/framework/communications.js' %}?v=14"
+            defer
+        ></script>
+        <script
+            src="{% static 'js/framework/notifications.js' %}?v=1"
             defer
         ></script>
 

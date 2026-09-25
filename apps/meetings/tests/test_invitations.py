@@ -6,6 +6,7 @@ from apps.companies.models import Company
 from apps.core.models import ClientEnvironment
 from apps.meetings.models import Meeting, MeetingParticipant
 from apps.meetings.services.invitations import MeetingInvitationService
+from apps.notifications.models import Notification
 from apps.projects.models import Project, ProjectMembership
 from apps.users.models import User
 
@@ -103,3 +104,18 @@ class MeetingInvitationServiceTests(TestCase):
 
         self.meeting.refresh_from_db()
         self.assertTrue(self.meeting.invitations_sent)
+
+        notification = Notification.objects.get(
+            user=self.participant,
+            source_key=(
+                f"meeting-invitation:{self.meeting.pk}"
+            ),
+        )
+        self.assertEqual(
+            notification.kind,
+            Notification.Kind.MEETING_INVITATION,
+        )
+        self.assertIn(
+            "Réunion de préparation",
+            notification.title,
+        )

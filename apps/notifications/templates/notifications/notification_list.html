@@ -1,0 +1,52 @@
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Mes notifications
+{% endblock %}
+
+{% block content %}
+    <div class="ep-page">
+        <div class="mb-4 flex items-center justify-between gap-4">
+            <div>
+                <h1 class="text-xl font-semibold">Mes notifications</h1>
+                <p class="mt-1 text-sm text-axcio-text-muted">
+                    Alertes nécessitant votre attention.
+                </p>
+            </div>
+
+            {% if notification_unread_count > 0 %}
+                <form method="post" action="{% url 'notifications:mark-all-read' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="ep-button ep-button-secondary">
+                        Tout marquer comme lu
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        <div class="overflow-hidden rounded-lg border border-axcio-border-light dark:border-axcio-border-dark">
+            {% for notification in notifications %}
+                <a
+                    href="{% url 'notifications:open' pk=notification.pk %}"
+                    class="block border-b border-axcio-border-light px-4 py-3 last:border-b-0 hover:bg-axcio-surface-alt dark:border-axcio-border-dark dark:hover:bg-axcio-surface-alt-dark {% if not notification.is_read %}bg-axcio-info-soft dark:bg-axcio-info-soft-dark{% endif %}"
+                >
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <div class="font-medium">{{ notification.title }}</div>
+                            {% if notification.body %}
+                                <div class="mt-1 text-sm text-axcio-text-secondary dark:text-axcio-text-secondary-dark">{{ notification.body }}</div>
+                            {% endif %}
+                        </div>
+                        <time class="shrink-0 text-xs text-axcio-text-muted" datetime="{{ notification.created_at|date:'c' }}">
+                            {{ notification.created_at|date:"d/m/Y H:i" }}
+                        </time>
+                    </div>
+                </a>
+            {% empty %}
+                <div class="px-4 py-10 text-center text-axcio-text-muted">
+                    Aucune notification.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

@@ -185,13 +185,11 @@ class CommunicationModelTests(TestCase):
         # Conversation
         # --------------------------------------------------------------
 
-        cls.conversation = (
-            CommunicationConversation.objects.create(
-                project=cls.project,
-                title="Conversation principale",
-                created_by=cls.user,
-            )
+        cls.conversation = CommunicationConversation.objects.create(
+            title="Conversation principale",
+            created_by=cls.user,
         )
+        cls.conversation.projects.add(cls.project)
 
         # --------------------------------------------------------------
         # Catalogues documentaires
@@ -747,13 +745,11 @@ class CommunicationServiceTests(TestCase):
         # Conversation
         # --------------------------------------------------------------
 
-        cls.conversation = (
-            CommunicationConversation.objects.create(
-                project=cls.project,
-                title="Conversation service",
-                created_by=cls.author,
-            )
+        cls.conversation = CommunicationConversation.objects.create(
+            title="Conversation service",
+            created_by=cls.author,
         )
+        cls.conversation.projects.add(cls.project)
 
     # ------------------------------------------------------------------
     # Message interne
