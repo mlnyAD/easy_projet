@@ -1,61 +1,36 @@
 
 
 
-
 from django.contrib import messages
-
 from django.db import transaction
-
 from django.shortcuts import redirect
-
 from django.urls import reverse, reverse_lazy
-
 from django.utils.http import url_has_allowed_host_and_scheme
-
 from django.utils import timezone
-
 from django.views.generic import (
-
     DetailView,
-
     ListView,
-
     UpdateView,
-
 )
 
 from django.contrib.auth.mixins import (
-
     LoginRequiredMixin,
-
     UserPassesTestMixin,
-
 )
 
 from django.db.models import Prefetch
-
 from datetime import timedelta
-
 from framework.integrations.django.list_pagination import (
-
     EPListPaginationMixin,
-
 )
 
 from django.db.models import Sum
 
-
-
 from apps.tasks.models import Task, TaskAssignment
 
-
-
 from framework.integrations.django.views import (
-
     EPCreateView,
-
     EPUpdateView,
-
 )
 
 from framework.runtime import EPList, ListPage
@@ -131,7 +106,9 @@ from apps.projects.services.project_manager import (
 
 
 from apps.projects.services.project_company import ProjectCompanyService
-
+from apps.reporting.permissions import (
+    can_validate_activity_report_project,
+)
 
 
 
@@ -678,8 +655,6 @@ class ProjectWorkspaceView(DetailView):
 
         context = super().get_context_data(**kwargs)
 
-
-
         project = self.object
 
 
@@ -734,7 +709,12 @@ class ProjectWorkspaceView(DetailView):
 
         context["progress_percent"] = None
 
-
+        context["can_manage_project_hours"] = (
+            can_validate_activity_report_project(
+                self.request.user,
+                project,
+            )
+        )
 
         return context
 

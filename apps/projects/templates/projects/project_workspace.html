@@ -279,7 +279,21 @@
                 </a>
                 {% include "projects/project_workspace_action_disabled.html" with icon="users" label="Affecter" %}
                 {% include "projects/project_workspace_action_disabled.html" with icon="banknote" label="Financer" %}
-                {% include "projects/project_workspace_action_disabled.html" with icon="clock-3" label="Gérer les heures" %}
+                {% if can_manage_project_hours %}
+                    <a
+                        href="{% url 'reporting:review-list' %}"
+                        class="project-action-card"
+                    >
+                        <i
+                            data-lucide="clock-3"
+                            class="h-6 w-6"
+                            aria-hidden="true"
+                        ></i>
+                        <span>Gérer les heures</span>
+                    </a>
+                {% else %}
+                    {% include "projects/project_workspace_action_disabled.html" with icon="clock-3" label="Gérer les heures" %}
+                {% endif %}
 
                 <a
                     href="{% url 'projects:dashboard' project.pk %}"

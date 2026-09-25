@@ -30,6 +30,7 @@ class ResourceScheduleAssignment:
 
     start_date: date
     end_date: date
+    duration_days: int
 
     allocation_percent: int
 
@@ -123,12 +124,10 @@ class ResourceScheduleService:
                     "assignments": [],
                 }
 
-            schedule_assignment = (
-                self._build_assignment(
-                    assignment=assignment,
-                    date_from=date_from,
-                    date_to=date_to,
-                )
+            schedule_assignment = self._build_assignment(
+                assignment=assignment,
+                date_from=date_from,
+                date_to=date_to,
             )
 
             assignments_by_user[
@@ -273,15 +272,12 @@ class ResourceScheduleService:
             project_name=project.name,
             start_date=task.start_date,
             end_date=task.end_date,
-            allocation_percent=(
-                assignment.allocation_percent
-            ),
-            left_percent=Decimal(
-                str(left_percent)
-            ),
-            width_percent=Decimal(
-                str(width_percent)
-            ),
+            duration_days=(
+                task.end_date - task.start_date
+            ).days + 1,
+            allocation_percent=assignment.allocation_percent,
+            left_percent=Decimal(str(left_percent)),
+            width_percent=Decimal(str(width_percent)),
         )
 
     # ------------------------------------------------------------------

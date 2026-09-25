@@ -402,3 +402,279 @@
         display: none;
     }
 }
+
+
+/* ========================================================================
+   PLANNING RESSOURCES
+   ======================================================================== */
+
+.ep-resource-schedule {
+    --ep-resource-schedule-data-width: 31rem;
+    --ep-resource-schedule-timeline-width: 68rem;
+    --ep-resource-schedule-row-height: 2.5rem;
+}
+
+.ep-resource-schedule-shell {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.ep-resource-schedule-layout {
+    display: flex;
+    width: calc(
+        var(--ep-resource-schedule-data-width)
+        + var(--ep-resource-schedule-timeline-width)
+    );
+    min-width: 100%;
+    align-items: stretch;
+}
+
+.ep-resource-schedule-data-panel {
+    width: var(--ep-resource-schedule-data-width);
+    min-width: 15rem;
+    flex: 0 0 var(--ep-resource-schedule-data-width);
+}
+
+.ep-resource-schedule-timeline-panel {
+    width: var(--ep-resource-schedule-timeline-width);
+    min-width: var(--ep-resource-schedule-timeline-width);
+    flex: 0 0 var(--ep-resource-schedule-timeline-width);
+}
+
+.ep-resource-schedule-timeline-scroll {
+    overflow: visible;
+}
+
+.ep-resource-schedule-timeline-canvas {
+    width: var(--ep-resource-schedule-timeline-width);
+    min-width: var(--ep-resource-schedule-timeline-width);
+    background-color: var(--color-axcio-surface);
+}
+
+.ep-resource-schedule-data-header,
+.ep-resource-schedule-data-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) 5.5rem 5.5rem 4.5rem;
+}
+
+.ep-resource-schedule-data-header,
+.ep-resource-schedule-timeline-header {
+    position: relative;
+    height: 4rem;
+    border-bottom: 1px solid var(--color-axcio-border-light);
+    background-color: var(--color-axcio-surface);
+}
+
+.ep-resource-schedule-data-header-cell,
+.ep-resource-schedule-data-cell {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    border-right: 1px solid var(--color-axcio-border-light);
+    padding: 0 0.5rem;
+}
+
+.ep-resource-schedule-data-header-cell {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.ep-resource-schedule-data-cell {
+    overflow: hidden;
+    font-size: 0.75rem;
+}
+
+.ep-resource-schedule-data-header-cell-main,
+.ep-resource-schedule-data-cell-main {
+    gap: 0.375rem;
+}
+
+.ep-resource-schedule-data-row,
+.ep-resource-schedule-timeline-row {
+    height: var(--ep-resource-schedule-row-height);
+    border-bottom: 1px solid var(--color-axcio-border-light);
+}
+
+.ep-resource-schedule-data-row[data-resource-summary],
+.ep-resource-schedule-timeline-row[data-resource-summary] {
+    background-color: var(--color-axcio-surface-alt);
+}
+
+.ep-resource-schedule-timeline-row {
+    position: relative;
+    background-color: var(--color-axcio-surface);
+}
+
+.ep-resource-schedule-toggle {
+    display: inline-flex;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: 0 0 1.25rem;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 0.25rem;
+    background-color: transparent;
+    color: var(--color-axcio-text);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ep-resource-schedule-toggle:hover {
+    background-color: var(--color-axcio-surface-alt);
+    color: var(--color-axcio-light);
+}
+
+.ep-resource-schedule-toggle:focus-visible {
+    outline: 2px solid var(--color-axcio-light);
+    outline-offset: 2px;
+}
+
+.ep-resource-schedule-assignment-indent {
+    width: 1.25rem;
+    flex: 0 0 1.25rem;
+}
+
+.ep-resource-schedule-task-link {
+    display: block;
+    overflow: hidden;
+    color: inherit;
+    font-weight: 500;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ep-resource-schedule-task-link:hover {
+    color: var(--color-axcio-light);
+    text-decoration: underline;
+}
+
+.ep-resource-schedule-calendar-months,
+.ep-resource-schedule-calendar-weeks {
+    position: relative;
+    height: 2rem;
+}
+
+.ep-resource-schedule-calendar-months {
+    border-bottom: 1px solid var(--color-axcio-border-light);
+}
+
+.ep-resource-schedule-calendar-month,
+.ep-resource-schedule-calendar-week {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-right: 1px solid var(--color-axcio-border-light);
+    padding: 0 0.25rem;
+    font-size: 0.6875rem;
+    white-space: nowrap;
+}
+
+.ep-resource-schedule-calendar-month {
+    font-weight: 600;
+}
+
+.ep-resource-schedule-calendar-week {
+    color: var(--color-axcio-text-muted);
+}
+
+.ep-resource-schedule-calendar-segment {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid var(--color-axcio-border-light);
+    pointer-events: none;
+}
+
+.ep-resource-schedule-state-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 15;
+    width: 2px;
+    background-color: var(--color-axcio-danger);
+    pointer-events: none;
+}
+
+.ep-resource-schedule-bar {
+    position: absolute;
+    top: 50%;
+    z-index: 10;
+    height: 0.875rem;
+    min-width: 0.25rem;
+    transform: translateY(-50%);
+    border-radius: 0.25rem;
+    text-decoration: none;
+}
+
+.ep-resource-schedule-bar:hover {
+    filter: brightness(0.9);
+}
+
+.ep-resource-schedule-bar:focus-visible {
+    outline: 2px solid var(--color-axcio-dark);
+    outline-offset: 2px;
+}
+
+.ep-resource-schedule-bar-full {
+    background-color: var(--color-axcio-light);
+}
+
+.ep-resource-schedule-bar-partial {
+    background-color: var(--color-axcio-info);
+}
+
+.dark .ep-resource-schedule-data-header,
+.dark .ep-resource-schedule-timeline-header,
+.dark .ep-resource-schedule-data-row,
+.dark .ep-resource-schedule-timeline-row,
+.dark .ep-resource-schedule-data-header-cell,
+.dark .ep-resource-schedule-data-cell,
+.dark .ep-resource-schedule-calendar-months,
+.dark .ep-resource-schedule-calendar-month,
+.dark .ep-resource-schedule-calendar-week,
+.dark .ep-resource-schedule-calendar-segment {
+    border-color: var(--color-axcio-border-dark);
+}
+
+.dark .ep-resource-schedule-data-header,
+.dark .ep-resource-schedule-timeline-header,
+.dark .ep-resource-schedule-timeline-canvas,
+.dark .ep-resource-schedule-timeline-row {
+    background-color: var(--color-axcio-surface-dark);
+}
+
+.dark .ep-resource-schedule-data-row[data-resource-summary],
+.dark .ep-resource-schedule-timeline-row[data-resource-summary] {
+    background-color: var(--color-axcio-surface-alt-dark);
+}
+
+.dark .ep-resource-schedule-toggle {
+    color: var(--color-axcio-text-dark);
+}
+
+.dark .ep-resource-schedule-toggle:hover {
+    background-color: var(--color-axcio-surface-alt-dark);
+    color: var(--color-axcio-light);
+}
+
+.dark .ep-resource-schedule-bar-full {
+    background-color: var(--color-axcio-light);
+}
+
+.dark .ep-resource-schedule-bar-partial {
+    background-color: var(--color-axcio-info);
+}
+
+@media (max-width: 1199px) {
+    .ep-resource-schedule {
+        --ep-resource-schedule-timeline-width: 60rem;
+    }
+}

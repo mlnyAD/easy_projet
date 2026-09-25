@@ -495,6 +495,18 @@ class PlanningAccessTests(TestCase):
             str(self.task_b.pk),
             visible_task_ids,
         )
+        
+        visible_assignment = next(
+            assignment
+            for resource in schedule.resources
+            for assignment in resource.assignments
+            if assignment.task_id == str(self.task_a.pk)
+        )
+
+        self.assertEqual(
+            visible_assignment.duration_days,
+            5,
+        )
 
     # ------------------------------------------------------------------
     # Calendrier

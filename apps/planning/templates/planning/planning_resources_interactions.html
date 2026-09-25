@@ -1,0 +1,133 @@
+
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+            const schedule = document.querySelector(
+                "[data-resource-schedule]"
+            );
+
+            if (!schedule) {
+                return;
+            }
+
+            function applyHorizontalPosition(
+                selector,
+                withWidth
+            ) {
+                schedule
+                    .querySelectorAll(selector)
+                    .forEach(function (element) {
+                        const left = parseFloat(
+                            element.dataset.left
+                        );
+
+                        if (!Number.isNaN(left)) {
+                            element.style.left = left + "%";
+                        }
+
+                        if (!withWidth) {
+                            return;
+                        }
+
+                        const width = parseFloat(
+                            element.dataset.width
+                        );
+
+                        if (!Number.isNaN(width)) {
+                            element.style.width = width + "%";
+                        }
+                    });
+            }
+
+            function setResourceExpanded(
+                resourceId,
+                expanded
+            ) {
+                schedule
+                    .querySelectorAll(
+                        "[data-resource-assignment]"
+                    )
+                    .forEach(function (element) {
+                        if (
+                            element.dataset.resourceId
+                            !== resourceId
+                        ) {
+                            return;
+                        }
+
+                        element.hidden = !expanded;
+                    });
+
+                schedule
+                    .querySelectorAll(
+                        "[data-resource-toggle]"
+                    )
+                    .forEach(function (button) {
+                        if (
+                            button.dataset.resourceId
+                            !== resourceId
+                        ) {
+                            return;
+                        }
+
+                        button.setAttribute(
+                            "aria-expanded",
+                            String(expanded)
+                        );
+
+                        button.title = expanded
+                            ? "Replier les affectations de cette ressource"
+                            : "Déplier les affectations de cette ressource";
+
+                        const icon = button.querySelector(
+                            "[data-resource-toggle-icon]"
+                        );
+
+                        if (icon) {
+                            icon.textContent = expanded
+                                ? "−"
+                                : "+";
+                        }
+                    });
+            }
+
+            applyHorizontalPosition(
+                "[data-resource-segment]",
+                true
+            );
+            applyHorizontalPosition(
+                "[data-resource-bar]",
+                true
+            );
+            applyHorizontalPosition(
+                "[data-resource-state]",
+                false
+            );
+
+            schedule
+                .querySelectorAll(
+                    "[data-resource-toggle]"
+                )
+                .forEach(function (button) {
+                    button.addEventListener(
+                        "click",
+                        function () {
+                            const expanded = (
+                                button.getAttribute(
+                                    "aria-expanded"
+                                )
+                                === "true"
+                            );
+
+                            setResourceExpanded(
+                                button.dataset.resourceId,
+                                !expanded
+                            );
+                        }
+                    );
+                });
+        }
+    );
+</script>
