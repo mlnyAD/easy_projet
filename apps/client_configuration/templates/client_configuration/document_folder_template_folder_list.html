@@ -1,0 +1,506 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Dossiers du modèle d'arborescence
+{% endblock %}
+
+{% block content %}
+
+    <div class="ep-page space-y-6">
+
+        <div
+            class="
+                flex flex-wrap items-start
+                justify-between gap-4
+            "
+        >
+            <div>
+                <a
+                    href="{% url 'client_configuration:document-folder-template-list' client_environment.pk %}"
+                    class="
+                        text-sm text-axcio-light
+                        hover:underline
+                    "
+                >
+                    ← Arborescences documentaires
+                </a>
+
+                <h1 class="mt-2 text-2xl font-semibold">
+                    {{ document_folder_template.name }}
+                </h1>
+
+                <p
+                    class="
+                        mt-1 text-sm
+                        text-axcio-text-muted
+                        dark:text-axcio-text-muted-dark
+                    "
+                >
+                    Dossiers créés automatiquement dans les nouveaux projets.
+                </p>
+            </div>
+
+            <a
+                href="{% url 'client_configuration:document-folder-template-update' client_environment.pk document_folder_template.pk %}"
+                class="
+                    rounded-md border
+                    border-axcio-border-light
+                    px-4 py-2 text-sm
+                    hover:border-axcio-light
+                    dark:border-axcio-border-dark
+                "
+            >
+                Modifier le modèle
+            </a>
+        </div>
+
+        <div
+            class="
+                grid items-start gap-6
+                lg:grid-cols-3
+            "
+        >
+
+            <section
+                class="
+                    lg:col-span-2
+                    overflow-hidden rounded-lg border
+                    border-axcio-border-light
+                    bg-axcio-surface
+                    dark:border-axcio-border-dark
+                    dark:bg-axcio-surface-dark
+                "
+            >
+                <div
+                    class="
+                        border-b border-axcio-border-light
+                        px-4 py-3
+                        dark:border-axcio-border-dark
+                    "
+                >
+                    <h2 class="font-semibold">
+                        Arborescence résultante
+                    </h2>
+                </div>
+
+                {% if folder_rows %}
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead
+                                class="
+                                    bg-axcio-surface-alt
+                                    dark:bg-axcio-surface-alt-dark
+                                "
+                            >
+                                <tr>
+                                    <th
+                                        class="
+                                            px-4 py-3 text-left
+                                            font-semibold
+                                        "
+                                    >
+                                        Dossier
+                                    </th>
+
+                                    <th
+                                        class="
+                                            hidden px-4 py-3 text-center
+                                            font-semibold sm:table-cell
+                                        "
+                                    >
+                                        Ordre
+                                    </th>
+
+                                    <th
+                                        class="
+                                            px-4 py-3 text-right
+                                            font-semibold
+                                        "
+                                    >
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for row in folder_rows %}
+
+                                    <tr
+                                        class="
+                                            border-t
+                                            border-axcio-border-light
+                                            dark:border-axcio-border-dark
+                                            {% if not row.folder.is_active %}
+                                                opacity-60
+                                            {% endif %}
+                                        "
+                                    >
+                                        <td class="px-4 py-3">
+                                            <div
+                                                class="
+                                                    flex min-w-max
+                                                    items-center gap-2
+                                                "
+                                            >
+                                                {% if row.tree_prefix %}
+                                                    <span
+                                                        class="
+                                                            whitespace-pre
+                                                            font-mono text-xs
+                                                            text-axcio-text-muted
+                                                            dark:text-axcio-text-muted-dark
+                                                        "
+                                                        aria-hidden="true"
+                                                    >{{ row.tree_prefix }}</span>
+                                                {% endif %}
+
+                                                <i
+                                                    data-lucide="folder"
+                                                    class="
+                                                        h-4 w-4 shrink-0
+                                                        text-axcio-light
+                                                    "
+                                                    aria-hidden="true"
+                                                ></i>
+
+                                                <span>
+                                                    {{ row.folder.name }}
+                                                </span>
+
+                                                {% if not row.folder.is_active %}
+                                                    <span
+                                                        class="
+                                                            rounded-full border
+                                                            border-axcio-border-light
+                                                            px-2 py-0.5 text-xs
+                                                            text-axcio-text-muted
+                                                            dark:border-axcio-border-dark
+                                                            dark:text-axcio-text-muted-dark
+                                                        "
+                                                    >
+                                                        Inactif
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+
+                                        <td
+                                            class="
+                                                hidden px-4 py-3 text-center
+                                                sm:table-cell
+                                            "
+                                        >
+                                            {{ row.folder.sort_order }}
+                                        </td>
+
+                                        <td class="px-4 py-3">
+                                            <div
+                                                class="
+                                                    flex justify-end gap-2
+                                                "
+                                            >
+                                                <a
+                                                    href="?folder={{ row.folder.pk }}"
+                                                    class="
+                                                        rounded-md border
+                                                        border-axcio-border-light
+                                                        p-2
+                                                        hover:border-axcio-light
+                                                        dark:border-axcio-border-dark
+                                                    "
+                                                    title="Modifier le dossier"
+                                                    aria-label="Modifier le dossier"
+                                                >
+                                                    <i
+                                                        data-lucide="pen"
+                                                        class="h-4 w-4"
+                                                        aria-hidden="true"
+                                                    ></i>
+                                                </a>
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'client_configuration:document-folder-template-folder-delete' client_environment.pk document_folder_template.pk row.folder.pk %}"
+                                                >
+                                                    {% csrf_token %}
+
+                                                    <button
+                                                        type="submit"
+                                                        class="
+                                                            rounded-md border
+                                                            border-axcio-danger
+                                                            p-2 text-axcio-danger
+                                                            hover:bg-axcio-danger/10
+                                                        "
+                                                        title="Supprimer le dossier"
+                                                        aria-label="Supprimer le dossier"
+                                                    >
+                                                        <i
+                                                            data-lucide="trash-2"
+                                                            class="h-4 w-4"
+                                                            aria-hidden="true"
+                                                        ></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                {% else %}
+
+                    <div
+                        class="
+                            p-5 text-sm
+                            text-axcio-text-muted
+                            dark:text-axcio-text-muted-dark
+                        "
+                    >
+                        Ce modèle ne contient encore aucun dossier.
+                    </div>
+
+                {% endif %}
+            </section>
+
+            <aside
+                class="
+                    rounded-lg border
+                    border-axcio-border-light
+                    bg-axcio-surface p-5
+                    dark:border-axcio-border-dark
+                    dark:bg-axcio-surface-dark
+                "
+            >
+                <div
+                    class="
+                        flex items-center justify-between gap-3
+                    "
+                >
+                    <h2 class="font-semibold">
+                        {% if selected_folder %}
+                            Modifier le dossier
+                        {% else %}
+                            Ajouter un dossier
+                        {% endif %}
+                    </h2>
+
+                    {% if selected_folder %}
+                        <a
+                            href="{% url 'client_configuration:document-folder-template-folders' client_environment.pk document_folder_template.pk %}"
+                            class="
+                                text-sm text-axcio-light
+                                hover:underline
+                            "
+                        >
+                            Annuler
+                        </a>
+                    {% endif %}
+                </div>
+
+                <form
+                    method="post"
+                    action="{% url 'client_configuration:document-folder-template-folders' client_environment.pk document_folder_template.pk %}"
+                    novalidate
+                    class="mt-5 space-y-5"
+                >
+                    {% csrf_token %}
+
+                    {% if selected_folder %}
+                        <input
+                            type="hidden"
+                            name="folder_pk"
+                            value="{{ selected_folder.pk }}"
+                        >
+                    {% endif %}
+
+                    {% if folder_form.non_field_errors %}
+                        <div
+                            class="
+                                rounded-md border
+                                border-axcio-danger
+                                bg-axcio-danger/10 p-3
+                                text-sm text-axcio-danger
+                            "
+                        >
+                            {{ folder_form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div>
+                        <label
+                            for="{{ folder_form.name.id_for_label }}"
+                            class="block text-sm font-medium"
+                        >
+                            {{ folder_form.name.label }}
+                        </label>
+
+                        <input
+                            type="text"
+                            name="{{ folder_form.name.html_name }}"
+                            id="{{ folder_form.name.id_for_label }}"
+                            value="{{ folder_form.name.value|default_if_none:'' }}"
+                            maxlength="{{ folder_form.name.field.max_length }}"
+                            autocomplete="off"
+                            class="
+                                mt-1 block w-full rounded-md border
+                                border-axcio-border-light
+                                bg-axcio-surface px-3 py-2
+                                text-sm shadow-sm
+                                outline-none
+                                focus:border-axcio-light
+                                focus:ring-1 focus:ring-axcio-light
+                                dark:border-axcio-border-dark
+                                dark:bg-axcio-surface-dark
+                            "
+                        >
+
+                        {% if folder_form.name.errors %}
+                            <p class="mt-1 text-sm text-axcio-danger">
+                                {{ folder_form.name.errors|join:", " }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label
+                            for="{{ folder_form.parent.id_for_label }}"
+                            class="block text-sm font-medium"
+                        >
+                            {{ folder_form.parent.label }}
+                        </label>
+
+                        <select
+                            name="{{ folder_form.parent.html_name }}"
+                            id="{{ folder_form.parent.id_for_label }}"
+                            class="
+                                mt-1 block w-full rounded-md border
+                                border-axcio-border-light
+                                bg-axcio-surface px-3 py-2
+                                text-sm shadow-sm
+                                outline-none
+                                focus:border-axcio-light
+                                focus:ring-1 focus:ring-axcio-light
+                                dark:border-axcio-border-dark
+                                dark:bg-axcio-surface-dark
+                            "
+                        >
+                            {% for option in parent_options %}
+                                <option
+                                    value="{{ option.value }}"
+                                    {% if option.selected %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ option.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <p
+                            class="
+                                mt-1 text-sm
+                                text-axcio-text-muted
+                                dark:text-axcio-text-muted-dark
+                            "
+                        >
+                            Laissez vide pour ajouter un dossier à la racine.
+                        </p>
+
+                        {% if folder_form.parent.errors %}
+                            <p class="mt-1 text-sm text-axcio-danger">
+                                {{ folder_form.parent.errors|join:", " }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label
+                            for="{{ folder_form.sort_order.id_for_label }}"
+                            class="block text-sm font-medium"
+                        >
+                            {{ folder_form.sort_order.label }}
+                        </label>
+
+                        <input
+                            type="number"
+                            name="{{ folder_form.sort_order.html_name }}"
+                            id="{{ folder_form.sort_order.id_for_label }}"
+                            value="{{ folder_form.sort_order.value|default_if_none:'0' }}"
+                            min="0"
+                            class="
+                                mt-1 block w-full rounded-md border
+                                border-axcio-border-light
+                                bg-axcio-surface px-3 py-2
+                                text-sm shadow-sm
+                                outline-none
+                                focus:border-axcio-light
+                                focus:ring-1 focus:ring-axcio-light
+                                dark:border-axcio-border-dark
+                                dark:bg-axcio-surface-dark
+                            "
+                        >
+
+                        {% if folder_form.sort_order.errors %}
+                            <p class="mt-1 text-sm text-axcio-danger">
+                                {{ folder_form.sort_order.errors|join:", " }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            name="{{ folder_form.is_active.html_name }}"
+                            id="{{ folder_form.is_active.id_for_label }}"
+                            {% if folder_form.is_active.value %}
+                                checked
+                            {% endif %}
+                            class="
+                                h-4 w-4 rounded
+                                border-axcio-border-light
+                                text-axcio-light
+                                focus:ring-axcio-light
+                                dark:border-axcio-border-dark
+                            "
+                        >
+
+                        <label
+                            for="{{ folder_form.is_active.id_for_label }}"
+                            class="text-sm"
+                        >
+                            {{ folder_form.is_active.label }}
+                        </label>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="
+                            w-full rounded-md bg-axcio-light
+                            px-4 py-2 text-sm font-medium
+                            text-axcio-text-inverse
+                            hover:bg-axcio-dark
+                        "
+                    >
+                        {% if selected_folder %}
+                            Enregistrer les modifications
+                        {% else %}
+                            Ajouter le dossier
+                        {% endif %}
+                    </button>
+                </form>
+            </aside>
+
+        </div>
+
+    </div>
+
+{% endblock %}

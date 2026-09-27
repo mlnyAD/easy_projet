@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     
     # Easy Projet
     "apps.core",
+    "apps.client_configuration.apps.ClientConfigurationConfig",
     "apps.catalogs",
     "apps.companies",
     "apps.licenses",

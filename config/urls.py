@@ -47,6 +47,11 @@ urlpatterns = [
     ),
 
     path(
+        "client-configuration/",
+        include("apps.client_configuration.urls"),
+    ),
+
+    path(
         "projects/",
         include("apps.projects.urls"),
     ),

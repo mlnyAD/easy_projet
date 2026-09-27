@@ -1,0 +1,88 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Configuration client
+{% endblock %}
+
+{% block content %}
+
+    <div class="ep-page space-y-6">
+
+        <div>
+            <h1 class="text-2xl font-semibold">
+                Configuration client
+            </h1>
+
+            <p class="mt-1 text-sm text-axcio-text-muted">
+                Paramétrages communs aux projets d'un environnement client.
+            </p>
+        </div>
+
+        {% if client_environments %}
+
+            <div
+                class="
+                    grid gap-4
+                    sm:grid-cols-2
+                    xl:grid-cols-3
+                "
+            >
+
+                {% for client_environment in client_environments %}
+
+                    <a
+                        href="{% url 'client_configuration:document-folder-template-list' client_environment.pk %}"
+                        class="
+                            rounded-lg border
+                            border-axcio-border-light
+                            bg-axcio-surface p-5
+                            transition-colors
+                            hover:border-axcio-light
+                            dark:border-axcio-border-dark
+                            dark:bg-axcio-surface-dark
+                        "
+                    >
+                        <h2 class="font-semibold">
+                            {{ client_environment.company.name }}
+                        </h2>
+
+                        <p
+                            class="
+                                mt-2 text-sm
+                                text-axcio-text-muted
+                                dark:text-axcio-text-muted-dark
+                            "
+                        >
+                            Gérer les modèles d'arborescences documentaires.
+                        </p>
+
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div
+                class="
+                    rounded-lg border
+                    border-axcio-border-light
+                    bg-axcio-surface p-5
+                    text-sm text-axcio-text-muted
+                    dark:border-axcio-border-dark
+                    dark:bg-axcio-surface-dark
+                    dark:text-axcio-text-muted-dark
+                "
+            >
+                Vous ne disposez d'aucun environnement client
+                administrable.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+{% endblock %}

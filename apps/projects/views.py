@@ -38,7 +38,9 @@ from framework.runtime import EPList, ListPage
 from framework.integrations.django.viewmodel import (
     DjangoListViewModelBuilder,
 )
-
+from apps.client_configuration.services.document_folder_template_application import (
+    DocumentFolderTemplateApplicationService,
+)
 
 
 from .form_definition import PROJECT_FORM_DEFINITION
@@ -897,139 +899,76 @@ class ProjectFormCollectionsMixin:
 
 
     def form_valid(self, form):
-
         membership_formset = (
-
             self.get_membership_formset(
-
                 data=self.request.POST,
-
                 instance=form.instance,
-
             )
-
         )
-
-
 
         external_participant_formset = (
-
             self.get_external_participant_formset(
-
                 data=self.request.POST,
-
                 instance=form.instance,
-
             )
-
         )
-
-
 
         memberships_valid = (
-
             membership_formset.is_valid()
-
         )
-
-
 
         external_participants_valid = (
-
             external_participant_formset.is_valid()
-
         )
-
-
 
         if not (
-
             memberships_valid
-
             and external_participants_valid
-
         ):
-
             return self.render_to_response(
-
                 self.get_context_data(
-
                     form=form,
-
                     formsets={
-
-                        "memberships": (
-
-                            membership_formset
-
-                        ),
-
+                        "memberships": membership_formset,
                         "external_participants": (
-
                             external_participant_formset
-
                         ),
-
                     },
-
                 )
-
             )
 
-
+        is_creating = form.instance._state.adding
 
         with transaction.atomic():
-
             self.object = form.save()
 
-
-
             ProjectCompanyService.ensure_responsible_company(
-
                 self.object
-
             )
 
-
-
-            membership_formset.instance = (
-
-                self.object
-
-            )
-
+            membership_formset.instance = self.object
             membership_formset.save()
 
-
-
-            external_participant_formset.instance = (
-
-                self.object
-
-            )
-
+            external_participant_formset.instance = self.object
             external_participant_formset.save()
 
-
+            if is_creating:
+                (
+                    DocumentFolderTemplateApplicationService
+                    .apply_default_template(
+                        project=self.object,
+                    )
+                )
 
         if self.success_message:
-
             messages.success(
-
                 self.request,
-
                 self.success_message,
-
             )
 
-
-
         return redirect(
-
             self.get_success_url()
-
         )
-
 
 
 class ProjectCreateView(

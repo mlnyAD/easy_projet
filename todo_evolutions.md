@@ -9,18 +9,8 @@ FieldDefinition(
 Remplacer SM par MD ou autre pour changer la largeur du libellé
 
 ### Transaction Tâches
-- Étudier une fiche tâche unifiée présentant sur une même page :
-  - les informations de la tâche ;
-  - les ressources affectées.
-- Afficher dans la liste des tâches l'état de l'affectation :
-  - nombre de ressources affectées ;
-  - indicateur explicite lorsqu'aucune ressource n'est affectée.
-- Conserver la possibilité de créer volontairement une tâche sans
-  ressource : l'absence d'affectation doit être visible, mais ne doit
-  pas nécessairement être bloquante.
-Réduire les oublis d'affectation sans rigidifier le processus de
-planification.
-
+- Concaténer les sections Rattachement et Identification
+- Afficher dans la liste des tâches le nombre de ressources affectées
 
 comme fonction transversale de workflow / file d’actions
 
@@ -33,12 +23,16 @@ Je recommande donc :
 
 Ainsi, une erreur de saisie se corrige normalement sans devoir supprimer la tâche, et le décalage reste mesurable entre planning de référence et planning courant.
 
-
 ### Planning
 
-### Documents
+### Transaction client
+Crééer une arborescence type
+Créer un projet type
 Fonction de recherche des orphelins 
 Fonction de recherche des fichiers bloqués en édition
+
+### Documents
+
 Pourquoi télécharger le document l'ouvre automatiquement sur le poste client?
 Mettre les fichiers supprimés dans une corbeille lors de la suppression initiale
 Implémenter Partager et Permissions
@@ -47,17 +41,9 @@ Traiter dans un second temps le renouvellement/expiration en session
 Future page de maintenance des verrous.
 Sans l'implémenter maintenant on pourrait aussi mettre un batch qui au démarrage du serveur débloque les verrous.
 
-
 ### CSS
 
 ### Réunions
-Mettre le champ Projet en 1/2 ligne et à côté le champ objet en 1/2 ligne
-Organisateur : ne proposer que les utiliateurs de la société
-Participants : ne proposer que les utiliateurs de la société
-Envoyer une notification aux particpants internes
-Envoyer un mail aux participants externes
-Ajouter les réunions dans le Planning - Calendrier
-
 
 ### Ergonomie
 Fonction disponible → affichage normal et action active.
@@ -85,6 +71,8 @@ Quand un RA est à traiter par le CP, il faudrait le notifier avec le compteur d
 
 ### Sociétés
 
+### Risques
+Concaténer les sections Rattachement et Identification et la mettre en tête du formulaire
 
 ### Contacts
 Liste : réduire la hauteur des lignes pour avoir une page entière à l'écran
@@ -114,9 +102,7 @@ Rubrique utilisateurs : ne proposer que des utilisateurs de sociétés l'environ
 ### Transaction licences
 Liste des licences : n'afficher que les licences de la société de l'utilisateur
 
-
 ### Fin recherche sécurité niveau 1
-Reste à faire
 Sujet restant	Nature	Priorité / moment
 OnlyOffice callback : endpoint volontairement sans validation JWT ; UUID de version + URL fournie au callback	Sécurité	À traiter en durcissement sécurité
 Téléchargement OnlyOffice depuis une URL fournie par le callback : risque potentiel de SSRF si origine/schéma non contrôlés	Sécurité	Important, avant production
@@ -135,24 +121,18 @@ CLIENT_ADMIN pouvant potentiellement attribuer SYSTEM_ADMIN	Sécurité des autor
 dans apps certains ont des fichiers test dans la racine, d'autres les tests sont dans un répertoire dédieé.
 A harmoniser
 
-
-
 --------------------------------------------------------------------------
 ### Feuille de route
-
-Je la formaliserais en trois grands blocs :
-
-Achever le cœur fonctionnel Easy Projet. 
+1 - Achever le cœur fonctionnel Easy Projet. 
 Nous terminons les attributions métier des utilisateurs, les rôles, périmètres et autorisations Level 2, puis les éventuels points fonctionnels indispensables pour disposer d'une V1 réellement exploitable. Ensuite, tu constitues un jeu de données/test représentatif du fonctionnement réel d'une entreprise, nous faisons une campagne de tests fonctionnels et de non-régression, puis une passe d'ergonomie sur l'ensemble. Le résultat attendu est une première version opérationnelle et cohérente, indépendamment des enrichissements futurs.
 
-Consolider la documentation. 
+2 - Consolider la documentation. 
 Nous faisons l'inventaire de ce qui existe et de ce qui est devenu obsolète. À partir de cette matière et du logiciel réellement construit, nous reconstituons une chaîne documentaire cohérente : CdCF → conception générale → conception détaillée → framework → manuel utilisateur. Pour la conception générale, des figures PowerPoint sont effectivement adaptées : architecture fonctionnelle, silos ClientEnvironment, acteurs et périmètres, architecture applicative, flux documentaires, intégrations, etc. C'est également dans ce bloc que nous consoliderons toutes les règles métier décidées au fil du développement. Il faudra distinguer ce qui relève de la spécification de ce qui relève du manuel utilisateur.
 
-Reprendre les intégrations externes et l'IA. 
+3 - Reprendre les intégrations externes et l'IA. 
 Une fois le noyau stabilisé et documenté, nous réévaluons les intégrations déjà expérimentées ou envisagées — GED, ONLYOFFICE, CADViewer, signature électronique, messagerie/Teams, workflows, etc. — avec une architecture d'orchestration homogène. Puis nous abordons l'IA sur une base métier stable : aide au découpage des tâches, ressources, rappels, comptes rendus, DOE, recherche documentaire, etc.
 
 Un point me paraît particulièrement important dans ton séquencement : ne pas chercher maintenant à produire le manuel utilisateur définitif. Nous devons bien enregistrer les règles métier au fur et à mesure, mais la rédaction structurée du manuel gagnera à intervenir après la stabilisation fonctionnelle et la passe ergonomique. Sinon nous documenterions des écrans et des parcours qui vont encore évoluer.
-
 
 ### Messagerie interne , Notifications , ToDo
 Élément             Rôle
@@ -168,3 +148,16 @@ Les notifications devraient couvrir uniquement les événements qui demandent un
 - risque, réserve ou action assignée ;
 - nouveau message interne : la notification ouvre alors le message, mais ne le remplace pas ;
 - échéance proche ou dépassée.
+
+### DOE
+Je la formaliserais ainsi :
+1. Générer le DOE : sélection des documents marqués « Intégrer au DOE ».
+2. L’application transmet à l’IA les métadonnées utiles : nom, type, lot, description, version, statut, auteur, éventuellement contenu textuel exploitable. La seule liste de noms de fichiers sera souvent insuffisante.
+3. L’IA reçoit également le modèle d’arborescence DOE vierge.
+4. L’IA retourne une proposition structurée :
+   document → dossier cible, avec éventuels documents non classés et raisons.
+5. Easy Projet génère un DOE brouillon : arborescence, copies des fichiers et index.
+6. Le CP ou son adjoint ajuste le classement, ajoute ou exclut des documents, puis valide.
+7. La validation fige une version du DOE et produit le ZIP ainsi que l’index PDF.
+
+

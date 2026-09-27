@@ -1,0 +1,176 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="ep-page max-w-3xl space-y-6">
+
+        <div>
+            <a
+                href="{% url 'client_configuration:document-folder-template-folders' client_environment.pk document_folder_template.pk %}"
+                class="
+                    text-sm text-axcio-light
+                    hover:underline
+                "
+            >
+                ← {{ document_folder_template.name }}
+            </a>
+
+            <h1 class="mt-2 text-2xl font-semibold">
+                {{ page_title }}
+            </h1>
+        </div>
+
+        <form
+            method="post"
+            novalidate
+            class="
+                space-y-5 rounded-lg border
+                border-axcio-border-light
+                bg-axcio-surface p-5
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-dark
+            "
+        >
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div
+                    class="
+                        rounded-md border
+                        border-axcio-danger
+                        bg-axcio-danger/10 p-3
+                        text-sm text-axcio-danger
+                    "
+                >
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div>
+                <label
+                    for="{{ form.name.id_for_label }}"
+                    class="block text-sm font-medium"
+                >
+                    {{ form.name.label }}
+                </label>
+
+                <div class="mt-1">
+                    {{ form.name }}
+                </div>
+
+                {% if form.name.errors %}
+                    <p class="mt-1 text-sm text-axcio-danger">
+                        {{ form.name.errors|join:", " }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label
+                    for="{{ form.parent.id_for_label }}"
+                    class="block text-sm font-medium"
+                >
+                    {{ form.parent.label }}
+                </label>
+
+                <div class="mt-1">
+                    {{ form.parent }}
+                </div>
+
+                <p
+                    class="
+                        mt-1 text-sm
+                        text-axcio-text-muted
+                        dark:text-axcio-text-muted-dark
+                    "
+                >
+                    Laissez ce champ vide pour créer un dossier
+                    à la racine de l'arborescence.
+                </p>
+
+                {% if form.parent.errors %}
+                    <p class="mt-1 text-sm text-axcio-danger">
+                        {{ form.parent.errors|join:", " }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <div class="max-w-xs">
+                <label
+                    for="{{ form.sort_order.id_for_label }}"
+                    class="block text-sm font-medium"
+                >
+                    {{ form.sort_order.label }}
+                </label>
+
+                <div class="mt-1">
+                    {{ form.sort_order }}
+                </div>
+
+                {% if form.sort_order.errors %}
+                    <p class="mt-1 text-sm text-axcio-danger">
+                        {{ form.sort_order.errors|join:", " }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center gap-2">
+                {{ form.is_active }}
+
+                <label
+                    for="{{ form.is_active.id_for_label }}"
+                    class="text-sm"
+                >
+                    {{ form.is_active.label }}
+                </label>
+
+                {% if form.is_active.errors %}
+                    <p class="text-sm text-axcio-danger">
+                        {{ form.is_active.errors|join:", " }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <div
+                class="
+                    flex flex-wrap justify-end gap-3
+                    border-t border-axcio-border-light
+                    pt-5 dark:border-axcio-border-dark
+                "
+            >
+                <a
+                    href="{% url 'client_configuration:document-folder-template-folders' client_environment.pk document_folder_template.pk %}"
+                    class="
+                        rounded-md border
+                        border-axcio-border-light
+                        px-4 py-2 text-sm
+                        hover:border-axcio-light
+                        dark:border-axcio-border-dark
+                    "
+                >
+                    Annuler
+                </a>
+
+                <button
+                    type="submit"
+                    class="
+                        rounded-md bg-axcio-light
+                        px-4 py-2 text-sm font-medium
+                        text-axcio-text-inverse
+                        hover:bg-axcio-dark
+                    "
+                >
+                    {{ submit_label }}
+                </button>
+            </div>
+        </form>
+
+    </div>
+
+{% endblock %}
