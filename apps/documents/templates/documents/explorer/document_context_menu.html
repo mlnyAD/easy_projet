@@ -31,85 +31,76 @@
                 Importer un fichier
             </button>
 
-        {% else %}
+            <div
+                class="my-1 border-t
+                    border-axcio-border-light
+                    dark:border-axcio-border-dark"
+            ></div>
 
-            <button
-                type="button"
-                disabled
-                title="Sélectionnez d'abord un répertoire"
-                class="flex w-full cursor-not-allowed items-center gap-2
-                       px-3 py-2 text-left text-sm italic
-                       text-axcio-text-muted opacity-50
-                       dark:text-axcio-text-muted-dark"
+            <a
+                href="{% url 'documents:create' project.pk %}?folder={{ current_folder.pk }}&document_format=word"
+                class="
+                    flex w-full items-center gap-2
+                    px-3 py-2 text-left text-sm
+                    text-axcio-text
+                    hover:bg-axcio-surface-alt
+                    dark:text-axcio-text-dark
+                    dark:hover:bg-axcio-surface-alt-dark
+                "
             >
                 <i
-                    data-lucide="upload"
+                    data-lucide="file-text"
                     class="h-4 w-4"
+                    aria-hidden="true"
                 ></i>
 
-                Importer un fichier
-            </button>
+                Nouveau document Word
+            </a>
+
+            <a
+                href="{% url 'documents:create' project.pk %}?folder={{ current_folder.pk }}&document_format=excel"
+                class="
+                    flex w-full items-center gap-2
+                    px-3 py-2 text-left text-sm
+                    text-axcio-text
+                    hover:bg-axcio-surface-alt
+                    dark:text-axcio-text-dark
+                    dark:hover:bg-axcio-surface-alt-dark
+                "
+            >
+                <i
+                    data-lucide="sheet"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+
+                Nouveau classeur Excel
+            </a>
+
+            <a
+                href="{% url 'documents:create' project.pk %}?folder={{ current_folder.pk }}&document_format=powerpoint"
+                class="
+                    flex w-full items-center gap-2
+                    px-3 py-2 text-left text-sm
+                    text-axcio-text
+                    hover:bg-axcio-surface-alt
+                    dark:text-axcio-text-dark
+                    dark:hover:bg-axcio-surface-alt-dark
+                "
+            >
+                <i
+                    data-lucide="presentation"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+
+                Nouvelle présentation PowerPoint
+            </a>
 
         {% endif %}
 
-        <div
-            class="my-1 border-t
-                   border-axcio-border-light
-                   dark:border-axcio-border-dark"
-        ></div>
-
-        <button
-            type="button"
-            disabled
-            title="Fonction à venir"
-            class="flex w-full cursor-not-allowed items-center gap-2
-                   px-3 py-2 text-left text-sm italic
-                   text-axcio-text-muted opacity-50
-                   dark:text-axcio-text-muted-dark"
-        >
-            <i
-                data-lucide="file-text"
-                class="h-4 w-4"
-            ></i>
-
-            Nouveau document Word
-        </button>
-
-        <button
-            type="button"
-            disabled
-            title="Fonction à venir"
-            class="flex w-full cursor-not-allowed items-center gap-2
-                   px-3 py-2 text-left text-sm italic
-                   text-axcio-text-muted opacity-50
-                   dark:text-axcio-text-muted-dark"
-        >
-            <i
-                data-lucide="sheet"
-                class="h-4 w-4"
-            ></i>
-
-            Nouveau classeur Excel
-        </button>
-
-        <button
-            type="button"
-            disabled
-            title="Fonction à venir"
-            class="flex w-full cursor-not-allowed items-center gap-2
-                   px-3 py-2 text-left text-sm italic
-                   text-axcio-text-muted opacity-50
-                   dark:text-axcio-text-muted-dark"
-        >
-            <i
-                data-lucide="presentation"
-                class="h-4 w-4"
-            ></i>
-
-            Nouvelle présentation PowerPoint
-        </button>
-
     {% endif %}
+
 </div>
 
 <div
@@ -155,6 +146,24 @@
         ></i>
 
         Télécharger
+    </button>
+
+    <button
+        type="button"
+        data-document-action="properties"
+        class="flex w-full items-center gap-2
+               px-3 py-2 text-left text-sm
+               text-axcio-text
+               hover:bg-axcio-surface-alt
+               dark:text-axcio-text-dark
+               dark:hover:bg-axcio-surface-alt-dark"
+    >
+        <i
+            data-lucide="info"
+            class="h-4 w-4"
+        ></i>
+
+        Propriétés
     </button>
 
     {% if can_work_on_project %}

@@ -8,11 +8,13 @@
 
 {% block content %}
 
-    {% url "licenses:create" as license_create_url %}
-
     <div class="ep-page">
 
-        {% include "edf/page/header.html" with page_title="Licences" page_action_label="Nouvelle licence" page_action_url=license_create_url page_action_icon="plus" %}
+        {% if can_create_license %}
+            {% include "edf/page/header.html" with page_title="Licences" page_action_label="Nouvelle licence" page_action_url=license_create_url page_action_icon="plus" %}
+        {% else %}
+            {% include "edf/page/header.html" with page_title="Licences" %}
+        {% endif %}
 
         {% include "edf/list/list.html" %}
 

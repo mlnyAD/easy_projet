@@ -1,0 +1,140 @@
+
+
+<form
+    method="get"
+    action="{% url 'projects:list' %}"
+    class="ep-list-filter-form"
+>
+    {% if sort_by %}
+        <input
+            type="hidden"
+            name="sort"
+            value="{{ sort_by }}"
+        >
+    {% endif %}
+
+    <input
+        type="hidden"
+        name="direction"
+        value="{% if sort_descending %}desc{% else %}asc{% endif %}"
+    >
+
+    {% if request.GET.page_size %}
+        <input
+            type="hidden"
+            name="page_size"
+            value="{{ request.GET.page_size }}"
+        >
+    {% endif %}
+
+    <span class="ep-list-filters-title">
+        Filtres
+    </span>
+
+    <label
+        for="project-owner-company-filter"
+        class="ep-list-filter-label"
+    >
+        Maître d’ouvrage
+    </label>
+
+    <select
+        id="project-owner-company-filter"
+        name="owner_company"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les projets par maître d’ouvrage"
+        onchange="this.form.submit()"
+    >
+        <option value="">
+            Tous
+        </option>
+
+        {% for company in filter_owner_companies %}
+
+            <option
+                value="{{ company.pk }}"
+                {% if company.pk|stringformat:"s" == owner_company_filter %}
+                    selected
+                {% endif %}
+            >
+                {{ company.name }}
+            </option>
+
+        {% endfor %}
+    </select>
+
+    <label
+        for="project-status-filter"
+        class="ep-list-filter-label"
+    >
+        Statut
+    </label>
+
+    <select
+        id="project-status-filter"
+        name="status"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les projets par statut"
+        onchange="this.form.submit()"
+    >
+        <option value="">
+            Tous
+        </option>
+
+        {% for status in filter_statuses %}
+
+            <option
+                value="{{ status.pk }}"
+                {% if status.pk|stringformat:"s" == status_filter %}
+                    selected
+                {% endif %}
+            >
+                {{ status.label }}
+            </option>
+
+        {% endfor %}
+    </select>
+
+    <label
+        for="project-activity-filter"
+        class="ep-list-filter-label"
+    >
+        Actif
+    </label>
+
+    <select
+        id="project-activity-filter"
+        name="activity"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les projets selon leur activité"
+        onchange="this.form.submit()"
+    >
+        <option
+            value="all"
+            {% if project_activity == "all" %}
+                selected
+            {% endif %}
+        >
+            Tous
+        </option>
+
+        <option
+            value="active"
+            {% if project_activity == "active" %}
+                selected
+            {% endif %}
+        >
+            Oui
+        </option>
+
+        <option
+            value="inactive"
+            {% if project_activity == "inactive" %}
+                selected
+            {% endif %}
+        >
+            Non
+        </option>
+    </select>
+
+</form>

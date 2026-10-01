@@ -15,21 +15,42 @@ MEETING_FORM_DEFINITION = FormDefinition(
         SectionDefinition(
             title="Identification",
             fields=[
-                FieldDefinition(name="project"),
-                FieldDefinition(name="subject"),
-                FieldDefinition(name="organizer"),
-                FieldDefinition(name="status"),
-                FieldDefinition(name="reference"),
+                FieldDefinition(
+                    name="project",
+                    width=FieldWidth.MD,
+                ),
+                FieldDefinition(
+                    name="subject",
+                    width=FieldWidth.MD,
+                ),
+                FieldDefinition(
+                    name="organizer",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="status",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="reference",
+                    width=FieldWidth.XS,
+                ),
             ],
         ),
         SectionDefinition(
             title="Organisation",
             fields=[
-                FieldDefinition(name="scheduled_at"),
-                FieldDefinition(name="duration_hours"),
+                FieldDefinition(
+                    name="scheduled_at",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="duration_hours",
+                    width=FieldWidth.XS,
+                ),
                 FieldDefinition(
                     name="location",
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.MD,
                 ),
             ],
         ),

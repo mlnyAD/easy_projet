@@ -8,8 +8,6 @@
 
 {% block content %}
 
-    {% url "users:create" as user_create_url %}
-
     <div class="ep-page">
 
         {% include "edf/page/header.html" with page_title="Utilisateurs" page_action_label="Nouvel utilisateur" page_action_url=user_create_url page_action_icon="plus" %}

@@ -15,17 +15,21 @@
         ></i>
     </a>
 
-    <a
-        href="{% url 'projects:update' row.source_object.pk %}?next={% url 'projects:list' %}"
-        class="ep-list-row-action"
-        title="Ouvrir les informations du projet"
-        aria-label="Ouvrir les informations du projet"
-    >
-        <i
-            data-lucide="pen"
-            class="ep-list-row-action-icon"
-            aria-hidden="true"
-        ></i>
-    </a>
+    {% if row.source_object.is_active and row.source_object.can_administer %}
+
+        <a
+            href="{% url 'projects:update' row.source_object.pk %}?next={{ request.get_full_path|urlencode }}"
+            class="ep-list-row-action"
+            title="Ouvrir les informations du projet"
+            aria-label="Ouvrir les informations du projet"
+        >
+            <i
+                data-lucide="pen"
+                class="ep-list-row-action-icon"
+                aria-hidden="true"
+            ></i>
+        </a>
+
+    {% endif %}
 
 </div>

@@ -16,27 +16,65 @@
                     {{ column|column_alignment_class }}
                 "
             >
-                <span>
-                    {{ column.label }}
-                </span>
+                {% if column.definition.sortable %}
 
-                {% if column.sorted %}
-                    <span
-                        class="ep-list-sort-indicator"
-                        aria-label="{% if column.descending %}Tri décroissant{% else %}Tri croissant{% endif %}"
-                    >
-                        {% if column.descending %}
-                            ▼
-                        {% else %}
-                            ▲
-                        {% endif %}
+                    {% if column.sorted and not column.descending %}
+
+                        <a
+                            href="{% querystring sort=column.identifier direction='desc' page=1 %}"
+                            class="ep-list-sort-link"
+                            title="Trier {{ column.label }} par ordre décroissant"
+                            aria-label="Trier {{ column.label }} par ordre décroissant"
+                        >
+                            <span>
+                                {{ column.label }}
+                            </span>
+
+                            <span
+                                class="ep-list-sort-indicator"
+                                aria-hidden="true"
+                            >
+                                ▲
+                            </span>
+                        </a>
+
+                    {% else %}
+
+                        <a
+                            href="{% querystring sort=column.identifier direction='asc' page=1 %}"
+                            class="ep-list-sort-link"
+                            title="Trier {{ column.label }} par ordre croissant"
+                            aria-label="Trier {{ column.label }} par ordre croissant"
+                        >
+                            <span>
+                                {{ column.label }}
+                            </span>
+
+                            {% if column.sorted %}
+
+                                <span
+                                    class="ep-list-sort-indicator"
+                                    aria-hidden="true"
+                                >
+                                    ▼
+                                </span>
+
+                            {% endif %}
+                        </a>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <span>
+                        {{ column.label }}
                     </span>
+
                 {% endif %}
 
             </th>
 
         {% endfor %}
-
 
         {% if row_actions_template %}
 

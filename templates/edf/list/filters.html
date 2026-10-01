@@ -1,13 +1,95 @@
 
 
-<div class="ep-list-filters">
+<div class="ep-list-toolbar">
 
-    <span class="ep-list-filters-title">
-        Filtres
-    </span>
+    <div class="ep-list-filters">
 
-    <span class="ep-list-filters-placeholder">
-        À venir
-    </span>
+        {% if list_filters_template %}
+
+            {% include list_filters_template %}
+
+        {% else %}
+
+            <span class="ep-list-filters-title">
+                Filtres
+            </span>
+
+            <span class="ep-list-filters-placeholder">
+                À venir
+            </span>
+
+        {% endif %}
+
+    </div>
+
+    {% if can_save_list_preferences %}
+
+        <details class="ep-list-column-selector">
+
+            <summary
+                class="ep-list-column-selector-summary"
+            >
+                <span>
+                    Colonnes affichées
+                </span>
+
+                <i
+                    data-lucide="chevron-down"
+                    class="ep-list-column-selector-icon"
+                    aria-hidden="true"
+                ></i>
+            </summary>
+
+            <form
+                method="post"
+                action="{% querystring %}"
+                class="ep-list-column-selector-panel"
+            >
+                {% csrf_token %}
+
+                <fieldset>
+                    <legend class="sr-only">
+                        Colonnes affichées
+                    </legend>
+
+                    {% for column in list_definition.columns %}
+
+                        <label
+                            class="ep-list-column-selector-option"
+                        >
+                            <input
+                                type="checkbox"
+                                name="visible_columns"
+                                value="{{ column.identifier }}"
+                                {% if column.identifier in visible_column_identifiers %}
+                                    checked
+                                {% endif %}
+                            >
+
+                            <span>
+                                {{ column.label }}
+                            </span>
+                        </label>
+
+                    {% endfor %}
+
+                </fieldset>
+
+                <div
+                    class="ep-list-column-selector-actions"
+                >
+                    <button
+                        type="submit"
+                        class="ep-list-column-selector-submit"
+                    >
+                        Appliquer
+                    </button>
+                </div>
+
+            </form>
+
+        </details>
+
+    {% endif %}
 
 </div>

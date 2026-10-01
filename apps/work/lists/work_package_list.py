@@ -26,6 +26,7 @@ WORK_PACKAGE_ENTITY_DEFINITION = EntityDefinition(
 
 
 WORK_PACKAGE_LIST_DEFINITION = ListDefinition(
+    identifier="work_packages",
     entity=WORK_PACKAGE_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(

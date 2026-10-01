@@ -8,6 +8,7 @@ from common.constants import (
     DEFAULT_PAGE_SIZE,
     PAGE_SIZE_VALUES,
 )
+from apps.users.models import User
 
 class CompanyListViewTests(TestCase):
     @classmethod
@@ -25,6 +26,18 @@ class CompanyListViewTests(TestCase):
             is_active=True,
         )
 
+        cls.user = User.objects.create(
+            company=cls.company,
+            email="company-tests@example.com",
+            first_name="Test",
+            last_name="Sociétés",
+        )
+
+    def setUp(self):
+        self.client.force_login(
+            self.user,
+        )
+    
     def test_company_list_returns_http_200(self):
         response = self.client.get(reverse("companies:list"))
 
@@ -93,6 +106,25 @@ class CompanyListViewTests(TestCase):
         )
             
 class CompanyCreateViewTests(TestCase):
+    
+    @classmethod
+    def setUpTestData(cls):
+        cls.company = Company.objects.create(
+            name="Société support des tests",
+        )
+
+        cls.user = User.objects.create(
+            company=cls.company,
+            email="company-create-tests@example.com",
+            first_name="Test",
+            last_name="Création",
+        )
+
+    def setUp(self):
+        self.client.force_login(
+            self.user,
+        )
+        
     def test_create_page_returns_http_200(self):
         response = self.client.get(reverse("companies:create"))
 

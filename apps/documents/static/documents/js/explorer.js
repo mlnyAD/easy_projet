@@ -140,6 +140,21 @@ document.addEventListener("DOMContentLoaded", () => {
             "[data-document-favorite-icon]"
         );
 
+    const documentPropertiesDialog =
+        document.getElementById(
+            "document-properties-dialog"
+        );
+
+    const documentPropertiesCloseButtons =
+        document.querySelectorAll(
+            "[data-document-properties-close]"
+        );
+
+    const documentPropertyValues =
+        document.querySelectorAll(
+            "[data-document-property]"
+        );
+
     const folderMoveDialog =
         document.getElementById(
             "folder-move-dialog"
@@ -301,6 +316,43 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+    function showDocumentProperties(row) {
+        if (!documentPropertiesDialog) {
+            return;
+        }
+
+        const values = {
+            title: row.dataset.documentTitle,
+            folder: row.dataset.documentFolderPath,
+            type: row.dataset.documentTypeLabel,
+            status: row.dataset.documentStatusLabel,
+            lifecycle: row.dataset.documentLifecycleLabel,
+            doe: row.dataset.documentDoeLabel,
+            "version-number": row.dataset.documentVersionNumber,
+            filename: row.dataset.documentVersionFilename,
+            "version-type": row.dataset.documentVersionType,
+            "version-created-by": (
+                row.dataset.documentVersionCreatedBy
+            ),
+            "version-created-at": (
+                row.dataset.documentVersionCreatedAt
+            ),
+            "created-by": row.dataset.documentCreatedBy,
+            "created-at": row.dataset.documentCreatedAt,
+            "updated-at": row.dataset.documentUpdatedAt,
+            lock: row.dataset.documentLockLabel,
+        };
+
+        documentPropertyValues.forEach((element) => {
+            const property =
+                element.dataset.documentProperty;
+
+            element.textContent =
+                values[property] || "—";
+        });
+
+        documentPropertiesDialog.showModal();
+    }
 
     function submitPost(url) {
 
@@ -342,14 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setDocumentViewMode(mode) {
-
-        const documentNames =
-            document.querySelectorAll(
-                "[data-document-name]"
-            );
-
-        const iconMode =
-            mode === "icons";
+        const iconMode = mode === "icons";
 
         if (documentListHeader) {
             documentListHeader.classList.toggle(
@@ -359,9 +404,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         documentListItems.forEach((item) => {
+            const nameElement = item.querySelector(
+                "[data-document-name]"
+            );
+
+            const documentIcon = item.querySelector(
+                "[data-lucide]"
+            );
+
+            const metadataElements = item.querySelectorAll(
+                [
+                    "[data-document-type]",
+                    "[data-document-version]",
+                    "[data-document-updated-at]",
+                ].join(", ")
+            );
 
             if (iconMode) {
-
                 item.classList.remove(
                     "grid",
                     "min-h-9",
@@ -373,83 +432,134 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 item.classList.add(
                     "inline-flex",
-                    "h-28",
-                    "w-32",
+                    "h-40",
+                    "w-40",
                     "m-2",
                     "flex-col",
                     "items-center",
                     "justify-center",
-                    "gap-2",
+                    "gap-3",
                     "rounded-lg",
                     "border",
                     "border-axcio-border-light",
-                    "p-3",
+                    "p-4",
                     "text-center",
+                    "text-xs",
                     "dark:border-axcio-border-dark"
                 );
-                
-                documentNames.forEach((nameElement) => {
 
-                    const fullName =
-                        nameElement.getAttribute(
-                            "title"
-                        )
-                        || nameElement.textContent.trim();
-
-                    if (iconMode) {
-
-                        nameElement.textContent =
-                            fullName.length > 15
-                                ? `${fullName.slice(0, 15)}...`
-                                : fullName;
-
-                        nameElement.classList.add(
-                            "max-w-full",
-                            "truncate"
-                        );
-
-                    } else {
-
-                        nameElement.textContent =
-                            fullName;
-
-                        nameElement.classList.remove(
-                            "max-w-full",
-                            "truncate"
-                        );
-                    }
+                metadataElements.forEach((element) => {
+                    element.classList.add("hidden");
                 });
+
+                if (documentIcon) {
+                    documentIcon.classList.remove(
+                        "h-4",
+                        "w-4",
+                        "text-axcio-text-muted",
+                        "dark:text-axcio-text-muted-dark"
+                    );
+
+                    documentIcon.classList.add(
+                        "h-12",
+                        "w-12",
+                        "shrink-0",
+                        "text-axcio-light"
+                    );
+                }
+
+                if (nameElement) {
+                    const fullName = (
+                        nameElement.getAttribute("title")
+                        || nameElement.textContent.trim()
+                    );
+
+                    nameElement.textContent = (
+                        fullName.length > 28
+                            ? `${fullName.slice(0, 28)}…`
+                            : fullName
+                    );
+
+                    nameElement.classList.add(
+                        "block",
+                        "max-w-full",
+                        "overflow-hidden",
+                        "text-ellipsis",
+                        "whitespace-nowrap",
+                        "font-medium"
+                    );
+                }
+
                 item.style.gridTemplateColumns = "";
 
-            } else {
-
-                item.classList.remove(
-                    "inline-flex",
-                    "h-28",
-                    "w-32",
-                    "m-2",
-                    "flex-col",
-                    "items-center",
-                    "justify-center",
-                    "gap-2",
-                    "rounded-lg",
-                    "border",
-                    "p-3",
-                    "text-center"
-                );
-
-                item.classList.add(
-                    "grid",
-                    "min-h-9",
-                    "items-center",
-                    "border-b",
-                    "px-3",
-                    "text-sm"
-                );
-
-                item.style.gridTemplateColumns =
-                    "2rem minmax(0, 1fr) 12rem 7rem 10rem";
+                return;
             }
+
+            item.classList.remove(
+                "inline-flex",
+                "h-40",
+                "w-40",
+                "m-2",
+                "flex-col",
+                "items-center",
+                "justify-center",
+                "gap-3",
+                "rounded-lg",
+                "border",
+                "p-4",
+                "text-center",
+                "text-xs"
+            );
+
+            item.classList.add(
+                "grid",
+                "min-h-9",
+                "items-center",
+                "border-b",
+                "px-3",
+                "text-sm"
+            );
+
+            metadataElements.forEach((element) => {
+                element.classList.remove("hidden");
+            });
+
+            if (documentIcon) {
+                documentIcon.classList.remove(
+                    "h-12",
+                    "w-12",
+                    "text-axcio-light"
+                );
+
+                documentIcon.classList.add(
+                    "h-4",
+                    "w-4",
+                    "text-axcio-text-muted",
+                    "dark:text-axcio-text-muted-dark"
+                );
+            }
+
+            if (nameElement) {
+                const fullName = (
+                    nameElement.getAttribute("title")
+                    || nameElement.textContent.trim()
+                );
+
+                nameElement.textContent = fullName;
+
+                nameElement.classList.remove(
+                    "block",
+                    "max-w-full",
+                    "overflow-hidden",
+                    "text-ellipsis",
+                    "whitespace-nowrap",
+                    "font-medium"
+                );
+            }
+
+            item.style.gridTemplateColumns = (
+                "2rem minmax(0, 1fr) 12rem 7rem 10rem"
+            );
         });
 
         documentViewIcons.classList.toggle(
@@ -466,7 +576,8 @@ document.addEventListener("DOMContentLoaded", () => {
             "easy-projet-document-view-mode",
             mode
         );
-    }    
+    }
+
 
     // -----------------------------------------------------------------
     // Mode d'affichage des documents
@@ -507,6 +618,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // -----------------------------------------------------------------
     // Documents
     // -----------------------------------------------------------------
+
+     documentPropertiesCloseButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            documentPropertiesDialog.close();
+        });
+    });
+
+    if (documentPropertiesDialog) {
+        documentPropertiesDialog.addEventListener(
+            "click",
+            (event) => {
+                if (
+                    event.target
+                    === documentPropertiesDialog
+                ) {
+                    documentPropertiesDialog.close();
+                }
+            }
+        );
+    }
 
     documentRows.forEach((row) => {
 
@@ -610,6 +741,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     hideMenus();
 
+                    if (action === "properties") {
+                        showDocumentProperties(
+                            selectedDocumentRow
+                        );
+
+                        return;
+                    }
 
                     // -------------------------------------------------
                     // Ouvrir

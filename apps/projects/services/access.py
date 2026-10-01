@@ -16,25 +16,21 @@ class ProjectAccessService:
     - utilisateur inactif :
       aucun accès ;
     - administrateur système :
-      accès à tous les projets actifs ;
+      accès à tous les projets de son périmètre ;
     - administrateur client :
-      accès à tous les projets actifs des environnements
-      clients qu'il administre ;
+      accès aux projets des environnements clients qu'il administre ;
     - membre d'un projet :
-      accès direct aux projets pour lesquels un
-      ProjectMembership actif existe ;
+      accès direct aux projets pour lesquels un ProjectMembership actif
+      existe ;
     - Chef de projet :
-      accès en consultation aux autres projets actifs
-      des sociétés des projets qu'il dirige.
+      accès en consultation aux projets des sociétés des projets
+      qu'il dirige.
 
-    Un utilisateur peut cumuler plusieurs périmètres.
+    ``include_inactive=False`` conserve le comportement historique :
+    seuls les projets actifs sont retournés.
 
-    La visibilité transverse d'un Chef de projet est déterminée
-    par la société des projets qu'il dirige et non par sa société
-    employeur.
-
-    Ce service détermine uniquement si un projet est visible.
-    Il ne détermine pas les actions autorisées sur ce projet.
+    ``include_inactive=True`` permet de retrouver les projets inactifs
+    dans un écran explicitement prévu pour la consultation.
     """
 
     PROJECT_MANAGER_ROLE_CODE = "PROJECT_MANAGER"
@@ -43,24 +39,29 @@ class ProjectAccessService:
     def get_accessible_projects(
         cls,
         user: User,
+        *,
+        include_inactive: bool = False,
     ) -> QuerySet[Project]:
         """
-        Retourne les projets actifs visibles par l'utilisateur.
+        Retourne les projets visibles par l'utilisateur.
+
+        Par défaut, seuls les projets actifs sont retournés.
         """
 
         if not user.is_active:
             return Project.objects.none()
 
-        queryset = (
-            Project.objects
-            .filter(is_active=True)
-            .select_related(
-                "client_environment",
-                "client_environment__company",
-                "company",
-                "status",
-            )
+        queryset = Project.objects.select_related(
+            "client_environment",
+            "client_environment__company",
+            "company",
+            "status",
         )
+
+        if not include_inactive:
+            queryset = queryset.filter(
+                is_active=True,
+            )
 
         if user.is_system_admin:
             return queryset.order_by(
@@ -68,14 +69,26 @@ class ProjectAccessService:
                 "name",
             )
 
-        managed_company_ids = (
+        managed_project_memberships = (
             user.project_memberships
             .filter(
                 is_active=True,
-                project__is_active=True,
-                role__catalog_type__code="USER_PROJECT_ROLE",
+                role__catalog_type__code=(
+                    "USER_PROJECT_ROLE"
+                ),
                 role__code=cls.PROJECT_MANAGER_ROLE_CODE,
             )
+        )
+
+        if not include_inactive:
+            managed_project_memberships = (
+                managed_project_memberships.filter(
+                    project__is_active=True,
+                )
+            )
+
+        managed_company_ids = (
+            managed_project_memberships
             .values_list(
                 "project__company_id",
                 flat=True,
@@ -110,16 +123,23 @@ class ProjectAccessService:
         cls,
         user: User,
         project: Project,
+        *,
+        include_inactive: bool = False,
     ) -> bool:
         """
         Indique si l'utilisateur peut voir le projet.
 
-        Un résultat True ne signifie pas nécessairement que
-        l'utilisateur peut modifier ou administrer le projet.
+        Par défaut, les projets inactifs restent exclus afin de
+        préserver le comportement actuel des écrans opérationnels.
         """
 
         return (
-            cls.get_accessible_projects(user)
-            .filter(pk=project.pk)
+            cls.get_accessible_projects(
+                user,
+                include_inactive=include_inactive,
+            )
+            .filter(
+                pk=project.pk,
+            )
             .exists()
         )

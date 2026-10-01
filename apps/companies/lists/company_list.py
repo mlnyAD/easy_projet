@@ -16,10 +16,13 @@ from framework.list import (
 
 DictionaryValidator().validate(COMPANY_DICTIONARY)
 
-_ENTITY_DEFINITION = EntityDefinition(COMPANY_DICTIONARY)
+_ENTITY_DEFINITION = EntityDefinition(
+    COMPANY_DICTIONARY,
+)
 
 
 COMPANY_LIST_DEFINITION = ListDefinition(
+    identifier="companies",
     entity=_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(
@@ -30,7 +33,6 @@ COMPANY_LIST_DEFINITION = ListDefinition(
             field=_ENTITY_DEFINITION.get_field(
                 "siret_display"
             ),
-            sortable=False,
             order=20,
         ),
         ColumnDefinition(

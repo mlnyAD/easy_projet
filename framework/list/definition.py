@@ -4,26 +4,24 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 from types import MappingProxyType
-from typing import Final
 
+from common.constants.common import DEFAULT_PAGE_SIZE
 from framework.dictionary.entity import EntityDefinition
 from framework.list.column import ColumnDefinition
-
-
-DEFAULT_PAGE_SIZE: Final[int] = 20
 
 
 class ListDefinition:
     """
     Décrit une liste du Framework Easy Projet.
 
-    Cette classe contient uniquement la définition structurelle d'une liste.
-    Elle ne dépend ni de Django, ni d'une base de données, ni d'une technologie
-    de rendu.
+    Cette classe contient uniquement la définition structurelle
+    d'une liste. Elle ne dépend ni de Django, ni d'une base de
+    données, ni d'une technologie de rendu.
     """
 
     __slots__ = (
         "_entity",
+        "_identifier",
         "_columns",
         "_columns_by_identifier",
         "_default_sort",
@@ -35,17 +33,24 @@ class ListDefinition:
         *,
         entity: EntityDefinition,
         columns: Sequence[ColumnDefinition],
+        identifier: str | None = None,
         default_sort: str | None = None,
         page_size: int = DEFAULT_PAGE_SIZE,
     ) -> None:
         self._validate_entity(entity)
         self._validate_columns(columns)
+        self._validate_identifier(identifier)
         self._validate_default_sort(default_sort)
         self._validate_page_size(page_size)
 
         normalized_columns = tuple(columns)
 
         self._entity = entity
+        self._identifier = (
+            identifier.strip()
+            if identifier is not None
+            else entity.name
+        )
         self._columns = normalized_columns
         self._columns_by_identifier = MappingProxyType(
             {
@@ -60,6 +65,16 @@ class ListDefinition:
     def entity(self) -> EntityDefinition:
         """Retourne l'entité décrite par la liste."""
         return self._entity
+
+    @property
+    def identifier(self) -> str:
+        """
+        Retourne l'identifiant stable de la liste.
+
+        Cet identifiant est utilisé notamment pour mémoriser
+        les préférences d'affichage de l'opérateur.
+        """
+        return self._identifier
 
     @property
     def columns(self) -> tuple[ColumnDefinition, ...]:
@@ -93,7 +108,7 @@ class ListDefinition:
 
     @property
     def visible_columns(self) -> tuple[ColumnDefinition, ...]:
-        """Retourne uniquement les colonnes visibles."""
+        """Retourne uniquement les colonnes visibles par défaut."""
         return tuple(
             column
             for column in self._columns
@@ -104,7 +119,10 @@ class ListDefinition:
         """Indique si une colonne existe."""
         return identifier in self._columns_by_identifier
 
-    def get_column(self, identifier: str) -> ColumnDefinition:
+    def get_column(
+        self,
+        identifier: str,
+    ) -> ColumnDefinition:
         """
         Retourne une colonne par son identifiant.
 
@@ -124,7 +142,10 @@ class ListDefinition:
         """Permet d'utiliser l'opérateur `in` avec un identifiant."""
         return identifier in self._columns_by_identifier
 
-    def _validate_entity(self, entity: object) -> None:
+    def _validate_entity(
+        self,
+        entity: object,
+    ) -> None:
         if not isinstance(entity, EntityDefinition):
             raise TypeError(
                 "La propriété 'entity' doit être une instance "
@@ -149,15 +170,35 @@ class ListDefinition:
 
         if not columns:
             raise ValueError(
-                "La propriété 'columns' doit contenir au moins une colonne."
+                "La propriété 'columns' doit contenir "
+                "au moins une colonne."
             )
 
         for index, column in enumerate(columns):
             if not isinstance(column, ColumnDefinition):
                 raise TypeError(
                     "La colonne située à l'index "
-                    f"{index} doit être une instance de ColumnDefinition."
+                    f"{index} doit être une instance "
+                    "de ColumnDefinition."
                 )
+
+    def _validate_identifier(
+        self,
+        identifier: object,
+    ) -> None:
+        if identifier is None:
+            return
+
+        if not isinstance(identifier, str):
+            raise TypeError(
+                "La propriété 'identifier' doit être une chaîne "
+                "de caractères."
+            )
+
+        if not identifier.strip():
+            raise ValueError(
+                "La propriété 'identifier' ne peut pas être vide."
+            )
 
     def _validate_default_sort(
         self,
@@ -181,20 +222,25 @@ class ListDefinition:
         self,
         page_size: object,
     ) -> None:
-        if isinstance(page_size, bool) or not isinstance(page_size, int):
+        if (
+            isinstance(page_size, bool)
+            or not isinstance(page_size, int)
+        ):
             raise TypeError(
                 "La propriété 'page_size' doit être un entier."
             )
 
         if page_size <= 0:
             raise ValueError(
-                "La propriété 'page_size' doit être strictement positive."
+                "La propriété 'page_size' doit être "
+                "strictement positive."
             )
 
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}("
             f"entity={self.entity.name!r}, "
+            f"identifier={self.identifier!r}, "
             f"columns={len(self.columns)}, "
             f"default_sort={self.default_sort!r}, "
             f"page_size={self.page_size}"

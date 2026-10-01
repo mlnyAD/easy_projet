@@ -70,7 +70,7 @@ COMPANY_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="email",
-                    width=FieldWidth.LG,
+                    width=FieldWidth.MD,
                 ),
                 FieldDefinition(
                     name="phone",
@@ -83,11 +83,11 @@ COMPANY_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="address_1",
-                    width=FieldWidth.MD,
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="address_2",
-                    width=FieldWidth.MD,
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="address_3",

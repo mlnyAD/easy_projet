@@ -1,0 +1,163 @@
+
+
+<form
+    method="get"
+    action="{{ request.path }}"
+    class="ep-list-filter-form"
+>
+    {% if sort_by %}
+        <input
+            type="hidden"
+            name="sort"
+            value="{{ sort_by }}"
+        >
+    {% endif %}
+
+    <input
+        type="hidden"
+        name="direction"
+        value="{% if sort_descending %}desc{% else %}asc{% endif %}"
+    >
+
+    {% if request.GET.page_size %}
+        <input
+            type="hidden"
+            name="page_size"
+            value="{{ request.GET.page_size }}"
+        >
+    {% endif %}
+
+    <span class="ep-list-filters-title">
+        Filtres
+    </span>
+
+    {% if not is_work_package_context %}
+        <label
+            for="task-filter-project"
+            class="ep-list-filter-label"
+        >
+            Projet
+        </label>
+
+        <select
+            id="task-filter-project"
+            name="project"
+            class="ep-list-filter-select"
+            aria-label="Filtrer les tâches par projet"
+            onchange="this.form.submit()"
+        >
+            <option value="">Tous</option>
+
+            {% for project in filter_projects %}
+                <option
+                    value="{{ project.pk }}"
+                    {% if project.pk|stringformat:"s" == project_filter %}
+                        selected
+                    {% endif %}
+                >
+                    {{ project.reference }} — {{ project.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label
+            for="task-filter-work-package"
+            class="ep-list-filter-label"
+        >
+            Lot
+        </label>
+
+        <select
+            id="task-filter-work-package"
+            name="work_package"
+            class="ep-list-filter-select"
+            aria-label="Filtrer les tâches par lot"
+            onchange="this.form.submit()"
+        >
+            <option value="">Tous</option>
+
+            {% for work_package in filter_work_packages %}
+                <option
+                    value="{{ work_package.pk }}"
+                    {% if work_package.pk|stringformat:"s" == work_package_filter %}
+                        selected
+                    {% endif %}
+                >
+                    {{ work_package.project.reference }}
+                    — {{ work_package.code }}
+                    — {{ work_package.name }}
+                </option>
+            {% endfor %}
+        </select>
+    {% endif %}
+
+    <label
+        for="task-filter-status"
+        class="ep-list-filter-label"
+    >
+        Statut
+    </label>
+
+    <select
+        id="task-filter-status"
+        name="status"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les tâches par statut"
+        onchange="this.form.submit()"
+    >
+        <option value="">Tous</option>
+
+        {% for status in filter_statuses %}
+            <option
+                value="{{ status.pk }}"
+                {% if status.pk|stringformat:"s" == status_filter %}
+                    selected
+                {% endif %}
+            >
+                {{ status.label }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label
+        for="task-filter-activity"
+        class="ep-list-filter-label"
+    >
+        Actif
+    </label>
+
+    <select
+        id="task-filter-activity"
+        name="activity"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les tâches actives"
+        onchange="this.form.submit()"
+    >
+        <option
+            value="all"
+            {% if task_activity == "all" %}
+                selected
+            {% endif %}
+        >
+            Tous
+        </option>
+
+        <option
+            value="active"
+            {% if task_activity == "active" %}
+                selected
+            {% endif %}
+        >
+            Oui
+        </option>
+
+        <option
+            value="inactive"
+            {% if task_activity == "inactive" %}
+                selected
+            {% endif %}
+        >
+            Non
+        </option>
+    </select>
+</form>

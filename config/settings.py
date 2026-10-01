@@ -77,6 +77,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "apps.core.middleware.login_required.LoginRequiredMiddleware",
 
     "apps.core.middleware.dev_auto_login.DevelopmentAutoLoginMiddleware",
     "apps.core.middleware.password_change_required.PasswordChangeRequiredMiddleware",

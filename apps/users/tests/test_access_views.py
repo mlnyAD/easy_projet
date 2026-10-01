@@ -745,3 +745,110 @@ class UserAccessViewTests(TestCase):
             response.status_code,
             404,
         )
+    
+    def test_system_admin_can_filter_contacts_by_company(self):
+        self.client.force_login(
+            self.system_admin
+        )
+
+        response = self.client.get(
+            reverse("users:list"),
+            {
+                "company": str(self.company_a.pk),
+                "activity": "all",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            response,
+            self.target_a.email,
+        )
+
+        self.assertNotContains(
+            response,
+            self.target_b.email,
+        )
+
+    def test_system_admin_can_filter_contacts_by_activity(self):
+        inactive_user = self._create_user(
+            email="inactive.users.http@example.com",
+            company=self.company_a,
+        )
+
+        inactive_user.is_active = False
+        inactive_user.save(
+            update_fields=[
+                "is_active",
+                "updated_at",
+            ]
+        )
+
+        self.client.force_login(
+            self.system_admin
+        )
+
+        active_response = self.client.get(
+            reverse("users:list"),
+        )
+
+        self.assertNotContains(
+            active_response,
+            inactive_user.email,
+        )
+
+        inactive_response = self.client.get(
+            reverse("users:list"),
+            {
+                "activity": "inactive",
+            },
+        )
+
+        self.assertContains(
+            inactive_response,
+            inactive_user.email,
+        )
+
+        self.assertNotContains(
+            inactive_response,
+            self.target_a.email,
+        )
+
+    def test_standard_user_cannot_filter_contacts_outside_scope(
+        self,
+    ):
+        self.client.force_login(
+            self.standard_user
+        )
+
+        response = self.client.get(
+            reverse("users:list"),
+            {
+                "company": str(self.company_b.pk),
+                "activity": "all",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            response,
+            self.standard_user.email,
+        )
+
+        self.assertContains(
+            response,
+            self.target_a.email,
+        )
+
+        self.assertNotContains(
+            response,
+            self.target_b.email,
+        )

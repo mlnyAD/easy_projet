@@ -1,0 +1,131 @@
+
+
+<form
+    method="get"
+    action="{% url 'licenses:list' %}"
+    class="ep-list-filter-form"
+>
+    {% if sort_by %}
+        <input
+            type="hidden"
+            name="sort"
+            value="{{ sort_by }}"
+        >
+    {% endif %}
+
+    <input
+        type="hidden"
+        name="direction"
+        value="{% if sort_descending %}desc{% else %}asc{% endif %}"
+    >
+
+    {% if request.GET.page_size %}
+        <input
+            type="hidden"
+            name="page_size"
+            value="{{ request.GET.page_size }}"
+        >
+    {% endif %}
+
+    <span class="ep-list-filters-title">
+        Filtres
+    </span>
+
+    <label
+        for="license-filter-company"
+        class="ep-list-filter-label"
+    >
+        Société
+    </label>
+
+    <select
+        id="license-filter-company"
+        name="company"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les licences par société"
+        onchange="this.form.submit()"
+    >
+        <option value="">Toutes</option>
+
+        {% for company in filter_companies %}
+            <option
+                value="{{ company.pk }}"
+                {% if company.pk|stringformat:"s" == company_filter %}
+                    selected
+                {% endif %}
+            >
+                {{ company.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label
+        for="license-filter-status"
+        class="ep-list-filter-label"
+    >
+        Statut
+    </label>
+
+    <select
+        id="license-filter-status"
+        name="status"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les licences par statut"
+        onchange="this.form.submit()"
+    >
+        <option value="">Tous</option>
+
+        {% for status in filter_statuses %}
+            <option
+                value="{{ status.pk }}"
+                {% if status.pk|stringformat:"s" == status_filter %}
+                    selected
+                {% endif %}
+            >
+                {{ status.label }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label
+        for="license-filter-expiration"
+        class="ep-list-filter-label"
+    >
+        Échéance
+    </label>
+
+    <select
+        id="license-filter-expiration"
+        name="expiration"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les licences selon leur échéance"
+        onchange="this.form.submit()"
+    >
+        <option
+            value="all"
+            {% if license_expiration == "all" %}
+                selected
+            {% endif %}
+        >
+            Toutes
+        </option>
+
+        <option
+            value="valid"
+            {% if license_expiration == "valid" %}
+                selected
+            {% endif %}
+        >
+            Valides
+        </option>
+
+        <option
+            value="expired"
+            {% if license_expiration == "expired" %}
+                selected
+            {% endif %}
+        >
+            Expirées
+        </option>
+    </select>
+</form>

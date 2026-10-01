@@ -98,6 +98,7 @@ Rester sur la page en cours
 ### Transaction projet
 Rubrique Chef de projet : ne proposer que des utilisateurs de sociétés l'environnement client
 Rubrique utilisateurs : ne proposer que des utilisateurs de sociétés l'environnement client
+Projet inactif. On ne peut pas voir les éléments du projet. 
 
 ### Transaction licences
 Liste des licences : n'afficher que les licences de la société de l'utilisateur
@@ -137,8 +138,8 @@ Un point me paraît particulièrement important dans ton séquencement : ne pas 
 ### Messagerie interne , Notifications , ToDo
 Élément             Rôle
 Messagerie interne	Échanges humains, par projet, avec contenu, réponses et pièces jointes.
-Notifications	      Alerte système personnelle, courte, avec un lien vers l’objet concerné.
-Mes ToDO	          Travail que l’utilisateur doit effectuer ou suivre.
+Notifications	    Alerte système personnelle, courte, avec un lien vers l’objet concerné.
+Mes ToDO	        Travail que l’utilisateur doit effectuer ou suivre.
 Les notifications devraient couvrir uniquement les événements qui demandent une attention :
 - invitation, modification ou annulation de réunion ;
 - tâche affectée ou retirée ;
@@ -160,4 +161,32 @@ Je la formaliserais ainsi :
 6. Le CP ou son adjoint ajuste le classement, ajoute ou exclut des documents, puis valide.
 7. La validation fige une version du DOE et produit le ZIP ainsi que l’index PDF.
 
+
+### Ecrans à reprendre pour normalisation framework
+Le premier relevé donne 23 templates contenant une balise <form>, mais ce ne sont pas 23 écrans à reprendre.
+Catégorie	                        Éléments	                                       Conclusion
+Composants techniques ou fragments	Sidebar, actions utilisateurs, panneau messages, 
+                                    filtre planning, dialogues dossiers, template 
+                                    edf/form/view.html	                                À exclure du décompte des écrans
+Déjà normalisés ou hybrides	        Formulaire réunion, import documentaire	            Pas une priorité ; à examiner au 
+                                                                                        cas par cas
+Écrans spécifiques métier	        Connexion, changement de mot de passe, messagerie, 
+                                    Todo, reporting, photo projet, configuration client	Rendu spécifique souvent justifié
+Écran clairement hors framework	    apps/documents/templates/documents/                 Candidat immédiat à la migration
+                                    document_form.html	                                
+
+
+Le résultat le plus significatif est le troisième :
+apps/documents/templates/documents/document_form.html
+apps/documents/templates/documents/document_import.html
+
+- document_form.html est bien un formulaire à reprendre plus tard.
+- document_import.html utilise déjà render_ep_field, mais possède aussi un rendu direct ponctuel. Il est donc hybride, pas forcément à réécrire entièrement.
+À ce stade, je ne vois pas une dette massive : il y a surtout un écran documentaire manifestement non aligné, puis plusieurs écrans métier spécialisés dont la normalisation devra être décidée selon leur intérêt.
+Je propose, quand le fonctionnel documentaire sera stabilisé, de faire un inventaire priorisé de ces écrans :
+1. Création de document ;
+2. Import documentaire ;
+3. Formulaires de configuration client ;
+4. Formulaires de reporting ;
+5. Dialogues et formulaires spécialisés, seulement si leur ergonomie reste insuffisante.
 

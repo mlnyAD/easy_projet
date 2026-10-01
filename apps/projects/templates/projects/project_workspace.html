@@ -246,121 +246,140 @@
                 Actions du projet
             </h2>
 
-            <div
-                class="grid gap-3 sm:grid-cols-2
-                       lg:grid-cols-4 xl:grid-cols-6"
-            >
-                <a
-                    href="{% url 'projects:update' project.pk %}?next={% url 'projects:workspace' project.pk %}"
-                    class="project-action-card"
-                >
-                    <i data-lucide="pen" class="h-6 w-6"></i>
-                    <span>Modifier</span>
-                </a>
+            {% if project.is_active %}
 
-                <a
-                    href="{% url 'work:list-by-project' project.pk %}"
-                    class="project-action-card"
+                <div
+                    class="grid gap-3 sm:grid-cols-2
+                        lg:grid-cols-4 xl:grid-cols-6"
                 >
-                    <i data-lucide="layers-3" class="h-6 w-6"></i>
-                    <span>Lotir</span>
-                </a>
-                <a
-                    href="{% url 'meetings:list-by-project' project.pk %}"
-                    class="project-action-card"
-                >
-                    <i
-                        data-lucide="calendar-days"
-                        class="h-6 w-6"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>Piloter</span>
-                </a>
-                {% include "projects/project_workspace_action_disabled.html" with icon="users" label="Affecter" %}
-                {% include "projects/project_workspace_action_disabled.html" with icon="banknote" label="Financer" %}
-                {% if can_manage_project_hours %}
                     <a
-                        href="{% url 'reporting:review-list' %}"
+                        href="{% url 'projects:update' project.pk %}?next={% url 'projects:workspace' project.pk %}"
+                        class="project-action-card"
+                    >
+                        <i data-lucide="pen" class="h-6 w-6"></i>
+                        <span>Modifier</span>
+                    </a>
+
+                    <a
+                        href="{% url 'work:list-by-project' project.pk %}"
+                        class="project-action-card"
+                    >
+                        <i data-lucide="layers-3" class="h-6 w-6"></i>
+                        <span>Lotir</span>
+                    </a>
+                    <a
+                        href="{% url 'meetings:list-by-project' project.pk %}"
                         class="project-action-card"
                     >
                         <i
-                            data-lucide="clock-3"
+                            data-lucide="calendar-days"
                             class="h-6 w-6"
                             aria-hidden="true"
                         ></i>
-                        <span>Gérer les heures</span>
+
+                        <span>Piloter</span>
                     </a>
-                {% else %}
-                    {% include "projects/project_workspace_action_disabled.html" with icon="clock-3" label="Gérer les heures" %}
-                {% endif %}
+                    {% include "projects/project_workspace_action_disabled.html" with icon="users" label="Affecter" %}
+                    {% include "projects/project_workspace_action_disabled.html" with icon="banknote" label="Financer" %}
+                    {% if can_manage_project_hours %}
+                        <a
+                            href="{% url 'reporting:review-list' %}"
+                            class="project-action-card"
+                        >
+                            <i
+                                data-lucide="clock-3"
+                                class="h-6 w-6"
+                                aria-hidden="true"
+                            ></i>
+                            <span>Gérer les heures</span>
+                        </a>
+                    {% else %}
+                        {% include "projects/project_workspace_action_disabled.html" with icon="clock-3" label="Gérer les heures" %}
+                    {% endif %}
 
-                <a
-                    href="{% url 'projects:dashboard' project.pk %}"
-                    class="project-action-card"
+                    <a
+                        href="{% url 'projects:dashboard' project.pk %}"
+                        class="project-action-card"
+                    >
+                        <i
+                            data-lucide="chart-no-axes-combined"
+                            class="h-6 w-6"
+                            aria-hidden="true"
+                        ></i>
+
+                        <span>Tableau de bord</span>
+                    </a>
+
+                    <a
+                        href="{% url 'projects:locations' %}?project={{ project.pk }}"
+                        class="project-action-card"
+                    >
+                        <i
+                            data-lucide="map-pin"
+                            class="h-6 w-6"
+                            aria-hidden="true"
+                        ></i>
+
+                        <span>Localiser</span>
+                    </a>
+
+                    <a
+                        href="{% url 'risks:list-by-project' project.pk %}"
+                        class="project-action-card"
+                    >
+                        <i
+                            data-lucide="triangle-alert"
+                            class="h-6 w-6"
+                            aria-hidden="true"
+                        ></i>
+
+                        <span>Risques</span>
+                    </a>
+
+                    <a
+                        href="{% url 'documents:explorer' project.pk %}"
+                        class="project-action-card"
+                    >
+                        <i
+                            data-lucide="folder-open"
+                            class="h-6 w-6"
+                            aria-hidden="true"
+                        ></i>
+
+                        <span>Documentation</span>
+                    </a>
+
+                    <a
+                        href="{% url 'projects:photo' project.pk %}"
+                        class="project-action-card"
+                    >
+                        <i
+                            data-lucide="image-plus"
+                            class="h-6 w-6"
+                            aria-hidden="true"
+                        ></i>
+
+                        <span>Photo</span>
+                    </a>
+
+                </div>
+            {% else %}
+
+                <p
+                    class="rounded-lg border px-4 py-3 text-sm
+                        border-axcio-border-light
+                        bg-axcio-surface-alt
+                        text-axcio-text
+                        dark:border-axcio-border-dark
+                        dark:bg-axcio-surface-alt-dark
+                        dark:text-axcio-text-dark"
                 >
-                    <i
-                        data-lucide="chart-no-axes-combined"
-                        class="h-6 w-6"
-                        aria-hidden="true"
-                    ></i>
+                    Ce projet est inactif : il est accessible en consultation seule.
+                </p>
 
-                    <span>Tableau de bord</span>
-                </a>
+            {% endif %}
 
-                <a
-                    href="{% url 'projects:locations' %}?project={{ project.pk }}"
-                    class="project-action-card"
-                >
-                    <i
-                        data-lucide="map-pin"
-                        class="h-6 w-6"
-                        aria-hidden="true"
-                    ></i>
 
-                    <span>Localiser</span>
-                </a>
-
-                <a
-                    href="{% url 'risks:list-by-project' project.pk %}"
-                    class="project-action-card"
-                >
-                    <i
-                        data-lucide="triangle-alert"
-                        class="h-6 w-6"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>Risques</span>
-                </a>
-
-                <a
-                    href="{% url 'documents:explorer' project.pk %}"
-                    class="project-action-card"
-                >
-                    <i
-                        data-lucide="folder-open"
-                        class="h-6 w-6"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>Documentation</span>
-                </a>
-
-                <a
-                    href="{% url 'projects:photo' project.pk %}"
-                    class="project-action-card"
-                >
-                    <i
-                        data-lucide="image-plus"
-                        class="h-6 w-6"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>Photo</span>
-                </a>
-
-            </div>
-        </section>
+            </section>
     </div>
 {% endblock %}

@@ -17,15 +17,21 @@ TASK_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="work_package",
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.MD,
                 ),
-                FieldDefinition(name="status"),
+                FieldDefinition(
+                    name="status",
+                    width=FieldWidth.XS,
+                ),
             ],
         ),
         SectionDefinition(
             title="Identification",
             fields=[
-                FieldDefinition(name="name"),
+                FieldDefinition(
+                    name="name",
+                    width=FieldWidth.MD,
+                ),
                 FieldDefinition(
                     name="description",
                     width=FieldWidth.FULL,
@@ -33,7 +39,7 @@ TASK_FORM_DEFINITION = FormDefinition(
                 FieldDefinition(
                     name="is_active",
                     required=False,
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.XS,
                     checked_label="Active",
                     unchecked_label="Inactive",
                 ),
@@ -42,14 +48,38 @@ TASK_FORM_DEFINITION = FormDefinition(
         SectionDefinition(
             title="Planning",
             fields=[
-                FieldDefinition(name="initial_start_date"),
-                FieldDefinition(name="initial_end_date"),
-                FieldDefinition(name="start_date"),
-                FieldDefinition(name="end_date"),
-                FieldDefinition(name="planned_workload_hours"),
-                FieldDefinition(name="consumed_workload_hours"),
-                FieldDefinition(name="remaining_workload_hours"),
-                FieldDefinition(name="progress_percent"),
+                FieldDefinition(
+                    name="initial_start_date",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="initial_end_date",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="start_date",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="end_date",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="planned_workload_hours",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="consumed_workload_hours",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="remaining_workload_hours",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="progress_percent",
+                    width=FieldWidth.XS,
+                ),
             ],
         ),
     ],

@@ -1,5 +1,3 @@
-
-
 from common.constants import DEFAULT_PAGE_SIZE
 from common.dictionaries.integration import (
     EXTERNAL_INTEGRATION_DICTIONARY,
@@ -16,9 +14,7 @@ from framework.list import (
 )
 
 
-DictionaryValidator().validate(
-    EXTERNAL_INTEGRATION_DICTIONARY
-)
+DictionaryValidator().validate(EXTERNAL_INTEGRATION_DICTIONARY)
 
 
 EXTERNAL_INTEGRATION_ENTITY_DEFINITION = EntityDefinition(
@@ -27,12 +23,12 @@ EXTERNAL_INTEGRATION_ENTITY_DEFINITION = EntityDefinition(
 
 
 EXTERNAL_INTEGRATION_LIST_DEFINITION = ListDefinition(
+    identifier="external_integrations",
     entity=EXTERNAL_INTEGRATION_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(
             field=(
-                EXTERNAL_INTEGRATION_ENTITY_DEFINITION
-                .get_field("client_environment")
+                EXTERNAL_INTEGRATION_ENTITY_DEFINITION.get_field("client_environment")
             ),
             label="Client",
             width="md",
@@ -40,30 +36,21 @@ EXTERNAL_INTEGRATION_LIST_DEFINITION = ListDefinition(
             order=10,
         ),
         ColumnDefinition(
-            field=(
-                EXTERNAL_INTEGRATION_ENTITY_DEFINITION
-                .get_field("service_type")
-            ),
+            field=(EXTERNAL_INTEGRATION_ENTITY_DEFINITION.get_field("service_type")),
             label="Service",
             width="md",
             truncate=True,
             order=20,
         ),
         ColumnDefinition(
-            field=(
-                EXTERNAL_INTEGRATION_ENTITY_DEFINITION
-                .get_field("provider")
-            ),
+            field=(EXTERNAL_INTEGRATION_ENTITY_DEFINITION.get_field("provider")),
             label="Fournisseur",
             width="md",
             truncate=True,
             order=30,
         ),
         ColumnDefinition(
-            field=(
-                EXTERNAL_INTEGRATION_ENTITY_DEFINITION
-                .get_field("name")
-            ),
+            field=(EXTERNAL_INTEGRATION_ENTITY_DEFINITION.get_field("name")),
             label="Nom",
             width="lg",
             truncate=True,
@@ -71,28 +58,21 @@ EXTERNAL_INTEGRATION_LIST_DEFINITION = ListDefinition(
         ),
         ColumnDefinition(
             field=(
-                EXTERNAL_INTEGRATION_ENTITY_DEFINITION
-                .get_field("connection_status")
+                EXTERNAL_INTEGRATION_ENTITY_DEFINITION.get_field("connection_status")
             ),
             label="Connexion",
             width="sm",
             order=50,
         ),
         ColumnDefinition(
-            field=(
-                EXTERNAL_INTEGRATION_ENTITY_DEFINITION
-                .get_field("priority")
-            ),
+            field=(EXTERNAL_INTEGRATION_ENTITY_DEFINITION.get_field("priority")),
             label="Priorité",
             width="xs",
             align="center",
             order=60,
         ),
         ColumnDefinition(
-            field=(
-                EXTERNAL_INTEGRATION_ENTITY_DEFINITION
-                .get_field("is_active")
-            ),
+            field=(EXTERNAL_INTEGRATION_ENTITY_DEFINITION.get_field("is_active")),
             label="Active",
             width="xs",
             align="center",
@@ -104,6 +84,4 @@ EXTERNAL_INTEGRATION_LIST_DEFINITION = ListDefinition(
 )
 
 
-ListValidator().validate(
-    EXTERNAL_INTEGRATION_LIST_DEFINITION
-)
+ListValidator().validate(EXTERNAL_INTEGRATION_LIST_DEFINITION)

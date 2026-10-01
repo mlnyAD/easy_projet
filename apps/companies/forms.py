@@ -17,8 +17,46 @@ from common.forms.widgets import (
 from .models import Company
 
 
+class SiretField(forms.CharField):
+    """
+    Normalise le SIRET avant la validation du champ.
+    """
+
+    def to_python(
+        self,
+        value,
+    ) -> str:
+        value = super().to_python(value)
+
+        if not value:
+            return ""
+
+        return "".join(
+            value.split()
+        )
+        
+        
 class CompanyForm(forms.ModelForm):
     DEFAULT_COUNTRY = "FRANCE"
+
+    siret = SiretField(
+        required=False,
+        max_length=(
+            COMPANY_SIRET_LENGTH + 3
+        ),
+        widget=forms.TextInput(
+            attrs={
+                "maxlength": (
+                    COMPANY_SIRET_LENGTH + 3
+                ),
+                "placeholder": "123 456 789 00012",
+                "autocomplete": "off",
+                "inputmode": "numeric",
+                "data-siret": True,
+                "data-trim": True,
+            }
+        ),
+    )
 
     class Meta:
         model = Company
@@ -101,19 +139,6 @@ class CompanyForm(forms.ModelForm):
                     "data-trim": True,
                 }
             ),
-            "siret": forms.TextInput(
-                attrs={
-                    # 14 chiffres + 3 espaces de présentation.
-                    "maxlength": (
-                        COMPANY_SIRET_LENGTH + 3
-                    ),
-                    "placeholder": "123 456 789 00012",
-                    "autocomplete": "off",
-                    "inputmode": "numeric",
-                    "data-siret": True,
-                    "data-trim": True,
-                }
-            ),
             "vat_number": forms.TextInput(
                 attrs={
                     "maxlength": COMPANY_VAT_NUMBER_LENGTH,
@@ -183,4 +208,23 @@ class CompanyForm(forms.ModelForm):
             group
             for group in groups
             if group
+        )
+        
+
+class SiretField(forms.CharField):
+    """
+    Normalise le SIRET avant la validation du champ.
+    """
+
+    def to_python(
+        self,
+        value,
+    ) -> str:
+        value = super().to_python(value)
+
+        if not value:
+            return ""
+
+        return "".join(
+            value.split()
         )

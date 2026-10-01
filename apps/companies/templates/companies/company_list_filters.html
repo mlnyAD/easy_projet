@@ -1,0 +1,76 @@
+
+
+<form
+    method="get"
+    action="{% url 'companies:list' %}"
+    class="ep-list-filter-form"
+>
+    {% if sort_by %}
+        <input
+            type="hidden"
+            name="sort"
+            value="{{ sort_by }}"
+        >
+    {% endif %}
+
+    <input
+        type="hidden"
+        name="direction"
+        value="{% if sort_descending %}desc{% else %}asc{% endif %}"
+    >
+
+    {% if request.GET.page_size %}
+        <input
+            type="hidden"
+            name="page_size"
+            value="{{ request.GET.page_size }}"
+        >
+    {% endif %}
+
+    <span class="ep-list-filters-title">
+        Filtres
+    </span>
+
+    <label
+        for="company-activity-filter"
+        class="ep-list-filter-label"
+    >
+        Sociétés
+    </label>
+
+    <select
+        id="company-activity-filter"
+        name="activity"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les sociétés selon leur activité"
+        onchange="this.form.submit()"
+    >
+        <option
+            value="all"
+            {% if company_activity == "all" %}
+                selected
+            {% endif %}
+        >
+            Toutes
+        </option>
+
+        <option
+            value="active"
+            {% if company_activity == "active" %}
+                selected
+            {% endif %}
+        >
+            Actives
+        </option>
+
+        <option
+            value="inactive"
+            {% if company_activity == "inactive" %}
+                selected
+            {% endif %}
+        >
+            Inactives
+        </option>
+    </select>
+
+</form>

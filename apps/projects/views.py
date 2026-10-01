@@ -12,18 +12,26 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
+from uuid import UUID
 
+from apps.catalogs.models import CatalogValue
+from apps.companies.models import Company
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     UserPassesTestMixin,
 )
-
+from urllib.parse import quote
 from django.db.models import Prefetch
 from datetime import timedelta
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
 )
-
+from framework.integrations.django.list_preferences import (
+    EPListPreferencesMixin,
+)
+from framework.integrations.django.list_sorting import (
+    EPListSortingMixin,
+)
 from django.db.models import Sum
 
 from apps.tasks.models import Task, TaskAssignment
@@ -84,286 +92,401 @@ from .current_project import (
 )
 
 from apps.projects.services.access import (
-
     ProjectAccessService,
-
 )
-
-
-
 from apps.projects.services.authorization import (
-
     ProjectAuthorizationService,
-
 )
-
-
 
 from apps.projects.services.project_manager import (
-
     ProjectManagerService,
-
 )
-
-
-
 from apps.projects.services.project_company import ProjectCompanyService
 from apps.reporting.permissions import (
     can_validate_activity_report_project,
 )
 
 
+class ProjectAccessListQuerysetMixin:
+    """
+    Fournit le périmètre des projets visibles, actifs ou inactifs.
+    """
+
+    def get_queryset(self):
+        return ProjectAccessService.get_accessible_projects(
+            self.request.user,
+            include_inactive=True,
+        )
 
 
 class ProjectListView(
-
+    EPListSortingMixin,
+    EPListPreferencesMixin,
     EPListPaginationMixin,
-
+    ProjectAccessListQuerysetMixin,
     ListView,
-
 ):
-
     model = Project
-
     template_name = "projects/project_list.html"
-
     context_object_name = "projects"
 
+    list_definition = PROJECT_LIST_DEFINITION
 
+    owner_company_parameter = "owner_company"
+    status_parameter = "status"
+    activity_parameter = "activity"
 
-    def get_queryset(self):
+    activity_all = "all"
+    activity_active = "active"
+    activity_inactive = "inactive"
 
-        responsible_memberships = (
+    activity_values = (
+        activity_all,
+        activity_active,
+        activity_inactive,
+    )
 
-            ProjectMembership.objects
+    def get_sort_field_map(self) -> dict[str, str]:
+        """
+        Associe les colonnes affichées aux champs ORM triables.
+        """
 
-            .filter(
+        sort_field_map = super().get_sort_field_map()
 
-                is_active=True,
+        sort_field_map["owner_company"] = (
+            "owner_company__name"
+        )
+        sort_field_map["status"] = "status__sort_order"
 
-                is_project_manager_responsible=True,
+        return sort_field_map
 
-                role__catalog_type__code="USER_PROJECT_ROLE",
+    def get_accessible_project_queryset(self):
+        """
+        Retourne les projets visibles, y compris les inactifs.
+        """
 
-                role__catalog_type__is_active=True,
-
-                role__code="PROJECT_MANAGER",
-
-                role__is_active=True,
-
-            )
-
-            .select_related(
-
-                "user",
-
-                "user__company",
-
-                "role",
-
-            )
-
+        return ProjectAccessService.get_accessible_projects(
+            self.request.user,
+            include_inactive=True,
         )
 
+    def get_filter_owner_companies(self):
+        """
+        Retourne les maîtres d'ouvrage des projets visibles.
+        """
 
+        project_ids = (
+            self.get_accessible_project_queryset()
+            .exclude(
+                owner_company__isnull=True,
+            )
+            .values_list(
+                "owner_company_id",
+                flat=True,
+            )
+        )
 
         return (
-
-            ProjectAccessService
-
-            .get_accessible_projects(
-
-                self.request.user
-
+            Company.objects.filter(
+                pk__in=project_ids,
             )
-
-            .prefetch_related(
-
-                Prefetch(
-
-                    "memberships",
-
-                    queryset=responsible_memberships,
-
-                    to_attr=(
-
-                        "responsible_project_manager_memberships"
-
-                    ),
-
-                )
-
-            )
-
+            .order_by("name")
         )
 
+    def get_filter_statuses(self):
+        """
+        Retourne les statuts effectivement présents dans le périmètre.
+        """
 
+        project_status_ids = (
+            self.get_accessible_project_queryset()
+            .exclude(
+                status__isnull=True,
+            )
+            .values_list(
+                "status_id",
+                flat=True,
+            )
+        )
+
+        return (
+            CatalogValue.objects.filter(
+                pk__in=project_status_ids,
+            )
+            .order_by("label")
+        )
+
+    def get_owner_company_filter(self) -> str | None:
+        """
+        Retourne le maître d'ouvrage sélectionné s'il est valide
+        et présent dans le périmètre accessible.
+        """
+
+        raw_company_id = self.request.GET.get(
+            self.owner_company_parameter,
+            "",
+        ).strip()
+
+        if not raw_company_id:
+            return None
+
+        try:
+            company_id = UUID(raw_company_id)
+        except ValueError:
+            return None
+
+        if not self.get_filter_owner_companies().filter(
+            pk=company_id,
+        ).exists():
+            return None
+
+        return str(company_id)
+
+    def get_status_filter(self) -> int | None:
+        """
+        Retourne le statut sélectionné s'il est valide et présent
+        dans le périmètre accessible.
+        """
+
+        raw_status_id = self.request.GET.get(
+            self.status_parameter,
+            "",
+        ).strip()
+
+        if not raw_status_id:
+            return None
+
+        try:
+            status_id = int(raw_status_id)
+        except ValueError:
+            return None
+
+        if not self.get_filter_statuses().filter(
+            pk=status_id,
+        ).exists():
+            return None
+
+        return status_id
+
+    def get_activity_filter(self) -> str:
+        """
+        Retourne le filtre d'activité effectif.
+
+        Les projets actifs sont affichés par défaut.
+        """
+
+        activity = self.request.GET.get(
+            self.activity_parameter,
+            self.activity_active,
+        )
+
+        if activity not in self.activity_values:
+            return self.activity_active
+
+        return activity
+
+    def get_queryset(self):
+        """
+        Retourne les projets autorisés, filtrés, puis triés.
+        """
+
+        queryset = super().get_queryset()
+
+        owner_company_id = self.get_owner_company_filter()
+
+        if owner_company_id is not None:
+            queryset = queryset.filter(
+                owner_company_id=owner_company_id,
+            )
+
+        status_id = self.get_status_filter()
+
+        if status_id is not None:
+            queryset = queryset.filter(
+                status_id=status_id,
+            )
+
+        activity = self.get_activity_filter()
+
+        if activity != self.activity_all:
+            queryset = queryset.filter(
+                is_active=(
+                    activity == self.activity_active
+                ),
+            )
+
+        responsible_memberships = (
+            ProjectMembership.objects
+            .filter(
+                is_active=True,
+                is_project_manager_responsible=True,
+                role__catalog_type__code=(
+                    "USER_PROJECT_ROLE"
+                ),
+                role__catalog_type__is_active=True,
+                role__code="PROJECT_MANAGER",
+                role__is_active=True,
+            )
+            .select_related(
+                "user",
+                "user__company",
+                "role",
+            )
+        )
+
+        return (
+            queryset
+            .select_related(
+                "owner_company",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "memberships",
+                    queryset=responsible_memberships,
+                    to_attr=(
+                        "responsible_project_manager_memberships"
+                    ),
+                )
+            )
+        )
 
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
-
-
 
         django_page = context["page_obj"]
 
-
-
         page_projects = tuple(
-
             django_page.object_list
-
         )
-
-
 
         administrable_project_ids = set(
-
             ProjectAuthorizationService
-
             .get_administrable_projects(
-
                 self.request.user
-
             )
-
             .filter(
-
                 pk__in=(
-
                     project.pk
-
                     for project in page_projects
-
                 )
-
             )
-
             .values_list(
-
                 "pk",
-
                 flat=True,
-
             )
-
         )
 
-
-
         for project in page_projects:
-
             project.can_administer = (
-
                 project.pk
-
                 in administrable_project_ids
-
             )
 
             memberships = getattr(
-
                 project,
-
                 "responsible_project_manager_memberships",
-
                 (),
-
             )
 
-
-
             if memberships:
-
                 project.responsible_project_manager = str(
-
                     memberships[0].user
-
                 )
-
             else:
-
                 project.responsible_project_manager = None
 
-
-
         runtime = EPList(
-
             definition=PROJECT_LIST_DEFINITION,
-
             rows=django_page.object_list,
-
         )
-
-
 
         framework_page = ListPage(
-
             rows=tuple(
-
                 django_page.object_list
-
             ),
-
             page=django_page.number,
-
             page_size=django_page.paginator.per_page,
-
             total_items=django_page.paginator.count,
-
             total_pages=django_page.paginator.num_pages,
-
             has_previous=django_page.has_previous(),
-
             has_next=django_page.has_next(),
-
         )
 
+        visible_column_identifiers = (
+            self.get_visible_column_identifiers()
+        )
 
+        sort_by = self.get_sort_by()
+        sort_descending = self.get_sort_descending()
 
         list_view = DjangoListViewModelBuilder().build(
-
             runtime=runtime,
-
             page=framework_page,
-
+            sort_by=sort_by,
+            descending=sort_descending,
+            visible_column_identifiers=(
+                visible_column_identifiers
+            ),
         )
-
-
 
         context["list_view"] = list_view
 
-
-
         # Alias temporaire pour compatibilité avec les tests existants.
-
         context["list"] = list_view
 
+        context["list_definition"] = (
+            self.get_list_definition()
+        )
 
+        context["visible_column_identifiers"] = (
+            visible_column_identifiers
+        )
+
+        context["can_save_list_preferences"] = (
+            self.request.user.is_authenticated
+        )
+
+        context["sort_by"] = sort_by
+        context["sort_descending"] = sort_descending
+
+        context["filter_owner_companies"] = (
+            self.get_filter_owner_companies()
+        )
+
+        context["filter_statuses"] = (
+            self.get_filter_statuses()
+        )
+
+        context["owner_company_filter"] = (
+            self.get_owner_company_filter()
+        )
+
+        context["status_filter"] = self.get_status_filter()
+
+        context["project_activity"] = (
+            self.get_activity_filter()
+        )
+
+        context["list_filters_template"] = (
+            "projects/project_list_filters.html"
+        )
 
         context["row_actions_template"] = (
-
             "projects/project_actions.html"
-
         )
-
-
 
         context["can_create_project"] = (
-
             ProjectAuthorizationService
-
             .get_project_creation_companies(
-
                 self.request.user
-
             )
-
             .exists()
-
         )
-
-
+        
+        context["project_create_url"] = (
+            f"{reverse('projects:create')}?next="
+            f"{quote(self.request.get_full_path())}"
+        )
 
         return context
 
@@ -615,7 +738,8 @@ class ProjectWorkspaceView(DetailView):
 
             .get_accessible_projects(
 
-                self.request.user
+                self.request.user,
+                include_inactive=True,
 
             )
 

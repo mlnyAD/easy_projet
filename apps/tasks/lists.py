@@ -17,6 +17,7 @@ TASK_ENTITY_DEFINITION = EntityDefinition(TASK_DICTIONARY)
 
 
 TASK_LIST_DEFINITION = ListDefinition(
+    identifier="tasks",
     entity=TASK_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(
@@ -74,6 +75,7 @@ TASK_LIST_DEFINITION = ListDefinition(
             label="Consommé (h)",
             width="sm",
             align="right",
+            sortable=False,
             order=80,
         ),
         ColumnDefinition(

@@ -6,6 +6,7 @@ from framework.form import (
     SectionDefinition,
 )
 
+from framework.types.field_width import FieldWidth
 
 LICENSE_FORM_DEFINITION = FormDefinition(
     name="license",
@@ -14,16 +15,31 @@ LICENSE_FORM_DEFINITION = FormDefinition(
         SectionDefinition(
             title="Attribution",
             fields=[
-                FieldDefinition(name="company"),
-                FieldDefinition(name="reference"),
-                FieldDefinition(name="project_capacity"),
+                FieldDefinition(
+                    name="company",
+                    width=FieldWidth.SM,
+                ),
+                FieldDefinition(
+                    name="reference",
+                    width=FieldWidth.SM,
+                   ),
+                FieldDefinition(
+                    name="project_capacity",
+                    width=FieldWidth.XS,
+                ),
             ],
         ),
         SectionDefinition(
             title="Validité",
             fields=[
-                FieldDefinition(name="granted_at"),
-                FieldDefinition(name="expiration_date"),
+                FieldDefinition(
+                    name="granted_at",
+                    width=FieldWidth.XS,
+                ),
+                FieldDefinition(
+                    name="expiration_date",
+                    width=FieldWidth.XS,
+                ),
             ],
         ),
     ],

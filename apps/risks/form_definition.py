@@ -17,11 +17,11 @@ RISK_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="project",
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="owner",
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.SM,
                 ),
             ],
         ),
@@ -30,30 +30,39 @@ RISK_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="origin",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="risk_type",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="risk_class",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="impact",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="severity",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="probability",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="status",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="criticality",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="review_frequency",
+                    width=FieldWidth.SM,
                 ),
             ],
         ),
@@ -62,9 +71,11 @@ RISK_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="reference",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="title",
+                    width=FieldWidth.FULL,
                 ),
                 FieldDefinition(
                     name="description",
@@ -84,15 +95,19 @@ RISK_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="occurrence_date",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="closure_date",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="estimated_cost",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="last_review_date",
+                    width=FieldWidth.SM,
                 ),
                 FieldDefinition(
                     name="planned_actions",

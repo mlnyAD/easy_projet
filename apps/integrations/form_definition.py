@@ -17,7 +17,7 @@ EXTERNAL_INTEGRATION_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="client_environment",
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.MD,
                 ),
             ],
         ),
@@ -26,13 +26,15 @@ EXTERNAL_INTEGRATION_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="service_type",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="provider",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="connection_status",
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.XS,
                 ),
             ],
         ),
@@ -41,9 +43,11 @@ EXTERNAL_INTEGRATION_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="code",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="name",
+                    width=FieldWidth.XS,
                 ),
             ],
         ),
@@ -52,6 +56,7 @@ EXTERNAL_INTEGRATION_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="priority",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="is_active",

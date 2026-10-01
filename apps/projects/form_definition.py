@@ -19,9 +19,11 @@ PROJECT_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="reference",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="name",
+                    width=FieldWidth.MD,
                 ),
                 FieldDefinition(
                     name="description",
@@ -29,14 +31,16 @@ PROJECT_FORM_DEFINITION = FormDefinition(
                 ),
                 FieldDefinition(
                     name="company",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="status",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="is_active",
                     required=False,
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.XS,
                     checked_label="Actif",
                     unchecked_label="Inactif",
                 ),
@@ -47,15 +51,19 @@ PROJECT_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="owner_company",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="designer_company",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="project_type",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="contract_reference",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="comments",
@@ -68,24 +76,27 @@ PROJECT_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="address_1",
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.MD,
                 ),
                 FieldDefinition(
                     name="address_2",
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="address_3",
-                    width=FieldWidth.FULL,
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="postal_code",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="city",
+                    width=FieldWidth.MD,
                 ),
                 FieldDefinition(
                     name="country",
+                    width=FieldWidth.XS,
                 ),
             ],
         ),
@@ -94,30 +105,39 @@ PROJECT_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="initial_start_date",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="initial_end_date",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="start_date",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="end_date",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="initial_receipt_date",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="receipt_date",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="initial_delivery_date",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="delivery_date",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="planned_workload_hours",
+                    width=FieldWidth.XS,
                 ),
             ],
         ),
@@ -126,18 +146,23 @@ PROJECT_FORM_DEFINITION = FormDefinition(
             fields=[
                 FieldDefinition(
                     name="amount_quote_ht",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="amount_quote_ttc",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="amount_order_ht",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="amount_order_ttc",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="currency",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="budget_comments",

@@ -25,6 +25,7 @@ LICENSE_ENTITY_DEFINITION = EntityDefinition(
 
 
 LICENSE_LIST_DEFINITION = ListDefinition(
+    identifier="licenses",
     entity=LICENSE_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(

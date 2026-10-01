@@ -1,7 +1,7 @@
 
 
 <a
-    href="{% url 'companies:update' row.source_object.pk %}"
+    href="{% url 'companies:update' row.source_object.pk %}?next={{ request.get_full_path|urlencode }}"
     class="ep-list-row-action"
     title="Modifier"
     aria-label="Modifier la société"

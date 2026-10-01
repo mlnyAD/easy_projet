@@ -2,7 +2,6 @@
 
 from common.constants import DEFAULT_PAGE_SIZE
 from common.dictionaries.project import PROJECT_DICTIONARY
-
 from framework.dictionary import (
     DictionaryValidator,
     EntityDefinition,
@@ -14,14 +13,17 @@ from framework.list import (
 )
 
 
-DictionaryValidator().validate(PROJECT_DICTIONARY)
+DictionaryValidator().validate(
+    PROJECT_DICTIONARY,
+)
 
 PROJECT_ENTITY_DEFINITION = EntityDefinition(
-    PROJECT_DICTIONARY
+    PROJECT_DICTIONARY,
 )
 
 
 PROJECT_LIST_DEFINITION = ListDefinition(
+    identifier="projects",
     entity=PROJECT_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(
@@ -54,6 +56,7 @@ PROJECT_LIST_DEFINITION = ListDefinition(
                 "responsible_project_manager"
             ),
             label="Chef de projet titulaire",
+            sortable=False,
             width="md",
             truncate=True,
             order=40,
@@ -112,5 +115,5 @@ PROJECT_LIST_DEFINITION = ListDefinition(
 )
 
 ListValidator().validate(
-    PROJECT_LIST_DEFINITION
+    PROJECT_LIST_DEFINITION,
 )

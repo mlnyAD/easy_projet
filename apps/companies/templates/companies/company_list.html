@@ -8,8 +8,6 @@
 
 {% block content %}
 
-    {% url "companies:create" as company_create_url %}
-
     <div class="ep-page">
 
         {% include "edf/page/header.html" with page_title="Sociétés" page_action_label="Nouvelle société" page_action_url=company_create_url page_action_icon="plus" %}

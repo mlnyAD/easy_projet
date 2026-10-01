@@ -1,0 +1,153 @@
+
+
+<form
+    method="get"
+    action="{% url 'integrations:list' %}"
+    class="ep-list-filter-form"
+>
+    <input
+        type="hidden"
+        name="sort"
+        value="{{ sort_by }}"
+    >
+    <input
+        type="hidden"
+        name="direction"
+        value="{% if sort_descending %}desc{% else %}asc{% endif %}"
+    >
+    <input
+        type="hidden"
+        name="page_size"
+        value="{{ request.GET.page_size }}"
+    >
+
+    <span class="ep-list-filters-title">
+        Filtres
+    </span>
+
+    <label class="ep-list-filter">
+        <span>Client</span>
+
+        <select
+            name="client_environment"
+            class="ep-list-filter-select"
+            aria-label="Filtrer les intégrations par client"
+            onchange="this.form.submit()"
+        >
+            <option value="">Tous</option>
+
+            {% for client_environment in filter_client_environments %}
+                <option
+                    value="{{ client_environment.pk }}"
+                    {% if client_environment.pk|stringformat:"s" == client_environment_filter %}
+                        selected
+                    {% endif %}
+                >
+                    {{ client_environment }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label class="ep-list-filter">
+        <span>Service</span>
+
+        <select
+            name="service_type"
+            class="ep-list-filter-select"
+            aria-label="Filtrer les intégrations par service"
+            onchange="this.form.submit()"
+        >
+            <option value="">Tous</option>
+
+            {% for service_type in filter_service_types %}
+                <option
+                    value="{{ service_type.pk }}"
+                    {% if service_type.pk|stringformat:"s" == service_type_filter|stringformat:"s" %}
+                        selected
+                    {% endif %}
+                >
+                    {{ service_type.label }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label class="ep-list-filter">
+        <span>Fournisseur</span>
+
+        <select
+            name="provider"
+            class="ep-list-filter-select"
+            aria-label="Filtrer les intégrations par fournisseur"
+            onchange="this.form.submit()"
+        >
+            <option value="">Tous</option>
+
+            {% for provider in filter_providers %}
+                <option
+                    value="{{ provider.pk }}"
+                    {% if provider.pk|stringformat:"s" == provider_filter|stringformat:"s" %}
+                        selected
+                    {% endif %}
+                >
+                    {{ provider.label }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label class="ep-list-filter">
+        <span>Connexion</span>
+
+        <select
+            name="connection_status"
+            class="ep-list-filter-select"
+            aria-label="Filtrer les intégrations par état de connexion"
+            onchange="this.form.submit()"
+        >
+            <option value="">Tous</option>
+
+            {% for connection_status in filter_connection_statuses %}
+                <option
+                    value="{{ connection_status.pk }}"
+                    {% if connection_status.pk|stringformat:"s" == connection_status_filter|stringformat:"s" %}
+                        selected
+                    {% endif %}
+                >
+                    {{ connection_status.label }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label class="ep-list-filter">
+        <span>Active</span>
+
+        <select
+            name="activity"
+            class="ep-list-filter-select"
+            aria-label="Filtrer les intégrations actives"
+            onchange="this.form.submit()"
+        >
+            <option
+                value="all"
+                {% if integration_activity == "all" %}selected{% endif %}
+            >
+                Toutes
+            </option>
+            <option
+                value="active"
+                {% if integration_activity == "active" %}selected{% endif %}
+            >
+                Actives
+            </option>
+            <option
+                value="inactive"
+                {% if integration_activity == "inactive" %}selected{% endif %}
+            >
+                Inactives
+            </option>
+        </select>
+    </label>
+</form>

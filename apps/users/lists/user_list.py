@@ -1,14 +1,11 @@
 
 
 from common.constants import DEFAULT_PAGE_SIZE
-
 from common.dictionaries.user import USER_DICTIONARY
-
 from framework.dictionary import (
     DictionaryValidator,
     EntityDefinition,
 )
-
 from framework.list import (
     ColumnDefinition,
     ListDefinition,
@@ -19,11 +16,12 @@ from framework.list import (
 DictionaryValidator().validate(USER_DICTIONARY)
 
 USER_ENTITY_DEFINITION = EntityDefinition(
-    USER_DICTIONARY
+    USER_DICTIONARY,
 )
 
 
 USER_LIST_DEFINITION = ListDefinition(
+    identifier="users",
     entity=USER_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(
@@ -62,5 +60,5 @@ USER_LIST_DEFINITION = ListDefinition(
 )
 
 ListValidator().validate(
-    USER_LIST_DEFINITION
+    USER_LIST_DEFINITION,
 )

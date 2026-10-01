@@ -41,6 +41,10 @@ class DocumentCreateView(
 
         form = DocumentCreateForm(
             project=project,
+            initial=self.get_initial(
+                request=request,
+                project=project,
+            ),
         )
 
         return render(
@@ -95,7 +99,64 @@ class DocumentCreateView(
 
         document.refresh_from_db()
 
+        if (
+            request.POST.get("action")
+            == "create_and_open"
+        ):
+            return redirect(
+                "documents:version-edit",
+                version_id=document.current_version.pk,
+            )
+
         return redirect(
-            "documents:version-edit",
-            version_id=document.current_version.pk,
+            "documents:folder",
+            project_id=project.pk,
+            folder_id=document.folder_id,
         )
+        
+    @staticmethod
+    def get_initial(
+        *,
+        request,
+        project,
+    ) -> dict:
+        """
+        Préremplit le formulaire depuis le menu contextuel
+        de l'explorateur documentaire.
+        """
+
+        initial = {}
+
+        document_format = (
+            request.GET.get("document_format")
+            or ""
+        ).strip()
+
+        valid_formats = {
+            DocumentCreateForm.FORMAT_WORD,
+            DocumentCreateForm.FORMAT_EXCEL,
+            DocumentCreateForm.FORMAT_POWERPOINT,
+        }
+
+        if document_format in valid_formats:
+            initial["document_format"] = document_format
+
+        folder_pk = (
+            request.GET.get("folder")
+            or ""
+        ).strip()
+
+        if folder_pk:
+            folder = (
+                project.document_folders
+                .filter(
+                    pk=folder_pk,
+                    is_active=True,
+                )
+                .first()
+            )
+
+            if folder is not None:
+                initial["folder"] = folder.pk
+
+        return initial

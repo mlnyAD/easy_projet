@@ -1,6 +1,7 @@
 
 
 from __future__ import annotations
+from uuid import UUID
 
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
@@ -10,9 +11,16 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import (
+    reverse,
+    reverse_lazy,
+)
+from django.utils.http import (
+    url_has_allowed_host_and_scheme,
+)
 from django.views import View
 from django.views.generic import FormView, ListView
+from urllib.parse import quote
 
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
@@ -20,6 +28,12 @@ from framework.integrations.django.list_pagination import (
 from framework.integrations.django.views import (
     EPCreateView,
     EPUpdateView,
+)
+from framework.integrations.django.list_preferences import (
+    EPListPreferencesMixin,
+)
+from framework.integrations.django.list_sorting import (
+    EPListSortingMixin,
 )
 from framework.runtime import EPList, ListPage
 from framework.viewmodel.builder import ListViewModelBuilder
@@ -40,6 +54,7 @@ from .lists import USER_LIST_DEFINITION
 from .models import User
 from .services import TemporaryPasswordService
 from .services.access import UserAccessService
+from apps.companies.models import Company
 
 
 class UserLoginView(LoginView):
@@ -56,18 +71,142 @@ class UserLoginView(LoginView):
         return super().get_success_url()
 
 
+class UserAccessListQuerysetMixin:
+    """
+    Fournit le périmètre des utilisateurs visibles par l'acteur.
+    """
+
+    def get_queryset(self):
+        return UserAccessService.get_accessible_users(
+            self.request.user
+        )
+
+
 class UserListView(
+    EPListSortingMixin,
+    EPListPreferencesMixin,
     EPListPaginationMixin,
+    UserAccessListQuerysetMixin,
     ListView,
 ):
     model = User
     template_name = "users/user_list.html"
     context_object_name = "users"
 
-    def get_queryset(self):
-        return UserAccessService.get_accessible_users(
-            self.request.user
+    list_definition = USER_LIST_DEFINITION
+
+    company_parameter = "company"
+    activity_parameter = "activity"
+
+    activity_all = "all"
+    activity_active = "active"
+    activity_inactive = "inactive"
+
+    activity_values = (
+        activity_all,
+        activity_active,
+        activity_inactive,
+    )
+
+    def get_sort_field_map(self) -> dict[str, str]:
+        """
+        Associe les colonnes affichées aux champs ORM triables.
+        """
+
+        sort_field_map = super().get_sort_field_map()
+
+        sort_field_map["company"] = "company__name"
+
+        return sort_field_map
+
+    def get_filter_companies(self):
+        """
+        Retourne les sociétés présentes dans le périmètre visible.
+
+        Une société sans contact accessible n'est jamais proposée.
+        """
+
+        accessible_users = (
+            UserAccessService.get_accessible_users(
+                self.request.user
+            )
         )
+
+        return (
+            Company.objects.filter(
+                users__in=accessible_users,
+            )
+            .distinct()
+            .order_by("name")
+        )
+
+    def get_company_filter(self) -> str | None:
+        """
+        Retourne l'identifiant de société sélectionné, s'il est valide
+        et appartient au périmètre accessible.
+        """
+
+        raw_company_id = self.request.GET.get(
+            self.company_parameter,
+            "",
+        ).strip()
+
+        if not raw_company_id:
+            return None
+
+        try:
+            company_id = UUID(raw_company_id)
+        except ValueError:
+            return None
+
+        if not self.get_filter_companies().filter(
+            pk=company_id,
+        ).exists():
+            return None
+
+        return str(company_id)
+
+    def get_activity_filter(self) -> str:
+        """
+        Retourne le filtre d'activité effectif.
+        """
+
+        activity = self.request.GET.get(
+            self.activity_parameter,
+            self.activity_active,
+        )
+
+        if activity not in self.activity_values:
+            return self.activity_active
+
+        return activity
+
+    def get_queryset(self):
+        """
+        Retourne les contacts autorisés, filtrés et triés.
+
+        Le tri est appliqué avant la pagination Django.
+        """
+
+        queryset = super().get_queryset()
+
+        company_id = self.get_company_filter()
+
+        if company_id is not None:
+            queryset = queryset.filter(
+                company_id=company_id,
+            )
+
+        activity = self.get_activity_filter()
+
+        if activity != self.activity_all:
+            queryset = queryset.filter(
+                is_active=(
+                    activity == self.activity_active
+                ),
+            )
+
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -75,7 +214,7 @@ class UserListView(
         django_page = context["page_obj"]
 
         runtime = EPList(
-            definition=USER_LIST_DEFINITION,
+            definition=self.list_definition,
             rows=django_page.object_list,
         )
 
@@ -91,25 +230,115 @@ class UserListView(
             has_next=django_page.has_next(),
         )
 
+        visible_column_identifiers = (
+            self.get_visible_column_identifiers()
+        )
+
+        sort_by = self.get_sort_by()
+        sort_descending = self.get_sort_descending()
+
         list_view = ListViewModelBuilder().build(
             runtime=runtime,
             page=framework_page,
+            sort_by=sort_by,
+            descending=sort_descending,
+            visible_column_identifiers=(
+                visible_column_identifiers
+            ),
         )
 
         context["list_view"] = list_view
+
+        # Alias temporaire pour compatibilité avec les tests existants.
         context["list"] = list_view
+
+        context["list_definition"] = (
+            self.get_list_definition()
+        )
+
+        context["visible_column_identifiers"] = (
+            visible_column_identifiers
+        )
+
+        context["can_save_list_preferences"] = (
+            self.request.user.is_authenticated
+        )
+
+        context["sort_by"] = sort_by
+        context["sort_descending"] = sort_descending
+
+        context["filter_companies"] = (
+            self.get_filter_companies()
+        )
+
+        context["company_filter"] = (
+            self.get_company_filter()
+        )
+
+        context["user_activity"] = (
+            self.get_activity_filter()
+        )
+
+        context["list_filters_template"] = (
+            "users/user_list_filters.html"
+        )
+
         context["row_actions_template"] = (
             "users/user_actions.html"
         )
+
         context["can_manage_client_environments"] = (
             UserAccessService.can_create_user(
                 self.request.user
             )
         )
 
+        context["user_create_url"] = (
+            f"{reverse('users:create')}?next="
+            f"{quote(self.request.get_full_path())}"
+        )
+
         return context
+    
 
+class UserReturnUrlMixin:
+    """
+    Préserve l'état de la liste lors des actions sur un utilisateur.
+    """
 
+    def get_return_url(self):
+        candidate = (
+            self.request.POST.get(
+                "next",
+            )
+            or self.request.GET.get(
+                "next",
+            )
+        )
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={
+                    self.request.get_host(),
+                },
+                require_https=(
+                    self.request.is_secure()
+                ),
+            )
+        ):
+            return candidate
+
+        return reverse("users:list")
+
+    def get_success_url(self):
+        return self.get_return_url()
+
+    def get_cancel_url(self):
+        return self.get_return_url()
+    
+    
 class UserFormCollectionsMixin:
     """
     Gère la collection des rattachements aux environnements
@@ -205,6 +434,7 @@ class UserFormCollectionsMixin:
         
 
 class UserCreateView(
+    UserReturnUrlMixin,
     UserFormCollectionsMixin,
     EPCreateView,
 ):
@@ -212,9 +442,6 @@ class UserCreateView(
     form_class = UserForm
     definition = USER_FORM_DEFINITION
     template_name = "edf/form/view.html"
-
-    success_url = reverse_lazy("users:list")
-    cancel_url = reverse_lazy("users:list")
 
     success_message = (
         "L'utilisateur a été créé avec succès. "
@@ -258,6 +485,7 @@ class UserCreateView(
 
 
 class UserUpdateView(
+    UserReturnUrlMixin,
     UserFormCollectionsMixin,
     EPUpdateView,
 ):
@@ -265,9 +493,6 @@ class UserUpdateView(
     form_class = UserForm
     definition = USER_FORM_DEFINITION
     template_name = "edf/form/view.html"
-
-    success_url = reverse_lazy("users:list")
-    cancel_url = reverse_lazy("users:list")
 
     success_message = (
         "L'utilisateur a été modifié avec succès."
@@ -297,7 +522,10 @@ class UserUpdateView(
         return kwargs
     
 
-class UserTemporaryPasswordResendView(View):
+class UserTemporaryPasswordResendView(
+    UserReturnUrlMixin,
+    View,
+):
     """
     Régénère et renvoie un mot de passe provisoire.
 
@@ -343,7 +571,7 @@ class UserTemporaryPasswordResendView(View):
         )
 
         return redirect(
-            "users:list"
+            self.get_return_url()
         )
 
 

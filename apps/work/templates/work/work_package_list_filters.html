@@ -1,0 +1,161 @@
+
+
+<form
+    method="get"
+    action="{{ request.path }}"
+    class="ep-list-filter-form"
+>
+    {% if sort_by %}
+        <input
+            type="hidden"
+            name="sort"
+            value="{{ sort_by }}"
+        >
+    {% endif %}
+
+    <input
+        type="hidden"
+        name="direction"
+        value="{% if sort_descending %}desc{% else %}asc{% endif %}"
+    >
+
+    {% if request.GET.page_size %}
+        <input
+            type="hidden"
+            name="page_size"
+            value="{{ request.GET.page_size }}"
+        >
+    {% endif %}
+
+    <span class="ep-list-filters-title">
+        Filtres
+    </span>
+
+    {% if not is_project_context %}
+        <label
+            for="work-package-filter-project"
+            class="ep-list-filter-label"
+        >
+            Projet
+        </label>
+
+        <select
+            id="work-package-filter-project"
+            name="project"
+            class="ep-list-filter-select"
+            aria-label="Filtrer les lots par projet"
+            onchange="this.form.submit()"
+        >
+            <option value="">Tous</option>
+
+            {% for project in filter_projects %}
+                <option
+                    value="{{ project.pk }}"
+                    {% if project.pk|stringformat:"s" == project_filter %}
+                        selected
+                    {% endif %}
+                >
+                    {{ project.reference }} — {{ project.name }}
+                </option>
+            {% endfor %}
+        </select>
+    {% endif %}
+
+    <label
+        for="work-package-filter-manager"
+        class="ep-list-filter-label"
+    >
+        Responsable
+    </label>
+
+    <select
+        id="work-package-filter-manager"
+        name="manager"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les lots par responsable"
+        onchange="this.form.submit()"
+    >
+        <option value="">Tous</option>
+
+        {% for manager in filter_managers %}
+            <option
+                value="{{ manager.pk }}"
+                {% if manager.pk|stringformat:"s" == manager_filter %}
+                    selected
+                {% endif %}
+            >
+                {{ manager }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label
+        for="work-package-filter-status"
+        class="ep-list-filter-label"
+    >
+        Statut
+    </label>
+
+    <select
+        id="work-package-filter-status"
+        name="status"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les lots par statut"
+        onchange="this.form.submit()"
+    >
+        <option value="">Tous</option>
+
+        {% for status in filter_statuses %}
+            <option
+                value="{{ status.pk }}"
+                {% if status.pk|stringformat:"s" == status_filter %}
+                    selected
+                {% endif %}
+            >
+                {{ status.label }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label
+        for="work-package-filter-activity"
+        class="ep-list-filter-label"
+    >
+        Actif
+    </label>
+
+    <select
+        id="work-package-filter-activity"
+        name="activity"
+        class="ep-list-filter-select"
+        aria-label="Filtrer les lots actifs"
+        onchange="this.form.submit()"
+    >
+        <option
+            value="all"
+            {% if work_package_activity == "all" %}
+                selected
+            {% endif %}
+        >
+            Tous
+        </option>
+
+        <option
+            value="active"
+            {% if work_package_activity == "active" %}
+                selected
+            {% endif %}
+        >
+            Oui
+        </option>
+
+        <option
+            value="inactive"
+            {% if work_package_activity == "inactive" %}
+                selected
+            {% endif %}
+        >
+            Non
+        </option>
+    </select>
+</form>

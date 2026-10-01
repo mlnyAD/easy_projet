@@ -3,12 +3,12 @@
 {% extends "layout/base.html" %}
 
 {% block title %}
-Nouveau document
+    Nouveau document
 {% endblock %}
 
 {% block content %}
 
-<div class="mx-auto max-w-3xl">
+<div class="mx-auto w-full max-w-3xl">
 
     <div class="mb-4">
         <h1
@@ -30,51 +30,128 @@ Nouveau document
 
     <form
         method="post"
-        class="space-y-4"
+        class="rounded-lg border
+               border-axcio-border-light
+               bg-axcio-page p-5 shadow-sm
+               dark:border-axcio-border-dark
+               dark:bg-axcio-page-dark"
     >
         {% csrf_token %}
 
-        {{ form.non_field_errors }}
-
-        {% for field in form %}
-
-            <div>
-                <label
-                    for="{{ field.id_for_label }}"
-                    class="mb-1 block text-sm font-medium"
-                >
-                    {{ field.label }}
-                </label>
-
-                {{ field }}
-
-                {% if field.help_text %}
-                    <p class="mt-1 text-xs text-gray-500">
-                        {{ field.help_text }}
-                    </p>
-                {% endif %}
-
-                {% for error in field.errors %}
-                    <p class="mt-1 text-sm text-red-600">
-                        {{ error }}
-                    </p>
-                {% endfor %}
-            </div>
-
-        {% endfor %}
-
-        <div class="flex justify-end gap-2 pt-2">
-
-            <button
-                type="submit"
-                class="rounded-lg bg-axcio-light
-                       px-4 py-2 text-sm font-medium
-                       text-white
-                       hover:bg-axcio-light-hover"
+        {% if form.non_field_errors %}
+            <div
+                class="mb-4 rounded-md border border-red-300
+                       bg-red-50 px-3 py-2 text-sm text-red-700
+                       dark:border-red-900 dark:bg-red-950/30
+                       dark:text-red-300"
             >
-                Créer
-            </button>
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
 
+        <div class="space-y-4">
+
+            {% for field in form %}
+
+                <div>
+                    <label
+                        for="{{ field.id_for_label }}"
+                        class="mb-1.5 block text-sm font-medium
+                               text-axcio-text
+                               dark:text-axcio-text-dark"
+                    >
+                        {{ field.label }}
+
+                        {% if field.field.required %}
+                            <span class="text-red-600">*</span>
+                        {% endif %}
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.help_text %}
+                        <p
+                            class="mt-1 text-xs
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            {{ field.help_text }}
+                        </p>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <p class="mt-1 text-sm text-red-600">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+        <div
+            class="mt-6 flex items-center justify-end gap-2
+                   border-t pt-4
+                   border-axcio-border-light
+                   dark:border-axcio-border-dark"
+        >
+            {% if form.folder.value %}
+                <a
+                    href="{% url 'documents:folder' project.pk form.folder.value %}"
+                    class="rounded-lg border
+                           border-axcio-border-light
+                           px-4 py-2 text-sm font-medium
+                           text-axcio-text
+                           hover:bg-axcio-surface-alt
+                           dark:border-axcio-border-dark
+                           dark:text-axcio-text-dark
+                           dark:hover:bg-axcio-surface-alt-dark"
+                >
+                    Annuler
+                </a>
+            {% else %}
+                <a
+                    href="{% url 'documents:explorer' project.pk %}"
+                    class="rounded-lg border
+                           border-axcio-border-light
+                           px-4 py-2 text-sm font-medium
+                           text-axcio-text
+                           hover:bg-axcio-surface-alt
+                           dark:border-axcio-border-dark
+                           dark:text-axcio-text-dark
+                           dark:hover:bg-axcio-surface-alt-dark"
+                >
+                    Annuler
+                </a>
+            {% endif %}
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="create"
+                    class="rounded-lg border
+                        border-axcio-border-light
+                        px-4 py-2 text-sm font-medium
+                        text-axcio-text
+                        hover:bg-axcio-surface-alt
+                        dark:border-axcio-border-dark
+                        dark:text-axcio-text-dark
+                        dark:hover:bg-axcio-surface-alt-dark"
+                >
+                    Créer
+                </button>
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="create_and_open"
+                    class="rounded-lg bg-axcio-light
+                        px-4 py-2 text-sm font-medium text-white
+                        hover:bg-axcio-light-hover"
+                >
+                    Créer et ouvrir
+                </button>
         </div>
 
     </form>

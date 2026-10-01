@@ -10,6 +10,7 @@ MEETING_ENTITY_DEFINITION = EntityDefinition(MEETING_DICTIONARY)
 
 
 MEETING_LIST_DEFINITION = ListDefinition(
+    identifier="meetings",
     entity=MEETING_ENTITY_DEFINITION,
     columns=(
         ColumnDefinition(
@@ -53,9 +54,7 @@ MEETING_LIST_DEFINITION = ListDefinition(
             order=60,
         ),
         ColumnDefinition(
-            field=MEETING_ENTITY_DEFINITION.get_field(
-                "invitations_sent"
-            ),
+            field=MEETING_ENTITY_DEFINITION.get_field("invitations_sent"),
             label="Invitations faites",
             width="sm",
             align="center",
