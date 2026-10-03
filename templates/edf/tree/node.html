@@ -1,0 +1,151 @@
+
+
+<div class="min-w-0">
+
+    {% if node.kind == "branch" %}
+
+        <details
+            class="group"
+            {% if node.is_expanded %}open{% endif %}
+        >
+            <summary
+                class="flex cursor-pointer list-none
+                       items-center gap-2 rounded-md
+                       px-2 py-1.5 text-sm
+                       {% if node.is_selected %}
+                           bg-axcio-light font-medium text-white
+                           hover:bg-axcio-light
+                           dark:bg-axcio-light
+                           dark:text-white
+                           dark:hover:bg-axcio-light
+                       {% else %}
+                           text-axcio-text
+                           hover:bg-axcio-surface-alt
+                           dark:text-axcio-text-dark
+                           dark:hover:bg-axcio-surface-alt-dark
+                       {% endif %}"
+                {% for name, value in node.data_attributes.items %}
+                    data-{{ name }}="{{ value }}"
+                {% endfor %}
+            >
+                <i
+                    data-lucide="chevron-right"
+                    class="h-3.5 w-3.5 shrink-0
+                           transition-transform
+                           group-open:rotate-90"
+                    aria-hidden="true"
+                ></i>
+
+                {% if node.icon %}
+                    <i
+                        data-lucide="{{ node.icon }}"
+                        class="h-4 w-4 shrink-0"
+                        aria-hidden="true"
+                    ></i>
+                {% endif %}
+
+                {% if node.url and not node.is_disabled %}
+
+                    <a
+                        href="{{ node.url }}"
+                        class="min-w-0 truncate"
+                    >
+                        {{ node.label }}
+                    </a>
+
+                {% else %}
+
+                    <span
+                        class="min-w-0 truncate
+                               {% if node.is_disabled %}
+                                   opacity-50
+                               {% endif %}"
+                    >
+                        {{ node.label }}
+                    </span>
+
+                {% endif %}
+            </summary>
+
+            {% if node.children %}
+                <div
+                    class="ml-4 border-l
+                           border-axcio-border-light
+                           pl-2
+                           dark:border-axcio-border-dark"
+                >
+                    {% for child in node.children %}
+                        {% include "edf/tree/node.html" with node=child %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </details>
+
+    {% else %}
+
+        {% if node.url and not node.is_disabled %}
+
+            <a
+                href="{{ node.url }}"
+                class="flex min-w-0 items-center gap-2
+                       rounded-md px-2 py-1.5 text-sm
+                       {% if node.is_selected %}
+                           bg-axcio-light font-medium text-white
+                           hover:bg-axcio-light
+                           dark:bg-axcio-light
+                           dark:text-white
+                           dark:hover:bg-axcio-light
+                       {% else %}
+                           text-axcio-text
+                           hover:bg-axcio-surface-alt
+                           dark:text-axcio-text-dark
+                           dark:hover:bg-axcio-surface-alt-dark
+                       {% endif %}"
+                {% for name, value in node.data_attributes.items %}
+                    data-{{ name }}="{{ value }}"
+                {% endfor %}
+            >
+                {% if node.icon %}
+                    <i
+                        data-lucide="{{ node.icon }}"
+                        class="h-4 w-4 shrink-0"
+                        aria-hidden="true"
+                    ></i>
+                {% endif %}
+
+                <span class="truncate">
+                    {{ node.label }}
+                </span>
+            </a>
+
+        {% else %}
+
+            <span
+                class="flex min-w-0 items-center gap-2
+                       rounded-md px-2 py-1.5 text-sm
+                       text-axcio-text
+                       dark:text-axcio-text-dark
+                       {% if node.is_disabled %}
+                           cursor-not-allowed opacity-50
+                       {% endif %}"
+                {% for name, value in node.data_attributes.items %}
+                    data-{{ name }}="{{ value }}"
+                {% endfor %}
+            >
+                {% if node.icon %}
+                    <i
+                        data-lucide="{{ node.icon }}"
+                        class="h-4 w-4 shrink-0"
+                        aria-hidden="true"
+                    ></i>
+                {% endif %}
+
+                <span class="truncate">
+                    {{ node.label }}
+                </span>
+            </span>
+
+        {% endif %}
+
+    {% endif %}
+</div>

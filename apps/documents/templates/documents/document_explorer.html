@@ -20,11 +20,21 @@
                dark:border-gray-700"
         style="grid-template-columns: 280px minmax(0, 1fr);"
     >
-        {% include "documents/explorer/tree.html" %}
+        {% include "edf/tree/tree.html" %}
         {% include "documents/explorer/content.html" %}
     </div>
 
 </div>
+
+{% if can_work_on_project %}
+    <button
+        id="root-create-folder"
+        type="button"
+        class="hidden"
+        tabindex="-1"
+        aria-hidden="true"
+    ></button>
+{% endif %}
 
 {% include "documents/explorer/folder_context_menu.html" %}
 {% include "documents/explorer/document_context_menu.html" %}
@@ -32,6 +42,10 @@
 
 <script
     src="{% static 'documents/js/explorer.js' %}"
+></script>
+
+<script
+    src="{% static 'documents/js/tree_commands.js' %}"
 ></script>
 
 {% endblock %}

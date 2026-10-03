@@ -4,12 +4,19 @@ from __future__ import annotations
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.views.generic import TemplateView
 
 from apps.documents.models import (
     Document,
     DocumentFavorite,
     DocumentFolder,
+)
+from apps.documents.trees import (
+    DOCUMENT_EXPLORER_CREATE_ROOT_FOLDER_COMMAND,
+    DOCUMENT_EXPLORER_TREE_DEFINITION,
+    DOCUMENT_EXPLORER_WORKSPACE_IDENTIFIER,
+    DocumentFolderTreeNodeFactory,
 )
 from apps.projects.models import Project
 from apps.projects.services.access import (
@@ -18,6 +25,8 @@ from apps.projects.services.access import (
 from apps.projects.services.authorization import (
     ProjectAuthorizationService,
 )
+from framework.runtime import EPTree, TreeCommand
+from framework.viewmodel import TreeViewModelBuilder
 
 
 class DocumentExplorerView(
@@ -64,6 +73,31 @@ class DocumentExplorerView(
             is_active=True,
         )
 
+    def get_regular_folders(
+        self,
+        project: Project,
+    ):
+        """
+        Retourne les dossiers de la documentation source.
+
+        Les dossiers générés pour le DOE ne font pas partie de
+        l'environnement documentaire courant.
+        """
+
+        return (
+            DocumentFolder.objects
+            .filter(
+                project=project,
+                is_active=True,
+                is_doe_root=False,
+                is_doe_generated=False,
+            )
+            .order_by(
+                "sort_order",
+                "name",
+            )
+        )
+
     def get_context_data(
         self,
         **kwargs,
@@ -78,35 +112,25 @@ class DocumentExplorerView(
             project
         )
 
-        destination_folders = (
-            DocumentFolder.objects
-            .filter(
+        can_work_on_project = (
+            ProjectAuthorizationService
+            .can_work_on_project(
+                user=self.request.user,
                 project=project,
-                is_active=True,
-            )
-            .select_related(
-                "parent",
-            )
-            .order_by(
-                "name",
             )
         )
 
-        root_folders = (
-            DocumentFolder.objects
-            .filter(
-                project=project,
-                parent__isnull=True,
-                is_active=True,
-            )
-            .prefetch_related(
-                "children",
-            )
-            .order_by(
-                "sort_order",
-                "name",
-            )
+        regular_folders = tuple(
+            self.get_regular_folders(project)
         )
+
+        root_folders = tuple(
+            folder
+            for folder in regular_folders
+            if folder.parent_id is None
+        )
+
+        destination_folders = regular_folders
 
         open_folder_ids = set()
 
@@ -124,17 +148,10 @@ class DocumentExplorerView(
             child_folders = root_folders
             documents = Document.objects.none()
         else:
-            child_folders = (
-                DocumentFolder.objects
-                .filter(
-                    project=project,
-                    parent=current_folder,
-                    is_active=True,
-                )
-                .order_by(
-                    "sort_order",
-                    "name",
-                )
+            child_folders = tuple(
+                folder
+                for folder in regular_folders
+                if folder.parent_id == current_folder.pk
             )
 
             documents = (
@@ -142,6 +159,7 @@ class DocumentExplorerView(
                 .filter(
                     project=project,
                     folder=current_folder,
+                    is_doe_generated=False,
                 )
                 .select_related(
                     "document_type",
@@ -166,6 +184,64 @@ class DocumentExplorerView(
                 )
             )
 
+        return_url = self.request.get_full_path()
+
+        tree_nodes = DocumentFolderTreeNodeFactory.build(
+            project=project,
+            folders=regular_folders,
+            selected_folder_id=(
+                current_folder.pk
+                if current_folder is not None
+                else None
+            ),
+            return_url=return_url,
+        )
+
+        tree_commands = ()
+
+        if can_work_on_project:
+            tree_commands = (
+                TreeCommand(
+                    definition=(
+                        DOCUMENT_EXPLORER_CREATE_ROOT_FOLDER_COMMAND
+                    ),
+                ),
+            )
+
+        tree_runtime = EPTree(
+            definition=DOCUMENT_EXPLORER_TREE_DEFINITION,
+            workspace_identifier=(
+                DOCUMENT_EXPLORER_WORKSPACE_IDENTIFIER
+            ),
+            nodes=tree_nodes,
+            commands=tree_commands,
+            selected_node_identifier=(
+                str(current_folder.pk)
+                if current_folder is not None
+                else None
+            ),
+        )
+
+        tree_view = TreeViewModelBuilder().build(
+            runtime=tree_runtime,
+            expanded_node_identifiers=tuple(
+                str(folder_id)
+                for folder_id in open_folder_ids
+                if (
+                    current_folder is None
+                    or folder_id != current_folder.pk
+                )
+            ),
+            workspace_urls={
+                DOCUMENT_EXPLORER_WORKSPACE_IDENTIFIER: reverse(
+                    "documents:explorer",
+                    kwargs={
+                        "project_id": project.pk,
+                    },
+                ),
+            },
+        )
+
         context.update(
             {
                 "project": project,
@@ -184,13 +260,10 @@ class DocumentExplorerView(
                     favorite_document_ids
                 ),
                 "can_work_on_project": (
-                    ProjectAuthorizationService
-                    .can_work_on_project(
-                        user=self.request.user,
-                        project=project,
-                    ),
+                    can_work_on_project
                 ),
-                "return_url": self.request.get_full_path(),
+                "return_url": return_url,
+                "tree_view": tree_view,
             }
         )
 

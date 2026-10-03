@@ -1,0 +1,224 @@
+
+
+<div
+    class="flex h-full min-h-0 flex-col
+           border-r border-axcio-border-light
+           bg-axcio-page
+           dark:border-axcio-border-dark
+           dark:bg-axcio-page-dark"
+>
+    {% if tree_view.workspaces|length > 1 %}
+
+        <div
+            class="flex shrink-0 gap-1 overflow-x-auto
+                   border-b border-axcio-border-light
+                   p-2
+                   dark:border-axcio-border-dark"
+        >
+            {% for workspace in tree_view.workspaces %}
+
+                {% if workspace.is_active %}
+
+                    <span
+                        class="inline-flex items-center gap-2
+                               rounded-md bg-axcio-surface-alt
+                               px-3 py-2 text-sm font-medium
+                               text-axcio-text
+                               dark:bg-axcio-surface-alt-dark
+                               dark:text-axcio-text-dark"
+                    >
+                        {% if workspace.icon %}
+                            <i
+                                data-lucide="{{ workspace.icon }}"
+                                class="h-4 w-4 shrink-0"
+                                aria-hidden="true"
+                            ></i>
+                        {% endif %}
+
+                        {{ workspace.label }}
+                    </span>
+
+                {% elif workspace.url %}
+
+                    <a
+                        href="{{ workspace.url }}"
+                        class="inline-flex items-center gap-2
+                               rounded-md px-3 py-2 text-sm
+                               text-axcio-text-muted
+                               hover:bg-axcio-surface-alt
+                               hover:text-axcio-text
+                               dark:text-axcio-text-muted-dark
+                               dark:hover:bg-axcio-surface-alt-dark
+                               dark:hover:text-axcio-text-dark"
+                    >
+                        {% if workspace.icon %}
+                            <i
+                                data-lucide="{{ workspace.icon }}"
+                                class="h-4 w-4 shrink-0"
+                                aria-hidden="true"
+                            ></i>
+                        {% endif %}
+
+                        {{ workspace.label }}
+                    </a>
+
+                {% else %}
+
+                    <span
+                        class="inline-flex cursor-not-allowed
+                               items-center gap-2 rounded-md
+                               px-3 py-2 text-sm
+                               text-axcio-text-muted opacity-50
+                               dark:text-axcio-text-muted-dark"
+                        aria-disabled="true"
+                    >
+                        {% if workspace.icon %}
+                            <i
+                                data-lucide="{{ workspace.icon }}"
+                                class="h-4 w-4 shrink-0"
+                                aria-hidden="true"
+                            ></i>
+                        {% endif %}
+
+                        {{ workspace.label }}
+                    </span>
+
+                {% endif %}
+
+            {% endfor %}
+        </div>
+
+    {% endif %}
+
+    {% if tree_view.commands %}
+
+        <div
+            class="shrink-0 space-y-1 border-b
+                   border-axcio-border-light p-2
+                   dark:border-axcio-border-dark"
+        >
+            {% for command in tree_view.commands %}
+
+                {% if command.method == "POST" and command.url %}
+
+                    <form method="post" action="{{ command.url }}">
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            {% if not command.is_enabled %}
+                                disabled
+                            {% endif %}
+                            class="flex w-full items-center gap-2
+                                   rounded-md px-2 py-2 text-left
+                                   text-sm
+                                   text-axcio-text
+                                   hover:bg-axcio-surface-alt
+                                   disabled:cursor-not-allowed
+                                   disabled:opacity-50
+                                   dark:text-axcio-text-dark
+                                   dark:hover:bg-axcio-surface-alt-dark"
+                        >
+                            {% if command.icon %}
+                                <i
+                                    data-lucide="{{ command.icon }}"
+                                    class="h-4 w-4 shrink-0"
+                                    aria-hidden="true"
+                                ></i>
+                            {% endif %}
+
+                            <span class="truncate">
+                                {{ command.label }}
+                            </span>
+                        </button>
+                    </form>
+
+                {% elif command.url %}
+
+                    <a
+                        href="{{ command.url }}"
+                        {% if not command.is_enabled %}
+                            aria-disabled="true"
+                        {% endif %}
+                        class="flex items-center gap-2 rounded-md
+                               px-2 py-2 text-sm
+                               text-axcio-text
+                               hover:bg-axcio-surface-alt
+                               {% if not command.is_enabled %}
+                                   pointer-events-none cursor-not-allowed opacity-50
+                               {% endif %}
+                               dark:text-axcio-text-dark
+                               dark:hover:bg-axcio-surface-alt-dark"
+                    >
+                        {% if command.icon %}
+                            <i
+                                data-lucide="{{ command.icon }}"
+                                class="h-4 w-4 shrink-0"
+                                aria-hidden="true"
+                            ></i>
+                        {% endif %}
+
+                        <span class="truncate">
+                            {{ command.label }}
+                        </span>
+                    </a>
+
+                {% else %}
+
+                    <button
+                        type="button"
+                        data-tree-command="{{ command.identifier }}"
+                        {% if not command.is_enabled %}
+                            disabled
+                        {% endif %}
+                        class="flex w-full items-center gap-2
+                               rounded-md px-2 py-2 text-left
+                               text-sm
+                               text-axcio-text
+                               hover:bg-axcio-surface-alt
+                               disabled:cursor-not-allowed
+                               disabled:opacity-50
+                               dark:text-axcio-text-dark
+                               dark:hover:bg-axcio-surface-alt-dark"
+                    >
+                        {% if command.icon %}
+                            <i
+                                data-lucide="{{ command.icon }}"
+                                class="h-4 w-4 shrink-0"
+                                aria-hidden="true"
+                            ></i>
+                        {% endif %}
+
+                        <span class="truncate">
+                            {{ command.label }}
+                        </span>
+                    </button>
+
+                {% endif %}
+
+            {% endfor %}
+        </div>
+
+    {% endif %}
+
+    <nav
+        class="min-h-0 flex-1 overflow-auto p-2"
+        aria-label="Arborescence"
+    >
+        {% for node in tree_view.root_nodes %}
+
+            {% include "edf/tree/node.html" with node=node %}
+
+        {% empty %}
+
+            <p
+                class="px-2 py-3 text-xs
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
+            >
+                Aucun élément.
+            </p>
+
+        {% endfor %}
+    </nav>
+</div>
