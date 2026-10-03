@@ -5,6 +5,7 @@ from .content import (
     DocumentVersionContentView,
     DocumentVersionDownloadView,
     DocumentVersionView,
+    DocumentFolderDownloadView,
 )
 from .create import DocumentCreateView
 from .editor import DocumentEditorView
@@ -29,12 +30,18 @@ from .document import (
     DocumentFavoriteRemoveView,
     DocumentMoveView,
     DocumentRenameView,
+    DocumentPropertiesView,
 )
+from .photo_album import ProjectPhotoAlbumView
 from .favorites import DocumentFavoriteListView
 
 from .cadviewer import (
     DocumentCadViewerView,
 )
+
+from .doe import DoeGenerateView
+from .folder import DocumentFolderDoeSelectionView
+
 
 __all__ = [
     "DocumentCreateView",
@@ -57,5 +64,10 @@ __all__ = [
     "DocumentDeleteView",
     "DocumentFolderMoveView",
     "DocumentCadViewerView",
-    "DocumentEditLockRefreshView"
+    "DocumentEditLockRefreshView",
+    "ProjectPhotoAlbumView",
+    "DocumentPropertiesView",
+    "DocumentFolderDownloadView",
+    "DoeGenerateView",
+    "DocumentFolderDoeSelectionView",
 ]

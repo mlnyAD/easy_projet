@@ -44,9 +44,14 @@ class LoginRequiredMiddleware:
         )
 
     @staticmethod
-    def is_public_path(
-        path: str,
-    ) -> bool:
+    def is_public_path(path: str) -> bool:
+        if path.startswith("/documents/versions/"):
+            return (
+                path.endswith("/content/")
+                or path.endswith("/callback/")
+                or "/cad-content/" in path
+            )
+
         public_prefixes = (
             reverse(settings.LOGIN_URL),
             "/admin/",
@@ -55,7 +60,6 @@ class LoginRequiredMiddleware:
         )
 
         return any(
-            prefix
-            and path.startswith(prefix)
+            prefix and path.startswith(prefix)
             for prefix in public_prefixes
         )

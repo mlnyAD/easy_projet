@@ -18,7 +18,7 @@ Importer un fichier
                    text-axcio-text
                    dark:text-axcio-text-dark"
         >
-            Importer un fichier
+            Importer un ou plusieurs fichiers
         </h1>
 
         <p
@@ -55,7 +55,7 @@ Importer un fichier
                     {{ field.label }}
                 </label>
 
-                {% if field.name == "file" %}
+                {% if field.name == "files" %}
 
                     <div>
                         <input
@@ -63,6 +63,7 @@ Importer un fichier
                             type="file"
                             name="{{ field.html_name }}"
                             required
+                            multiple
                             class="sr-only"
                             data-document-file-input
                         >
@@ -81,7 +82,7 @@ Importer un fichier
                                 dark:text-axcio-text-dark
                                 dark:hover:bg-axcio-border-dark"
                         >
-                            Choisir un fichier
+                            Choisir des fichiers
                         </label>
 
                         <p
@@ -160,52 +161,13 @@ Importer un fichier
     document.addEventListener(
         "DOMContentLoaded",
         () => {
-
-            const fileInput =
-                document.querySelector(
-                    "[data-document-file-input]"
-                );
-
-            const fileName =
-                document.querySelector(
-                    "[data-document-file-name]"
-                );
-
-            if (!fileInput || !fileName) {
-                return;
-            }
-
-            fileInput.addEventListener(
-                "change",
-                () => {
-
-                    const file =
-                        fileInput.files[0];
-
-                    fileName.textContent =
-                        file
-                            ? file.name
-                            : "Aucun fichier sélectionné";
-                }
+            const fileInput = document.querySelector(
+                "[data-document-file-input]"
             );
-        }
-    );
-</script>
 
-<script>
-    document.addEventListener(
-        "DOMContentLoaded",
-        () => {
-
-            const fileInput =
-                document.querySelector(
-                    "[data-document-file-input]"
-                );
-
-            const fileName =
-                document.querySelector(
-                    "[data-document-file-name]"
-                );
+            const fileName = document.querySelector(
+                "[data-document-file-name]"
+            );
 
             if (!fileInput || !fileName) {
                 return;
@@ -214,14 +176,28 @@ Importer un fichier
             fileInput.addEventListener(
                 "change",
                 () => {
+                    const files = Array.from(
+                        fileInput.files
+                    );
 
-                    const file =
-                        fileInput.files[0];
+                    if (!files.length) {
+                        fileName.textContent =
+                            "Aucun fichier sélectionné";
+                        return;
+                    }
 
-                    fileName.textContent =
-                        file
-                            ? file.name
-                            : "Aucun fichier sélectionné";
+                    if (files.length === 1) {
+                        fileName.textContent =
+                            files[0].name;
+                        return;
+                    }
+
+                    fileName.textContent = (
+                        `${files.length} fichiers sélectionnés : `
+                        + files
+                            .map((file) => file.name)
+                            .join(", ")
+                    );
                 }
             );
         }

@@ -140,21 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "[data-document-favorite-icon]"
         );
 
-    const documentPropertiesDialog =
-        document.getElementById(
-            "document-properties-dialog"
-        );
-
-    const documentPropertiesCloseButtons =
-        document.querySelectorAll(
-            "[data-document-properties-close]"
-        );
-
-    const documentPropertyValues =
-        document.querySelectorAll(
-            "[data-document-property]"
-        );
-
     const folderMoveDialog =
         document.getElementById(
             "folder-move-dialog"
@@ -173,6 +158,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const folderMoveCancel =
         document.getElementById(
             "folder-move-cancel"
+        );
+
+    const folderDoeSelectionForm =
+        document.getElementById(
+            "folder-doe-selection-form"
+        );
+
+    const folderDoeSelectionValue =
+        document.getElementById(
+            "folder-doe-selection-value"
+        );
+
+    const folderDoeSelectionButton =
+        document.getElementById(
+            "folder-doe-selection-button"
+        );
+
+    const folderDoeSelectionLabel =
+        document.getElementById(
+            "folder-doe-selection-label"
         );
 
     const documentContentActions =
@@ -267,6 +272,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         selectedFolder = element;
 
+        const isDoe =
+            element.dataset.folderIsDoe === "true";
+
+        const isProtected =
+            element.dataset.folderDoeProtected === "true";
+
+        folderDoeSelectionForm.classList.toggle(
+            "hidden",
+            isProtected
+        );
+
+        folderDoeSelectionLabel.textContent = isDoe
+            ? "Retirer du DOE"
+            : "Inclure au DOE";
+
         folderMenu.classList.remove(
             "hidden"
         );
@@ -314,44 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "_blank",
             "noopener"
         );
-    }
-
-    function showDocumentProperties(row) {
-        if (!documentPropertiesDialog) {
-            return;
-        }
-
-        const values = {
-            title: row.dataset.documentTitle,
-            folder: row.dataset.documentFolderPath,
-            type: row.dataset.documentTypeLabel,
-            status: row.dataset.documentStatusLabel,
-            lifecycle: row.dataset.documentLifecycleLabel,
-            doe: row.dataset.documentDoeLabel,
-            "version-number": row.dataset.documentVersionNumber,
-            filename: row.dataset.documentVersionFilename,
-            "version-type": row.dataset.documentVersionType,
-            "version-created-by": (
-                row.dataset.documentVersionCreatedBy
-            ),
-            "version-created-at": (
-                row.dataset.documentVersionCreatedAt
-            ),
-            "created-by": row.dataset.documentCreatedBy,
-            "created-at": row.dataset.documentCreatedAt,
-            "updated-at": row.dataset.documentUpdatedAt,
-            lock: row.dataset.documentLockLabel,
-        };
-
-        documentPropertyValues.forEach((element) => {
-            const property =
-                element.dataset.documentProperty;
-
-            element.textContent =
-                values[property] || "—";
-        });
-
-        documentPropertiesDialog.showModal();
     }
 
     function submitPost(url) {
@@ -619,26 +601,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Documents
     // -----------------------------------------------------------------
 
-     documentPropertiesCloseButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-            documentPropertiesDialog.close();
-        });
-    });
-
-    if (documentPropertiesDialog) {
-        documentPropertiesDialog.addEventListener(
-            "click",
-            (event) => {
-                if (
-                    event.target
-                    === documentPropertiesDialog
-                ) {
-                    documentPropertiesDialog.close();
-                }
-            }
-        );
-    }
-
     documentRows.forEach((row) => {
 
         row.addEventListener(
@@ -742,11 +704,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     hideMenus();
 
                     if (action === "properties") {
-                        showDocumentProperties(
-                            selectedDocumentRow
-                        );
+                        if (action === "properties") {
+                            window.location.assign(
+                                selectedDocumentRow.dataset
+                                    .documentPropertiesUrl
+                            );
 
-                        return;
+                            return;
+                        }
                     }
 
                     // -------------------------------------------------
@@ -925,6 +890,26 @@ document.addEventListener("DOMContentLoaded", () => {
                         return;
                     }
 
+
+                    if (action === "doe-selection") {
+                        const doeUrl =
+                            selectedFolder.dataset.folderDoeUrl;
+
+                        if (!doeUrl) {
+                            return;
+                        }
+
+                        folderDoeSelectionForm.action = doeUrl;
+
+                        folderDoeSelectionValue.value =
+                            selectedFolder.dataset.folderIsDoe === "true"
+                                ? "false"
+                                : "true";
+
+                        folderDoeSelectionForm.submit();
+
+                        return;
+                    }
 
                     // -------------------------------------------------
                     // Supprimer

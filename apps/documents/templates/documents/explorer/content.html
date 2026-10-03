@@ -134,16 +134,20 @@
             data-document-item-kind="document"
             data-document-id="{{ document.pk }}"
             data-document-title="{{ document.title }}"
+            data-document-description="{{ document.description }}"
             data-document-folder-id="{{ document.folder_id }}"
-
-                        data-document-folder-path="{{ document.folder.full_path }}"
-            data-document-type-label="{{ document.document_type.label }}"
-            data-document-status-label="{{ document.status.label }}"
+            data-document-folder-path="{{ document.folder.full_path }}"
+            data-document-type-id="{{ document.document_type_id|default_if_none:'' }}"
+            data-document-type-label="{{ document.document_type.label|default:'Non renseigné' }}"
+            data-document-status-id="{{ document.status_id|default_if_none:'' }}"
+            data-document-status-label="{{ document.status.label|default:'Non renseigné' }}"
             data-document-lifecycle-label="{{ document.lifecycle.label }}"
 
             {% if document.is_doe %}
+                data-document-doe="true"
                 data-document-doe-label="Oui"
             {% else %}
+                data-document-doe="false"
                 data-document-doe-label="Non"
             {% endif %}
 
@@ -172,6 +176,7 @@
             {% endif %}
 
             {% if can_work_on_project %}
+                data-document-properties-url="{% url 'documents:document-properties' project.pk document.pk %}?next={{ return_url|urlencode }}"
                 data-document-rename-url="{% url 'documents:document-rename' project.pk document.pk %}"
                 data-document-move-url="{% url 'documents:document-move' project.pk document.pk %}"
                 data-document-copy-url="{% url 'documents:document-copy' project.pk document.pk %}"
@@ -308,10 +313,10 @@
             <span
                 data-document-type
                 class="truncate text-xs
-                    text-axcio-text-muted
-                    dark:text-axcio-text-muted-dark"
+                       text-axcio-text-muted
+                       dark:text-axcio-text-muted-dark"
             >
-                {{ document.document_type.label }}
+                {{ document.document_type.label|default:"Non renseigné" }}
             </span>
 
             <span
@@ -354,185 +359,3 @@
     {% endif %}
 </main>
 
-<dialog
-    id="document-properties-dialog"
-    class="fixed m-auto rounded-lg border
-           border-axcio-border-light
-           bg-axcio-page p-0 text-axcio-text shadow-xl
-           dark:border-axcio-border-dark
-           dark:bg-axcio-page-dark
-           dark:text-axcio-text-dark"
-    style="
-        width: min(46rem, calc(100vw - 2rem));
-        max-height: calc(100vh - 2rem);
-    "
->
-    <div
-        class="flex items-center justify-between
-               border-b px-5 py-4
-               border-axcio-border-light
-               dark:border-axcio-border-dark"
-    >
-        <h2 class="text-lg font-semibold">
-            Propriétés du document
-        </h2>
-
-        <button
-            type="button"
-            data-document-properties-close
-            class="inline-flex h-8 w-8 items-center justify-center
-                   rounded-md
-                   hover:bg-axcio-surface-alt
-                   dark:hover:bg-axcio-surface-alt-dark"
-            title="Fermer"
-            aria-label="Fermer"
-        >
-            <i
-                data-lucide="x"
-                class="h-4 w-4"
-            ></i>
-        </button>
-    </div>
-
-    <div class="overflow-auto p-5">
-
-        <table class="w-full text-sm">
-            <tbody>
-
-                <tr class="border-b border-axcio-border-light dark:border-axcio-border-dark">
-                    <th
-                        class="w-32 px-3 py-2 text-left font-medium
-                               text-axcio-text-muted
-                               dark:text-axcio-text-muted-dark"
-                    >
-                        Titre
-                    </th>
-                    <td
-                        colspan="3"
-                        class="wrap-break-word px-3 py-2 font-medium"
-                        data-document-property="title"
-                    ></td>
-                </tr>
-
-                <tr class="border-b border-axcio-border-light dark:border-axcio-border-dark">
-                    <th
-                        class="px-3 py-2 text-left font-medium
-                               text-axcio-text-muted
-                               dark:text-axcio-text-muted-dark"
-                    >
-                        Dossier
-                    </th>
-                    <td
-                        colspan="3"
-                        class="wrap-break-word px-3 py-2"
-                        data-document-property="folder"
-                    ></td>
-                </tr>
-
-                <tr class="border-b border-axcio-border-light dark:border-axcio-border-dark">
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Type
-                    </th>
-                    <td class="px-3 py-2" data-document-property="type"></td>
-
-                    <th class="w-32 px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Statut
-                    </th>
-                    <td class="px-3 py-2" data-document-property="status"></td>
-                </tr>
-
-                <tr class="border-b border-axcio-border-light dark:border-axcio-border-dark">
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        État GED
-                    </th>
-                    <td class="px-3 py-2" data-document-property="lifecycle"></td>
-
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Inclus au DOE
-                    </th>
-                    <td class="px-3 py-2" data-document-property="doe"></td>
-                </tr>
-
-                <tr class="border-b border-axcio-border-light dark:border-axcio-border-dark">
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Version
-                    </th>
-                    <td class="px-3 py-2" data-document-property="version-number"></td>
-
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Format
-                    </th>
-                    <td class="px-3 py-2" data-document-property="version-type"></td>
-                </tr>
-
-                <tr class="border-b border-axcio-border-light dark:border-axcio-border-dark">
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Fichier
-                    </th>
-                    <td
-                        colspan="3"
-                        class="wrap-break-word px-3 py-2"
-                        data-document-property="filename"
-                    ></td>
-                </tr>
-
-                <tr class="border-b border-axcio-border-light dark:border-axcio-border-dark">
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Version créée par
-                    </th>
-                    <td class="px-3 py-2" data-document-property="version-created-by"></td>
-
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Créée le
-                    </th>
-                    <td class="px-3 py-2" data-document-property="version-created-at"></td>
-                </tr>
-
-                <tr class="border-b border-axcio-border-light dark:border-axcio-border-dark">
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Document créé par
-                    </th>
-                    <td class="px-3 py-2" data-document-property="created-by"></td>
-
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Créé le
-                    </th>
-                    <td class="px-3 py-2" data-document-property="created-at"></td>
-                </tr>
-
-                <tr class="border-b border-axcio-border-light dark:border-axcio-border-dark">
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Modification
-                    </th>
-                    <td class="px-3 py-2" data-document-property="updated-at"></td>
-
-                    <th class="px-3 py-2 text-left font-medium text-axcio-text-muted dark:text-axcio-text-muted-dark">
-                        Édition
-                    </th>
-                    <td class="px-3 py-2" data-document-property="lock"></td>
-                </tr>
-
-            </tbody>
-        </table>
-
-    </div>
-
-    <div
-        class="flex justify-end border-t px-5 py-4
-               border-axcio-border-light
-               dark:border-axcio-border-dark"
-    >
-        <button
-            type="button"
-            data-document-properties-close
-            class="rounded-lg border
-                   border-axcio-border-light
-                   px-4 py-2 text-sm font-medium
-                   hover:bg-axcio-surface-alt
-                   dark:border-axcio-border-dark
-                   dark:hover:bg-axcio-surface-alt-dark"
-        >
-            Fermer
-        </button>
-    </div>
-</dialog>

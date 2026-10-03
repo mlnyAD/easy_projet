@@ -63,6 +63,7 @@ class DocumentService:
         project,
         folder: DocumentFolder,
         title: str,
+        description: str = "",
         document_format: str,
         document_type,
         status,
@@ -114,6 +115,7 @@ class DocumentService:
                     project=project,
                     folder=folder,
                     title=normalized_title,
+                    description=description.strip(),
                     document_type=document_type,
                     status=status,
                     lifecycle=lifecycle,
@@ -149,20 +151,21 @@ class DocumentService:
                 return document
 
     def import_document(
-        self,
-        *,
-        project,
-        folder: DocumentFolder,
-        title: str,
-        document_type,
-        status,
-        lifecycle,
-        content: BinaryIO,
-        original_filename: str,
-        mime_type: str,
-        user: User,
-        is_doe: bool = False,
-    ) -> Document:
+            self,
+            *,
+            project,
+            folder: DocumentFolder,
+            title: str,
+            description: str = "",
+            document_type,
+            status,
+            lifecycle,
+            content: BinaryIO,
+            original_filename: str,
+            mime_type: str,
+            user: User,
+            is_doe: bool = False,
+        ) -> Document:
         """
         Importe un fichier externe dans Easy Projet.
 
@@ -187,9 +190,10 @@ class DocumentService:
         with transaction.atomic():
 
             document = Document(
-                project=project,
+                 project=project,
                 folder=folder,
                 title=normalized_title,
+                description=description.strip(),
                 document_type=document_type,
                 status=status,
                 lifecycle=lifecycle,
@@ -349,6 +353,9 @@ class DocumentService:
         destination: DocumentFolder,
         user: User,
         title: str | None = None,
+        is_doe: bool | None = None,
+        is_doe_generated: bool = False,
+        doe_source_document: Document | None = None,
     ) -> Document:
         """
         Copie un document dans un autre dossier du même projet.
@@ -407,13 +414,20 @@ class DocumentService:
                 project=document.project,
                 folder=destination,
                 title=normalized_title,
+                description=document.description,
                 document_type=document.document_type,
                 status=document.status,
                 lifecycle=document.lifecycle,
-                is_doe=document.is_doe,
+                is_doe=(
+                    document.is_doe
+                    if is_doe is None
+                    else is_doe
+                ),
+                is_doe_generated=is_doe_generated,
+                doe_source_document=doe_source_document,                
                 created_by=user,
             )
-
+            
             copied_document.full_clean()
             copied_document.save()
 

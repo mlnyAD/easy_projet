@@ -7,6 +7,10 @@ from django import forms
 from apps.catalogs.models import CatalogValue
 from apps.documents.models import DocumentFolder
 from common.forms.fields import CatalogModelChoiceField
+from apps.documents.models import (
+    Document,
+    DocumentFolder,
+)
 
 
 class DocumentCreateForm(forms.Form):
@@ -175,3 +179,148 @@ class DocumentCreateForm(forms.Form):
             self.initial[
                 field_name
             ] = default_value.pk
+            
+
+class DocumentPropertiesForm(forms.ModelForm):
+    """
+    Propriétés métier et techniques d'un document.
+
+    Les données techniques sont renseignées automatiquement
+    à partir de la version courante et ne sont pas modifiables.
+    """
+
+    folder_path = forms.CharField(
+        label="Dossier",
+        required=False,
+        disabled=True,
+    )
+
+    original_filename = forms.CharField(
+        label="Fichier",
+        required=False,
+        disabled=True,
+    )
+
+    technical_type = forms.CharField(
+        label="Format détecté",
+        required=False,
+        disabled=True,
+    )
+
+    version_number = forms.CharField(
+        label="Version",
+        required=False,
+        disabled=True,
+    )
+
+    document_type = CatalogModelChoiceField(
+        queryset=CatalogValue.objects.none(),
+        catalog_code="DOCUMENT_TYPE",
+        label="Type de document",
+        required=False,
+    )
+
+    status = CatalogModelChoiceField(
+        queryset=CatalogValue.objects.none(),
+        catalog_code="DOCUMENT_STATUS",
+        label="Statut",
+        required=False,
+    )
+
+    class Meta:
+        model = Document
+
+        fields = (
+            "title",
+            "description",
+            "document_type",
+            "status",
+            "is_doe",
+        )
+
+        widgets = {
+            "title": forms.TextInput(
+                attrs={
+                    "autocomplete": "off",
+                    "data-trim": True,
+                }
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "rows": 4,
+                    "placeholder": (
+                        "Ajouter un commentaire au document"
+                    ),
+                }
+            ),
+        }
+
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
+        self._configure_catalog_field(
+            "document_type",
+            "DOCUMENT_TYPE",
+        )
+
+        self._configure_catalog_field(
+            "status",
+            "DOCUMENT_STATUS",
+        )
+
+        self._set_technical_values()
+
+    def _configure_catalog_field(
+        self,
+        field_name: str,
+        catalog_code: str,
+    ) -> None:
+        field = self.fields[field_name]
+
+        field.queryset = (
+            CatalogValue.objects.filter(
+                catalog_type__code=catalog_code,
+                catalog_type__is_active=True,
+                is_active=True,
+            )
+            .select_related("catalog_type")
+            .order_by(
+                "level",
+                "sort_order",
+                "label",
+            )
+        )
+
+        field.empty_label = "Non renseigné"
+
+    def _set_technical_values(self) -> None:
+        self.fields["folder_path"].initial = (
+            self.instance.folder.full_path
+        )
+
+        version = self.instance.current_version
+
+        if version is None:
+            self.fields["original_filename"].initial = "—"
+            self.fields["technical_type"].initial = "—"
+            self.fields["version_number"].initial = "—"
+            return
+
+        self.fields["original_filename"].initial = (
+            version.original_filename
+        )
+
+        self.fields["technical_type"].initial = (
+            version.get_technical_type_display()
+        )
+
+        self.fields["version_number"].initial = (
+            f"V{version.version_number}"
+        )

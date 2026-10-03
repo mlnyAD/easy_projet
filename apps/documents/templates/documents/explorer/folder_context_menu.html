@@ -88,6 +88,40 @@
                    dark:border-axcio-border-dark"
         ></div>
 
+                <form
+            id="folder-doe-selection-form"
+            method="post"
+        >
+            {% csrf_token %}
+
+            <input
+                id="folder-doe-selection-value"
+                type="hidden"
+                name="is_doe"
+            >
+
+            <button
+                id="folder-doe-selection-button"
+                type="button"
+                data-folder-action="doe-selection"
+                class="flex w-full items-center gap-2
+                       px-3 py-2 text-left text-sm
+                       text-axcio-text
+                       hover:bg-axcio-surface-alt
+                       dark:text-axcio-text-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
+            >
+                <i
+                    data-lucide="folder-check"
+                    class="h-4 w-4"
+                ></i>
+
+                <span id="folder-doe-selection-label">
+                    Inclure au DOE
+                </span>
+            </button>
+        </form>
+        
         <button
             type="button"
             data-folder-action="delete"

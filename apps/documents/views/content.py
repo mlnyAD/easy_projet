@@ -38,6 +38,14 @@ from apps.documents.storage import (
 from apps.projects.services.access import (
     ProjectAccessService,
 )
+from apps.documents.models import DocumentFolder
+from apps.documents.services.folder_archive_service import (
+    DocumentFolderArchiveService,
+)
+from apps.documents.views.mixins import (
+    ProjectDocumentAccessMixin,
+)
+
 
 class DocumentVersionContentView(View):
     """
@@ -355,3 +363,43 @@ class DocumentVersionDownloadView(
         )
 
         return response
+    
+    
+class DocumentFolderDownloadView(
+    LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
+    View,
+):
+    """
+    Télécharge un dossier documentaire et ses descendants en ZIP.
+    """
+
+    def get(
+        self,
+        request,
+        *,
+        project_id,
+        folder_id,
+    ):
+        project = self.get_project(
+            project_id=project_id,
+        )
+
+        folder = get_object_or_404(
+            DocumentFolder,
+            pk=folder_id,
+            project=project,
+            is_active=True,
+        )
+
+        archive = (
+            DocumentFolderArchiveService()
+            .create_archive(folder=folder)
+        )
+
+        return FileResponse(
+            archive,
+            as_attachment=True,
+            filename=f"{folder.name}.zip",
+            content_type="application/zip",
+        )

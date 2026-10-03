@@ -10,12 +10,13 @@ from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
 )
+from django.urls import reverse
 from django.shortcuts import (
     get_object_or_404,
     redirect,
 )
 from django.views import View
-
+from django.utils.http import url_has_allowed_host_and_scheme
 from apps.documents.models import DocumentFolder
 from apps.documents.services import DocumentFolderService
 from apps.documents.views.mixins import (
@@ -272,4 +273,109 @@ class DocumentFolderMoveView(
             "documents:folder",
             project_id=project.pk,
             folder_id=folder.pk,
+        )
+        
+        
+class DocumentFolderDoeSelectionView(
+    LoginRequiredMixin,
+    ProjectDocumentWorkMixin,
+    View,
+):
+    """
+    Active ou retire la sélection DOE d'un dossier.
+    """
+
+    def post(
+        self,
+        request,
+        *,
+        project_id,
+        folder_id,
+    ):
+        project = self.get_project(
+            project_id=project_id,
+        )
+
+        folder = get_object_or_404(
+            DocumentFolder.objects.select_for_update(),
+            pk=folder_id,
+            project=project,
+            is_active=True,
+        )
+
+        if folder.is_doe_root or folder.is_doe_generated:
+            messages.error(
+                request,
+                "Un dossier généré pour le DOE ne peut pas "
+                "être sélectionné comme source.",
+            )
+            return redirect(
+                self.get_return_url(
+                    request=request,
+                    project=project,
+                    folder=folder,
+                )
+            )
+
+        is_doe = (
+            request.POST.get("is_doe")
+            == "true"
+        )
+
+        folder.is_doe = is_doe
+        folder.full_clean()
+        folder.save(
+            update_fields=[
+                "is_doe",
+                "updated_at",
+            ]
+        )
+
+        messages.success(
+            request,
+            (
+                "Le dossier et ses sous-dossiers seront inclus "
+                "dans le DOE."
+                if is_doe
+                else
+                "Le dossier ne sera plus inclus dans le DOE."
+            ),
+        )
+
+        return redirect(
+            self.get_return_url(
+                request=request,
+                project=project,
+                folder=folder,
+            )
+        )
+
+    @staticmethod
+    def get_return_url(
+        *,
+        request,
+        project,
+        folder,
+    ) -> str:
+        candidate = (
+            request.GET.get("next")
+            or request.POST.get("next")
+        )
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            )
+        ):
+            return candidate
+
+        return reverse(
+            "documents:folder",
+            kwargs={
+                "project_id": project.pk,
+                "folder_id": folder.pk,
+            },
         )

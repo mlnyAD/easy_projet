@@ -72,6 +72,23 @@ class DocumentFolder(TimeStampedModel):
         verbose_name="Dossier actif",
     )
 
+    is_doe = models.BooleanField(
+        default=False,
+        verbose_name="Sélectionné pour le DOE",
+    )
+
+    is_doe_root = models.BooleanField(
+        default=False,
+        editable=False,
+        verbose_name="Racine DOE",
+    )
+
+    is_doe_generated = models.BooleanField(
+        default=False,
+        editable=False,
+        verbose_name="Dossier généré par le DOE",
+    )
+    
     # ------------------------------------------------------------------
     # Validation
     # ------------------------------------------------------------------
@@ -119,6 +136,36 @@ class DocumentFolder(TimeStampedModel):
                     "parent": (
                         "Ce déplacement créerait une boucle "
                         "dans l'arborescence documentaire."
+                    ),
+                }
+            )
+            
+        if self.is_doe_root and self.parent_id is not None:
+            raise ValidationError(
+                {
+                    "parent": (
+                        "Le dossier racine du DOE doit être "
+                        "à la racine du projet."
+                    ),
+                }
+            )
+
+        if self.is_doe_root and self.is_doe:
+            raise ValidationError(
+                {
+                    "is_doe": (
+                        "Le dossier racine du DOE ne peut pas "
+                        "être sélectionné comme source."
+                    ),
+                }
+            )
+
+        if self.is_doe_generated and self.is_doe:
+            raise ValidationError(
+                {
+                    "is_doe": (
+                        "Un dossier généré par le DOE ne peut pas "
+                        "être sélectionné comme source."
                     ),
                 }
             )
@@ -285,12 +332,20 @@ class Document(TimeStampedModel):
         verbose_name="Titre",
     )
 
-    document_type = models.ForeignKey(
-        CatalogValue,
-        on_delete=models.PROTECT,
-        related_name="document_type_documents",
-        verbose_name="Type de document",
+    description = models.TextField(
+        max_length=1000,
+        blank=True,
+        verbose_name="Commentaire",
     )
+    
+    document_type = models.ForeignKey(
+            CatalogValue,
+            on_delete=models.PROTECT,
+            related_name="document_type_documents",
+            null=True,
+            blank=True,
+            verbose_name="Type de document",
+        )
 
     # ------------------------------------------------------------------
     # États
@@ -300,9 +355,11 @@ class Document(TimeStampedModel):
         CatalogValue,
         on_delete=models.PROTECT,
         related_name="document_status_documents",
+        null=True,
+        blank=True,
         verbose_name="Statut métier",
     )
-
+    
     lifecycle = models.ForeignKey(
         CatalogValue,
         on_delete=models.PROTECT,
@@ -332,6 +389,22 @@ class Document(TimeStampedModel):
         verbose_name="Sélectionné pour le DOE",
     )
 
+    is_doe_generated = models.BooleanField(
+        default=False,
+        editable=False,
+        verbose_name="Généré pour le DOE",
+    )
+
+    doe_source_document = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        related_name="doe_copies",
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name="Document source du DOE",
+    )
+    
     # ------------------------------------------------------------------
     # Créateur
     # ------------------------------------------------------------------
@@ -388,6 +461,7 @@ class Document(TimeStampedModel):
 
     def save(self, *args, **kwargs) -> None:
         self.title = self.title.strip()
+        self.description = self.description.strip()
 
         super().save(
             *args,
@@ -1039,4 +1113,55 @@ class DocumentFavorite(TimeStampedModel):
         return (
             f"{self.user} - "
             f"{self.document}"
+        )
+        
+        
+class DoeGeneration(TimeStampedModel):
+    """
+    Trace une génération complète du DOE d'un projet.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="doe_generations",
+        verbose_name="Projet",
+    )
+
+    doe_root_folder = models.ForeignKey(
+        DocumentFolder,
+        on_delete=models.PROTECT,
+        related_name="doe_generations",
+        verbose_name="Dossier DOE",
+    )
+
+    generated_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="generated_does",
+        verbose_name="Généré par",
+    )
+
+    document_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Nombre de documents",
+    )
+
+    class Meta:
+        db_table = "doe_generation"
+        ordering = ["-created_at"]
+        verbose_name = "Génération de DOE"
+        verbose_name_plural = "Générations de DOE"
+
+    def __str__(self) -> str:
+        return (
+            f"DOE {self.project} — "
+            f"{self.created_at:%d/%m/%Y %H:%M}"
         )

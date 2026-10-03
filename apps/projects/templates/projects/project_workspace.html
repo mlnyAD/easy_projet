@@ -279,7 +279,48 @@
 
                         <span>Piloter</span>
                     </a>
-                    {% include "projects/project_workspace_action_disabled.html" with icon="users" label="Affecter" %}
+
+                    <form
+                        method="post"
+                        action="{% url 'documents:doe-generate' project.pk %}"
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="project-action-card w-full"
+                        >
+                            <i
+                                data-lucide="folder-archive"
+                                class="h-6 w-6"
+                                aria-hidden="true"
+                            ></i>
+
+                            <span>DOE</span>
+                        </button>
+                    </form>
+
+                    {% if doe_root_folder %}
+
+                        <a
+                            href="{% url 'documents:folder-download' project.pk doe_root_folder.pk %}"
+                            class="project-action-card"
+                        >
+                            <i
+                                data-lucide="download"
+                                class="h-6 w-6"
+                                aria-hidden="true"
+                            ></i>
+
+                            <span>Télécharger le DOE</span>
+                        </a>
+
+                    {% else %}
+
+                        {% include "projects/project_workspace_action_disabled.html" with icon="download" label="Télécharger le DOE" %}
+
+                    {% endif %}
+
                     {% include "projects/project_workspace_action_disabled.html" with icon="banknote" label="Financer" %}
                     {% if can_manage_project_hours %}
                         <a
@@ -347,6 +388,19 @@
                         ></i>
 
                         <span>Documentation</span>
+                    </a>
+
+                    <a
+                        href="{% url 'documents:photo-album' project.pk %}"
+                        class="project-action-card"
+                    >
+                        <i
+                            data-lucide="images"
+                            class="h-6 w-6"
+                            aria-hidden="true"
+                        ></i>
+
+                        <span>Album photos</span>
                     </a>
 
                     <a

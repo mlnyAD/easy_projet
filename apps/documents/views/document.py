@@ -10,6 +10,10 @@ from django.shortcuts import (
     redirect,
 )
 from django.views import View
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from framework.integrations.django.views import EPUpdateView
 
 from apps.documents.models import (
     Document,
@@ -23,7 +27,92 @@ from apps.documents.views.mixins import (
     ProjectDocumentAccessMixin,
     ProjectDocumentWorkMixin,
 )
+from apps.documents.forms import DocumentPropertiesForm
+from apps.documents.form_definition import (
+    DOCUMENT_PROPERTIES_FORM_DEFINITION,
+)
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
+)
 
+class DocumentPropertiesView(
+    ProjectDocumentAccessMixin,
+    EPUpdateView,
+):
+    """
+    Consultation et modification des propriétés d'un document.
+    """
+
+    model = Document
+    form_class = DocumentPropertiesForm
+    definition = DOCUMENT_PROPERTIES_FORM_DEFINITION
+    template_name = "edf/form/view.html"
+
+    def get_queryset(self):
+        project = self.get_project()
+
+        return (
+            Document.objects.filter(
+                project=project,
+            )
+            .select_related(
+                "folder",
+                "current_version",
+                "document_type",
+                "status",
+                "lifecycle",
+            )
+        )
+
+    def can_edit_object(self) -> bool:
+        return (
+            ProjectAuthorizationService
+            .can_work_on_project(
+                user=self.request.user,
+                project=self.object.project,
+            )
+        )
+
+    def get_return_url(self) -> str:
+        candidate = (
+            self.request.GET.get("next")
+            or self.request.POST.get("next")
+        )
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={self.request.get_host()},
+                require_https=self.request.is_secure(),
+            )
+        ):
+            return candidate
+
+        return reverse(
+            "documents:folder",
+            kwargs={
+                "project_id": self.object.project_id,
+                "folder_id": self.object.folder_id,
+            },
+        )
+
+    def get_success_url(self):
+        return self.get_return_url()
+
+    def get_cancel_url(self):
+        return self.get_return_url()
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        messages.success(
+            self.request,
+            "Les propriétés du document ont été mises à jour.",
+        )
+
+        return response
+            
 
 class DocumentRenameView(
     LoginRequiredMixin,

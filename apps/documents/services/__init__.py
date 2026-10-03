@@ -14,6 +14,8 @@ from .edit_lock_service import (
     DocumentEditLockResult,
     DocumentEditLockService,
 )
+from .doe_service import DoeService
+
 
 __all__ = [
     "DocumentAccessTokenService",
@@ -24,4 +26,5 @@ __all__ = [
     "DocumentFavoriteService",
     "DocumentEditLockResult",
     "DocumentEditLockService",
+    "DoeService",
 ]

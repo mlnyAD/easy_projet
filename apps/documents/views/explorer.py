@@ -189,7 +189,8 @@ class DocumentExplorerView(
                         user=self.request.user,
                         project=project,
                     ),
-                )
+                ),
+                "return_url": self.request.get_full_path(),
             }
         )
 

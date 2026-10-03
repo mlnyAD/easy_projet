@@ -1,6 +1,5 @@
 
 
-
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import redirect
@@ -49,7 +48,7 @@ from framework.integrations.django.viewmodel import (
 from apps.client_configuration.services.document_folder_template_application import (
     DocumentFolderTemplateApplicationService,
 )
-
+from apps.documents.models import DocumentFolder
 
 from .form_definition import PROJECT_FORM_DEFINITION
 
@@ -842,6 +841,16 @@ class ProjectWorkspaceView(DetailView):
             )
         )
 
+        context["doe_root_folder"] = (
+            DocumentFolder.objects
+            .filter(
+                project=project,
+                is_doe_root=True,
+                is_active=True,
+            )
+            .first()
+        )
+        
         return context
 
 

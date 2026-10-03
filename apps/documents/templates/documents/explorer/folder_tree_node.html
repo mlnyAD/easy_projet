@@ -12,6 +12,19 @@
         data-folder-rename-url="{% url 'documents:folder-rename' project.pk folder.pk %}"
         data-folder-delete-url="{% url 'documents:folder-delete' project.pk folder.pk %}"
         data-folder-move-url="{% url 'documents:folder-move' project.pk folder.pk %}"
+        data-folder-doe-url="{% url 'documents:folder-doe-selection' project.pk folder.pk %}?next={{ return_url|urlencode }}"
+
+        {% if folder.is_doe %}
+            data-folder-is-doe="true"
+        {% else %}
+            data-folder-is-doe="false"
+        {% endif %}
+
+        {% if folder.is_doe_root or folder.is_doe_generated %}
+            data-folder-doe-protected="true"
+        {% else %}
+            data-folder-doe-protected="false"
+        {% endif %}
 
         class="
             flex h-8 items-center gap-2

@@ -24,7 +24,13 @@ from apps.documents.views import (
     DocumentVersionContentView,
     DocumentVersionDownloadView,
     DocumentVersionView,
+    ProjectPhotoAlbumView,
+    DocumentPropertiesView,
+    DocumentFolderDownloadView,
 )
+
+from apps.documents.views.doe import DoeGenerateView
+from apps.documents.views.folder import DocumentFolderDoeSelectionView
 
 
 app_name = "documents"
@@ -37,12 +43,30 @@ urlpatterns = [
         name="explorer",
     ),
     path(
+        "projects/<uuid:project_id>/album-photos/",
+        ProjectPhotoAlbumView.as_view(),
+        name="photo-album",
+    ),
+    path(
+        "projects/<uuid:project_id>/doe/generate/",
+        DoeGenerateView.as_view(),
+        name="doe-generate",
+    ),
+    path(
         (
             "projects/<uuid:project_id>/"
             "folders/<uuid:folder_id>/"
         ),
         DocumentExplorerView.as_view(),
         name="folder",
+    ),
+    path(
+        (
+            "projects/<uuid:project_id>/"
+            "folders/<uuid:folder_id>/download/"
+        ),
+        DocumentFolderDownloadView.as_view(),
+        name="folder-download",
     ),
     path(
         "projects/<uuid:project_id>/new/",
@@ -125,6 +149,14 @@ urlpatterns = [
     path(
         (
             "projects/<uuid:project_id>/"
+            "documents/<uuid:pk>/properties/"
+        ),
+        DocumentPropertiesView.as_view(),
+        name="document-properties",
+    ),
+    path(
+        (
+            "projects/<uuid:project_id>/"
             "documents/<uuid:document_id>/rename/"
         ),
         DocumentRenameView.as_view(),
@@ -188,4 +220,12 @@ urlpatterns = [
         DocumentCadViewerView.as_view(),
         name="version-cad-view",
     ),
+    path(
+        (
+            "projects/<uuid:project_id>/"
+            "folders/<uuid:folder_id>/doe-selection/"
+        ),
+        DocumentFolderDoeSelectionView.as_view(),
+        name="folder-doe-selection",
+    ),    
 ]
