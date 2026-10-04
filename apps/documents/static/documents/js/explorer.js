@@ -1,296 +1,167 @@
 
 
 document.addEventListener("DOMContentLoaded", () => {
+    const folderMenu = document.getElementById("folder-context-menu");
+    const contentMenu = document.getElementById("content-context-menu");
+    const documentContent = document.getElementById("document-content");
 
-    const folderMenu = document.getElementById(
-        "folder-context-menu"
+    if (!documentContent) {
+        return;
+    }
+
+    const canWorkOnProject = (
+        documentContent.dataset.canWorkOnProject === "true"
     );
 
-    const contentMenu = document.getElementById(
-        "content-context-menu"
+    const dialog = document.getElementById("folder-dialog");
+    const dialogForm = document.getElementById("folder-dialog-form");
+    const dialogTitle = document.getElementById("folder-dialog-title");
+    const nameInput = document.getElementById("folder-dialog-name");
+    const parentInput = document.getElementById("folder-dialog-parent-id");
+    const cancelButton = document.getElementById("folder-dialog-cancel");
+    const deleteForm = document.getElementById("folder-delete-form");
+    const rootCreateFolder = document.getElementById("root-create-folder");
+
+    const contentImportDocument = document.getElementById(
+        "content-import-document"
+    );
+    const documentRows = document.querySelectorAll("[data-document-row]");
+    const documentMenu = document.getElementById("document-context-menu");
+
+    const documentRenameDialog = document.getElementById(
+        "document-rename-dialog"
+    );
+    const documentRenameForm = document.getElementById(
+        "document-rename-form"
+    );
+    const documentRenameTitle = document.getElementById(
+        "document-rename-title"
+    );
+    const documentRenameCancel = document.getElementById(
+        "document-rename-cancel"
     );
 
-    const documentContent = document.getElementById(
-        "document-content"
+    const documentMoveDialog = document.getElementById(
+        "document-move-dialog"
+    );
+    const documentMoveForm = document.getElementById(
+        "document-move-form"
+    );
+    const documentMoveDestination = document.getElementById(
+        "document-move-destination"
+    );
+    const documentMoveCancel = document.getElementById(
+        "document-move-cancel"
     );
 
-    const canWorkOnProject =
-        documentContent.dataset
-            .canWorkOnProject
-        === "true";
-
-    const dialog = document.getElementById(
-        "folder-dialog"
+    const documentCopyDialog = document.getElementById(
+        "document-copy-dialog"
+    );
+    const documentCopyForm = document.getElementById(
+        "document-copy-form"
+    );
+    const documentCopyTitle = document.getElementById(
+        "document-copy-title"
+    );
+    const documentCopyDestination = document.getElementById(
+        "document-copy-destination"
+    );
+    const documentCopyCancel = document.getElementById(
+        "document-copy-cancel"
     );
 
-    const dialogForm = document.getElementById(
-        "folder-dialog-form"
+    const documentFavoriteLabel = document.querySelector(
+        "[data-document-favorite-label]"
+    );
+    const documentFavoriteIcon = document.querySelector(
+        "[data-document-favorite-icon]"
     );
 
-    const dialogTitle = document.getElementById(
-        "folder-dialog-title"
+    const folderMoveDialog = document.getElementById("folder-move-dialog");
+    const folderMoveForm = document.getElementById("folder-move-form");
+    const folderMoveDestination = document.getElementById(
+        "folder-move-destination"
+    );
+    const folderMoveCancel = document.getElementById(
+        "folder-move-cancel"
     );
 
-    const nameInput = document.getElementById(
-        "folder-dialog-name"
+    const folderDoeSelectionForm = document.getElementById(
+        "folder-doe-selection-form"
+    );
+    const folderDoeSelectionValue = document.getElementById(
+        "folder-doe-selection-value"
+    );
+    const folderDoeSelectionLabel = document.getElementById(
+        "folder-doe-selection-label"
     );
 
-    const parentInput = document.getElementById(
-        "folder-dialog-parent-id"
+    const documentContentActions = document.getElementById(
+        "document-content-actions"
     );
-
-    const cancelButton = document.getElementById(
-        "folder-dialog-cancel"
+    const documentViewIcons = document.getElementById(
+        "document-view-icons"
     );
-
-    const deleteForm = document.getElementById(
-        "folder-delete-form"
+    const documentViewList = document.getElementById(
+        "document-view-list"
     );
-
-    const rootCreateFolder =
-        document.getElementById(
-            "root-create-folder"
+    const documentListHeader = document.querySelector(
+        "[data-document-list-header]"
     );
-    
-    const contentImportDocument =
-        document.getElementById(
-            "content-import-document"
-        );
-
-    const documentRows = document.querySelectorAll(
-        "[data-document-row]"
-    );
-
-    const documentMenu = document.getElementById(
-        "document-context-menu"
-    );
-
-    const documentRenameDialog =
-        document.getElementById(
-            "document-rename-dialog"
-        );
-
-    const documentRenameForm =
-        document.getElementById(
-            "document-rename-form"
-        );
-
-    const documentRenameTitle =
-        document.getElementById(
-            "document-rename-title"
-        );
-
-    const documentRenameCancel =
-        document.getElementById(
-            "document-rename-cancel"
-        );
-
-    const documentMoveDialog =
-        document.getElementById(
-            "document-move-dialog"
-        );
-
-    const documentMoveForm =
-        document.getElementById(
-            "document-move-form"
-        );
-
-    const documentMoveDestination =
-        document.getElementById(
-            "document-move-destination"
-        );
-
-    const documentMoveCancel =
-        document.getElementById(
-            "document-move-cancel"
-        );
-
-    const documentCopyDialog =
-        document.getElementById(
-            "document-copy-dialog"
-        );
-
-    const documentCopyForm =
-        document.getElementById(
-            "document-copy-form"
-        );
-
-    const documentCopyTitle =
-        document.getElementById(
-            "document-copy-title"
-        );
-
-    const documentCopyDestination =
-        document.getElementById(
-            "document-copy-destination"
-        );
-
-    const documentCopyCancel =
-        document.getElementById(
-            "document-copy-cancel"
-        );
-
-    const documentFavoriteLabel =
-        document.querySelector(
-            "[data-document-favorite-label]"
-        );
-
-    const documentFavoriteIcon =
-        document.querySelector(
-            "[data-document-favorite-icon]"
-        );
-
-    const folderMoveDialog =
-        document.getElementById(
-            "folder-move-dialog"
-        );
-
-    const folderMoveForm =
-        document.getElementById(
-            "folder-move-form"
-        );
-
-    const folderMoveDestination =
-        document.getElementById(
-            "folder-move-destination"
-        );
-
-    const folderMoveCancel =
-        document.getElementById(
-            "folder-move-cancel"
-        );
-
-    const folderDoeSelectionForm =
-        document.getElementById(
-            "folder-doe-selection-form"
-        );
-
-    const folderDoeSelectionValue =
-        document.getElementById(
-            "folder-doe-selection-value"
-        );
-
-    const folderDoeSelectionButton =
-        document.getElementById(
-            "folder-doe-selection-button"
-        );
-
-    const folderDoeSelectionLabel =
-        document.getElementById(
-            "folder-doe-selection-label"
-        );
-
-    const documentContentActions =
-        document.getElementById(
-            "document-content-actions"
-        );
-
-    const documentViewIcons =
-        document.getElementById(
-            "document-view-icons"
-        );
-
-    const documentViewList =
-        document.getElementById(
-            "document-view-list"
-        );
-
-    const documentListHeader =
-        document.querySelector(
-            "[data-document-list-header]"
-        );
-
-    const documentListItems =
-        document.querySelectorAll(
-            "[data-document-list-item]"
-        );
+    const documentItems = document.getElementById("document-items");
 
     let selectedDocumentRow = null;
     let selectedFolder = null;
 
-
-    // -----------------------------------------------------------------
-    // Fonctions communes
-    // -----------------------------------------------------------------
-
     function hideMenus() {
-        folderMenu.classList.add("hidden");
-        contentMenu.classList.add("hidden");
-        documentMenu.classList.add("hidden");
+        folderMenu?.classList.add("hidden");
+        contentMenu?.classList.add("hidden");
+        documentMenu?.classList.add("hidden");
     }
 
-
-    function positionMenu(
-        menu,
-        clientX,
-        clientY
-    ) {
+    function positionMenu(menu, clientX, clientY) {
         const menuWidth = menu.offsetWidth;
         const menuHeight = menu.offsetHeight;
+        const maxX = window.innerWidth - menuWidth - 8;
+        const maxY = window.innerHeight - menuHeight - 8;
 
-        const maxX =
-            window.innerWidth
-            - menuWidth
-            - 8;
+        menu.style.left = `${Math.max(
+            8,
+            Math.min(clientX, maxX)
+        )}px`;
 
-        const maxY =
-            window.innerHeight
-            - menuHeight
-            - 8;
-
-        menu.style.left =
-            `${Math.max(
-                8,
-                Math.min(
-                    clientX,
-                    maxX
-                )
-            )}px`;
-
-        menu.style.top =
-            `${Math.max(
-                8,
-                Math.min(
-                    clientY,
-                    maxY
-                )
-            )}px`;
+        menu.style.top = `${Math.max(
+            8,
+            Math.min(clientY, maxY)
+        )}px`;
     }
 
-    function showFolderMenu(
-        event,
-        element
-    ) {
-
-        if (!canWorkOnProject) {
+    function showFolderMenu(event, element) {
+        if (!canWorkOnProject || !folderMenu) {
             return;
         }
 
         event.preventDefault();
-
         hideMenus();
-
         selectedFolder = element;
 
-        const isDoe =
-            element.dataset.folderIsDoe === "true";
+        const isDoe = element.dataset.folderIsDoe === "true";
+        const isProtected = (
+            element.dataset.folderDoeProtected === "true"
+        );
 
-        const isProtected =
-            element.dataset.folderDoeProtected === "true";
-
-        folderDoeSelectionForm.classList.toggle(
+        folderDoeSelectionForm?.classList.toggle(
             "hidden",
             isProtected
         );
 
-        folderDoeSelectionLabel.textContent = isDoe
-            ? "Retirer du DOE"
-            : "Inclure au DOE";
+        if (folderDoeSelectionLabel) {
+            folderDoeSelectionLabel.textContent = isDoe
+                ? "Retirer du DOE"
+                : "Inclure au DOE";
+        }
 
-        folderMenu.classList.remove(
-            "hidden"
-        );
-
+        folderMenu.classList.remove("hidden");
         positionMenu(
             folderMenu,
             event.clientX,
@@ -298,19 +169,16 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+    function showContentMenu(event) {
+        if (!contentMenu) {
+            return;
+        }
 
-    function showContentMenu(
-        event
-    ) {
         event.preventDefault();
-
         hideMenus();
-
         selectedFolder = null;
 
-        contentMenu.classList.remove(
-            "hidden"
-        );
+        contentMenu.classList.remove("hidden");
 
         positionMenu(
             contentMenu,
@@ -319,1024 +187,654 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-
     function openDocument(row) {
+        const openUrl = row.dataset.documentOpenUrl;
 
-        const openUrl =
-            row.dataset.documentOpenUrl;
-
-        if (!openUrl) {
-            return;
+        if (openUrl) {
+            window.open(
+                openUrl,
+                "_blank",
+                "noopener"
+            );
         }
-
-        window.open(
-            openUrl,
-            "_blank",
-            "noopener"
-        );
     }
 
     function submitPost(url) {
-
         if (!url) {
             return;
         }
 
-        const csrfToken =
-            document.querySelector(
-                "[name=csrfmiddlewaretoken]"
-            );
+        const csrfToken = document.querySelector(
+            "[name=csrfmiddlewaretoken]"
+        );
 
         if (!csrfToken) {
             return;
         }
 
-        const form =
-            document.createElement("form");
+        const form = document.createElement("form");
+        const csrfInput = document.createElement("input");
 
         form.method = "post";
         form.action = url;
-
-        const csrfInput =
-            document.createElement("input");
 
         csrfInput.type = "hidden";
         csrfInput.name = "csrfmiddlewaretoken";
         csrfInput.value = csrfToken.value;
 
-        form.appendChild(
-            csrfInput
-        );
-
-        document.body.appendChild(
-            form
-        );
-
+        form.appendChild(csrfInput);
+        document.body.appendChild(form);
         form.submit();
+    }
+
+    function getDocumentDisplayItems(row) {
+        const items = row.querySelectorAll(
+            "[data-document-list-item], " +
+            "[data-document-icon-item]"
+        );
+
+        return items.length ? items : [row];
+    }
+
+    function selectDocument(row) {
+        if (selectedDocumentRow) {
+            getDocumentDisplayItems(
+                selectedDocumentRow
+            ).forEach((item) => {
+                item.classList.remove(
+                    "bg-axcio-surface-alt",
+                    "dark:bg-axcio-surface-alt-dark"
+                );
+            });
+        }
+
+        selectedDocumentRow = row;
+
+        getDocumentDisplayItems(
+            selectedDocumentRow
+        ).forEach((item) => {
+            item.classList.add(
+                "bg-axcio-surface-alt",
+                "dark:bg-axcio-surface-alt-dark"
+            );
+        });
+    }
+
+    function saveDocumentViewMode(mode) {
+        try {
+            localStorage.setItem(
+                "easy-projet-document-view-mode",
+                mode
+            );
+        } catch (error) {
+            // Le mode reste actif si le navigateur bloque
+            // l'accès au stockage local.
+        }
+    }
+
+    function getSavedDocumentViewMode() {
+        try {
+            return localStorage.getItem(
+                "easy-projet-document-view-mode"
+            );
+        } catch (error) {
+            return null;
+        }
     }
 
     function setDocumentViewMode(mode) {
         const iconMode = mode === "icons";
 
-        if (documentListHeader) {
-            documentListHeader.classList.toggle(
-                "hidden",
+        documentListHeader?.classList.toggle(
+            "hidden",
+            iconMode
+        );
+
+        if (documentItems) {
+            documentItems.classList.toggle(
+                "grid",
                 iconMode
             );
+
+            documentItems.classList.toggle(
+                "gap-3",
+                iconMode
+            );
+
+            documentItems.classList.toggle(
+                "p-3",
+                iconMode
+            );
+
+            documentItems.style.gridTemplateColumns = iconMode
+                ? "repeat(auto-fill, minmax(9rem, 10rem))"
+                : "";
+
+            documentItems.style.justifyContent = iconMode
+                ? "start"
+                : "";
         }
 
-        documentListItems.forEach((item) => {
-            const nameElement = item.querySelector(
-                "[data-document-name]"
-            );
-
-            const documentIcon = item.querySelector(
-                "[data-lucide]"
-            );
-
-            const metadataElements = item.querySelectorAll(
-                [
-                    "[data-document-type]",
-                    "[data-document-version]",
-                    "[data-document-updated-at]",
-                ].join(", ")
-            );
-
-            if (iconMode) {
-                item.classList.remove(
-                    "grid",
-                    "min-h-9",
-                    "items-center",
-                    "border-b",
-                    "px-3",
-                    "text-sm"
+        documentRows.forEach((row) => {
+            row.querySelectorAll(
+                "[data-document-list-item]"
+            ).forEach((item) => {
+                item.classList.toggle(
+                    "hidden",
+                    iconMode
                 );
-
-                item.classList.add(
-                    "inline-flex",
-                    "h-40",
-                    "w-40",
-                    "m-2",
-                    "flex-col",
-                    "items-center",
-                    "justify-center",
-                    "gap-3",
-                    "rounded-lg",
-                    "border",
-                    "border-axcio-border-light",
-                    "p-4",
-                    "text-center",
-                    "text-xs",
-                    "dark:border-axcio-border-dark"
-                );
-
-                metadataElements.forEach((element) => {
-                    element.classList.add("hidden");
-                });
-
-                if (documentIcon) {
-                    documentIcon.classList.remove(
-                        "h-4",
-                        "w-4",
-                        "text-axcio-text-muted",
-                        "dark:text-axcio-text-muted-dark"
-                    );
-
-                    documentIcon.classList.add(
-                        "h-12",
-                        "w-12",
-                        "shrink-0",
-                        "text-axcio-light"
-                    );
-                }
-
-                if (nameElement) {
-                    const fullName = (
-                        nameElement.getAttribute("title")
-                        || nameElement.textContent.trim()
-                    );
-
-                    nameElement.textContent = (
-                        fullName.length > 28
-                            ? `${fullName.slice(0, 28)}…`
-                            : fullName
-                    );
-
-                    nameElement.classList.add(
-                        "block",
-                        "max-w-full",
-                        "overflow-hidden",
-                        "text-ellipsis",
-                        "whitespace-nowrap",
-                        "font-medium"
-                    );
-                }
-
-                item.style.gridTemplateColumns = "";
-
-                return;
-            }
-
-            item.classList.remove(
-                "inline-flex",
-                "h-40",
-                "w-40",
-                "m-2",
-                "flex-col",
-                "items-center",
-                "justify-center",
-                "gap-3",
-                "rounded-lg",
-                "border",
-                "p-4",
-                "text-center",
-                "text-xs"
-            );
-
-            item.classList.add(
-                "grid",
-                "min-h-9",
-                "items-center",
-                "border-b",
-                "px-3",
-                "text-sm"
-            );
-
-            metadataElements.forEach((element) => {
-                element.classList.remove("hidden");
             });
 
-            if (documentIcon) {
-                documentIcon.classList.remove(
-                    "h-12",
-                    "w-12",
-                    "text-axcio-light"
+            row.querySelectorAll(
+                "[data-document-icon-item]"
+            ).forEach((item) => {
+                item.classList.toggle(
+                    "hidden",
+                    !iconMode
                 );
 
-                documentIcon.classList.add(
-                    "h-4",
-                    "w-4",
-                    "text-axcio-text-muted",
-                    "dark:text-axcio-text-muted-dark"
+                item.classList.toggle(
+                    "flex",
+                    iconMode
                 );
-            }
-
-            if (nameElement) {
-                const fullName = (
-                    nameElement.getAttribute("title")
-                    || nameElement.textContent.trim()
-                );
-
-                nameElement.textContent = fullName;
-
-                nameElement.classList.remove(
-                    "block",
-                    "max-w-full",
-                    "overflow-hidden",
-                    "text-ellipsis",
-                    "whitespace-nowrap",
-                    "font-medium"
-                );
-            }
-
-            item.style.gridTemplateColumns = (
-                "2rem minmax(0, 1fr) 12rem 7rem 10rem"
-            );
+            });
         });
 
-        documentViewIcons.classList.toggle(
+        documentViewIcons?.classList.toggle(
             "bg-axcio-surface-alt",
             iconMode
         );
 
-        documentViewList.classList.toggle(
+        documentViewIcons?.classList.toggle(
+            "dark:bg-axcio-surface-alt-dark",
+            iconMode
+        );
+
+        documentViewList?.classList.toggle(
             "bg-axcio-surface-alt",
             !iconMode
         );
 
-        localStorage.setItem(
-            "easy-projet-document-view-mode",
-            mode
+        documentViewList?.classList.toggle(
+            "dark:bg-axcio-surface-alt-dark",
+            !iconMode
+        );
+
+        saveDocumentViewMode(
+            iconMode ? "icons" : "list"
         );
     }
 
 
-    // -----------------------------------------------------------------
-    // Mode d'affichage des documents
-    // -----------------------------------------------------------------
-
-    if (documentViewIcons) {
-        documentViewIcons.addEventListener(
-            "click",
-            () => {
-                setDocumentViewMode(
-                    "icons"
-                );
-            }
-        );
-    }
-
-    if (documentViewList) {
-        documentViewList.addEventListener(
-            "click",
-            () => {
-                setDocumentViewMode(
-                    "list"
-                );
-            }
-        );
-    }
-
-    const savedDocumentViewMode =
-        localStorage.getItem(
-            "easy-projet-document-view-mode"
-        )
-        || "list";
-
-    setDocumentViewMode(
-        savedDocumentViewMode
-    );    
-
-    // -----------------------------------------------------------------
-    // Documents
-    // -----------------------------------------------------------------
-
-    documentRows.forEach((row) => {
-
-        row.addEventListener(
-            "click",
-            () => {
-
-                if (selectedDocumentRow) {
-                    selectedDocumentRow.classList.remove(
-                        "bg-axcio-surface-alt",
-                        "dark:bg-axcio-surface-alt-dark"
-                    );
-                }
-
-                selectedDocumentRow = row;
-
-                selectedDocumentRow.classList.add(
-                    "bg-axcio-surface-alt",
-                    "dark:bg-axcio-surface-alt-dark"
-                );
-            }
-        );
-
-
-        row.addEventListener(
-            "dblclick",
-            () => {
-                openDocument(
-                    row
-                );
-            }
-        );
-
-
-        row.addEventListener(
-            "contextmenu",
-            (event) => {
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                hideMenus();
-
-                selectedDocumentRow = row;
-
-                const isFavorite =
-                    row.dataset.documentFavorite
-                    === "true";
-
-                if (documentFavoriteLabel) {
-                    documentFavoriteLabel.textContent =
-                        isFavorite
-                            ? "Retirer des favoris"
-                            : "Ajouter aux favoris";
-                }
-
-                if (documentFavoriteIcon) {
-                    documentFavoriteIcon.setAttribute(
-                        "data-lucide",
-                        isFavorite
-                            ? "star-off"
-                            : "star"
-                    );
-                }
-
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
-
-                documentMenu.classList.remove(
-                    "hidden"
-                );
-
-                positionMenu(
-                    documentMenu,
-                    event.clientX,
-                    event.clientY
-                );
-            }
-        );
-
+    documentViewIcons?.addEventListener("click", () => {
+        setDocumentViewMode("icons");
     });
 
-
-    documentMenu
-        .querySelectorAll(
-            "[data-document-action]"
-        )
-        .forEach((button) => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    if (!selectedDocumentRow) {
-                        return;
-                    }
-
-                    const action =
-                        button.dataset.documentAction;
-
-                    hideMenus();
-
-                    if (action === "properties") {
-                        if (action === "properties") {
-                            window.location.assign(
-                                selectedDocumentRow.dataset
-                                    .documentPropertiesUrl
-                            );
-
-                            return;
-                        }
-                    }
-
-                    if (action === "sign") {
-                        const signatureUrl =
-                            selectedDocumentRow.dataset
-                                .documentSignatureUrl;
-
-                        if (!signatureUrl) {
-                            return;
-                        }
-
-                        window.location.assign(signatureUrl);
-
-                        return;
-                    }
-
-                    // -------------------------------------------------
-                    // Ouvrir
-                    // -------------------------------------------------
-
-                    if (action === "open") {
-
-                        openDocument(
-                            selectedDocumentRow
-                        );
-
-                        return;
-                    }
-
-
-                    // -------------------------------------------------
-                    // Télécharger
-                    // -------------------------------------------------
-
-                    if (action === "download") {
-
-                        const downloadUrl =
-                            selectedDocumentRow.dataset
-                                .documentDownloadUrl;
-
-                        if (!downloadUrl) {
-                            return;
-                        }
-
-                        const link =
-                            document.createElement("a");
-
-                        link.href = downloadUrl;
-                        link.download = "";
-
-                        document.body.appendChild(
-                            link
-                        );
-
-                        link.click();
-
-                        link.remove();
-
-                        return;
-                    }
-
-
-                    // -------------------------------------------------
-                    // Renommer
-                    // -------------------------------------------------
-
-                    if (action === "rename") {
-
-                        const renameUrl =
-                            selectedDocumentRow.dataset
-                                .documentRenameUrl;
-
-                        const currentTitle =
-                            selectedDocumentRow.dataset
-                                .documentTitle;
-
-                        if (!renameUrl) {
-                            return;
-                        }
-
-                        documentRenameForm.action =
-                            renameUrl;
-
-                        documentRenameTitle.value =
-                            currentTitle || "";
-
-                        documentRenameDialog.showModal();
-
-                        documentRenameTitle.focus();
-                        documentRenameTitle.select();
-
-                        return;
-                    }
-
-
-                    // -------------------------------------------------
-                    // Déplacer
-                    // -------------------------------------------------
-
-                    if (action === "move") {
-
-                        const moveUrl =
-                            selectedDocumentRow.dataset
-                                .documentMoveUrl;
-
-                        const currentFolderId =
-                            selectedDocumentRow.dataset
-                                .documentFolderId;
-
-                        if (!moveUrl) {
-                            return;
-                        }
-
-                        documentMoveForm.action =
-                            moveUrl;
-
-                        documentMoveDestination.value =
-                            currentFolderId || "";
-
-                        documentMoveDialog.showModal();
-
-                        documentMoveDestination.focus();
-
-                        return;
-                    }
-
-
-                    // -------------------------------------------------
-                    // Copier
-                    // -------------------------------------------------
-
-                    if (action === "copy") {
-
-                        const copyUrl =
-                            selectedDocumentRow.dataset
-                                .documentCopyUrl;
-
-                        const currentTitle =
-                            selectedDocumentRow.dataset
-                                .documentTitle;
-
-                        const currentFolderId =
-                            selectedDocumentRow.dataset
-                                .documentFolderId;
-
-                        if (!copyUrl) {
-                            return;
-                        }
-
-                        documentCopyForm.action =
-                            copyUrl;
-
-                        documentCopyTitle.value =
-                            currentTitle || "";
-
-                        documentCopyDestination.value =
-                            currentFolderId || "";
-
-                        documentCopyDialog.showModal();
-
-                        documentCopyTitle.focus();
-                        documentCopyTitle.select();
-
-                        return;
-                    }
-
-
-                    // -------------------------------------------------
-                    // Favoris
-                    // -------------------------------------------------
-
-                    if (action === "favorite") {
-
-                        const isFavorite =
-                            selectedDocumentRow.dataset
-                                .documentFavorite
-                            === "true";
-
-                        const favoriteUrl =
-                            isFavorite
-                                ? selectedDocumentRow.dataset
-                                    .documentFavoriteRemoveUrl
-                                : selectedDocumentRow.dataset
-                                    .documentFavoriteAddUrl;
-
-                        submitPost(
-                            favoriteUrl
-                        );
-
-                        return;
-                    }
-
-
-                    if (action === "doe-selection") {
-                        const doeUrl =
-                            selectedFolder.dataset.folderDoeUrl;
-
-                        if (!doeUrl) {
-                            return;
-                        }
-
-                        folderDoeSelectionForm.action = doeUrl;
-
-                        folderDoeSelectionValue.value =
-                            selectedFolder.dataset.folderIsDoe === "true"
-                                ? "false"
-                                : "true";
-
-                        folderDoeSelectionForm.submit();
-
-                        return;
-                    }
-
-                    // -------------------------------------------------
-                    // Supprimer
-                    // -------------------------------------------------
-
-                    if (action === "delete") {
-
-                        const deleteUrl =
-                            selectedDocumentRow.dataset
-                                .documentDeleteUrl;
-
-                        const title =
-                            selectedDocumentRow.dataset
-                                .documentTitle;
-
-                        if (!deleteUrl) {
-                            return;
-                        }
-
-                        const confirmed =
-                            window.confirm(
-                                `Supprimer définitivement `
-                                + `le document "${title}" `
-                                + `et toutes ses versions ?`
-                            );
-
-                        if (!confirmed) {
-                            return;
-                        }
-
-                        submitPost(
-                            deleteUrl
-                        );
-
-                        return;
-                    }
-
-                }
-            );
-
+    documentViewList?.addEventListener("click", () => {
+        setDocumentViewMode("list");
+    });
+
+    setDocumentViewMode(
+        getSavedDocumentViewMode() || "list"
+    );
+
+    documentRows.forEach((row) => {
+        row.addEventListener("click", () => {
+            selectDocument(row);
         });
 
-
-    // -----------------------------------------------------------------
-    // Clic droit sur dossier
-    // -----------------------------------------------------------------
-
-    document
-        .querySelectorAll(
-            "[data-folder-context]"
-        )
-        .forEach((element) => {
-
-            element.addEventListener(
-                "contextmenu",
-                (event) => {
-
-                    showFolderMenu(
-                        event,
-                        element
-                    );
-                }
-            );
-
+        row.addEventListener("dblclick", () => {
+            openDocument(row);
         });
 
-
-    // -----------------------------------------------------------------
-    // Clic droit sur la zone documentaire
-    // -----------------------------------------------------------------
-
-    documentContent.addEventListener(
-        "contextmenu",
-        (event) => {
-
-            /*
-             * Les dossiers et les documents possèdent
-             * leur propre menu contextuel.
-             */
-            if (
-                event.target.closest(
-                    "[data-folder-context]"
-                )
-                || event.target.closest(
-                    "[data-document-row]"
-                )
-            ) {
+        row.addEventListener("contextmenu", (event) => {
+            if (!documentMenu) {
                 return;
             }
 
-            showContentMenu(
-                event
+            event.preventDefault();
+            event.stopPropagation();
+
+            selectDocument(row);
+            hideMenus();
+
+            const isFavorite = (
+                row.dataset.documentFavorite === "true"
             );
-        }
-    );
 
-    if (documentContentActions) {
+            if (documentFavoriteLabel) {
+                documentFavoriteLabel.textContent = isFavorite
+                    ? "Retirer des favoris"
+                    : "Ajouter aux favoris";
+            }
 
-        documentContentActions.addEventListener(
-            "click",
-            (event) => {
-
-                event.stopPropagation();
-
-                hideMenus();
-
-                contentMenu.classList.remove(
-                    "hidden"
-                );
-
-                const rect =
-                    documentContentActions
-                        .getBoundingClientRect();
-
-                positionMenu(
-                    contentMenu,
-                    rect.left,
-                    rect.bottom + 4
+            if (documentFavoriteIcon) {
+                documentFavoriteIcon.setAttribute(
+                    "data-lucide",
+                    isFavorite ? "star-off" : "star"
                 );
             }
-        );
-    }
-    
-    // -----------------------------------------------------------------
-    // Import document
-    // -----------------------------------------------------------------
 
-    if (contentImportDocument) {
+            window.lucide?.createIcons();
 
-        contentImportDocument.addEventListener(
-            "click",
-            () => {
+            documentMenu.classList.remove("hidden");
 
-                hideMenus();
+            positionMenu(
+                documentMenu,
+                event.clientX,
+                event.clientY
+            );
+        });
+    });
 
-                const importUrl =
-                    documentContent.dataset
-                        .folderImportUrl;
+    documentMenu?.querySelectorAll(
+        "[data-document-action]"
+    ).forEach((button) => {
+        button.addEventListener("click", () => {
+            if (!selectedDocumentRow) {
+                return;
+            }
 
-                if (!importUrl) {
+            const action = button.dataset.documentAction;
+
+            hideMenus();
+
+            if (action === "properties") {
+                window.location.assign(
+                    selectedDocumentRow.dataset
+                        .documentPropertiesUrl
+                );
+                return;
+            }
+
+            if (action === "sign") {
+                const signatureUrl = (
+                    selectedDocumentRow.dataset
+                        .documentSignatureUrl
+                );
+
+                if (signatureUrl) {
+                    window.location.assign(signatureUrl);
+                }
+
+                return;
+            }
+
+            if (action === "open") {
+                openDocument(selectedDocumentRow);
+                return;
+            }
+
+            if (action === "download") {
+                const downloadUrl = (
+                    selectedDocumentRow.dataset
+                        .documentDownloadUrl
+                );
+
+                if (!downloadUrl) {
                     return;
                 }
 
-                window.location.href =
-                    importUrl.trim();
+                const link = document.createElement("a");
+
+                link.href = downloadUrl;
+                link.download = "";
+
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+
+                return;
             }
-        );
-    }
 
-    // -----------------------------------------------------------------
-    // Fermeture des boîtes document
-    // -----------------------------------------------------------------
-
-    documentRenameCancel.addEventListener(
-        "click",
-        () => {
-            documentRenameDialog.close();
-        }
-    );
-
-
-    documentMoveCancel.addEventListener(
-        "click",
-        () => {
-            documentMoveDialog.close();
-        }
-    );
-
-
-    documentCopyCancel.addEventListener(
-        "click",
-        () => {
-            documentCopyDialog.close();
-        }
-    );
-
-
-    // -----------------------------------------------------------------
-    // Fermeture des menus
-    // -----------------------------------------------------------------
-
-    document.addEventListener(
-        "click",
-        (event) => {
-
-            const clickInsideFolderMenu =
-                folderMenu.contains(
-                    event.target
+            if (action === "rename") {
+                const renameUrl = (
+                    selectedDocumentRow.dataset
+                        .documentRenameUrl
                 );
 
-            const clickInsideContentMenu =
-                contentMenu.contains(
-                    event.target
-                );
-
-            const clickInsideDocumentMenu =
-                documentMenu.contains(
-                    event.target
-                );
-
-            if (
-                !clickInsideFolderMenu
-                && !clickInsideContentMenu
-                && !clickInsideDocumentMenu
-            ) {
-                hideMenus();
-            }
-        }
-    );
-
-
-    window.addEventListener(
-        "blur",
-        hideMenus
-    );
-
-
-    window.addEventListener(
-        "resize",
-        hideMenus
-    );
-
-
-    // -----------------------------------------------------------------
-    // Actions du menu dossier
-    // -----------------------------------------------------------------
-
-    folderMenu
-        .querySelectorAll(
-            "[data-folder-action]"
-        )
-        .forEach((button) => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    if (!selectedFolder) {
-                        return;
-                    }
-
-                    const action =
-                        button.dataset.folderAction;
-
-                    hideMenus();
-
-
-                    // -------------------------------------------------
-                    // Nouveau répertoire
-                    // -------------------------------------------------
-
-                    if (action === "create") {
-
-                        dialogTitle.textContent =
-                            "Nouveau répertoire";
-
-                        dialogForm.action =
-                            selectedFolder.dataset
-                                .folderCreateUrl;
-
-                        parentInput.value =
-                            selectedFolder.dataset
-                                .folderId;
-
-                        nameInput.value = "";
-
-                        dialog.showModal();
-
-                        nameInput.focus();
-
-                        return;
-                    }
-
-
-                    // -------------------------------------------------
-                    // Renommer
-                    // -------------------------------------------------
-
-                    if (action === "rename") {
-
-                        dialogTitle.textContent =
-                            "Renommer le répertoire";
-
-                        dialogForm.action =
-                            selectedFolder.dataset
-                                .folderRenameUrl;
-
-                        parentInput.value = "";
-
-                        nameInput.value =
-                            selectedFolder.dataset
-                                .folderName;
-
-                        dialog.showModal();
-
-                        nameInput.select();
-
-                        return;
-                    }
-
-
-                    // -------------------------------------------------
-                    // Supprimer
-                    // -------------------------------------------------
-
-                    if (action === "delete") {
-
-                        const folderName =
-                            selectedFolder.dataset
-                                .folderName;
-
-                        const confirmed =
-                            window.confirm(
-                                `Supprimer le répertoire `
-                                + `"${folderName}" ?`
-                            );
-
-                        if (!confirmed) {
-                            return;
-                        }
-
-                        deleteForm.action =
-                            selectedFolder.dataset
-                                .folderDeleteUrl;
-
-                        deleteForm.submit();
-
-                        return;
-                    }
-
-                    if (action === "move") {
-
-                        const moveUrl =
-                            selectedFolder.dataset
-                                .folderMoveUrl;
-
-                        if (!moveUrl) {
-                            return;
-                        }
-
-                        folderMoveForm.action =
-                            moveUrl;
-
-                        folderMoveDestination.value = "";
-
-                        folderMoveDialog.showModal();
-
-                        folderMoveDestination.focus();
-
-                        return;
-                    }
-
+                if (
+                    !renameUrl
+                    || !documentRenameForm
+                    || !documentRenameDialog
+                ) {
+                    return;
                 }
-            );
 
+                documentRenameForm.action = renameUrl;
+
+                documentRenameTitle.value = (
+                    selectedDocumentRow.dataset.documentTitle
+                    || ""
+                );
+
+                documentRenameDialog.showModal();
+                documentRenameTitle.focus();
+                documentRenameTitle.select();
+
+                return;
+            }
+
+            if (action === "move") {
+                const moveUrl = (
+                    selectedDocumentRow.dataset.documentMoveUrl
+                );
+
+                if (
+                    !moveUrl
+                    || !documentMoveForm
+                    || !documentMoveDialog
+                ) {
+                    return;
+                }
+
+                documentMoveForm.action = moveUrl;
+
+                documentMoveDestination.value = (
+                    selectedDocumentRow.dataset.documentFolderId
+                    || ""
+                );
+
+                documentMoveDialog.showModal();
+                documentMoveDestination.focus();
+
+                return;
+            }
+
+            if (action === "copy") {
+                const copyUrl = (
+                    selectedDocumentRow.dataset.documentCopyUrl
+                );
+
+                if (
+                    !copyUrl
+                    || !documentCopyForm
+                    || !documentCopyDialog
+                ) {
+                    return;
+                }
+
+                documentCopyForm.action = copyUrl;
+
+                documentCopyTitle.value = (
+                    selectedDocumentRow.dataset.documentTitle
+                    || ""
+                );
+
+                documentCopyDestination.value = (
+                    selectedDocumentRow.dataset.documentFolderId
+                    || ""
+                );
+
+                documentCopyDialog.showModal();
+                documentCopyTitle.focus();
+                documentCopyTitle.select();
+
+                return;
+            }
+
+            if (action === "favorite") {
+                const isFavorite = (
+                    selectedDocumentRow.dataset.documentFavorite
+                    === "true"
+                );
+
+                const favoriteUrl = isFavorite
+                    ? selectedDocumentRow.dataset
+                        .documentFavoriteRemoveUrl
+                    : selectedDocumentRow.dataset
+                        .documentFavoriteAddUrl;
+
+                submitPost(favoriteUrl);
+
+                return;
+            }
+
+            if (action === "delete") {
+                const deleteUrl = (
+                    selectedDocumentRow.dataset.documentDeleteUrl
+                );
+
+                const title = (
+                    selectedDocumentRow.dataset.documentTitle
+                );
+
+                if (!deleteUrl) {
+                    return;
+                }
+
+                const confirmed = window.confirm(
+                    `Supprimer définitivement le document ` +
+                    `"${title}" et toutes ses versions ?`
+                );
+
+                if (confirmed) {
+                    submitPost(deleteUrl);
+                }
+            }
         });
+    });
 
-    // -----------------------------------------------------------------
-    // Nouveau répertoire de niveau 1
-    // -----------------------------------------------------------------
+    document.querySelectorAll(
+        "[data-folder-context]"
+    ).forEach((element) => {
+        element.addEventListener("contextmenu", (event) => {
+            showFolderMenu(event, element);
+        });
+    });
 
-    if (rootCreateFolder) {
+    documentContent.addEventListener("contextmenu", (event) => {
+        if (
+            event.target.closest("[data-folder-context]")
+            || event.target.closest("[data-document-row]")
+        ) {
+            return;
+        }
 
-        rootCreateFolder.addEventListener(
-            "click",
-            () => {
+        showContentMenu(event);
+    });
 
-                hideMenus();
+    documentContentActions?.addEventListener("click", (event) => {
+        if (!contentMenu) {
+            return;
+        }
 
-                dialogTitle.textContent =
-                    "Nouveau répertoire";
+        event.stopPropagation();
+        hideMenus();
 
-                dialogForm.action =
-                    documentContent.dataset
-                        .folderCreateUrl;
+        contentMenu.classList.remove("hidden");
 
-                /*
-                 * parent_id vide = dossier racine
-                 * du projet.
-                 */
-                parentInput.value = "";
+        const rect = (
+            documentContentActions.getBoundingClientRect()
+        );
+
+        positionMenu(
+            contentMenu,
+            rect.left,
+            rect.bottom + 4
+        );
+    });
+
+    contentImportDocument?.addEventListener("click", () => {
+        hideMenus();
+
+        const importUrl = documentContent.dataset.folderImportUrl;
+
+        if (importUrl) {
+            window.location.href = importUrl.trim();
+        }
+    });
+
+    documentRenameCancel?.addEventListener("click", () => {
+        documentRenameDialog?.close();
+    });
+
+    documentMoveCancel?.addEventListener("click", () => {
+        documentMoveDialog?.close();
+    });
+
+    documentCopyCancel?.addEventListener("click", () => {
+        documentCopyDialog?.close();
+    });
+
+    folderMoveCancel?.addEventListener("click", () => {
+        folderMoveDialog?.close();
+    });
+
+    cancelButton?.addEventListener("click", () => {
+        dialog?.close();
+    });
+
+    document.addEventListener("click", (event) => {
+        const clickInsideFolderMenu = (
+            folderMenu?.contains(event.target)
+        );
+
+        const clickInsideContentMenu = (
+            contentMenu?.contains(event.target)
+        );
+
+        const clickInsideDocumentMenu = (
+            documentMenu?.contains(event.target)
+        );
+
+        if (
+            !clickInsideFolderMenu
+            && !clickInsideContentMenu
+            && !clickInsideDocumentMenu
+        ) {
+            hideMenus();
+        }
+    });
+
+    window.addEventListener("blur", hideMenus);
+    window.addEventListener("resize", hideMenus);
+
+    folderMenu?.querySelectorAll(
+        "[data-folder-action]"
+    ).forEach((button) => {
+        button.addEventListener("click", () => {
+            if (!selectedFolder) {
+                return;
+            }
+
+            const action = button.dataset.folderAction;
+
+            hideMenus();
+
+            if (action === "create") {
+                dialogTitle.textContent = "Nouveau répertoire";
+                dialogForm.action = (
+                    selectedFolder.dataset.folderCreateUrl
+                );
+
+                parentInput.value = (
+                    selectedFolder.dataset.folderId
+                );
 
                 nameInput.value = "";
+                dialog.showModal();
+                nameInput.focus();
+
+                return;
+            }
+
+            if (action === "rename") {
+                dialogTitle.textContent = (
+                    "Renommer le répertoire"
+                );
+
+                dialogForm.action = (
+                    selectedFolder.dataset.folderRenameUrl
+                );
+
+                parentInput.value = "";
+
+                nameInput.value = (
+                    selectedFolder.dataset.folderName
+                );
 
                 dialog.showModal();
+                nameInput.select();
 
-                nameInput.focus();
+                return;
             }
+
+            if (action === "move") {
+                const moveUrl = (
+                    selectedFolder.dataset.folderMoveUrl
+                );
+
+                if (!moveUrl) {
+                    return;
+                }
+
+                folderMoveForm.action = moveUrl;
+                folderMoveDestination.value = "";
+
+                folderMoveDialog.showModal();
+                folderMoveDestination.focus();
+
+                return;
+            }
+
+            if (action === "doe-selection") {
+                const doeUrl = (
+                    selectedFolder.dataset.folderDoeUrl
+                );
+
+                if (!doeUrl || !folderDoeSelectionForm) {
+                    return;
+                }
+
+                folderDoeSelectionForm.action = doeUrl;
+
+                folderDoeSelectionValue.value = (
+                    selectedFolder.dataset.folderIsDoe === "true"
+                        ? "false"
+                        : "true"
+                );
+
+                folderDoeSelectionForm.submit();
+
+                return;
+            }
+
+            if (action === "delete") {
+                const folderName = (
+                    selectedFolder.dataset.folderName
+                );
+
+                const confirmed = window.confirm(
+                    `Supprimer le répertoire "${folderName}" ?`
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                deleteForm.action = (
+                    selectedFolder.dataset.folderDeleteUrl
+                );
+
+                deleteForm.submit();
+            }
+        });
+    });
+
+    rootCreateFolder?.addEventListener("click", () => {
+        hideMenus();
+
+        dialogTitle.textContent = "Nouveau répertoire";
+
+        dialogForm.action = (
+            documentContent.dataset.folderCreateUrl
         );
-    }
 
-    // -----------------------------------------------------------------
-    // Nouveau répertoire depuis la zone documentaire
-    // -----------------------------------------------------------------    // -----------------------------------------------------------------
-    // Nouveau répertoire depuis la zone documentaire
-    // -----------------------------------------------------------------
+        parentInput.value = "";
+        nameInput.value = "";
 
-    folderMoveCancel.addEventListener(
-        "click",
-        () => {
-            folderMoveDialog.close();
-        }
-    );
-
-    // -----------------------------------------------------------------
-    // Annulation boîte dossier
-    // -----------------------------------------------------------------
-
-    cancelButton.addEventListener(
-        "click",
-        () => {
-            dialog.close();
-        }
-    );
-
+        dialog.showModal();
+        nameInput.focus();
+    });
 });
