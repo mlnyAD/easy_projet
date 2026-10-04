@@ -6,6 +6,7 @@ from uuid import uuid4
 from django.test import SimpleTestCase
 
 from apps.documents.trees import (
+    DOCUMENT_EXPLORER_DOE_WORKSPACE_IDENTIFIER,
     DocumentFolderTreeNodeFactory,
 )
 
@@ -35,10 +36,7 @@ class DocumentFolderTreeNodeFactoryTests(
             return_url="/documents/projects/test/",
         )
 
-        self.assertEqual(
-            len(nodes),
-            1,
-        )
+        self.assertEqual(len(nodes), 1)
 
         node = nodes[0]
 
@@ -67,4 +65,39 @@ class DocumentFolderTreeNodeFactoryTests(
         self.assertIn(
             "/doe-selection/",
             node.data_attributes["folder-doe-url"],
+        )
+
+    def test_build_keeps_workspace_in_doe_folder_urls(self):
+        doe_root = SimpleNamespace(
+            pk=uuid4(),
+            parent_id=None,
+            name="DOE",
+            is_doe=False,
+            is_doe_root=True,
+            is_doe_generated=False,
+        )
+
+        nodes = DocumentFolderTreeNodeFactory.build(
+            project=self.project,
+            folders=(doe_root,),
+            selected_folder_id=None,
+            return_url="/documents/projects/test/?workspace=doe",
+            workspace_identifier=(
+                DOCUMENT_EXPLORER_DOE_WORKSPACE_IDENTIFIER
+            ),
+        )
+
+        self.assertEqual(len(nodes), 1)
+
+        node = nodes[0]
+
+        self.assertIn(
+            "workspace=doe",
+            node.url,
+        )
+        self.assertEqual(
+            node.data_attributes[
+                "folder-doe-protected"
+            ],
+            "true",
         )

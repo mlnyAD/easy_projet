@@ -1,0 +1,218 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Demande de signature
+{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto w-full max-w-3xl">
+
+    <div class="mb-4">
+        <h1
+            class="text-xl font-semibold
+                   text-axcio-text
+                   dark:text-axcio-text-dark"
+        >
+            Demande de signature
+        </h1>
+
+        <p
+            class="mt-1 text-sm
+                   text-axcio-text-muted
+                   dark:text-axcio-text-muted-dark"
+        >
+            {{ project.reference }} — {{ project.name }}
+        </p>
+    </div>
+
+    <form
+        method="post"
+        class="rounded-lg border
+               border-axcio-border-light
+               bg-axcio-page p-5 shadow-sm
+               dark:border-axcio-border-dark
+               dark:bg-axcio-page-dark"
+    >
+        {% csrf_token %}
+
+        <input
+            type="hidden"
+            name="next"
+            value="{{ return_url }}"
+        >
+
+        {% if form.non_field_errors %}
+            <div
+                class="mb-4 rounded-md border border-red-300
+                       bg-red-50 px-3 py-2 text-sm text-red-700
+                       dark:border-red-900 dark:bg-red-950/30
+                       dark:text-red-300"
+            >
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="space-y-5">
+
+            <div>
+                <label
+                    for="{{ form.title.id_for_label }}"
+                    class="mb-1.5 block text-sm font-medium
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    {{ form.title.label }}
+                    <span class="text-red-600">*</span>
+                </label>
+
+                {{ form.title }}
+
+                {% for error in form.title.errors %}
+                    <p class="mt-1 text-sm text-red-600">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <p
+                    class="mb-1.5 text-sm font-medium
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    {{ form.documents.label }}
+                    <span class="text-red-600">*</span>
+                </p>
+
+                <div
+                    class="max-h-64 space-y-1 overflow-auto
+                           rounded-md border p-2
+                           border-axcio-border-light
+                           dark:border-axcio-border-dark"
+                >
+                    {% for choice in form.documents %}
+                        <label
+                            class="flex cursor-pointer items-center gap-2
+                                   rounded px-2 py-1.5 text-sm
+                                   text-axcio-text
+                                   hover:bg-axcio-surface-alt
+                                   dark:text-axcio-text-dark
+                                   dark:hover:bg-axcio-surface-alt-dark"
+                        >
+                            {{ choice.tag }}
+
+                            <span>
+                                {{ choice.choice_label }}
+                            </span>
+                        </label>
+                    {% empty %}
+                        <p
+                            class="px-2 py-1 text-sm
+                                   text-axcio-text-muted
+                                   dark:text-axcio-text-muted-dark"
+                        >
+                            Aucun document disponible.
+                        </p>
+                    {% endfor %}
+                </div>
+
+                {% for error in form.documents.errors %}
+                    <p class="mt-1 text-sm text-red-600">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label
+                    for="{{ form.internal_signers.id_for_label }}"
+                    class="mb-1.5 block text-sm font-medium
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    {{ form.internal_signers.label }}
+                </label>
+
+                {{ form.internal_signers }}
+
+                <p
+                    class="mt-1 text-xs
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                >
+                    {{ form.internal_signers.help_text }}
+                </p>
+
+                {% for error in form.internal_signers.errors %}
+                    <p class="mt-1 text-sm text-red-600">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label
+                    for="{{ form.external_signers.id_for_label }}"
+                    class="mb-1.5 block text-sm font-medium
+                           text-axcio-text
+                           dark:text-axcio-text-dark"
+                >
+                    {{ form.external_signers.label }}
+                </label>
+
+                {{ form.external_signers }}
+
+                <p
+                    class="mt-1 text-xs
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                >
+                    {{ form.external_signers.help_text }}
+                </p>
+
+                {% for error in form.external_signers.errors %}
+                    <p class="mt-1 text-sm text-red-600">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <div
+            class="mt-6 flex justify-end gap-2 border-t pt-4
+                   border-axcio-border-light
+                   dark:border-axcio-border-dark"
+        >
+            <a
+                href="{{ return_url }}"
+                class="rounded-lg border
+                       border-axcio-border-light
+                       px-4 py-2 text-sm font-medium
+                       text-axcio-text
+                       hover:bg-axcio-surface-alt
+                       dark:border-axcio-border-dark
+                       dark:text-axcio-text-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
+            >
+                Annuler
+            </a>
+
+            <button
+                type="submit"
+                class="rounded-lg bg-axcio-light
+                       px-4 py-2 text-sm font-medium text-white
+                       hover:bg-axcio-light-hover"
+            >
+                Envoyer à signer
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

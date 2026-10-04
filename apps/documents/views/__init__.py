@@ -41,7 +41,7 @@ from .cadviewer import (
 
 from .doe import DoeGenerateView
 from .folder import DocumentFolderDoeSelectionView
-
+from .signature import SignatureRequestCreateView
 
 __all__ = [
     "DocumentCreateView",
@@ -70,4 +70,5 @@ __all__ = [
     "DocumentFolderDownloadView",
     "DoeGenerateView",
     "DocumentFolderDoeSelectionView",
+    "SignatureRequestCreateView",
 ]

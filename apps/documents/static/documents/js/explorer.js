@@ -714,6 +714,20 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     }
 
+                    if (action === "sign") {
+                        const signatureUrl =
+                            selectedDocumentRow.dataset
+                                .documentSignatureUrl;
+
+                        if (!signatureUrl) {
+                            return;
+                        }
+
+                        window.location.assign(signatureUrl);
+
+                        return;
+                    }
+
                     // -------------------------------------------------
                     // Ouvrir
                     // -------------------------------------------------

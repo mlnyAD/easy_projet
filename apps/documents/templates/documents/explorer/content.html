@@ -177,6 +177,7 @@
 
             {% if can_work_on_project %}
                 data-document-properties-url="{% url 'documents:document-properties' project.pk document.pk %}?next={{ return_url|urlencode }}"
+                data-document-signature-url="{% url 'documents:signature-request-create' project.pk %}?document={{ document.pk }}&next={{ return_url|urlencode }}"
                 data-document-rename-url="{% url 'documents:document-rename' project.pk document.pk %}"
                 data-document-move-url="{% url 'documents:document-move' project.pk document.pk %}"
                 data-document-copy-url="{% url 'documents:document-copy' project.pk document.pk %}"

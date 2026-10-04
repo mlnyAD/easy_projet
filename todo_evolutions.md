@@ -210,3 +210,14 @@ Priorités ergonomiques :
 - pas de tableaux larges ni de formulaires longs ;
 - conservation automatique des brouillons quand elle sera nécessaire.
 L’objectif : un utilisateur doit pouvoir consulter une consigne, prendre une photo ou signaler un problème sans formation.
+
+
+### Signature électronique
+Oui : par un webhook Documenso.
+À chaque signature ou fin de signature, Documenso appelle une URL d’Easy Projet. L’application pourra alors :
+- mettre à jour le statut des signataires et de la demande ;
+- enregistrer la date de fin ;
+- récupérer le PDF signé final ;
+- créer une notification Easy Projet pour les utilisateurs concernés.
+Ce n’est pas encore câblé dans le code : l’adaptateur sait déjà vérifier le secret webhook, mais il faut ajouter la vue de réception et le traitement des événements.
+Comme Easy Projet est actuellement sur localhost, Documenso Cloud ne peut pas l’appeler directement. Pour les essais, il faudra exposer temporairement le serveur Django via un tunnel HTTPS Cloudflare ; en production, l’URL publique du serveur sera utilisée. Documenso prévoit explicitement les webhooks pour suivre ces événements. docs.documenso.com

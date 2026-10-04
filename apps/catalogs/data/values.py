@@ -913,6 +913,13 @@ CATALOG_VALUE_DEFINITIONS = [
         sort_order=90,
     ),
 
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="DOCUMENSO",
+        label="Documenso",
+        sort_order=100,
+    ),
+
     # ========================================================================
     # Intégrations - État de connexion
     # ========================================================================

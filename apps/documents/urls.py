@@ -31,6 +31,7 @@ from apps.documents.views import (
 
 from apps.documents.views.doe import DoeGenerateView
 from apps.documents.views.folder import DocumentFolderDoeSelectionView
+from apps.documents.views.signature import SignatureRequestCreateView
 
 
 app_name = "documents"
@@ -145,6 +146,11 @@ urlpatterns = [
         "versions/<uuid:version_id>/download/",
         DocumentVersionDownloadView.as_view(),
         name="version-download",
+    ),
+    path(
+    "projects/<uuid:project_id>/signature-requests/new/",
+        SignatureRequestCreateView.as_view(),
+        name="signature-request-create",
     ),
     path(
         (

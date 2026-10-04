@@ -1165,3 +1165,11 @@ class DoeGeneration(TimeStampedModel):
             f"DOE {self.project} — "
             f"{self.created_at:%d/%m/%Y %H:%M}"
         )
+        
+
+from .signature_models import (
+    SignatureEvent,
+    SignatureRequest,
+    SignatureRequestDocument,
+    SignatureRequestRecipient,
+)

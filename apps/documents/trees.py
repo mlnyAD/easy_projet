@@ -20,6 +20,7 @@ from framework.tree import (
 
 
 DOCUMENT_EXPLORER_WORKSPACE_IDENTIFIER = "documentation"
+DOCUMENT_EXPLORER_DOE_WORKSPACE_IDENTIFIER = "doe"
 
 
 DOCUMENT_EXPLORER_CREATE_ROOT_FOLDER_COMMAND = (
@@ -29,6 +30,39 @@ DOCUMENT_EXPLORER_CREATE_ROOT_FOLDER_COMMAND = (
         icon="folder-plus",
         target=TreeCommandTarget.WORKSPACE,
         order=10,
+    )
+)
+
+
+DOCUMENT_EXPLORER_GENERATE_DOE_COMMAND = (
+    TreeCommandDefinition(
+        identifier="generate-doe",
+        label="Générer le DOE",
+        icon="archive",
+        target=TreeCommandTarget.WORKSPACE,
+        order=10,
+    )
+)
+
+
+DOCUMENT_EXPLORER_REFRESH_DOE_COMMAND = (
+    TreeCommandDefinition(
+        identifier="refresh-doe",
+        label="Rafraîchir le DOE",
+        icon="refresh-cw",
+        target=TreeCommandTarget.WORKSPACE,
+        order=10,
+    )
+)
+
+
+DOCUMENT_EXPLORER_DOWNLOAD_DOE_COMMAND = (
+    TreeCommandDefinition(
+        identifier="download-doe",
+        label="Télécharger le DOE",
+        icon="download",
+        target=TreeCommandTarget.WORKSPACE,
+        order=20,
     )
 )
 
@@ -44,6 +78,16 @@ DOCUMENT_EXPLORER_TREE_DEFINITION = TreeDefinition(
                 DOCUMENT_EXPLORER_CREATE_ROOT_FOLDER_COMMAND,
             ),
         ),
+        TreeWorkspaceDefinition(
+            identifier=DOCUMENT_EXPLORER_DOE_WORKSPACE_IDENTIFIER,
+            label="DOE",
+            icon="archive",
+            commands=(
+                DOCUMENT_EXPLORER_GENERATE_DOE_COMMAND,
+                DOCUMENT_EXPLORER_REFRESH_DOE_COMMAND,
+                DOCUMENT_EXPLORER_DOWNLOAD_DOE_COMMAND,
+            ),
+        ),
     ),
 )
 
@@ -52,9 +96,6 @@ class DocumentFolderTreeNodeFactory:
     """
     Adapte les dossiers documentaires au composant générique
     d'arborescence.
-
-    Les attributs data reproduisent le contrat déjà utilisé par
-    explorer.js et les menus contextuels de la GED.
     """
 
     @classmethod
@@ -65,6 +106,9 @@ class DocumentFolderTreeNodeFactory:
         folders: Sequence[DocumentFolder],
         selected_folder_id: object | None,
         return_url: str,
+        workspace_identifier: str = (
+            DOCUMENT_EXPLORER_WORKSPACE_IDENTIFIER
+        ),
     ) -> tuple[TreeNode, ...]:
         return tuple(
             cls._build_node(
@@ -72,6 +116,7 @@ class DocumentFolderTreeNodeFactory:
                 folder=folder,
                 selected_folder_id=selected_folder_id,
                 return_url=return_url,
+                workspace_identifier=workspace_identifier,
             )
             for folder in folders
         )
@@ -83,6 +128,7 @@ class DocumentFolderTreeNodeFactory:
         folder: DocumentFolder,
         selected_folder_id: object | None,
         return_url: str,
+        workspace_identifier: str,
     ) -> TreeNode:
         folder_url = reverse(
             "documents:folder",
@@ -91,6 +137,15 @@ class DocumentFolderTreeNodeFactory:
                 "folder_id": folder.pk,
             },
         )
+
+        if (
+            workspace_identifier
+            == DOCUMENT_EXPLORER_DOE_WORKSPACE_IDENTIFIER
+        ):
+            folder_url = (
+                f"{folder_url}?"
+                f"{urlencode({'workspace': workspace_identifier})}"
+            )
 
         doe_selection_url = reverse(
             "documents:folder-doe-selection",
