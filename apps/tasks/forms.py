@@ -99,11 +99,12 @@ class TaskForm(forms.ModelForm):
         )
 
         labels = {
+            "name": "Nom de la tâche",
             "initial_start_date": "Début initial",
             "initial_end_date": "Fin initiale",
-            "start_date": "Début",
-            "end_date": "Fin",
-            "is_active": "Tâche active",
+            "start_date": "Début réel",
+            "end_date": "Fin réelle",
+            "is_active": "Active",
         }
 
         widgets = {

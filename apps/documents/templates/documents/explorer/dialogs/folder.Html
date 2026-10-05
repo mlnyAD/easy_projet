@@ -1,0 +1,35 @@
+
+
+{% extends "edf/dialog/dialog.html" %}
+
+{% block dialog_id %}folder-dialog{% endblock %}
+{% block dialog_title_id %}folder-dialog-title{% endblock %}
+{% block dialog_title_id_content %}folder-dialog-title{% endblock %}
+{% block dialog_form_id %}folder-dialog-form{% endblock %}
+
+{% block dialog_hidden_fields %}
+
+    <input
+        id="folder-dialog-parent-id"
+        type="hidden"
+        name="parent_id"
+        value=""
+    >
+
+{% endblock %}
+
+{% block dialog_title %}
+    Nouveau répertoire
+{% endblock %}
+
+{% block dialog_body %}
+
+    {% include "edf/form/fields/text.html" with standalone_id="folder-dialog-name" standalone_name="name" standalone_label="Nom" standalone_maxlength=255 standalone_required=True standalone_autocomplete="off" %}
+
+{% endblock %}
+
+{% block dialog_actions %}
+
+    {% include "edf/dialog/actions.html" with cancel_id="folder-dialog-cancel" submit_label="Valider" %}
+
+{% endblock %}

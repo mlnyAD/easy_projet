@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from typing import BinaryIO
-
+from pathlib import Path
 from django.db import transaction
 
 from apps.documents.models import (
@@ -399,6 +399,15 @@ class DocumentService:
                 "ne peut pas être vide."
             )
 
+        copied_filename = (
+            self._build_copied_original_filename(
+                title=normalized_title,
+                source_filename=(
+                    source_version.original_filename
+                ),
+            )
+        )
+        
         if not self.storage.exists(
             source_version.storage_key
         ):
@@ -435,9 +444,7 @@ class DocumentService:
                 self.version_service.create_version(
                     document=copied_document,
                     content=source_content,
-                    original_filename=(
-                        source_version.original_filename
-                    ),
+                    original_filename=copied_filename,
                     mime_type=(
                         source_version.mime_type
                     ),
@@ -459,6 +466,30 @@ class DocumentService:
         history.save()
 
         return copied_document
+    
+    @staticmethod
+    def _build_copied_original_filename(
+        *,
+        title: str,
+        source_filename: str,
+    ) -> str:
+        """
+        Construit le nom de fichier de la nouvelle version.
+
+        La copie conserve nécessairement l'extension du document
+        source, sans modifier le nom du fichier source.
+        """
+
+        extension = Path(source_filename).suffix
+
+        if not extension:
+            return title
+
+        if title.lower().endswith(extension.lower()):
+            return title
+
+        return f"{title}{extension}"    
+    
 
     def delete_document(
         self,

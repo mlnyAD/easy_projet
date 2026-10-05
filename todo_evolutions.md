@@ -1,21 +1,8 @@
 
 ### Formulaires
 
-
 ### Transaction Tâches
-- Concaténer les sections Rattachement et Identification
-- Afficher dans la liste des tâches le nombre de ressources affectées
-
-comme fonction transversale de workflow / file d’actions
-
-Je recommande donc :
-- ne rien supprimer immédiatement du modèle ;
-- ne pas verrouiller les dates « initiales » dès la première sauvegarde ;
-- considérer les dates actuelles start_date / end_date comme le planning courant, pas comme le réel ;
-- conserver les dates initiales comme une première référence, mais les renommer ultérieurement Début/fin de référence ;
-- à terme, remplacer ces champs par une vraie transaction « Valider le planning de référence », qui crée un instantané complet du projet, de ses lots et de ses tâches.
-
-Ainsi, une erreur de saisie se corrige normalement sans devoir supprimer la tâche, et le décalage reste mesurable entre planning de référence et planning courant.
+Affecter des charges par métier, puis lors de la vraie planification affecter des ressources
 
 ### Planning
 
@@ -26,7 +13,6 @@ Fonction de recherche des orphelins
 Fonction de recherche des fichiers bloqués en édition
 
 ### Documents
-Pourquoi télécharger le document l'ouvre automatiquement sur le poste client?
 Mettre les fichiers supprimés dans une corbeille lors de la suppression initiale
 Implémenter Partager et Permissions
 
@@ -43,14 +29,10 @@ Fonction disponible → affichage normal et action active.
 Fonction prévue mais non implémentée → grisée + italique + désactivée + infobulle « Fonction à venir ».
 
 ### Boites de dialogue
-Adopter une position géographique commune pour toutes les modales.
-En haut au milieu me parait bien
 
 ### Intégrations externes
-Libellés trop proche Gestion docuementaire et Suite bureautique
 
 ### Affichage des répertoires
-Faut-il fermer automatiquement un répertoire ouvert lorsqu'on en sélectionne un autre?
 
 ### Dashboard
 A faire :
@@ -65,7 +47,6 @@ Quand un RA est à traiter par le CP, il faudrait le notifier avec le compteur d
 ### Sociétés
 
 ### Risques
-Concaténer les sections Rattachement et Identification et la mettre en tête du formulaire
 
 ### Contacts
 Liste : réduire la hauteur des lignes pour avoir une page entière à l'écran
@@ -93,7 +74,6 @@ Rubrique utilisateurs : ne proposer que des utilisateurs de sociétés l'environ
 Projet inactif. On ne peut pas voir les éléments du projet. 
 
 ### Transaction licences
-Liste des licences : n'afficher que les licences de la société de l'utilisateur
 
 ### Fin recherche sécurité niveau 1
 Sujet restant	Nature	Priorité / moment
@@ -128,10 +108,10 @@ Une fois le noyau stabilisé et documenté, nous réévaluons les intégrations 
 Un point me paraît particulièrement important dans ton séquencement : ne pas chercher maintenant à produire le manuel utilisateur définitif. Nous devons bien enregistrer les règles métier au fur et à mesure, mais la rédaction structurée du manuel gagnera à intervenir après la stabilisation fonctionnelle et la passe ergonomique. Sinon nous documenterions des écrans et des parcours qui vont encore évoluer.
 
 ### Messagerie interne , Notifications , ToDo
-Élément             Rôle
+Élément              Rôle
 Messagerie interne	Échanges humains, par projet, avec contenu, réponses et pièces jointes.
-Notifications	    Alerte système personnelle, courte, avec un lien vers l’objet concerné.
-Mes ToDO	        Travail que l’utilisateur doit effectuer ou suivre.
+Notifications	      Alerte système personnelle, courte, avec un lien vers l’objet concerné.
+Mes ToDO	            Travail que l’utilisateur doit effectuer ou suivre.
 Les notifications devraient couvrir uniquement les événements qui demandent une attention :
 - invitation, modification ou annulation de réunion ;
 - tâche affectée ou retirée ;
@@ -160,7 +140,7 @@ Catégorie	                        Éléments	                                  
 Composants techniques ou fragments	Sidebar, actions utilisateurs, panneau messages, 
                                     filtre planning, dialogues dossiers, template 
                                     edf/form/view.html	                                À exclure du décompte des écrans
-Déjà normalisés ou hybrides	        Formulaire réunion, import documentaire	            Pas une priorité ; à examiner au 
+Déjà normalisés ou hybrides	      Formulaire réunion, import documentaire	           Pas une priorité ; à examiner au 
                                                                                         cas par cas
 Écrans spécifiques métier	        Connexion, changement de mot de passe, messagerie, 
                                     Todo, reporting, photo projet, configuration client	Rendu spécifique souvent justifié

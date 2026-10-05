@@ -1,6 +1,12 @@
 
 
 <div
+    data-tree
+    {% for workspace in tree_view.workspaces %}
+        {% if workspace.is_active and workspace.url %}
+            data-tree-root-url="{{ workspace.url }}"
+        {% endif %}
+    {% endfor %}
     class="flex h-full min-h-0 flex-col
            border-r border-axcio-border-light
            bg-axcio-page
@@ -201,24 +207,91 @@
 
     {% endif %}
 
+    {% if tree_view.root_nodes %}
+
+        <div
+            class="grid shrink-0 grid-cols-2 gap-1
+                   border-b border-axcio-border-light p-2
+                   dark:border-axcio-border-dark"
+        >
+            <button
+                type="button"
+                data-tree-action="expand-all"
+                class="inline-flex items-center justify-center gap-1.5
+                       rounded-md px-2 py-1.5 text-xs font-medium
+                       text-axcio-text
+                       hover:bg-axcio-surface-alt
+                       dark:text-axcio-text-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
+            >
+                <i
+                    data-lucide="chevrons-down"
+                    class="h-3.5 w-3.5"
+                    aria-hidden="true"
+                ></i>
+
+                <span
+                    data-tree-action-label
+                    data-tree-global-label="Ouvrir tout"
+                    data-tree-selected-label="Ouvrir le répertoire"
+                >
+                    Ouvrir tout
+                </span>
+            </button>
+
+            <button
+                type="button"
+                data-tree-action="collapse-all"
+                class="inline-flex items-center justify-center gap-1.5
+                       rounded-md px-2 py-1.5 text-xs font-medium
+                       text-axcio-text
+                       hover:bg-axcio-surface-alt
+                       dark:text-axcio-text-dark
+                       dark:hover:bg-axcio-surface-alt-dark"
+            >
+                <i
+                    data-lucide="chevrons-up"
+                    class="h-3.5 w-3.5"
+                    aria-hidden="true"
+                ></i>
+
+                <span
+                    data-tree-action-label
+                    data-tree-global-label="Fermer tout"
+                    data-tree-selected-label="Fermer le répertoire"
+                >
+                    Fermer tout
+                </span>
+            </button>
+        </div>
+
+    {% endif %}
+
     <nav
-        class="min-h-0 flex-1 overflow-auto p-2"
+        class="flex min-h-0 flex-1 flex-col overflow-auto p-2"
         aria-label="Arborescence"
     >
-        {% for node in tree_view.root_nodes %}
+        <div>
+            {% for node in tree_view.root_nodes %}
 
-            {% include "edf/tree/node.html" with node=node %}
+                {% include "edf/tree/node.html" with node=node %}
 
-        {% empty %}
+            {% empty %}
 
-            <p
-                class="px-2 py-3 text-xs
-                       text-axcio-text-muted
-                       dark:text-axcio-text-muted-dark"
-            >
-                Aucun élément.
-            </p>
+                <p
+                    class="px-2 py-3 text-xs
+                           text-axcio-text-muted
+                           dark:text-axcio-text-muted-dark"
+                >
+                    Aucun élément.
+                </p>
 
-        {% endfor %}
+            {% endfor %}
+        </div>
+
+        <div
+            data-tree-empty-area
+            class="min-h-10 flex-1"
+        ></div>
     </nav>
 </div>

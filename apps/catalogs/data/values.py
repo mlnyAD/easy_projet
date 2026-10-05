@@ -792,13 +792,6 @@ CATALOG_VALUE_DEFINITIONS = [
 
     CatalogValueDefinition(
         catalog="INTEGRATION_SERVICE_TYPE",
-        code="DOCUMENT_STORAGE",
-        label="Gestion documentaire",
-        sort_order=30,
-    ),
-
-    CatalogValueDefinition(
-        catalog="INTEGRATION_SERVICE_TYPE",
         code="SIGNATURE",
         label="Signature électronique",
         sort_order=40,

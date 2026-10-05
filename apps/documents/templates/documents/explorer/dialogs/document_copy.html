@@ -1,0 +1,30 @@
+
+
+{% extends "edf/dialog/dialog.html" %}
+
+{% block dialog_id %}document-copy-dialog{% endblock %}
+{% block dialog_title_id %}document-copy-dialog-title{% endblock %}
+{% block dialog_title_id_content %}document-copy-dialog-title{% endblock %}
+{% block dialog_form_id %}document-copy-form{% endblock %}
+
+{% block dialog_title %}
+    Copier le document
+{% endblock %}
+
+{% block dialog_body %}
+
+    <div class="space-y-4">
+
+        {% include "edf/form/fields/text.html" with standalone_id="document-copy-title" standalone_name="title" standalone_label="Nom du nouveau document" standalone_required=True standalone_autocomplete="off" %}
+
+        {% include "edf/form/fields/select.html" with standalone_id="document-copy-destination" standalone_name="destination_id" standalone_label="Dossier de destination" standalone_required=True standalone_options_template="documents/explorer/dialogs/document_destination_options.html" %}
+
+    </div>
+
+{% endblock %}
+
+{% block dialog_actions %}
+
+    {% include "edf/dialog/actions.html" with cancel_id="document-copy-cancel" submit_label="Copier" %}
+
+{% endblock %}

@@ -210,13 +210,9 @@
                         <span
                             data-document-name
                             class="truncate"
-                            title="{% if document.current_version %}{{ document.current_version.original_filename }}{% else %}{{ document.title }}{% endif %}"
+                            title="{{ document.title }}"
                         >
-                            {% if document.current_version %}
-                                {{ document.current_version.original_filename }}
-                            {% else %}
-                                {{ document.title }}
-                            {% endif %}
+                            {{ document.title }}
                         </span>
 
                         {% if document.pk in signed_document_ids %}
@@ -318,28 +314,16 @@
 
                     <span
                         class="w-full truncate text-sm font-medium
-                               text-axcio-text dark:text-axcio-text-dark"
-                        title="{% if document.current_version %}{{ document.current_version.original_filename }}{% else %}{{ document.title }}{% endif %}"
+                            text-axcio-text dark:text-axcio-text-dark"
+                        title="{{ document.title }}"
                     >
-                        {% if document.current_version %}
-
-                            {% if document.current_version.original_filename|length > 12 %}
-                                {{ document.current_version.original_filename|slice:":12" }}...
-                            {% else %}
-                                {{ document.current_version.original_filename }}
-                            {% endif %}
-
+                        {% if document.title|length > 12 %}
+                            {{ document.title|slice:":12" }}...
                         {% else %}
-
-                            {% if document.title|length > 12 %}
-                                {{ document.title|slice:":12" }}...
-                            {% else %}
-                                {{ document.title }}
-                            {% endif %}
-
+                            {{ document.title }}
                         {% endif %}
                     </span>
-
+                    
                     <span
                         class="text-xs leading-5 text-axcio-text-muted
                                dark:text-axcio-text-muted-dark"

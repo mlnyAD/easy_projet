@@ -4,17 +4,71 @@
 
 {% if bound_field %}
 
-    {# =============================================================== #}
-    {# Champ Django lié                                                #}
-    {# =============================================================== #}
-
     {% ep_form_field bound_field %}
 
-{% else %}
+{% elif standalone_id %}
 
-    {# =============================================================== #}
-    {# Champ texte EDF autonome                                        #}
-    {# =============================================================== #}
+    <div class="ep-field">
+
+        <div class="ep-field-label-row">
+
+            <label
+                for="{{ standalone_id }}"
+                class="ep-field-label"
+            >
+                {{ standalone_label }}
+
+                {% if standalone_required %}
+                    <span
+                        class="ep-field-required"
+                        aria-hidden="true"
+                    >
+                        *
+                    </span>
+
+                    <span class="sr-only">
+                        Champ obligatoire
+                    </span>
+                {% endif %}
+            </label>
+        </div>
+
+        <input
+            id="{{ standalone_id }}"
+            name="{{ standalone_name }}"
+            type="{{ standalone_type|default:'text' }}"
+            class="ep-input"
+            {% if standalone_value %}
+                value="{{ standalone_value }}"
+            {% endif %}
+            {% if standalone_maxlength %}
+                maxlength="{{ standalone_maxlength }}"
+            {% endif %}
+            {% if standalone_placeholder %}
+                placeholder="{{ standalone_placeholder }}"
+            {% endif %}
+            {% if standalone_autocomplete %}
+                autocomplete="{{ standalone_autocomplete }}"
+            {% endif %}
+            {% if standalone_required %}
+                required
+            {% endif %}
+            {% if standalone_readonly %}
+                readonly
+            {% endif %}
+            {% if standalone_disabled %}
+                disabled
+            {% endif %}
+        >
+
+        {% if standalone_help_text %}
+            <p class="ep-field-help">
+                {{ standalone_help_text }}
+            </p>
+        {% endif %}
+    </div>
+
+{% elif field %}
 
     <div class="ep-field">
 
@@ -39,7 +93,6 @@
                     </span>
                 {% endif %}
             </label>
-
         </div>
 
         <input
@@ -57,7 +110,6 @@
                 {{ field.help_text }}
             </p>
         {% endif %}
-
     </div>
 
 {% endif %}

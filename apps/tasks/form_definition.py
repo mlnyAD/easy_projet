@@ -13,19 +13,6 @@ TASK_FORM_DEFINITION = FormDefinition(
     title="Tâche",
     sections=[
         SectionDefinition(
-            title="Rattachement",
-            fields=[
-                FieldDefinition(
-                    name="work_package",
-                    width=FieldWidth.MD,
-                ),
-                FieldDefinition(
-                    name="status",
-                    width=FieldWidth.XS,
-                ),
-            ],
-        ),
-        SectionDefinition(
             title="Identification",
             fields=[
                 FieldDefinition(
@@ -33,8 +20,16 @@ TASK_FORM_DEFINITION = FormDefinition(
                     width=FieldWidth.MD,
                 ),
                 FieldDefinition(
+                    name="work_package",
+                    width=FieldWidth.MD,
+                ),
+                FieldDefinition(
                     name="description",
                     width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="status",
+                    width=FieldWidth.XS,
                 ),
                 FieldDefinition(
                     name="is_active",
@@ -44,7 +39,7 @@ TASK_FORM_DEFINITION = FormDefinition(
                     unchecked_label="Inactive",
                 ),
             ],
-        ),
+        ),        
         SectionDefinition(
             title="Planning",
             fields=[

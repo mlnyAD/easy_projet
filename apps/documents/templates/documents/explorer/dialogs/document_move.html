@@ -1,0 +1,24 @@
+
+
+{% extends "edf/dialog/dialog.html" %}
+
+{% block dialog_id %}document-move-dialog{% endblock %}
+{% block dialog_title_id %}document-move-dialog-title{% endblock %}
+{% block dialog_title_id_content %}document-move-dialog-title{% endblock %}
+{% block dialog_form_id %}document-move-form{% endblock %}
+
+{% block dialog_title %}
+    Déplacer le document
+{% endblock %}
+
+{% block dialog_body %}
+
+    {% include "edf/form/fields/select.html" with standalone_id="document-move-destination" standalone_name="destination_id" standalone_label="Dossier de destination" standalone_required=True standalone_options_template="documents/explorer/dialogs/document_destination_options.html" %}
+
+{% endblock %}
+
+{% block dialog_actions %}
+
+    {% include "edf/dialog/actions.html" with cancel_id="document-move-cancel" submit_label="Déplacer" %}
+
+{% endblock %}

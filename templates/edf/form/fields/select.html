@@ -4,10 +4,6 @@
 
 {% if bound_field %}
 
-    {# =============================================================== #}
-    {# Champ de sélection Django lié                                   #}
-    {# =============================================================== #}
-
     <div
         class="ep-catalog-field"
         data-catalog-field
@@ -37,15 +33,62 @@
                     <span aria-hidden="true">+</span>
                 </button>
             {% endif %}
-
         </div>
     </div>
 
-{% else %}
+{% elif standalone_id %}
 
-    {# =============================================================== #}
-    {# Champ de sélection EDF autonome                                 #}
-    {# =============================================================== #}
+    <div class="ep-field">
+
+        <div class="ep-field-label-row">
+
+            <label
+                for="{{ standalone_id }}"
+                class="ep-field-label"
+            >
+                {{ standalone_label }}
+
+                {% if standalone_required %}
+                    <span
+                        class="ep-field-required"
+                        aria-hidden="true"
+                    >
+                        *
+                    </span>
+
+                    <span class="sr-only">
+                        Champ obligatoire
+                    </span>
+                {% endif %}
+            </label>
+        </div>
+
+        <div class="ep-select-layout">
+            <div class="ep-select-control">
+                <select
+                    id="{{ standalone_id }}"
+                    name="{{ standalone_name }}"
+                    class="ep-select"
+                    {% if standalone_required %}
+                        required
+                    {% endif %}
+                    {% if standalone_disabled %}
+                        disabled
+                    {% endif %}
+                >
+                    {% include standalone_options_template %}
+                </select>
+            </div>
+        </div>
+
+        {% if standalone_help_text %}
+            <p class="ep-field-help">
+                {{ standalone_help_text }}
+            </p>
+        {% endif %}
+    </div>
+
+{% elif field %}
 
     <div class="ep-field">
 
@@ -70,7 +113,6 @@
                     </span>
                 {% endif %}
             </label>
-
         </div>
 
         <div class="ep-select-layout">
@@ -99,7 +141,6 @@
                     <span aria-hidden="true">+</span>
                 </button>
             {% endif %}
-
         </div>
 
         {% if field.help_text %}
@@ -107,7 +148,6 @@
                 {{ field.help_text }}
             </p>
         {% endif %}
-
     </div>
 
 {% endif %}

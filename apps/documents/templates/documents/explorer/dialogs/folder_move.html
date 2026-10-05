@@ -1,0 +1,24 @@
+
+
+{% extends "edf/dialog/dialog.html" %}
+
+{% block dialog_id %}folder-move-dialog{% endblock %}
+{% block dialog_title_id %}folder-move-dialog-title{% endblock %}
+{% block dialog_title_id_content %}folder-move-dialog-title{% endblock %}
+{% block dialog_form_id %}folder-move-form{% endblock %}
+
+{% block dialog_title %}
+    Déplacer le répertoire
+{% endblock %}
+
+{% block dialog_body %}
+
+    {% include "edf/form/fields/select.html" with standalone_id="folder-move-destination" standalone_name="destination_id" standalone_label="Destination" standalone_options_template="documents/explorer/dialogs/folder_destination_options.html" %}
+
+{% endblock %}
+
+{% block dialog_actions %}
+
+    {% include "edf/dialog/actions.html" with cancel_id="folder-move-cancel" submit_label="Déplacer" %}
+
+{% endblock %}

@@ -13,8 +13,16 @@ RISK_FORM_DEFINITION = FormDefinition(
     title="Risque",
     sections=[
         SectionDefinition(
-            title="Rattachement",
+            title="Identification",
             fields=[
+                FieldDefinition(
+                    name="title",
+                    width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="reference",
+                    width=FieldWidth.SM,
+                ),
                 FieldDefinition(
                     name="project",
                     width=FieldWidth.SM,
@@ -22,6 +30,17 @@ RISK_FORM_DEFINITION = FormDefinition(
                 FieldDefinition(
                     name="owner",
                     width=FieldWidth.SM,
+                ),
+                FieldDefinition(
+                    name="description",
+                    width=FieldWidth.FULL,
+                ),
+                FieldDefinition(
+                    name="is_active",
+                    required=False,
+                    width=FieldWidth.FULL,
+                    checked_label="Actif",
+                    unchecked_label="Inactif",
                 ),
             ],
         ),
@@ -63,30 +82,6 @@ RISK_FORM_DEFINITION = FormDefinition(
                 FieldDefinition(
                     name="review_frequency",
                     width=FieldWidth.SM,
-                ),
-            ],
-        ),
-        SectionDefinition(
-            title="Identification",
-            fields=[
-                FieldDefinition(
-                    name="reference",
-                    width=FieldWidth.SM,
-                ),
-                FieldDefinition(
-                    name="title",
-                    width=FieldWidth.FULL,
-                ),
-                FieldDefinition(
-                    name="description",
-                    width=FieldWidth.FULL,
-                ),
-                FieldDefinition(
-                    name="is_active",
-                    required=False,
-                    width=FieldWidth.FULL,
-                    checked_label="Actif",
-                    unchecked_label="Inactif",
                 ),
             ],
         ),

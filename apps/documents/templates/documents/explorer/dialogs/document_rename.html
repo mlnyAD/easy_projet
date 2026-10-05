@@ -1,0 +1,24 @@
+
+
+{% extends "edf/dialog/dialog.html" %}
+
+{% block dialog_id %}document-rename-dialog{% endblock %}
+{% block dialog_title_id %}document-rename-dialog-title{% endblock %}
+{% block dialog_title_id_content %}document-rename-dialog-title{% endblock %}
+{% block dialog_form_id %}document-rename-form{% endblock %}
+
+{% block dialog_title %}
+    Renommer le document
+{% endblock %}
+
+{% block dialog_body %}
+
+    {% include "edf/form/fields/text.html" with standalone_id="document-rename-title" standalone_name="title" standalone_label="Nom" standalone_required=True standalone_autocomplete="off" %}
+
+{% endblock %}
+
+{% block dialog_actions %}
+
+    {% include "edf/dialog/actions.html" with cancel_id="document-rename-cancel" submit_label="Valider" %}
+
+{% endblock %}

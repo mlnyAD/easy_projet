@@ -6,8 +6,13 @@
 
         <details
             class="group"
+            data-tree-node
+            {% if node.is_selected %}
+                data-tree-selected="true"
+            {% endif %}
             {% if node.is_expanded %}open{% endif %}
         >
+
             <summary
                 class="flex cursor-pointer list-none
                        items-center gap-2 rounded-md

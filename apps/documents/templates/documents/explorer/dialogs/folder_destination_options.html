@@ -1,0 +1,13 @@
+
+
+<option value="">
+    Racine du projet
+</option>
+
+{% for folder in destination_folders %}
+
+    <option value="{{ folder.pk }}">
+        {{ folder.full_path }}
+    </option>
+
+{% endfor %}

@@ -1,0 +1,36 @@
+
+
+<dialog
+    id="{% block dialog_id %}{% endblock %}"
+    class="m-auto w-full max-w-md
+           rounded-lg border
+           border-axcio-border-light
+           bg-axcio-page p-0 shadow-xl
+           backdrop:bg-black/30
+           dark:border-axcio-border-dark
+           dark:bg-axcio-page-dark"
+    aria-labelledby="{% block dialog_title_id %}{% endblock %}"
+>
+    <form
+        id="{% block dialog_form_id %}{% endblock %}"
+        method="post"
+        class="p-5"
+    >
+        {% csrf_token %}
+
+        {% block dialog_hidden_fields %}{% endblock %}
+
+        <h2
+            id="{% block dialog_title_id_content %}{% endblock %}"
+            class="mb-4 text-lg font-semibold
+                   text-axcio-text
+                   dark:text-axcio-text-dark"
+        >
+            {% block dialog_title %}{% endblock %}
+        </h2>
+
+        {% block dialog_body %}{% endblock %}
+
+        {% block dialog_actions %}{% endblock %}
+    </form>
+</dialog>

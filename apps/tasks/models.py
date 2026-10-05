@@ -110,13 +110,13 @@ class Task(TimeStampedModel):
     start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Début",
+        verbose_name="Début réel",
     )
 
     end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Fin",
+        verbose_name="Fin réelle",
     )
 
     planned_workload_hours = models.PositiveIntegerField(
