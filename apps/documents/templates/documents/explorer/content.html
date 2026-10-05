@@ -206,17 +206,53 @@
                         class="h-6 w-6 object-contain"
                     >
 
-                    <span
-                        data-document-name
-                        class="truncate"
-                        title="{% if document.current_version %}{{ document.current_version.original_filename }}{% else %}{{ document.title }}{% endif %}"
-                    >
-                        {% if document.current_version %}
-                            {{ document.current_version.original_filename }}
-                        {% else %}
-                            {{ document.title }}
+                    <div class="flex min-w-0 items-center gap-1.5">
+                        <span
+                            data-document-name
+                            class="truncate"
+                            title="{% if document.current_version %}{{ document.current_version.original_filename }}{% else %}{{ document.title }}{% endif %}"
+                        >
+                            {% if document.current_version %}
+                                {{ document.current_version.original_filename }}
+                            {% else %}
+                                {{ document.title }}
+                            {% endif %}
+                        </span>
+
+                        {% if document.pk in signed_document_ids %}
+
+                            <span
+                                title="Version courante intégralement signée"
+                                class="shrink-0 rounded-full bg-emerald-100
+                                       px-1.5 py-0.5 text-[9px] font-semibold
+                                       text-emerald-800 dark:bg-emerald-950/60
+                                       dark:text-emerald-200"
+                            >
+                                SIGNÉ
+                            </span>
+
                         {% endif %}
-                    </span>
+
+                        {% if document.pk in doe_selected_document_ids %}
+
+                            <span
+                                title="Sélectionné pour le DOE"
+                                class="inline-flex shrink-0 items-center gap-1 rounded-md
+                                    bg-axcio-light px-2 py-1 text-[10px] font-medium
+                                    text-white"
+                            >
+                                <i
+                                    data-lucide="folder-check"
+                                    class="h-3 w-3"
+                                    aria-hidden="true"
+                                ></i>
+
+                                DOE
+                            </span>
+
+                        {% endif %}
+
+                    </div>
 
                     <span
                         data-document-type
@@ -258,21 +294,7 @@
                            dark:bg-axcio-page-dark
                            dark:hover:bg-axcio-surface-alt-dark"
                 >
-                    <div class="absolute left-2 top-2 flex items-center gap-1">
-                        {% if document.is_doe %}
 
-                            <span
-                                title="Inclus au DOE"
-                                class="rounded-full bg-emerald-100 px-1.5 py-0.5
-                                       text-[9px] font-semibold text-emerald-800
-                                       dark:bg-emerald-950/60
-                                       dark:text-emerald-200"
-                            >
-                                DOE
-                            </span>
-
-                        {% endif %}
-                    </div>
 
                     {% if document.pk in favorite_document_ids %}
 
@@ -334,6 +356,26 @@
 
                         {% endif %}
                     </span>
+
+                    {% if document.pk in doe_selected_document_ids %}
+
+                        <span
+                            title="Sélectionné pour le DOE"
+                            class="inline-flex items-center gap-1 rounded-md
+                                bg-axcio-light px-2 py-1 text-[10px] font-medium
+                                text-white"
+                        >
+                            <i
+                                data-lucide="folder-check"
+                                class="h-3 w-3"
+                                aria-hidden="true"
+                            ></i>
+
+                            Sélectionné DOE
+                        </span>
+
+                    {% endif %}
+
                 </div>
             </article>
 

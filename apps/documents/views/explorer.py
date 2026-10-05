@@ -5,7 +5,7 @@ from __future__ import annotations
 from urllib.parse import urlencode
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -15,15 +15,17 @@ from apps.documents.models import (
     Document,
     DocumentFavorite,
     DocumentFolder,
+    SignatureRequest,
+    SignatureRequestDocument,
 )
 from apps.documents.trees import (
     DOCUMENT_EXPLORER_CREATE_ROOT_FOLDER_COMMAND,
-    DOCUMENT_EXPLORER_WORKSPACE_IDENTIFIER,
     DOCUMENT_EXPLORER_DOE_WORKSPACE_IDENTIFIER,
     DOCUMENT_EXPLORER_DOWNLOAD_DOE_COMMAND,
     DOCUMENT_EXPLORER_GENERATE_DOE_COMMAND,
     DOCUMENT_EXPLORER_REFRESH_DOE_COMMAND,
     DOCUMENT_EXPLORER_TREE_DEFINITION,
+    DOCUMENT_EXPLORER_WORKSPACE_IDENTIFIER,
     DocumentFolderTreeNodeFactory,
 )
 from apps.projects.models import Project
@@ -244,6 +246,23 @@ class DocumentExplorerView(
             )
         )
 
+        if is_doe_workspace:
+            doe_selected_document_ids = set()
+            signed_document_ids = set()
+        else:
+            doe_selected_document_ids = (
+                self.get_doe_selected_document_ids(
+                    documents=documents,
+                    folders=workspace_folders,
+                )
+            )
+
+            signed_document_ids = (
+                self.get_signed_document_ids(
+                    documents=documents,
+                )
+            )
+
         open_folder_ids = set()
 
         current = current_folder
@@ -342,6 +361,12 @@ class DocumentExplorerView(
                 "favorite_document_ids": (
                     favorite_document_ids
                 ),
+                "doe_selected_document_ids": (
+                    doe_selected_document_ids
+                ),
+                "signed_document_ids": (
+                    signed_document_ids
+                ),
                 "can_work_on_project": (
                     can_work_on_workspace
                 ),
@@ -352,6 +377,110 @@ class DocumentExplorerView(
         )
 
         return context
+
+    @staticmethod
+    def get_doe_selected_document_ids(
+        *,
+        documents,
+        folders: tuple[DocumentFolder, ...],
+    ) -> set[object]:
+        """
+        Retourne les documents inclus dans le prochain DOE.
+
+        La sélection directe d'un document est prise en compte,
+        tout comme celle de l'un de ses dossiers parents.
+        """
+
+        selected_folder_ids = (
+            DocumentExplorerView
+            .get_doe_selected_folder_ids(
+                folders=folders,
+            )
+        )
+
+        return set(
+            documents
+            .filter(
+                Q(is_doe=True)
+                | Q(
+                    folder_id__in=selected_folder_ids,
+                )
+            )
+            .values_list(
+                "pk",
+                flat=True,
+            )
+        )
+
+    @staticmethod
+    def get_doe_selected_folder_ids(
+        *,
+        folders: tuple[DocumentFolder, ...],
+    ) -> set[object]:
+        """
+        Retourne les dossiers sélectionnés pour le DOE ou
+        descendants d'un dossier sélectionné.
+        """
+
+        folders_by_id = {
+            folder.pk: folder
+            for folder in folders
+        }
+
+        selected_folder_ids = set()
+
+        for folder in folders:
+            current = folder
+            visited_folder_ids = set()
+
+            while current is not None:
+                if current.pk in visited_folder_ids:
+                    break
+
+                visited_folder_ids.add(current.pk)
+
+                if current.is_doe:
+                    selected_folder_ids.add(folder.pk)
+                    break
+
+                current = folders_by_id.get(
+                    current.parent_id
+                )
+
+        return selected_folder_ids
+
+    @staticmethod
+    def get_signed_document_ids(
+        *,
+        documents,
+    ) -> set[object]:
+        """
+        Retourne les documents dont la version courante a été
+        intégralement signée.
+
+        Une signature portant sur une version ancienne ne marque
+        jamais une version modifiée ultérieurement.
+        """
+
+        return set(
+            SignatureRequestDocument.objects
+            .filter(
+                source_version__document__in=documents,
+                source_version_id=F(
+                    "source_version__document__"
+                    "current_version_id"
+                ),
+                signature_request__status=(
+                    SignatureRequest.Status.COMPLETED
+                ),
+                status=SignatureRequestDocument.Status.SIGNED,
+                signed_storage_key__gt="",
+            )
+            .values_list(
+                "source_version__document_id",
+                flat=True,
+            )
+        )
 
     @staticmethod
     def get_tree_commands(
