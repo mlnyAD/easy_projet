@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
-from uuid import UUID
 
+from uuid import UUID
 
 from django.contrib import messages
 
@@ -28,12 +28,15 @@ from apps.projects.services.access import (
 from apps.projects.services.authorization import (
     ProjectAuthorizationService,
 )
+
 from framework.integrations.django.list_preferences import (
     EPListPreferencesMixin,
 )
+
 from framework.integrations.django.list_sorting import (
     EPListSortingMixin,
 )
+
 from apps.work.models import WorkPackage
 
 from framework.form import FormMode
@@ -52,7 +55,9 @@ from framework.runtime import EPList, ListPage
 from framework.integrations.django.viewmodel import (
     DjangoListViewModelBuilder,
 )
+
 from apps.catalogs.models import CatalogValue
+
 from apps.projects.models import (
     Project,
     ProjectMembership,
@@ -64,6 +69,7 @@ from .forms import (
     TaskAssignmentFormSet,
     TaskDependencyFormSet,
     TaskForm,
+    TaskJobRequirementFormSet,
 )
 
 from .lists import TASK_LIST_DEFINITION
@@ -82,8 +88,6 @@ def build_task_assignment_context(
     Prépare les données nécessaires à la sélection dynamique
 
     des personnes affectables à une tâche.
-
-
 
     Seuls les projets sur lesquels l'utilisateur peut travailler
 
@@ -152,7 +156,9 @@ class TaskListView(
     ListView,
 ):
     """
+
     Liste globale des tâches.
+
     """
 
     model = Task
@@ -164,12 +170,17 @@ class TaskListView(
     list_definition = TASK_LIST_DEFINITION
 
     project_parameter = "project"
+
     work_package_parameter = "work_package"
+
     status_parameter = "status"
+
     activity_parameter = "activity"
 
     activity_all = "all"
+
     activity_active = "active"
+
     activity_inactive = "inactive"
 
     activity_values = (
@@ -180,7 +191,9 @@ class TaskListView(
 
     def get_sort_field_map(self) -> dict[str, str]:
         """
+
         Associe les colonnes affichées aux champs ORM triables.
+
         """
 
         sort_field_map = super().get_sort_field_map()
@@ -196,7 +209,9 @@ class TaskListView(
 
     def get_projects_for_list(self):
         """
+
         Retourne les projets dans le périmètre de la liste.
+
         """
 
         return ProjectAccessService.get_accessible_projects(
@@ -205,7 +220,9 @@ class TaskListView(
 
     def get_work_packages_for_list(self):
         """
+
         Retourne les lots dans le périmètre de la liste.
+
         """
 
         return WorkPackage.objects.filter(
@@ -214,29 +231,24 @@ class TaskListView(
 
     def get_task_scope(self):
         """
+
         Retourne les tâches accessibles avant application des filtres.
+
         """
 
-        return (
-            Task.objects.filter(
-                work_package__in=(
-                    self.get_work_packages_for_list()
-                ),
-            )
-            .select_related(
-                "work_package",
-                "work_package__project",
-                "status",
-            )
+        return Task.objects.filter(
+            work_package__in=(self.get_work_packages_for_list()),
+        ).select_related(
+            "work_package",
+            "work_package__project",
+            "status",
         )
 
     def get_filter_projects(self):
-        project_ids = (
-            self.get_task_scope()
-            .values_list(
-                "work_package__project_id",
-                flat=True,
-            )
+
+        project_ids = self.get_task_scope().values_list(
+            "work_package__project_id",
+            flat=True,
         )
 
         return Project.objects.filter(
@@ -247,12 +259,10 @@ class TaskListView(
         )
 
     def get_filter_work_packages(self):
-        work_package_ids = (
-            self.get_task_scope()
-            .values_list(
-                "work_package_id",
-                flat=True,
-            )
+
+        work_package_ids = self.get_task_scope().values_list(
+            "work_package_id",
+            flat=True,
         )
 
         return (
@@ -270,12 +280,10 @@ class TaskListView(
         )
 
     def get_filter_statuses(self):
-        status_ids = (
-            self.get_task_scope()
-            .values_list(
-                "status_id",
-                flat=True,
-            )
+
+        status_ids = self.get_task_scope().values_list(
+            "status_id",
+            flat=True,
         )
 
         return CatalogValue.objects.filter(
@@ -286,6 +294,7 @@ class TaskListView(
         )
 
     def get_project_filter(self) -> str | None:
+
         raw_project_id = self.request.GET.get(
             self.project_parameter,
             "",
@@ -296,17 +305,23 @@ class TaskListView(
 
         try:
             project_id = UUID(raw_project_id)
+
         except ValueError:
             return None
 
-        if not self.get_filter_projects().filter(
-            pk=project_id,
-        ).exists():
+        if (
+            not self.get_filter_projects()
+            .filter(
+                pk=project_id,
+            )
+            .exists()
+        ):
             return None
 
         return str(project_id)
 
     def get_work_package_filter(self) -> str | None:
+
         raw_work_package_id = self.request.GET.get(
             self.work_package_parameter,
             "",
@@ -317,17 +332,23 @@ class TaskListView(
 
         try:
             work_package_id = UUID(raw_work_package_id)
+
         except ValueError:
             return None
 
-        if not self.get_filter_work_packages().filter(
-            pk=work_package_id,
-        ).exists():
+        if (
+            not self.get_filter_work_packages()
+            .filter(
+                pk=work_package_id,
+            )
+            .exists()
+        ):
             return None
 
         return str(work_package_id)
 
     def get_status_filter(self) -> int | None:
+
         raw_status_id = self.request.GET.get(
             self.status_parameter,
             "",
@@ -338,17 +359,23 @@ class TaskListView(
 
         try:
             status_id = int(raw_status_id)
+
         except ValueError:
             return None
 
-        if not self.get_filter_statuses().filter(
-            pk=status_id,
-        ).exists():
+        if (
+            not self.get_filter_statuses()
+            .filter(
+                pk=status_id,
+            )
+            .exists()
+        ):
             return None
 
         return status_id
 
     def get_activity_filter(self) -> str:
+
         activity = self.request.GET.get(
             self.activity_parameter,
             self.activity_active,
@@ -361,16 +388,16 @@ class TaskListView(
 
     def get_queryset(self):
         """
+
         Retourne les tâches accessibles, filtrées et triées.
+
         """
 
         queryset = (
             super()
             .get_queryset()
             .filter(
-                work_package__in=(
-                    self.get_work_packages_for_list()
-                ),
+                work_package__in=(self.get_work_packages_for_list()),
             )
             .select_related(
                 "work_package",
@@ -404,9 +431,7 @@ class TaskListView(
 
         if activity != self.activity_all:
             queryset = queryset.filter(
-                is_active=(
-                    activity == self.activity_active
-                ),
+                is_active=(activity == self.activity_active),
             )
 
         return queryset
@@ -415,6 +440,7 @@ class TaskListView(
         self,
         **kwargs,
     ):
+
         context = super().get_context_data(
             **kwargs,
         )
@@ -425,48 +451,30 @@ class TaskListView(
             django_page.object_list,
         )
 
-        consumed_hours_by_task = (
-            TaskWorkloadService
-            .get_consumed_hours_by_task(
-                task_ids=(
-                    task.pk
-                    for task in page_tasks
-                ),
-            )
+        consumed_hours_by_task = TaskWorkloadService.get_consumed_hours_by_task(
+            task_ids=(task.pk for task in page_tasks),
         )
 
-        workable_projects = (
-            ProjectAuthorizationService
-            .get_workable_projects(
-                self.request.user,
-            )
+        workable_projects = ProjectAuthorizationService.get_workable_projects(
+            self.request.user,
         )
 
         workable_project_ids = set(
             workable_projects.filter(
-                pk__in={
-                    task.work_package.project_id
-                    for task in page_tasks
-                },
-            )
-            .values_list(
+                pk__in={task.work_package.project_id for task in page_tasks},
+            ).values_list(
                 "pk",
                 flat=True,
             )
         )
 
         for task in page_tasks:
-            task.consumed_workload_hours = (
-                consumed_hours_by_task.get(
-                    task.pk,
-                    TaskWorkloadService.ZERO_HOURS,
-                )
+            task.consumed_workload_hours = consumed_hours_by_task.get(
+                task.pk,
+                TaskWorkloadService.ZERO_HOURS,
             )
 
-            task.can_work = (
-                task.work_package.project_id
-                in workable_project_ids
-            )
+            task.can_work = task.work_package.project_id in workable_project_ids
 
         runtime = EPList(
             definition=self.list_definition,
@@ -483,107 +491,83 @@ class TaskListView(
             has_next=django_page.has_next(),
         )
 
-        visible_column_identifiers = (
-            self.get_visible_column_identifiers()
-        )
+        visible_column_identifiers = self.get_visible_column_identifiers()
 
         sort_by = self.get_sort_by()
+
         sort_descending = self.get_sort_descending()
 
-        list_view = (
-            DjangoListViewModelBuilder()
-            .build(
-                runtime=runtime,
-                page=framework_page,
-                sort_by=sort_by,
-                descending=sort_descending,
-                visible_column_identifiers=(
-                    visible_column_identifiers
-                ),
-            )
+        list_view = DjangoListViewModelBuilder().build(
+            runtime=runtime,
+            page=framework_page,
+            sort_by=sort_by,
+            descending=sort_descending,
+            visible_column_identifiers=(visible_column_identifiers),
         )
 
         context["list_view"] = list_view
+
         context["list"] = list_view
 
-        context["list_definition"] = (
-            self.get_list_definition()
-        )
+        context["list_definition"] = self.get_list_definition()
 
-        context["visible_column_identifiers"] = (
-            visible_column_identifiers
-        )
+        context["visible_column_identifiers"] = visible_column_identifiers
 
-        context["can_save_list_preferences"] = (
-            self.request.user.is_authenticated
-        )
+        context["can_save_list_preferences"] = self.request.user.is_authenticated
 
         context["sort_by"] = sort_by
+
         context["sort_descending"] = sort_descending
 
-        context["filter_projects"] = (
-            self.get_filter_projects()
-        )
+        context["filter_projects"] = self.get_filter_projects()
 
-        context["filter_work_packages"] = (
-            self.get_filter_work_packages()
-        )
+        context["filter_work_packages"] = self.get_filter_work_packages()
 
-        context["filter_statuses"] = (
-            self.get_filter_statuses()
-        )
+        context["filter_statuses"] = self.get_filter_statuses()
 
-        context["project_filter"] = (
-            self.get_project_filter()
-        )
+        context["project_filter"] = self.get_project_filter()
 
-        context["work_package_filter"] = (
-            self.get_work_package_filter()
-        )
+        context["work_package_filter"] = self.get_work_package_filter()
 
-        context["status_filter"] = (
-            self.get_status_filter()
-        )
+        context["status_filter"] = self.get_status_filter()
 
-        context["task_activity"] = (
-            self.get_activity_filter()
-        )
+        context["task_activity"] = self.get_activity_filter()
 
-        context["list_filters_template"] = (
-            "tasks/task_list_filters.html"
-        )
+        context["list_filters_template"] = "tasks/task_list_filters.html"
 
-        context["row_actions_template"] = (
-            "tasks/task_actions.html"
-        )
+        context["row_actions_template"] = "tasks/task_actions.html"
 
         context["is_work_package_context"] = False
 
         context["page_title"] = "Tâches"
+
         context["page_subtitle"] = None
+
         context["page_back_url"] = None
+
         context["page_back_label"] = None
 
-        context["return_url"] = (
-            self.request.get_full_path()
-        )
+        context["return_url"] = self.request.get_full_path()
 
         if workable_projects.exists():
-            context["page_action_label"] = (
-                "Nouvelle tâche"
-            )
+            context["page_action_label"] = "Nouvelle tâche"
+
             context["page_action_icon"] = "plus"
+
             context["page_action_url"] = (
                 f"{reverse('tasks:create')}?"
                 f"{urlencode({'next': self.request.get_full_path()})}"
             )
+
         else:
             context["page_action_label"] = None
+
             context["page_action_icon"] = None
+
             context["page_action_url"] = None
 
         return context
-    
+
 
 class TaskListByWorkPackageView(TaskListView):
     """
@@ -617,13 +601,15 @@ class TaskListByWorkPackageView(TaskListView):
 
     def get_work_packages_for_list(self):
         """
+
         Restreint la liste et ses filtres au lot courant.
+
         """
 
         return WorkPackage.objects.filter(
             pk=self.get_work_package().pk,
         )
-        
+
     def get_context_data(
         self,
         **kwargs,
@@ -703,8 +689,6 @@ class TaskFormCollectionsMixin:
 
     Comportements communs aux formulaires de tâche.
 
-
-
     Ce mixin assure :
 
     - la navigation de retour ;
@@ -750,8 +734,6 @@ class TaskFormCollectionsMixin:
 
         Retourne le projet courant.
 
-
-
         La stratégie dépend du mode création
 
         ou modification.
@@ -760,6 +742,23 @@ class TaskFormCollectionsMixin:
 
         raise NotImplementedError
 
+    def get_job_requirement_formset(
+        self,
+        *,
+        data=None,
+    ):
+        if (
+            data is not None
+            and "job_requirements-TOTAL_FORMS" not in data
+        ):
+            data = None
+
+        return TaskJobRequirementFormSet(
+            data=data,
+            instance=self.object,
+            prefix="job_requirements",
+        )
+        
     def get_assignment_formset(
         self,
         *,
@@ -797,9 +796,9 @@ class TaskFormCollectionsMixin:
     ) -> dict:
         """
 
-        Retourne les collections répétables
+        Retourne les collections répétables déclarées dans
 
-        déclarées dans TASK_FORM_DEFINITION.
+        TASK_FORM_DEFINITION.
 
         """
 
@@ -808,6 +807,15 @@ class TaskFormCollectionsMixin:
         )
 
         data = self.request.POST if self.request.method == "POST" else None
+
+        job_requirement_formset = context.get("job_requirement_formset")
+
+        if job_requirement_formset is None:
+            job_requirement_formset = self.get_job_requirement_formset(
+                data=data,
+            )
+
+            context["job_requirement_formset"] = job_requirement_formset
 
         assignment_formset = context.get("assignment_formset")
 
@@ -830,8 +838,9 @@ class TaskFormCollectionsMixin:
             context["dependency_formset"] = dependency_formset
 
         return {
-            "assignments": (assignment_formset),
-            "dependencies": (dependency_formset),
+            "job_requirements": job_requirement_formset,
+            "assignments": assignment_formset,
+            "dependencies": dependency_formset,
         }
 
     def get_form_kwargs(self):
@@ -877,6 +886,10 @@ class TaskFormCollectionsMixin:
             form=form,
         )
 
+        job_requirement_formset = self.get_job_requirement_formset(
+            data=self.request.POST,
+        )
+
         assignment_formset = self.get_assignment_formset(
             data=self.request.POST,
             project=project,
@@ -887,22 +900,35 @@ class TaskFormCollectionsMixin:
             project=project,
         )
 
+        job_requirement_is_valid = (
+            not job_requirement_formset.is_bound
+            or job_requirement_formset.is_valid()
+        )
+
         assignment_is_valid = assignment_formset.is_valid()
 
         dependency_is_valid = dependency_formset.is_valid()
 
-        if not (assignment_is_valid and dependency_is_valid):
+        if not (
+            job_requirement_is_valid and assignment_is_valid and dependency_is_valid
+        ):
             return self.render_to_response(
                 self.get_context_data(
                     form=form,
-                    assignment_formset=(assignment_formset),
-                    dependency_formset=(dependency_formset),
+                    job_requirement_formset=(job_requirement_formset),
+                    assignment_formset=assignment_formset,
+                    dependency_formset=dependency_formset,
                 )
             )
 
         with transaction.atomic():
             self.object = form.save()
 
+            if job_requirement_formset.is_bound:
+                job_requirement_formset.instance = self.object
+
+            job_requirement_formset.save()
+    
             assignment_formset.instance = self.object
 
             assignment_formset.save()
@@ -1045,6 +1071,9 @@ class TaskUpdateView(
                 "status",
             )
             .prefetch_related(
+                "job_requirements",
+                "job_requirements__job",
+                "job_requirements__job__catalog_type",
                 "assignments",
                 "assignments__user",
                 "assignments__user__company",
@@ -1085,8 +1114,6 @@ class TaskUpdateView(
         """
 
         Indique si l'utilisateur peut modifier la tâche courante.
-
-
 
         L'utilisateur qui peut seulement consulter le projet ouvre
 

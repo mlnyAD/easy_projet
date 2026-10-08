@@ -4,7 +4,32 @@
 
     <div class="ep-form-collection-field">
 
-        {{ bound_field }}
+        {% if bound_field.field.catalog_code and bound_field.field.catalog_is_editable and bound_field.field.catalog_is_incremental %}
+
+            <div class="ep-select-layout">
+
+                <div class="ep-select-control">
+                    {{ bound_field }}
+                </div>
+
+                <button
+                    type="button"
+                    class="ep-catalog-add-button"
+                    title="Ajouter une valeur"
+                    aria-label="Ajouter une valeur"
+                    data-catalog-increment-button
+                    data-catalog-code="{{ bound_field.field.catalog_code }}"
+                    data-target-field="{{ bound_field.id_for_label }}"
+                >
+                    <span aria-hidden="true">+</span>
+                </button>
+            </div>
+
+        {% else %}
+
+            {{ bound_field }}
+
+        {% endif %}
 
         {% if bound_field.errors %}
 

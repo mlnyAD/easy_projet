@@ -33,6 +33,7 @@ from .models import (
     Task,
     TaskAssignment,
     TaskDependency,
+    TaskJobRequirement,
 )
 from .services import TaskWorkloadService
 
@@ -529,6 +530,107 @@ TaskAssignmentFormSet = forms.inlineformset_factory(
         "user",
         "role",
         "allocation_percent",
+        "is_active",
+    ),
+    extra=0,
+    can_delete=True,
+)
+
+
+class TaskJobRequirementForm(forms.ModelForm):
+    """
+    Besoin prévisionnel d'heures pour un métier sur une tâche.
+    """
+
+    job = CatalogModelChoiceField(
+        queryset=CatalogValue.objects.none(),
+        catalog_code="USER_JOB",
+        required=True,
+        label="Métier",
+    )
+
+    class Meta:
+        model = TaskJobRequirement
+
+        fields = (
+            "job",
+            "planned_workload_hours",
+            "is_active",
+        )
+
+        labels = {
+            "planned_workload_hours": "Heures prévues",
+            "is_active": "Actif",
+        }
+
+        widgets = {
+            "planned_workload_hours": forms.NumberInput(
+                attrs={
+                    "min": 1,
+                    "step": 1,
+                    "inputmode": "numeric",
+                }
+            ),
+        }
+
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+
+        catalog = (
+            CatalogValue.objects
+            .filter(
+                catalog_type__code="USER_JOB",
+                catalog_type__is_active=True,
+            )
+            .values(
+                "catalog_type__is_editable",
+                "catalog_type__is_incremental",
+            )
+            .first()
+        )
+
+        field = self.fields["job"]
+
+        field.queryset = (
+            CatalogValue.objects
+            .filter(
+                catalog_type__code="USER_JOB",
+                catalog_type__is_active=True,
+                is_active=True,
+            )
+            .select_related("catalog_type")
+            .order_by(
+                "level",
+                "sort_order",
+                "label",
+            )
+        )
+
+        if catalog is None:
+            field.catalog_is_editable = False
+            field.catalog_is_incremental = False
+            return
+
+        field.catalog_is_editable = (
+            catalog["catalog_type__is_editable"]
+        )
+
+        field.catalog_is_incremental = (
+            catalog["catalog_type__is_incremental"]
+        )
+
+
+TaskJobRequirementFormSet = forms.inlineformset_factory(
+    Task,
+    TaskJobRequirement,
+    form=TaskJobRequirementForm,
+    fields=(
+        "job",
+        "planned_workload_hours",
         "is_active",
     ),
     extra=0,

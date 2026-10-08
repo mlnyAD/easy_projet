@@ -400,6 +400,7 @@ class TaskViewTests(TestCase):
         self.assertEqual(
             collections,
             {
+                "job_requirements",
                 "assignments",
                 "dependencies",
             },

@@ -80,6 +80,31 @@ TASK_FORM_DEFINITION = FormDefinition(
     ],
     collections=[
         FormCollectionDefinition(
+            name="job_requirements",
+            title="Heures métier",
+            columns=(
+                FormCollectionColumnDefinition(
+                    name="job",
+                    label="Métier",
+                    field_name="job",
+                ),
+                FormCollectionColumnDefinition(
+                    name="planned_workload_hours",
+                    label="Heures prévues",
+                    field_name="planned_workload_hours",
+                ),
+                FormCollectionColumnDefinition(
+                    name="is_active",
+                    label="Actif",
+                    field_name="is_active",
+                ),
+            ),
+            allow_add=True,
+            allow_delete=True,
+            add_label="Ajouter un besoin métier",
+            delete_label="Supprimer le besoin métier",
+        ),
+        FormCollectionDefinition(
             name="assignments",
             title="Personnel affecté",
             columns=(

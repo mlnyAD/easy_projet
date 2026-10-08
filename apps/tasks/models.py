@@ -401,6 +401,91 @@ class TaskAssignment(TimeStampedModel):
         )
 
 
+class TaskJobRequirement(TimeStampedModel):
+    """
+    Besoin prévisionnel d'heures pour un métier sur une tâche.
+
+    Cette donnée est indépendante des affectations nominatives.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="job_requirements",
+        verbose_name="Tâche",
+    )
+
+    job = models.ForeignKey(
+        CatalogValue,
+        on_delete=models.PROTECT,
+        related_name="task_job_requirements",
+        verbose_name="Métier",
+    )
+
+    planned_workload_hours = models.PositiveIntegerField(
+        verbose_name="Heures prévues",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Besoin actif",
+    )
+
+    def clean(self) -> None:
+        """
+        Vérifie que le métier appartient au référentiel unique USER_JOB.
+        """
+        super().clean()
+
+        if (
+            self.job_id
+            and self.job.catalog_type.code != "USER_JOB"
+        ):
+            raise ValidationError(
+                {
+                    "job": (
+                        "Le métier doit appartenir au catalogue "
+                        "USER_JOB."
+                    ),
+                }
+            )
+
+    class Meta:
+        db_table = "task_job_requirement"
+
+        ordering = [
+            "task",
+            "job__sort_order",
+            "job__label",
+        ]
+
+        verbose_name = "Besoin métier d'une tâche"
+        verbose_name_plural = "Besoins métiers d'une tâche"
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "task",
+                    "job",
+                ],
+                name="uniq_task_job_requirement",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.task.code} - {self.job.label} - "
+            f"{self.planned_workload_hours} h"
+        )
+        
+
 class TaskDependency(TimeStampedModel):
     """
     Dépendance d'ordonnancement entre deux tâches.

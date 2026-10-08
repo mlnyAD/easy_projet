@@ -23,6 +23,9 @@ from .services.resource_schedule import (
 from .services.workload import (
     WeeklyWorkloadService,
 )
+from .services.job_workload import (
+    WeeklyJobWorkloadService,
+)
 from apps.projects.services.access import (
     ProjectAccessService,
 )
@@ -135,6 +138,16 @@ class PlanningHomeView(TemplateView):
                 accessible_projects=accessible_projects,
             )
         )
+        
+        job_workload_plan = (
+            WeeklyJobWorkloadService()
+            .build(
+                date_from=date_from,
+                date_to=date_to,
+                project=project,
+                accessible_projects=accessible_projects,
+            )
+        )
         # --------------------------------------------------------------
         # Planning ressources
         # --------------------------------------------------------------
@@ -199,6 +212,7 @@ class PlanningHomeView(TemplateView):
                 "view_resources": self.VIEW_RESOURCES,
                 "view_calendar": self.VIEW_CALENDAR,
                 "projects": accessible_projects,
+                "job_workload": job_workload_plan,
             }
         )
 

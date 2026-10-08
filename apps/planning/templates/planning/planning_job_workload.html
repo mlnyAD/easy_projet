@@ -1,0 +1,231 @@
+
+
+<div
+    class="
+        mt-4 rounded-lg border
+        border-axcio-border-light
+        bg-axcio-surface
+        dark:border-axcio-border-dark
+        dark:bg-axcio-surface-dark
+    "
+>
+    <div
+        class="
+            border-b p-4
+            border-axcio-border-light
+            dark:border-axcio-border-dark
+        "
+    >
+        <h2 class="text-base font-semibold">
+            Besoins métiers par tâche
+        </h2>
+
+        <p
+            class="
+                mt-1 text-sm text-axcio-text-muted
+                dark:text-axcio-text-muted-dark
+            "
+        >
+            Heures prévues réparties sur les semaines de la tâche,
+            indépendamment des personnes affectées.
+        </p>
+    </div>
+
+    <div>
+        <table class="min-w-full text-sm">
+            <thead
+                class="
+                    border-b
+                    border-axcio-border-light
+                    bg-axcio-surface-alt
+                    dark:border-axcio-border-dark
+                    dark:bg-axcio-surface-alt-dark
+                "
+            >
+                <tr>
+                    <th
+                        class="
+                            sticky left-0 z-20 min-w-48
+                            border-r border-axcio-border-light
+                            bg-axcio-surface-alt px-4 py-3
+                            text-left font-medium
+                            dark:border-axcio-border-dark
+                            dark:bg-axcio-surface-alt-dark
+                        "
+                    >
+                        Projet
+                    </th>
+
+                    <th
+                        class="
+                            min-w-64 border-r
+                            border-axcio-border-light px-4 py-3
+                            text-left font-medium
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        Tâche
+                    </th>
+
+                    <th
+                        class="
+                            min-w-40 border-r
+                            border-axcio-border-light px-4 py-3
+                            text-left font-medium
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        Métier
+                    </th>
+
+                    <th
+                        class="
+                            min-w-28 border-r
+                            border-axcio-border-light px-3 py-3
+                            text-right font-medium
+                            dark:border-axcio-border-dark
+                        "
+                    >
+                        Total
+                    </th>
+
+                    {% for week in job_workload.weeks %}
+                        <th
+                            class="
+                                min-w-24 border-r
+                                border-axcio-border-light px-3 py-3
+                                text-center font-medium
+                                dark:border-axcio-border-dark
+                            "
+                            title="{{ week.start_date|date:'d/m/Y' }} → {{ week.end_date|date:'d/m/Y' }}"
+                        >
+                            <div>
+                                {{ week.label }}
+                            </div>
+
+                            <div
+                                class="
+                                    mt-1 text-[10px] font-normal
+                                    text-axcio-text-muted
+                                    dark:text-axcio-text-muted-dark
+                                "
+                            >
+                                {{ week.start_date|date:"d/m" }}
+                                →
+                                {{ week.end_date|date:"d/m" }}
+                            </div>
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody
+                class="
+                    divide-y divide-axcio-border-light
+                    dark:divide-axcio-border-dark
+                "
+            >
+                {% for requirement in job_workload.requirements %}
+                    <tr>
+                        <td
+                            class="
+                                sticky left-0 z-10
+                                border-r border-axcio-border-light
+                                bg-white px-4 py-3
+                                dark:border-axcio-border-dark
+                                dark:bg-axcio-surface-dark
+                            "
+                        >
+                            <div class="font-medium">
+                                {{ requirement.project_reference }}
+                            </div>
+
+                            <div
+                                class="
+                                    truncate text-xs
+                                    text-axcio-text-muted
+                                    dark:text-axcio-text-muted-dark
+                                "
+                                title="{{ requirement.project_name }}"
+                            >
+                                {{ requirement.project_name }}
+                            </div>
+                        </td>
+
+                        <td
+                            class="
+                                border-r border-axcio-border-light
+                                px-4 py-3
+                                dark:border-axcio-border-dark
+                            "
+                        >
+                            <div class="font-medium">
+                                {{ requirement.task_code }}
+                            </div>
+
+                            <div
+                                class="
+                                    truncate text-xs
+                                    text-axcio-text-muted
+                                    dark:text-axcio-text-muted-dark
+                                "
+                                title="{{ requirement.task_name }}"
+                            >
+                                {{ requirement.task_name }}
+                            </div>
+                        </td>
+
+                        <td
+                            class="
+                                border-r border-axcio-border-light
+                                px-4 py-3
+                                dark:border-axcio-border-dark
+                            "
+                        >
+                            {{ requirement.job_label }}
+                        </td>
+
+                        <td
+                            class="
+                                border-r border-axcio-border-light
+                                px-3 py-3 text-right font-medium
+                                dark:border-axcio-border-dark
+                            "
+                        >
+                            {{ requirement.planned_workload_hours|floatformat:"-2" }} h
+                        </td>
+
+                        {% for cell in requirement.cells %}
+                            <td
+                                class="
+                                    border-r border-axcio-border-light
+                                    px-3 py-3 text-right
+                                    dark:border-axcio-border-dark
+                                "
+                            >
+                                {% if cell.planned_workload_hours %}
+                                    {{ cell.planned_workload_hours|floatformat:"-2" }} h
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td
+                            colspan="{{ job_workload.weeks|length|add:'4' }}"
+                            class="
+                                px-4 py-10 text-center
+                                text-axcio-text-muted
+                                dark:text-axcio-text-muted-dark
+                            "
+                        >
+                            Aucun besoin métier sur cette période.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
