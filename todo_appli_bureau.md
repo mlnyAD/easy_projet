@@ -15,9 +15,8 @@ Liste : RAS
 Transaction : Tester un utilisateur avec plusieurs environnements client
 
 ### Transaction Licences
-Liste : Manque le bouton "Nouvelle licence" si l'utilisateur en a les droits
-        Pas d'action possible - il faudrait au moins visualiser
-Transaction : L'administrateur client ne peut pas gérer ses licences. Tout au moins les visualiser.
+Liste : Ras
+Transaction : RAS
 
 ### Transaction client
 Crééer une arborescence type
@@ -30,11 +29,11 @@ Développer la transaction cliet avec les objets déjà définis
 RAS
 
 ### Transaction Risques
-Liste : Ajouter le cout estimé
-Transaction : Classe et impacts devraient être en multi-sélection
+Liste : RAS
+Transaction : RAS
 
 ### Transaction Intégrations externes
-Listes : Distinguer une intégration externe globale (proposée par Axcio-Data) d'une intégration privée
+Liste : Distinguer une intégration externe globale (proposée par Axcio-Data) d'une intégration privée
 Transaction : Ajouter un flag : Globale ou Privée
 
 ### Transaction Dashboard
@@ -50,32 +49,15 @@ A faire :
 ### #############################
 
 ### Transaction Projets
-Liste : Inverser Chef de projet titulaire et Maitre d'ouvrage
-        Ajouter le Maître d'oeuvre
-        Renommer Chef de projet titulaire en chef de projet
-Transaction : Rubrique Chef de projet : ne proposer que des utilisateurs de sociétés l'environnement client
-              Rubrique utilisateurs : ne proposer que des utilisateurs de sociétés l'environnement client
-              Projet inactif. On ne peut pas voir les éléments du projet
-              Résumé : diminuer la taille des pavés 
-              Libéllés à reprendre :
-              - Modifier => Modifier le projet
-              - Lotir => Lots de travaux et tâches
-              - Piloter => Piloter les réunions
-              - Documentation => *modifier le rang*
-              - Album photos  => *modifier le rang*
-              - Gérer les heures => Rapports d'activité
-              - Télécharger le DOE => à mettre dans la transaction DOE
-              - Photo => A mettre dans le résumé (comme pour les utilisateurs)
-              Donner la possibilité de saisir le % d'avancement
-              Ajouter un lien vers le planning du projet
-              Ajouter un lien vers liste des RA validés pour ce projet
+Liste : RAS
+Transaction : RAS
 
 ### Transaction Favoris
 Liste : Offir les mêmes actions sur le fichier que dans l'arborescence
 
 ### Transaction Lots de travaux
 Liste : RAS
-Transaction : Pb de navigation si on vient du résumé, il faut retourner au résumé
+Transaction : RAS
 
 ### Transaction Tâches
 Liste : RAS

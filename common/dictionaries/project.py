@@ -189,7 +189,13 @@ PROJECT_DICTIONARY = {
             "required": True,
             "default": PROJECT_DEFAULT_WORKLOAD_HOURS,
         },
-
+        "progress_percent": {
+            "label": "Avancement (%)",
+            "data_type": "integer",
+            "required": True,
+            "default": 0,
+        },
+        
         # ------------------------------------------------------------------
         # Dates initiales
         # ------------------------------------------------------------------

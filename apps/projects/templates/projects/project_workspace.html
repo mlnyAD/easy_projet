@@ -104,7 +104,7 @@
                     <div>
                         <dt class="text-xs uppercase tracking-wide
                                 text-axcio-text-muted">
-                            Chef de projet titulaire
+                            Chef de projet
                         </dt>
 
                         <dd class="mt-1 text-sm font-medium">
@@ -119,6 +119,42 @@
                         </dt>
                         <dd class="mt-1 text-sm font-medium">
                             {{ project.owner_company|default:"Non renseigné" }}
+                        </dd>
+                    </div>
+
+                        {% if can_administer_project %}
+
+                            <div>
+                                <dt class="text-xs uppercase tracking-wide text-axcio-text-muted">
+                                    Photo
+                                </dt>
+
+                                <dd class="mt-1">
+                                    <a
+                                        href="{% url 'projects:photo' project.pk %}"
+                                        class="inline-flex items-center gap-2 text-sm font-medium
+                                            text-axcio-light hover:underline"
+                                    >
+                                        <i
+                                            data-lucide="image-plus"
+                                            class="h-4 w-4"
+                                            aria-hidden="true"
+                                        ></i>
+
+                                        Sélectionner une photo
+                                    </a>
+                                </dd>
+                            </div>
+
+                        {% endif %}
+
+                    <div>
+                        <dt class="text-xs uppercase tracking-wide text-axcio-text-muted">
+                            Maître d’œuvre
+                        </dt>
+
+                        <dd class="mt-1 text-sm font-medium">
+                            {{ project.designer_company|default:"Non renseigné" }}
                         </dd>
                     </div>
 
@@ -211,25 +247,25 @@
 
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <div
-                        class="rounded-lg bg-axcio-surface-alt p-3
+                        class="rounded-lg bg-axcio-surface-alt pbe-2
                                dark:bg-axcio-surface-alt-dark"
                     >
                         <p class="text-xs text-axcio-text-muted">
                             Lots
                         </p>
-                        <p class="mt-1 text-xl font-semibold">
+                        <p class="mt-1 text-lg font-semibold">
                             {{ work_package_count }}
                         </p>
                     </div>
 
                     <div
-                        class="rounded-lg bg-axcio-surface-alt p-3
+                        class="rounded-lg bg-axcio-surface-alt p-2
                                dark:bg-axcio-surface-alt-dark"
                     >
                         <p class="text-xs text-axcio-text-muted">
                             Tâches
                         </p>
-                        <p class="mt-1 text-xl font-semibold">
+                        <p class="mt-1 text-lg font-semibold">
                             {{ task_count }}
                         </p>
                     </div>
@@ -245,19 +281,16 @@
             >
                 Actions du projet
             </h2>
-
             {% if project.is_active %}
 
-                <div
-                    class="grid gap-3 sm:grid-cols-2
-                        lg:grid-cols-4 xl:grid-cols-6"
-                >
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+
                     <a
                         href="{% url 'projects:update' project.pk %}?next={% url 'projects:workspace' project.pk %}"
                         class="project-action-card"
                     >
                         <i data-lucide="pen" class="h-6 w-6"></i>
-                        <span>Modifier</span>
+                        <span>Modifier le projet</span>
                     </a>
 
                     <a
@@ -265,8 +298,9 @@
                         class="project-action-card"
                     >
                         <i data-lucide="layers-3" class="h-6 w-6"></i>
-                        <span>Lotir</span>
+                        <span>Lots de travaux / Tâches</span>
                     </a>
+
                     <a
                         href="{% url 'meetings:list-by-project' project.pk %}"
                         class="project-action-card"
@@ -276,55 +310,26 @@
                             class="h-6 w-6"
                             aria-hidden="true"
                         ></i>
-
-                        <span>Piloter</span>
+                        <span>Piloter les réunions</span>
                     </a>
 
-                    <form
-                        method="post"
-                        action="{% url 'documents:doe-generate' project.pk %}"
-                    >
-                        {% csrf_token %}
-
-                        <button
-                            type="submit"
-                            class="project-action-card w-full"
-                        >
-                            <i
-                                data-lucide="folder-archive"
-                                class="h-6 w-6"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>DOE</span>
-                        </button>
-                    </form>
-
-                    {% if doe_root_folder %}
-
+                    <a
                         <a
-                            href="{% url 'documents:folder-download' project.pk doe_root_folder.pk %}"
+                            href="{% url 'planning:home' %}?view=gantt&project={{ project.pk }}&next={{ request.get_full_path|urlencode }}"
                             class="project-action-card"
                         >
-                            <i
-                                data-lucide="download"
-                                class="h-6 w-6"
-                                aria-hidden="true"
-                            ></i>
+                        <i
+                            data-lucide="calendar-range"
+                            class="h-6 w-6"
+                            aria-hidden="true"
+                        ></i>
+                        <span>Planning</span>
+                    </a>
 
-                            <span>Télécharger le DOE</span>
-                        </a>
-
-                    {% else %}
-
-                        {% include "projects/project_workspace_action_disabled.html" with icon="download" label="Télécharger le DOE" %}
-
-                    {% endif %}
-
-                    {% include "projects/project_workspace_action_disabled.html" with icon="banknote" label="Financer" %}
                     {% if can_manage_project_hours %}
+
                         <a
-                            href="{% url 'reporting:review-list' %}"
+                            href="{% url 'reporting:review-list' %}?project={{ project.pk }}&status=VALIDATED"
                             class="project-action-card"
                         >
                             <i
@@ -332,10 +337,13 @@
                                 class="h-6 w-6"
                                 aria-hidden="true"
                             ></i>
-                            <span>Gérer les heures</span>
+                            <span>Rapports d’activité</span>
                         </a>
+
                     {% else %}
-                        {% include "projects/project_workspace_action_disabled.html" with icon="clock-3" label="Gérer les heures" %}
+
+                        {% include "projects/project_workspace_action_disabled.html" with icon="clock-3" label="Rapports d’activité" %}
+
                     {% endif %}
 
                     <a
@@ -347,7 +355,6 @@
                             class="h-6 w-6"
                             aria-hidden="true"
                         ></i>
-
                         <span>Tableau de bord</span>
                     </a>
 
@@ -360,7 +367,6 @@
                             class="h-6 w-6"
                             aria-hidden="true"
                         ></i>
-
                         <span>Localiser</span>
                     </a>
 
@@ -373,9 +379,10 @@
                             class="h-6 w-6"
                             aria-hidden="true"
                         ></i>
-
                         <span>Risques</span>
                     </a>
+
+                    {% include "projects/project_workspace_action_disabled.html" with icon="banknote" label="Finances" %}
 
                     <a
                         href="{% url 'documents:explorer' project.pk %}"
@@ -386,7 +393,6 @@
                             class="h-6 w-6"
                             aria-hidden="true"
                         ></i>
-
                         <span>Documentation</span>
                     </a>
 
@@ -399,24 +405,23 @@
                             class="h-6 w-6"
                             aria-hidden="true"
                         ></i>
-
                         <span>Album photos</span>
                     </a>
 
                     <a
-                        href="{% url 'projects:photo' project.pk %}"
+                        href="{% url 'documents:explorer' project.pk %}?workspace=doe"
                         class="project-action-card"
                     >
                         <i
-                            data-lucide="image-plus"
+                            data-lucide="folder-archive"
                             class="h-6 w-6"
                             aria-hidden="true"
                         ></i>
-
-                        <span>Photo</span>
+                        <span>DOE</span>
                     </a>
 
                 </div>
+
             {% else %}
 
                 <p

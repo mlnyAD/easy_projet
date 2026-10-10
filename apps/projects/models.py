@@ -9,7 +9,10 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+)
 
 from apps.catalogs.models import CatalogValue
 from apps.companies.models import Company
@@ -237,6 +240,14 @@ class Project(TimeStampedModel):
         verbose_name="Charge prévisionnelle (h)",
     )
 
+    progress_percent = models.PositiveSmallIntegerField(
+        default=0,
+        validators=[
+            MaxValueValidator(100),
+        ],
+        verbose_name="Avancement (%)",
+    )
+    
     # ------------------------------------------------------------------
     # Dates de référence
     # ------------------------------------------------------------------

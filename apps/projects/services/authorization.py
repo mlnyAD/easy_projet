@@ -52,20 +52,11 @@ class ProjectAuthorizationService:
     def get_administrable_projects(
         cls,
         user: User,
+        *,
+        include_inactive: bool = False,
     ) -> QuerySet[Project]:
         """
-        Retourne les projets actifs que l'utilisateur peut administrer.
-
-        Un projet est administrable lorsque l'utilisateur est :
-        - administrateur système ;
-        - administrateur client actif de l'environnement du projet ;
-        - chef de projet actif du projet.
-
-        La visibilité transverse d'un Chef de projet ne donne
-        aucun droit d'administration.
-
-        Les niveaux STANDARD et READ_ONLY ne donnent aucun droit
-        d'administration du projet.
+        Retourne les projets que l'utilisateur peut administrer.
         """
 
         if not user.is_active:
@@ -73,7 +64,6 @@ class ProjectAuthorizationService:
 
         queryset = (
             Project.objects
-            .filter(is_active=True)
             .select_related(
                 "client_environment",
                 "client_environment__company",
@@ -81,6 +71,11 @@ class ProjectAuthorizationService:
                 "status",
             )
         )
+
+        if not include_inactive:
+            queryset = queryset.filter(
+                is_active=True,
+            )
 
         if user.is_system_admin:
             return queryset.order_by(
@@ -361,17 +356,13 @@ class ProjectAuthorizationService:
         *,
         user: User,
         project: Project,
+        include_inactive: bool = False,
     ) -> bool:
-        """
-        Indique si l'utilisateur peut administrer le projet.
-
-        L'administration comprend notamment les paramètres
-        structurants, les participants et les sociétés
-        participantes.
-        """
-
         return (
-            cls.get_administrable_projects(user)
+            cls.get_administrable_projects(
+                user,
+                include_inactive=include_inactive,
+            )
             .filter(pk=project.pk)
             .exists()
         )

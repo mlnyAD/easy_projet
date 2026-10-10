@@ -738,6 +738,15 @@ class ActivityReportReviewListView(
             project__in=administrable_projects,
         )
 
+        project_id = (
+            self.request.GET.get("project")
+            or ""
+        ).strip()
+
+        if project_id:
+            queryset = queryset.filter(
+                project_id=project_id,
+            )
         # --------------------------------------------------------------
         # Filtre état
         # --------------------------------------------------------------

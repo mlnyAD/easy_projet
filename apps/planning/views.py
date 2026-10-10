@@ -6,9 +6,13 @@ from datetime import date, timedelta
 
 from django.db.models import Min
 from django.shortcuts import get_object_or_404
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import TemplateView
 
 from apps.projects.models import Project
+from apps.projects.services.access import (
+    ProjectAccessService,
+)
 
 from .services.calendar import (
     PlanningCalendarService,
@@ -17,17 +21,14 @@ from .services.consolidation import (
     PlanningConsolidationService,
     PlanningPeriod,
 )
+from .services.job_workload import (
+    WeeklyJobWorkloadService,
+)
 from .services.resource_schedule import (
     ResourceScheduleService,
 )
 from .services.workload import (
     WeeklyWorkloadService,
-)
-from .services.job_workload import (
-    WeeklyJobWorkloadService,
-)
-from apps.projects.services.access import (
-    ProjectAccessService,
 )
 
 
@@ -109,13 +110,7 @@ class PlanningHomeView(TemplateView):
             state_date=state_date,
         )
 
-        selected_view = (
-            self._get_selected_view()
-        )
-
-        # --------------------------------------------------------------
-        # Gantt
-        # --------------------------------------------------------------
+        selected_view = self._get_selected_view()
 
         planning_data = (
             PlanningConsolidationService()
@@ -125,9 +120,6 @@ class PlanningHomeView(TemplateView):
                 accessible_projects=accessible_projects,
             )
         )
-        # --------------------------------------------------------------
-        # Plan de charge
-        # --------------------------------------------------------------
 
         workload_plan = (
             WeeklyWorkloadService()
@@ -138,7 +130,7 @@ class PlanningHomeView(TemplateView):
                 accessible_projects=accessible_projects,
             )
         )
-        
+
         job_workload_plan = (
             WeeklyJobWorkloadService()
             .build(
@@ -148,9 +140,6 @@ class PlanningHomeView(TemplateView):
                 accessible_projects=accessible_projects,
             )
         )
-        # --------------------------------------------------------------
-        # Planning ressources
-        # --------------------------------------------------------------
 
         resource_schedule = (
             ResourceScheduleService()
@@ -161,22 +150,15 @@ class PlanningHomeView(TemplateView):
                 accessible_projects=accessible_projects,
             )
         )
-        # --------------------------------------------------------------
-        # Calendrier
-        # --------------------------------------------------------------
 
-        calendar_year = (
-            self._get_integer_parameter(
-                "calendar_year",
-                default=state_date.year,
-            )
+        calendar_year = self._get_integer_parameter(
+            "calendar_year",
+            default=state_date.year,
         )
 
-        calendar_month = (
-            self._get_integer_parameter(
-                "calendar_month",
-                default=state_date.month,
-            )
+        calendar_month = self._get_integer_parameter(
+            "calendar_month",
+            default=state_date.month,
         )
 
         if calendar_year < 1:
@@ -194,14 +176,12 @@ class PlanningHomeView(TemplateView):
                 accessible_projects=accessible_projects,
             )
         )
-        # --------------------------------------------------------------
-        # Contexte
-        # --------------------------------------------------------------
 
         context.update(
             {
                 "planning": planning_data,
                 "workload": workload_plan,
+                "job_workload": job_workload_plan,
                 "resource_schedule": resource_schedule,
                 "calendar": calendar_data,
                 "period": period,
@@ -212,7 +192,7 @@ class PlanningHomeView(TemplateView):
                 "view_resources": self.VIEW_RESOURCES,
                 "view_calendar": self.VIEW_CALENDAR,
                 "projects": accessible_projects,
-                "job_workload": job_workload_plan,
+                "return_url": self._get_return_url(),
             }
         )
 
@@ -243,6 +223,32 @@ class PlanningHomeView(TemplateView):
             accessible_projects,
             pk=project_pk,
         )
+
+    def _get_return_url(self) -> str | None:
+        """
+        Retourne l'URL d'appel validée.
+
+        Seules les URL internes à l'application sont acceptées.
+        """
+
+        candidate = (
+            self.request.GET.get("next")
+            or ""
+        ).strip()
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={
+                    self.request.get_host(),
+                },
+                require_https=self.request.is_secure(),
+            )
+        ):
+            return candidate
+
+        return None
 
     @staticmethod
     def _get_default_date_from(
@@ -275,7 +281,7 @@ class PlanningHomeView(TemplateView):
         )["oldest_start_date"]
 
         return oldest_start_date or state_date
-        
+
     def _get_selected_view(
         self,
     ) -> str:

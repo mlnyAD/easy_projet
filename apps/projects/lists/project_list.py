@@ -44,29 +44,38 @@ PROJECT_LIST_DEFINITION = ListDefinition(
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
-                "owner_company"
+                "responsible_project_manager"
             ),
-            label="Maître d’ouvrage",
-            width="lg",
+            label="Chef de projet",
+            sortable=False,
+            width="md",
             truncate=True,
             order=30,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
-                "responsible_project_manager"
+                "owner_company"
             ),
-            label="Chef de projet titulaire",
-            sortable=False,
-            width="md",
+            label="Maître d’ouvrage",
+            width="lg",
             truncate=True,
             order=40,
+        ),
+        ColumnDefinition(
+            field=PROJECT_ENTITY_DEFINITION.get_field(
+                "designer_company"
+            ),
+            label="Maître d’œuvre",
+            width="lg",
+            truncate=True,
+            order=50,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
                 "status"
             ),
             width="sm",
-            order=50,
+            order=60,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
@@ -74,7 +83,7 @@ PROJECT_LIST_DEFINITION = ListDefinition(
             ),
             label="Début",
             width="sm",
-            order=60,
+            order=70,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
@@ -82,7 +91,7 @@ PROJECT_LIST_DEFINITION = ListDefinition(
             ),
             label="Fin",
             width="sm",
-            order=70,
+            order=80,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
@@ -90,7 +99,7 @@ PROJECT_LIST_DEFINITION = ListDefinition(
             ),
             label="Réception",
             width="sm",
-            order=80,
+            order=90,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
@@ -98,7 +107,7 @@ PROJECT_LIST_DEFINITION = ListDefinition(
             ),
             label="Livraison",
             width="sm",
-            order=90,
+            order=100,
         ),
         ColumnDefinition(
             field=PROJECT_ENTITY_DEFINITION.get_field(
@@ -107,7 +116,7 @@ PROJECT_LIST_DEFINITION = ListDefinition(
             label="Actif",
             width="xs",
             align="center",
-            order=100,
+            order=110,
         ),
     ),
     default_sort="reference",

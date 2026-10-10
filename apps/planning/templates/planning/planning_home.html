@@ -2,26 +2,52 @@
 
 {% extends "layout/base.html" %}
 
-
 {% block content %}
 
 <div class="space-y-4">
 
-    <div>
-        <h1 class="text-2xl font-semibold">
-            Planning
-        </h1>
+    <div class="flex items-start justify-between gap-4">
 
-        <p class="mt-1 text-sm text-axcio-text-muted">
-            Planning consolidé, plan de charge,
-            planning des ressources et calendrier.
-        </p>
+        <div>
+            <h1 class="text-2xl font-semibold">
+                Planning
+            </h1>
+
+            <p class="mt-1 text-sm text-axcio-text-muted">
+                Planning consolidé, plan de charge,
+                planning des ressources et calendrier.
+            </p>
+        </div>
+
+        {% if return_url %}
+
+            <a
+                href="{{ return_url }}"
+                class="
+                    inline-flex shrink-0 items-center gap-2
+                    rounded-md border px-3 py-2 text-sm font-medium
+                    border-axcio-border-light
+                    hover:bg-axcio-surface-alt
+                    dark:border-axcio-border-dark
+                    dark:hover:bg-axcio-surface-alt-dark
+                "
+            >
+                <i
+                    data-lucide="arrow-left"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                ></i>
+
+                Retour au projet
+            </a>
+
+        {% endif %}
+
     </div>
-
 
     <nav
         class="
-            flex gap-6 border-b
+            flex gap-6 overflow-x-auto border-b
             border-axcio-border-light
             dark:border-axcio-border-dark
         "
@@ -29,7 +55,7 @@
     >
 
         <a
-            href="?view={{ view_gantt }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}"
+            href="?view={{ view_gantt }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}{% if return_url %}&next={{ return_url|urlencode }}{% endif %}"
             class="
                 border-b-2 px-1 pb-3
                 text-sm font-medium
@@ -47,9 +73,8 @@
             Gantt
         </a>
 
-
         <a
-            href="?view={{ view_workload }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}"
+            href="?view={{ view_workload }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}{% if return_url %}&next={{ return_url|urlencode }}{% endif %}"
             class="
                 border-b-2 px-1 pb-3
                 text-sm font-medium
@@ -67,9 +92,8 @@
             Plan de charge
         </a>
 
-
         <a
-            href="?view={{ view_resources }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}"
+            href="?view={{ view_resources }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}{% if return_url %}&next={{ return_url|urlencode }}{% endif %}"
             class="
                 border-b-2 px-1 pb-3
                 text-sm font-medium
@@ -87,9 +111,8 @@
             Planning ressources
         </a>
 
-
         <a
-            href="?view={{ view_calendar }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}&calendar_year={{ calendar.year }}&calendar_month={{ calendar.month }}"
+            href="?view={{ view_calendar }}{% if selected_project %}&project={{ selected_project.pk }}{% endif %}&state_date={{ period.state_date|date:'Y-m-d' }}&date_from={{ period.date_from|date:'Y-m-d' }}&date_to={{ period.date_to|date:'Y-m-d' }}&calendar_year={{ calendar.year }}&calendar_month={{ calendar.month }}{% if return_url %}&next={{ return_url|urlencode }}{% endif %}"
             class="
                 border-b-2 px-1 pb-3
                 text-sm font-medium
@@ -109,11 +132,9 @@
 
     </nav>
 
-
     {% include "planning/planning_filters.html" %}
 
     {% include "planning/planning_period_summary.html" %}
-
 
     {% if selected_view == view_gantt %}
 

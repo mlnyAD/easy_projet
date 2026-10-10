@@ -1,5 +1,3 @@
-
-
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import redirect
@@ -32,7 +30,7 @@ from framework.integrations.django.list_sorting import (
     EPListSortingMixin,
 )
 from django.db.models import Sum
-
+from apps.core.models import ClientEnvironment
 from apps.tasks.models import Task, TaskAssignment
 
 from framework.integrations.django.views import (
@@ -53,43 +51,33 @@ from apps.documents.models import DocumentFolder
 from .form_definition import PROJECT_FORM_DEFINITION
 
 from .forms import (
-
     ProjectExternalParticipantFormSet,
-
     ProjectForm,
-
     ProjectMembershipFormSet,
-
     ProjectPhotoForm,
-
 )
 
 from .lists import PROJECT_LIST_DEFINITION
 
 from .models import (
-
     Project,
-
     ProjectMembership,
-
 )
 
 from django.conf import settings
 
 from .services.geocoding import (
-
     ProjectGeocodingError,
-
     ProjectGeocodingService,
-
 )
 
 from .current_project import (
-
     set_current_project,
-
 )
-
+from apps.core.models import (
+    ClientEnvironment,
+    ClientEnvironmentMembership,
+)
 from apps.projects.services.access import (
     ProjectAccessService,
 )
@@ -152,11 +140,10 @@ class ProjectListView(
 
         sort_field_map = super().get_sort_field_map()
 
-        sort_field_map["owner_company"] = (
-            "owner_company__name"
-        )
+        sort_field_map["owner_company"] = "owner_company__name"
         sort_field_map["status"] = "status__sort_order"
 
+        sort_field_map["designer_company"] = "designer_company__name"
         return sort_field_map
 
     def get_accessible_project_queryset(self):
@@ -185,12 +172,9 @@ class ProjectListView(
             )
         )
 
-        return (
-            Company.objects.filter(
-                pk__in=project_ids,
-            )
-            .order_by("name")
-        )
+        return Company.objects.filter(
+            pk__in=project_ids,
+        ).order_by("name")
 
     def get_filter_statuses(self):
         """
@@ -208,12 +192,9 @@ class ProjectListView(
             )
         )
 
-        return (
-            CatalogValue.objects.filter(
-                pk__in=project_status_ids,
-            )
-            .order_by("label")
-        )
+        return CatalogValue.objects.filter(
+            pk__in=project_status_ids,
+        ).order_by("label")
 
     def get_owner_company_filter(self) -> str | None:
         """
@@ -234,9 +215,13 @@ class ProjectListView(
         except ValueError:
             return None
 
-        if not self.get_filter_owner_companies().filter(
-            pk=company_id,
-        ).exists():
+        if (
+            not self.get_filter_owner_companies()
+            .filter(
+                pk=company_id,
+            )
+            .exists()
+        ):
             return None
 
         return str(company_id)
@@ -260,9 +245,13 @@ class ProjectListView(
         except ValueError:
             return None
 
-        if not self.get_filter_statuses().filter(
-            pk=status_id,
-        ).exists():
+        if (
+            not self.get_filter_statuses()
+            .filter(
+                pk=status_id,
+            )
+            .exists()
+        ):
             return None
 
         return status_id
@@ -309,43 +298,30 @@ class ProjectListView(
 
         if activity != self.activity_all:
             queryset = queryset.filter(
-                is_active=(
-                    activity == self.activity_active
-                ),
+                is_active=(activity == self.activity_active),
             )
 
-        responsible_memberships = (
-            ProjectMembership.objects
-            .filter(
-                is_active=True,
-                is_project_manager_responsible=True,
-                role__catalog_type__code=(
-                    "USER_PROJECT_ROLE"
-                ),
-                role__catalog_type__is_active=True,
-                role__code="PROJECT_MANAGER",
-                role__is_active=True,
-            )
-            .select_related(
-                "user",
-                "user__company",
-                "role",
-            )
+        responsible_memberships = ProjectMembership.objects.filter(
+            is_active=True,
+            is_project_manager_responsible=True,
+            role__catalog_type__code=("USER_PROJECT_ROLE"),
+            role__catalog_type__is_active=True,
+            role__code="PROJECT_MANAGER",
+            role__is_active=True,
+        ).select_related(
+            "user",
+            "user__company",
+            "role",
         )
 
-        return (
-            queryset
-            .select_related(
-                "owner_company",
-            )
-            .prefetch_related(
-                Prefetch(
-                    "memberships",
-                    queryset=responsible_memberships,
-                    to_attr=(
-                        "responsible_project_manager_memberships"
-                    ),
-                )
+        return queryset.select_related(
+            "owner_company",
+            "designer_company",
+        ).prefetch_related(
+            Prefetch(
+                "memberships",
+                queryset=responsible_memberships,
+                to_attr=("responsible_project_manager_memberships"),
             )
         )
 
@@ -354,32 +330,20 @@ class ProjectListView(
 
         django_page = context["page_obj"]
 
-        page_projects = tuple(
-            django_page.object_list
-        )
+        page_projects = tuple(django_page.object_list)
 
-        administrable_project_ids = set(
+        # ProjectListView.get_context_data()
+        administrable_project_ids = (
             ProjectAuthorizationService
             .get_administrable_projects(
-                self.request.user
+                self.request.user,
+                include_inactive=True,
             )
-            .filter(
-                pk__in=(
-                    project.pk
-                    for project in page_projects
-                )
-            )
-            .values_list(
-                "pk",
-                flat=True,
-            )
+            .values_list("pk", flat=True)
         )
 
         for project in page_projects:
-            project.can_administer = (
-                project.pk
-                in administrable_project_ids
-            )
+            project.can_administer = project.pk in administrable_project_ids
 
             memberships = getattr(
                 project,
@@ -388,9 +352,7 @@ class ProjectListView(
             )
 
             if memberships:
-                project.responsible_project_manager = str(
-                    memberships[0].user
-                )
+                project.responsible_project_manager = str(memberships[0].user)
             else:
                 project.responsible_project_manager = None
 
@@ -400,9 +362,7 @@ class ProjectListView(
         )
 
         framework_page = ListPage(
-            rows=tuple(
-                django_page.object_list
-            ),
+            rows=tuple(django_page.object_list),
             page=django_page.number,
             page_size=django_page.paginator.per_page,
             total_items=django_page.paginator.count,
@@ -411,9 +371,7 @@ class ProjectListView(
             has_next=django_page.has_next(),
         )
 
-        visible_column_identifiers = (
-            self.get_visible_column_identifiers()
-        )
+        visible_column_identifiers = self.get_visible_column_identifiers()
 
         sort_by = self.get_sort_by()
         sort_descending = self.get_sort_descending()
@@ -423,9 +381,7 @@ class ProjectListView(
             page=framework_page,
             sort_by=sort_by,
             descending=sort_descending,
-            visible_column_identifiers=(
-                visible_column_identifiers
-            ),
+            visible_column_identifiers=(visible_column_identifiers),
         )
 
         context["list_view"] = list_view
@@ -433,66 +389,43 @@ class ProjectListView(
         # Alias temporaire pour compatibilité avec les tests existants.
         context["list"] = list_view
 
-        context["list_definition"] = (
-            self.get_list_definition()
-        )
+        context["list_definition"] = self.get_list_definition()
 
-        context["visible_column_identifiers"] = (
-            visible_column_identifiers
-        )
+        context["visible_column_identifiers"] = visible_column_identifiers
 
-        context["can_save_list_preferences"] = (
-            self.request.user.is_authenticated
-        )
+        context["can_save_list_preferences"] = self.request.user.is_authenticated
 
         context["sort_by"] = sort_by
         context["sort_descending"] = sort_descending
 
-        context["filter_owner_companies"] = (
-            self.get_filter_owner_companies()
-        )
+        context["filter_owner_companies"] = self.get_filter_owner_companies()
 
-        context["filter_statuses"] = (
-            self.get_filter_statuses()
-        )
+        context["filter_statuses"] = self.get_filter_statuses()
 
-        context["owner_company_filter"] = (
-            self.get_owner_company_filter()
-        )
+        context["owner_company_filter"] = self.get_owner_company_filter()
 
         context["status_filter"] = self.get_status_filter()
 
-        context["project_activity"] = (
-            self.get_activity_filter()
-        )
+        context["project_activity"] = self.get_activity_filter()
 
-        context["list_filters_template"] = (
-            "projects/project_list_filters.html"
-        )
+        context["list_filters_template"] = "projects/project_list_filters.html"
 
-        context["row_actions_template"] = (
-            "projects/project_actions.html"
-        )
+        context["row_actions_template"] = "projects/project_actions.html"
 
         context["can_create_project"] = (
-            ProjectAuthorizationService
-            .get_project_creation_companies(
+            ProjectAuthorizationService.get_project_creation_companies(
                 self.request.user
-            )
-            .exists()
+            ).exists()
         )
-        
+
         context["project_create_url"] = (
-            f"{reverse('projects:create')}?next="
-            f"{quote(self.request.get_full_path())}"
+            f"{reverse('projects:create')}?next={quote(self.request.get_full_path())}"
         )
 
         return context
 
 
-
 class ProjectLocationView(ListView):
-
     """
 
     Localisation de tous les projets accessibles.
@@ -509,206 +442,98 @@ class ProjectLocationView(ListView):
 
     """
 
-
-
     model = Project
 
     template_name = "projects/project_location.html"
 
     context_object_name = "projects"
 
-
-
     def get_queryset(self):
 
-        queryset = (
-
-            ProjectAccessService
-
-            .get_accessible_projects(
-
-                self.request.user
-
-            )
-
-            .select_related(
-
-                "company",
-
-                "client_environment",
-
-                "client_environment__company",
-
-            )
-
+        queryset = ProjectAccessService.get_accessible_projects(
+            self.request.user
+        ).select_related(
+            "company",
+            "client_environment",
+            "client_environment__company",
         )
 
-
-
-        project_id = (
-
-            self.request.GET
-
-            .get("project")
-
-        )
-
-
+        project_id = self.request.GET.get("project")
 
         if project_id:
-
-            queryset = queryset.filter(
-
-                pk=project_id
-
-            )
-
-
+            queryset = queryset.filter(pk=project_id)
 
         return queryset
 
-
-
     @staticmethod
-
     def build_project_data(project):
 
         address_parts = [
-
             project.address_1,
-
             project.address_2,
-
             project.address_3,
-
             project.postal_code,
-
             project.city,
-
             project.country,
-
         ]
 
-
-
         full_address = ", ".join(
-
-            part.strip()
-
-            for part in address_parts
-
-            if part and part.strip()
-
+            part.strip() for part in address_parts if part and part.strip()
         )
 
-
-
         return {
-
             "id": str(project.pk),
-
             "reference": project.reference,
-
             "name": project.name,
-
             "company": str(project.company),
-
             "address": full_address,
-
         }
-
-
 
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
 
-
-
         localized_projects = []
 
         unlocalized_projects = []
 
-
-
         for project in context["projects"]:
-
             project_data = self.build_project_data(project)
 
-
-
-            if (
-
-                project.latitude is None
-
-                or project.longitude is None
-
-            ):
-
+            if project.latitude is None or project.longitude is None:
                 try:
-
-                    coordinates = (
-
-                        ProjectGeocodingService
-
-                        .geocode_and_save(project)
-
-                    )
-
-
+                    coordinates = ProjectGeocodingService.geocode_and_save(project)
 
                 except ProjectGeocodingError as exc:
-
                     project_data["localization_error"] = str(exc)
 
                     unlocalized_projects.append(project_data)
 
                     continue
 
-
-
                 if coordinates is None:
-
-                    project_data["localization_error"] = (
-
-                        "Adresse non localisable."
-
-                    )
+                    project_data["localization_error"] = "Adresse non localisable."
 
                     unlocalized_projects.append(project_data)
 
                     continue
 
-
-
             project_data["latitude"] = float(project.latitude)
 
             project_data["longitude"] = float(project.longitude)
 
-
-
             localized_projects.append(project_data)
-
-
 
         context["projects_data"] = localized_projects
 
         context["unlocalized_projects"] = unlocalized_projects
 
-        context["google_maps_api_key"] = (
-
-            settings.GOOGLE_MAPS_API_KEY
-
-        )
-
-
+        context["google_maps_api_key"] = settings.GOOGLE_MAPS_API_KEY
 
         return context
 
 
-
 class ProjectWorkspaceView(DetailView):
-
     """
 
     Résumé et point d'entrée fonctionnel d'un projet.
@@ -719,62 +544,36 @@ class ProjectWorkspaceView(DetailView):
 
     """
 
-
-
     model = Project
 
     template_name = "projects/project_workspace.html"
 
     context_object_name = "project"
 
-
-
     def get_queryset(self):
 
         return (
-
-            ProjectAccessService
-
-            .get_accessible_projects(
-
+            ProjectAccessService.get_accessible_projects(
                 self.request.user,
                 include_inactive=True,
-
             )
-
             .select_related(
-
                 "client_environment",
-
                 "client_environment__company",
-
                 "company",
-
                 "owner_company",
-
+                "designer_company",
                 "status",
-
             )
-
             .prefetch_related(
-
                 "work_packages",
-
                 "work_packages__tasks",
-
                 "memberships",
-
                 "memberships__user",
-
                 "memberships__user__company",
-
                 "memberships__role",
-
             )
-
         )
-
-
 
     def get_context_data(self, **kwargs):
 
@@ -782,290 +581,193 @@ class ProjectWorkspaceView(DetailView):
 
         project = self.object
 
-
-
         context["responsible_project_manager"] = (
-
-            ProjectManagerService
-
-            .get_responsible_project_manager(
-
-                project
-
-            )
-
+            ProjectManagerService.get_responsible_project_manager(project)
         )
-
-
 
         set_current_project(
-
             self.request,
-
             project,
-
         )
 
-
-
+        context["can_administer_project"] = (
+            ProjectAuthorizationService
+            .can_administer_project(
+                user=self.request.user,
+                project=project,
+            )
+        )
         context["current_project"] = project
 
-
-
-        context["work_package_count"] = (
-
-            project.work_packages.count()
-
-        )
-
-
+        context["work_package_count"] = project.work_packages.count()
 
         context["task_count"] = sum(
-
-            work_package.tasks.count()
-
-            for work_package in project.work_packages.all()
-
+            work_package.tasks.count() for work_package in project.work_packages.all()
         )
-
-
 
         # Aucun calcul métier d'avancement n'est encore validé.
 
-        context["progress_percent"] = None
+        context["progress_percent"] = project.progress_percent
 
-        context["can_manage_project_hours"] = (
-            can_validate_activity_report_project(
-                self.request.user,
-                project,
-            )
+        context["can_manage_project_hours"] = can_validate_activity_report_project(
+            self.request.user,
+            project,
         )
 
-        context["doe_root_folder"] = (
-            DocumentFolder.objects
-            .filter(
-                project=project,
-                is_doe_root=True,
-                is_active=True,
-            )
-            .first()
-        )
-        
+        context["doe_root_folder"] = DocumentFolder.objects.filter(
+            project=project,
+            is_doe_root=True,
+            is_active=True,
+        ).first()
+
         return context
 
 
-
 class ProjectFormCollectionsMixin:
-
     """
 
     Gestion générique des collections du formulaire Projet.
 
     """
 
-
-
     success_message = None
-
 
 
     def get_return_url(self):
 
         candidate = self.request.GET.get("next")
 
-
-
-        if (
-
-            candidate
-
-            and url_has_allowed_host_and_scheme(
-
-                candidate,
-
-                allowed_hosts={
-
-                    self.request.get_host()
-
-                },
-
-                require_https=(
-
-                    self.request.is_secure()
-
-                ),
-
-            )
-
+        if candidate and url_has_allowed_host_and_scheme(
+            candidate,
+            allowed_hosts={self.request.get_host()},
+            require_https=(self.request.is_secure()),
         ):
-
             return candidate
 
-
-
         return reverse("projects:list")
-
-
 
     def get_success_url(self):
 
         return self.get_return_url()
 
-
-
     def get_cancel_url(self):
 
         return self.get_return_url()
 
-
-
     def get_membership_formset(
-
         self,
-
         *,
-
         data=None,
-
         instance=None,
-
+        client_environment=None,
     ):
-
         return ProjectMembershipFormSet(
-
             data=data,
-
             instance=instance,
-
             prefix="memberships",
-
+            form_kwargs={
+                "client_environment": client_environment,
+            },
         )
 
+    def get_membership_client_environment(
+        self,
+        *,
+        django_form,
+        instance,
+    ):
+        if instance.client_environment_id:
+            return instance.client_environment
 
+        company_id = (
+            django_form.data.get(django_form.add_prefix("company"))
+            if django_form.is_bound
+            else django_form.initial.get("company")
+        )
+
+        if not company_id:
+            return None
+
+        return ClientEnvironment.objects.filter(
+            company_id=company_id,
+            is_active=True,
+        ).first()
 
     def get_external_participant_formset(
-
         self,
-
         *,
-
         data=None,
-
         instance=None,
-
     ):
 
         return ProjectExternalParticipantFormSet(
-
             data=data,
-
             instance=instance,
-
             prefix="external_participants",
-
         )
 
-
-
     def get_formsets(
-
         self,
-
         *,
-
         django_form,
-
         context,
-
     ):
 
         if "formsets" in context:
-
             return context["formsets"]
-
-
 
         instance = django_form.instance
 
+        data = self.request.POST if self.request.method == "POST" else None
 
-
-        data = (
-
-            self.request.POST
-
-            if self.request.method == "POST"
-
-            else None
-
+        client_environment = self.get_membership_client_environment(
+            django_form=django_form,
+            instance=instance,
         )
-
-
 
         return {
-
             "memberships": (
-
                 self.get_membership_formset(
-
                     data=data,
-
                     instance=instance,
-
+                    client_environment=client_environment,
                 )
-
             ),
-
             "external_participants": (
-
                 self.get_external_participant_formset(
-
                     data=data,
-
                     instance=instance,
-
                 )
-
             ),
-
         }
 
-
-
     def form_valid(self, form):
-        membership_formset = (
-            self.get_membership_formset(
-                data=self.request.POST,
-                instance=form.instance,
-            )
+        client_environment = self.get_membership_client_environment(
+            django_form=form,
+            instance=form.instance,
+        )
+        membership_formset = self.get_membership_formset(
+            data=self.request.POST,
+            instance=form.instance,
+            client_environment=client_environment,
         )
 
-        external_participant_formset = (
-            self.get_external_participant_formset(
-                data=self.request.POST,
-                instance=form.instance,
-            )
+        external_participant_formset = self.get_external_participant_formset(
+            data=self.request.POST,
+            instance=form.instance,
         )
 
-        memberships_valid = (
-            membership_formset.is_valid()
-        )
+        memberships_valid = membership_formset.is_valid()
 
-        external_participants_valid = (
-            external_participant_formset.is_valid()
-        )
+        external_participants_valid = external_participant_formset.is_valid()
 
-        if not (
-            memberships_valid
-            and external_participants_valid
-        ):
+        if not (memberships_valid and external_participants_valid):
             return self.render_to_response(
                 self.get_context_data(
                     form=form,
                     formsets={
                         "memberships": membership_formset,
-                        "external_participants": (
-                            external_participant_formset
-                        ),
+                        "external_participants": (external_participant_formset),
                     },
                 )
             )
@@ -1075,9 +777,7 @@ class ProjectFormCollectionsMixin:
         with transaction.atomic():
             self.object = form.save()
 
-            ProjectCompanyService.ensure_responsible_company(
-                self.object
-            )
+            ProjectCompanyService.ensure_responsible_company(self.object)
 
             membership_formset.instance = self.object
             membership_formset.save()
@@ -1087,8 +787,7 @@ class ProjectFormCollectionsMixin:
 
             if is_creating:
                 (
-                    DocumentFolderTemplateApplicationService
-                    .apply_default_template(
+                    DocumentFolderTemplateApplicationService.apply_default_template(
                         project=self.object,
                     )
                 )
@@ -1099,21 +798,14 @@ class ProjectFormCollectionsMixin:
                 self.success_message,
             )
 
-        return redirect(
-            self.get_success_url()
-        )
+        return redirect(self.get_success_url())
 
 
 class ProjectCreateView(
-
     UserPassesTestMixin,
-
     ProjectFormCollectionsMixin,
-
     EPCreateView,
-
 ):
-
     model = Project
 
     form_class = ProjectForm
@@ -1122,90 +814,80 @@ class ProjectCreateView(
 
     template_name = "edf/form/view.html"
 
-
-
-    success_message = (
-
-        "Le projet a été créé avec succès."
-
-    )
-
-
+    success_message = "Le projet a été créé avec succès."
 
     def get_creation_companies(self):
 
         if not hasattr(
-
             self,
-
             "_creation_companies",
-
         ):
-
             self._creation_companies = (
-
-                ProjectAuthorizationService
-
-                .get_project_creation_companies(
-
+                ProjectAuthorizationService.get_project_creation_companies(
                     self.request.user
-
                 )
-
             )
-
-
 
         return self._creation_companies
 
-
-
     def test_func(self):
 
-        return (
-
-            self.get_creation_companies()
-
-            .exists()
-
-        )
-
-
+        return self.get_creation_companies().exists()
 
     def get_form_kwargs(self):
 
         kwargs = super().get_form_kwargs()
 
-
-
-        kwargs["company_queryset"] = (
-
-            self.get_creation_companies()
-
-        )
-
-
+        kwargs["company_queryset"] = self.get_creation_companies()
 
         return kwargs
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
+        django_form = context["form"]
+
+        company_ids = (
+            django_form.fields["company"]
+            .queryset
+            .values_list("pk", flat=True)
+        )
+
+        context["project_membership_users_data"] = list(
+            ClientEnvironmentMembership.objects
+            .filter(
+                client_environment__company_id__in=company_ids,
+                is_active=True,
+                user__is_active=True,
+            )
+            .values(
+                "user_id",
+                "user__last_name",
+                "user__first_name",
+                "client_environment__company_id",
+            )
+            .order_by(
+                "user__last_name",
+                "user__first_name",
+            )
+        )
+
+        context["form_extra_template"] = (
+            "projects/project_form_script.html"
+        )
+
+        return context
 
 class ProjectUpdateView(
-
     ProjectFormCollectionsMixin,
-
     EPUpdateView,
-
 ):
-
     """
 
     Modification d'un projet et de ses participants.
 
     """
 
-
-
     model = Project
 
     form_class = ProjectForm
@@ -1214,91 +896,30 @@ class ProjectUpdateView(
 
     template_name = "edf/form/view.html"
 
-
-
-    success_message = (
-
-        "Le projet a été modifié avec succès."
-
-    )
-
-
+    success_message = "Le projet a été modifié avec succès."
 
     def get_queryset(self):
-
-        return (
-
-            ProjectAccessService
-
-            .get_accessible_projects(
-
-                self.request.user
-
-            )
-
-            .select_related(
-
-                "company",
-
-                "client_environment",
-
-                "client_environment__company",
-
-            )
-
+        return ProjectAccessService.get_accessible_projects(
+            self.request.user,
+            include_inactive=True,
         )
-
-
 
     def can_edit_object(self) -> bool:
-
-        """
-
-        Indique si l'utilisateur peut administrer le projet courant.
-
-
-
-        Un utilisateur bénéficiant uniquement d'un droit de
-
-        consultation ouvre le projet en lecture seule.
-
-        """
-
-
-
-        return (
-
-            ProjectAuthorizationService
-
-            .can_administer_project(
-
-                user=self.request.user,
-
-                project=self.object,
-
-            )
-
+        return ProjectAuthorizationService.can_administer_project(
+            user=self.request.user,
+            project=self.object,
+            include_inactive=True,
         )
 
-
-
-
-
 class ProjectPhotoUpdateView(
-
     LoginRequiredMixin,
-
     UpdateView,
-
 ):
-
     """
 
     Ajoute ou remplace la photo principale d'un projet.
 
     """
-
-
 
     model = Project
 
@@ -1306,60 +927,30 @@ class ProjectPhotoUpdateView(
 
     template_name = "projects/project_photo_form.html"
 
-
-
     def get_queryset(self):
 
-        return (
-
-            ProjectAuthorizationService
-
-            .get_administrable_projects(
-
-                self.request.user
-
-            )
-
-        )
-
-
+        return ProjectAuthorizationService.get_administrable_projects(self.request.user)
 
     def get_success_url(self):
 
         return reverse_lazy(
-
             "projects:workspace",
-
             kwargs={
-
                 "pk": self.object.pk,
-
             },
-
         )
-
-
 
     def form_valid(self, form):
 
         messages.success(
-
             self.request,
-
             "La photo du projet a été mise à jour.",
-
         )
-
-
 
         return super().form_valid(form)
 
 
-
-
-
 class ProjectDashboardView(DetailView):
-
     """
 
     Tableau de bord synthétique d'un projet.
@@ -1372,302 +963,123 @@ class ProjectDashboardView(DetailView):
 
     """
 
-
-
     model = Project
 
     template_name = "projects/project_dashboard.html"
 
     context_object_name = "project"
 
-
-
     def get_queryset(self):
 
         return (
-
-            ProjectAccessService
-
-            .get_accessible_projects(
-
-                self.request.user
-
-            )
-
+            ProjectAccessService.get_accessible_projects(self.request.user)
             .select_related(
-
                 "company",
-
                 "owner_company",
-
                 "status",
-
                 "project_type",
-
                 "client_environment",
-
             )
-
             .prefetch_related(
-
                 "work_packages",
-
                 "work_packages__tasks",
-
             )
-
         )
-
-
 
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
 
-
-
         project = self.object
 
-
-
         context["responsible_project_manager"] = (
-
-            ProjectManagerService
-
-            .get_responsible_project_manager(
-
-                project
-
-            )
-
+            ProjectManagerService.get_responsible_project_manager(project)
         )
-
-
 
         set_current_project(
-
             self.request,
-
             project,
-
         )
-
-
 
         context["current_project"] = project
 
-
-
         open_risks = (
-
-            project.risks
-
-            .filter(
-
+            project.risks.filter(
                 is_active=True,
-
                 status__code__in=(
-
                     "LATENT",
-
                     "EMERGED",
-
                     "ACTIVE",
-
                 ),
-
                 status__catalog_type__code="RISK_STATE",
-
             )
-
             .select_related(
-
                 "criticality",
-
                 "status",
-
             )
-
             .order_by(
-
                 "-criticality__sort_order",
-
                 "reference",
-
             )
-
         )
-
-
 
         context["dashboard_risks"] = open_risks
 
+        context["dashboard_risk_count"] = open_risks.count()
 
-
-        context["dashboard_risk_count"] = (
-
-            open_risks.count()
-
-        )
-
-
-
-        context["dashboard_major_risk_count"] = (
-
-            open_risks
-
-            .filter(
-
-                criticality__code__in=(
-
-                    "HIGH",
-
-                    "CRITICAL",
-
-                ),
-
-                criticality__catalog_type__code=(
-
-                    "RISK_CRITICALITY"
-
-                ),
-
-            )
-
-            .count()
-
-        )
-
-
+        context["dashboard_major_risk_count"] = open_risks.filter(
+            criticality__code__in=(
+                "HIGH",
+                "CRITICAL",
+            ),
+            criticality__catalog_type__code=("RISK_CRITICALITY"),
+        ).count()
 
         upcoming_meetings = (
-
-            project.meetings
-
-            .filter(
-
+            project.meetings.filter(
                 is_active=True,
-
                 scheduled_at__gte=timezone.now(),
-
             )
-
             .select_related(
-
                 "status",
-
                 "organizer",
-
             )
-
             .order_by(
-
                 "scheduled_at",
-
             )
-
         )
 
+        context["dashboard_meeting_count"] = upcoming_meetings.count()
 
-
-        context["dashboard_meeting_count"] = (
-
-            upcoming_meetings.count()
-
-        )
-
-
-
-        context["dashboard_next_meeting"] = (
-
-            upcoming_meetings.first()
-
-        )
-
-
+        context["dashboard_next_meeting"] = upcoming_meetings.first()
 
         today = timezone.localdate()
 
+        week_start = today - timedelta(days=today.weekday())
 
+        week_end = week_start + timedelta(days=6)
 
-        week_start = today - timedelta(
-
-            days=today.weekday()
-
+        weekly_tasks = Task.objects.filter(
+            work_package__project=project,
+            is_active=True,
+            start_date__lte=week_end,
+            end_date__gte=week_start,
         )
 
-
-
-        week_end = week_start + timedelta(
-
-            days=6
-
-        )
-
-
-
-        weekly_tasks = (
-
-            Task.objects
-
-            .filter(
-
-                work_package__project=project,
-
-                is_active=True,
-
-                start_date__lte=week_end,
-
-                end_date__gte=week_start,
-
-            )
-
-        )
-
-
-
-        context["dashboard_weekly_task_count"] = (
-
-            weekly_tasks.count()
-
-        )
-
-
+        context["dashboard_weekly_task_count"] = weekly_tasks.count()
 
         context["dashboard_weekly_workload"] = (
-
-            weekly_tasks.aggregate(
-
-                total=Sum("planned_workload_hours")
-
-            )["total"]
-
-            or 0
-
+            weekly_tasks.aggregate(total=Sum("planned_workload_hours"))["total"] or 0
         )
-
-
 
         context["dashboard_weekly_resource_count"] = (
-
-            TaskAssignment.objects
-
-            .filter(
-
+            TaskAssignment.objects.filter(
                 task__in=weekly_tasks,
-
                 is_active=True,
-
             )
-
             .values("user_id")
-
             .distinct()
-
             .count()
-
         )
-
-
 
         return context

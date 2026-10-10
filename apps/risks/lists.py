@@ -16,7 +16,6 @@ DictionaryValidator().validate(RISK_DICTIONARY)
 
 RISK_ENTITY_DEFINITION = EntityDefinition(RISK_DICTIONARY)
 
-
 RISK_LIST_DEFINITION = ListDefinition(
     identifier="risks",
     entity=RISK_ENTITY_DEFINITION,
@@ -74,11 +73,20 @@ RISK_LIST_DEFINITION = ListDefinition(
             order=80,
         ),
         ColumnDefinition(
+            field=RISK_ENTITY_DEFINITION.get_field(
+                "estimated_cost"
+            ),
+            label="Coût estimé",
+            width="sm",
+            align="right",
+            order=90,
+        ),
+        ColumnDefinition(
             field=RISK_ENTITY_DEFINITION.get_field("is_active"),
             label="Actif",
             width="xs",
             align="center",
-            order=90,
+            order=100,
         ),
     ),
     default_sort="project",

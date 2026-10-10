@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from django import forms
-
+from django.db.models import Q
 from apps.catalogs.models import CatalogValue
 from apps.companies.models import Company
 from apps.users.models import User
@@ -26,6 +26,8 @@ from .models import (
     ProjectExternalParticipant,
     ProjectMembership,
 )
+from apps.core.models import ClientEnvironmentMembership
+from django.db.models import Q
 
 
 PROJECT_DATE_FORMAT = "%Y-%m-%d"
@@ -98,6 +100,7 @@ class ProjectForm(forms.ModelForm):
 
             # Charge et planning
             "planned_workload_hours",
+            "progress_percent",
             "initial_start_date",
             "initial_end_date",
             "start_date",
@@ -230,6 +233,15 @@ class ProjectForm(forms.ModelForm):
                     "min": 0,
                     "step": 1,
                     "inputmode": "numeric",
+                }
+            ),
+            "progress_percent": forms.NumberInput(
+                attrs={
+                    "min": 0,
+                    "max": 100,
+                    "step": 1,
+                    "inputmode": "numeric",
+                    "placeholder": "0 à 100",
                 }
             ),
             "initial_start_date": project_date_input(),
@@ -427,6 +439,7 @@ class ProjectMembershipForm(forms.ModelForm):
 
     class Meta:
         model = ProjectMembership
+
         fields = (
             "user",
             "role",
@@ -438,22 +451,45 @@ class ProjectMembershipForm(forms.ModelForm):
         labels = {
             "user": "Utilisateur",
             "is_project_manager_responsible": (
-                "Chef de projet titulaire"
+                "Chef de projet"
             ),
             "is_active": "Actif",
         }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        client_environment=None,
+        **kwargs,
+    ) -> None:
         super().__init__(*args, **kwargs)
+
+        if client_environment is None:
+            user_filter = Q(pk__in=[])
+        else:
+            eligible_user_ids = (
+                ClientEnvironmentMembership.objects
+                .filter(
+                    client_environment=client_environment,
+                    is_active=True,
+                    user__is_active=True,
+                )
+                .values_list(
+                    "user_id",
+                    flat=True,
+                )
+            )
+
+            user_filter = Q(pk__in=eligible_user_ids)
+
+        if self.instance.user_id:
+            user_filter |= Q(pk=self.instance.user_id)
 
         self.fields["user"].queryset = (
             User.objects
-            .filter(is_active=True)
+            .filter(user_filter)
             .select_related("company")
-            .order_by(
-                "last_name",
-                "first_name",
-            )
+            .order_by("last_name", "first_name")
         )
 
         self.fields["role"].queryset = (
@@ -464,10 +500,7 @@ class ProjectMembershipForm(forms.ModelForm):
                 is_active=True,
             )
             .select_related("catalog_type")
-            .order_by(
-                "sort_order",
-                "label",
-            )
+            .order_by("sort_order", "label")
         )
 
         self.fields["role"].catalog_is_editable = False
@@ -481,19 +514,11 @@ class ProjectMembershipForm(forms.ModelForm):
                 is_active=True,
             )
             .select_related("catalog_type")
-            .order_by(
-                "sort_order",
-                "label",
-            )
+            .order_by("sort_order", "label")
         )
 
-        self.fields[
-            "access_level"
-        ].catalog_is_editable = False
-
-        self.fields[
-            "access_level"
-        ].catalog_is_incremental = False
+        self.fields["access_level"].catalog_is_editable = False
+        self.fields["access_level"].catalog_is_incremental = False
 
         if not self.is_bound and self.instance._state.adding:
             default_value = (
@@ -504,11 +529,10 @@ class ProjectMembershipForm(forms.ModelForm):
             )
 
             if default_value is not None:
-                self.initial["access_level"] = (
-                    default_value.pk
-                )
+                self.initial["access_level"] = default_value.pk
+                
 
-
+      
 ProjectMembershipFormSet = forms.inlineformset_factory(
     Project,
     ProjectMembership,

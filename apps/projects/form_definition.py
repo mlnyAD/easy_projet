@@ -139,6 +139,10 @@ PROJECT_FORM_DEFINITION = FormDefinition(
                     name="planned_workload_hours",
                     width=FieldWidth.XS,
                 ),
+                FieldDefinition(
+                    name="progress_percent",
+                    width=FieldWidth.XS,
+                ),
             ],
         ),
         SectionDefinition(

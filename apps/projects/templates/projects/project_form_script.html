@@ -1,0 +1,94 @@
+
+
+{{ project_membership_users_data|json_script:"project-membership-users-data" }}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const usersDataElement = document.getElementById(
+        "project-membership-users-data"
+    );
+
+    const users = usersDataElement
+        ? JSON.parse(usersDataElement.textContent)
+        : [];
+
+    const companySelect = document.querySelector("#id_company");
+
+    function getSelectedCompanyId() {
+        return companySelect?.value || "";
+    }
+
+    function getAvailableUsers() {
+        const companyId = getSelectedCompanyId();
+
+        if (!companyId) {
+            return [];
+        }
+
+        return users.filter(
+            (user) => (
+                String(user.client_environment__company_id)
+                === String(companyId)
+            )
+        );
+    }
+
+    function getMembershipUserSelects() {
+        return document.querySelectorAll(
+            '[data-ep-form-collection="memberships"] '
+            + 'select[name$="-user"]'
+        );
+    }
+
+    function refreshUserSelect(select) {
+        const currentValue = select.value;
+
+        select.innerHTML = "";
+
+        const emptyOption = document.createElement("option");
+
+        emptyOption.value = "";
+        emptyOption.textContent = "---------";
+
+        select.appendChild(emptyOption);
+
+        getAvailableUsers().forEach((user) => {
+            const option = document.createElement("option");
+
+            option.value = user.user_id;
+            option.textContent = (
+                `${user.user__last_name} ${user.user__first_name}`
+            );
+
+            if (String(user.user_id) === String(currentValue)) {
+                option.selected = true;
+            }
+
+            select.appendChild(option);
+        });
+    }
+
+    function refreshAllUserSelects() {
+        getMembershipUserSelects().forEach(refreshUserSelect);
+    }
+
+    if (companySelect && !companySelect.disabled) {
+        companySelect.addEventListener(
+            "change",
+            refreshAllUserSelects
+        );
+    }
+
+    document.addEventListener("click", (event) => {
+        const button = event.target.closest(
+            '[data-ep-add-row="memberships"]'
+        );
+
+        if (!button) {
+            return;
+        }
+
+        window.setTimeout(refreshAllUserSelects, 0);
+    });
+});
+</script>
