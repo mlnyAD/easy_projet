@@ -1,79 +1,171 @@
+### #############################
+###     Application bureau
+###        Environnement
+### #############################
 
-### Formulaires
+### Transaction Accueil
+*A définir*
 
-### Transaction Tâches
-Affecter des charges par métier, puis lors de la vraie planification affecter des ressources
+### Transaction Sociétés
+Liste : RAS
+Transaction : RAS
 
-### Planning
+### Transaction Contacts
+Liste : RAS
+Transaction : Tester un utilisateur avec plusieurs environnements client
+
+### Transaction Licences
+Liste : Manque le bouton "Nouvelle licence" si l'utilisateur en a les droits
+        Pas d'action possible - il faudrait au moins visualiser
+Transaction : L'administrateur client ne peut pas gérer ses licences. Tout au moins les visualiser.
 
 ### Transaction client
 Crééer une arborescence type
 Créer un projet type
 Fonction de recherche des orphelins 
 Fonction de recherche des fichiers bloqués en édition
+Développer la transaction cliet avec les objets déjà définis
 
-### Documents
-Mettre les fichiers supprimés dans une corbeille lors de la suppression initiale
-Implémenter Partager et Permissions
+### Transaction Localisation des projets
+RAS
 
-Traiter dans un second temps le renouvellement/expiration en session
-Future page de maintenance des verrous.
-Sans l'implémenter maintenant on pourrait aussi mettre un batch qui au démarrage du serveur débloque les verrous.
+### Transaction Risques
+Liste : Ajouter le cout estimé
+Transaction : Classe et impacts devraient être en multi-sélection
 
-### CSS
+### Transaction Intégrations externes
+Listes : Distinguer une intégration externe globale (proposée par Axcio-Data) d'une intégration privée
+Transaction : Ajouter un flag : Globale ou Privée
 
-### Réunions
-
-### Ergonomie
-Fonction disponible → affichage normal et action active.
-Fonction prévue mais non implémentée → grisée + italique + désactivée + infobulle « Fonction à venir ».
-
-### Boites de dialogue
-
-### Intégrations externes
-
-### Affichage des répertoires
-
-### Dashboard
+### Transaction Dashboard
 A faire :
 - dashboard Société ;
 - dashboard multi-projets / CP ;
 - choix des agrégats et navigation entre niveaux.
 
-### Rapports d'activité
+
+### #############################
+###     Application bureau
+###         Mes projets
+### #############################
+
+### Transaction Projets
+Liste : Inverser Chef de projet titulaire et Maitre d'ouvrage
+        Ajouter le Maître d'oeuvre
+        Renommer Chef de projet titulaire en chef de projet
+Transaction : Rubrique Chef de projet : ne proposer que des utilisateurs de sociétés l'environnement client
+              Rubrique utilisateurs : ne proposer que des utilisateurs de sociétés l'environnement client
+              Projet inactif. On ne peut pas voir les éléments du projet
+              Résumé : diminuer la taille des pavés 
+              Libéllés à reprendre :
+              - Modifier => Modifier le projet
+              - Lotir => Lots de travaux et tâches
+              - Piloter => Piloter les réunions
+              - Documentation => *modifier le rang*
+              - Album photos  => *modifier le rang*
+              - Gérer les heures => Rapports d'activité
+              - Télécharger le DOE => à mettre dans la transaction DOE
+              - Photo => A mettre dans le résumé (comme pour les utilisateurs)
+              Donner la possibilité de saisir le % d'avancement
+              Ajouter un lien vers le planning du projet
+              Ajouter un lien vers liste des RA validés pour ce projet
+
+### Transaction Favoris
+Liste : Offir les mêmes actions sur le fichier que dans l'arborescence
+
+### Transaction Lots de travaux
+Liste : RAS
+Transaction : Pb de navigation si on vient du résumé, il faut retourner au résumé
+
+### Transaction Tâches
+Liste : RAS
+Transaction : RAS
+
+### Transaction Planning
+Global : Ajouter des commandes : Tout déplier, tout replier, déplier/replier lot
+Gantt : RAS
+Plan de charge : Aligner les colonnes Semaines 
+Ressources : Pour chaque ressource indiquer son activité pour la semaine
+Calendrier : Prévoir qu'une tâche peut durer seulement 1 jour
+             Si une tâche sur plusieurs jours, afficher cette tâche pour chaque jour
+
+### Transaction Réunions
+Liste : RAS
+Transaction : RAS
+
+### Transaction Mon rapport d'activité (RA)
 Traiter le cas où l'utilisateur ne peut pas créer son propre RA. A saisir par le CP.
-Quand un RA est à traiter par le CP, il faudrait le notifier avec le compteur des notifications.
+Offrir la possibilité de visualiser les RA déjà émis pour utilisateur (par exemple depuis le popup menu à gauche en bas d'écran)
 
-### Sociétés
+### Transaction Validation des RA
+Liste : Adopter le même look que les autres listes 
+        Ajoputer un bouton Quitter
+Transaction : Quand un RA est à traiter par le CP, il faudrait le notifier avec le compteur des notifications.
 
-### Risques
 
-### Contacts
-Liste : réduire la hauteur des lignes pour avoir une page entière à l'écran
+### #############################
+###     Application bureau
+###    Gestion documentaire
+### #############################
+
+### Documents
+Mettre les fichiers supprimés dans une corbeille lors de la suppression initiale
+Implémenter Partager et Permissions
+
+### Affichage des répertoires
+
+### Import photos
+??? Pour la suite, je garderais en tête deux évolutions seulement : preview_fit différencié entre photo utilisateur (cover) et logo société (contain), puis plus tard une vraie sélection de société active si le modèle multi-société évolue. Pour l’instant, ce n’est pas bloquant. ???
+
+### DOE
+Je la formaliserais ainsi :
+1. Générer le DOE : sélection des documents marqués « Intégrer au DOE ».
+2. L’application transmet à l’IA les métadonnées utiles : nom, type, lot, description, version, statut, auteur, éventuellement contenu textuel exploitable. La seule liste de noms de fichiers sera souvent insuffisante.
+3. L’IA reçoit également le modèle d’arborescence DOE vierge.
+4. L’IA retourne une proposition structurée :
+   document → dossier cible, avec éventuels documents non classés et raisons.
+5. Easy Projet génère un DOE brouillon : arborescence, copies des fichiers et index.
+6. Le CP ou son adjoint ajuste le classement, ajoute ou exclut des documents, puis valide.
+7. La validation fige une version du DOE et produit le ZIP ainsi que l’index PDF.
+
+### Signature électronique
+Oui : par un webhook Documenso.
+À chaque signature ou fin de signature, Documenso appelle une URL d’Easy Projet. L’application pourra alors :
+- mettre à jour le statut des signataires et de la demande ;
+- enregistrer la date de fin ;
+- récupérer le PDF signé final ;
+- créer une notification Easy Projet pour les utilisateurs concernés.
+Ce n’est pas encore câblé dans le code : l’adaptateur sait déjà vérifier le secret webhook, mais il faut ajouter la vue de réception et le traitement des événements.
+Comme Easy Projet est actuellement sur localhost, Documenso Cloud ne peut pas l’appeler directement. Pour les essais, il faudra exposer temporairement le serveur Django via un tunnel HTTPS Cloudflare ; en production, l’URL publique du serveur sera utilisée. Documenso prévoit explicitement les webhooks pour suivre ces événements. docs.documenso.com
+
+### #############################
+###     Application bureau
+###     Fonctions communes
+### #############################
+Listes : Impossible de sortir de la liste des colonnes si on ne fait pas appliquer
+Si on sélectionne un article en page 2, après rafraichissement, on revient en page 1
+Rester sur la page en cours
+
+### Ergonomie
+Fonction disponible → affichage normal et action active.
+Fonction prévue mais non implémentée → grisée + italique + désactivée + infobulle « Fonction à venir ».
+
+### Login
+Donner la possibilité de visualiser le mot de passe lors de la saisie
 
 ### Formulaires
 Revoir la hauteur des sections
 Revoir le nombre de champs de saisie par ligne
 
-## Lots de travaux
+### CSS
 
-### Import photos
-Pour la suite, je garderais en tête deux évolutions seulement : preview_fit différencié entre photo utilisateur (cover) et logo société (contain), puis plus tard une vraie sélection de société active si le modèle multi-société évolue. Pour l’instant, ce n’est pas bloquant.
+### Boites de dialogue
 
-### Login
-Donner la possibilité de visualiser le mot de passe lors de la saisie
-Dans la liste des utilisateurs, ne pas mettre les icônes superposées mais en ligne
 
-### Affichage des listes
-Si on sélectionne un article en page 2, après rafraichissement, on revient en page 1
-Rester sur la page en cours
-
-### Transaction projet
-Rubrique Chef de projet : ne proposer que des utilisateurs de sociétés l'environnement client
-Rubrique utilisateurs : ne proposer que des utilisateurs de sociétés l'environnement client
-Projet inactif. On ne peut pas voir les éléments du projet. 
-
-### Transaction licences
+### #############################
+###     Application bureau
+###     Travaux d'ensemble
+### #############################
 
 ### Fin recherche sécurité niveau 1
 Sujet restant	Nature	Priorité / moment
@@ -90,7 +182,7 @@ Email catch-all Axcio Data : délais irréguliers	Infrastructure externe	À surv
 ProjectCompany et visibilité des salariés des sociétés participantes	Autorisations métier	Niveau 2
 CLIENT_ADMIN pouvant potentiellement attribuer SYSTEM_ADMIN	Sécurité des autorisations	À traiter au début du Niveau 2
 
-### Homogénéiser les arborescence
+### Homogénéiser les arborescences de déveoppement
 dans apps certains ont des fichiers test dans la racine, d'autres les tests sont dans un répertoire dédieé.
 A harmoniser
 
@@ -122,17 +214,6 @@ Les notifications devraient couvrir uniquement les événements qui demandent un
 - nouveau message interne : la notification ouvre alors le message, mais ne le remplace pas ;
 - échéance proche ou dépassée.
 
-### DOE
-Je la formaliserais ainsi :
-1. Générer le DOE : sélection des documents marqués « Intégrer au DOE ».
-2. L’application transmet à l’IA les métadonnées utiles : nom, type, lot, description, version, statut, auteur, éventuellement contenu textuel exploitable. La seule liste de noms de fichiers sera souvent insuffisante.
-3. L’IA reçoit également le modèle d’arborescence DOE vierge.
-4. L’IA retourne une proposition structurée :
-   document → dossier cible, avec éventuels documents non classés et raisons.
-5. Easy Projet génère un DOE brouillon : arborescence, copies des fichiers et index.
-6. Le CP ou son adjoint ajuste le classement, ajoute ou exclut des documents, puis valide.
-7. La validation fige une version du DOE et produit le ZIP ainsi que l’index PDF.
-
 
 ### Ecrans à reprendre pour normalisation framework
 Le premier relevé donne 23 templates contenant une balise <form>, mais ce ne sont pas 23 écrans à reprendre.
@@ -162,42 +243,5 @@ Je propose, quand le fonctionnel documentaire sera stabilisé, de faire un inven
 4. Formulaires de reporting ;
 5. Dialogues et formulaires spécialisés, seulement si leur ergonomie reste insuffisante.
 
-Le bon choix est une application web responsive unique, avec un mode « terrain » plutôt qu’une application mobile distincte.
-Même URL, mêmes comptes, mêmes droits et mêmes services métier ; seule l’interface s’adapte au téléphone et au rôle. Cela évite de dupliquer les règles de gestion et garantit que les données sont immédiatement partagées avec le bureau.
-Le mode terrain pourrait proposer un menu très réduit :
-- Mes tâches : à faire, en cours, terminées ;
-- Mes projets : accès au projet courant et à ses informations essentielles ;
-- Documents et plans : consultation rapide ;
-- Photos : prise de photo, classement dans un album, annotation ultérieurement ;
-- Réunions / consignes : convocations, comptes rendus, actions ;
-- Signalements : risque, réserve ou remarque avec photo ;
-- Notifications.
-L’écran d’accueil ne doit pas être une reproduction du tableau de bord bureau : il doit répondre à « que dois-je faire maintenant ? » et « que puis-je consulter ou signaler sur ce chantier ? ».
-Techniquement, il faudra privilégier :
-- gros boutons et zones tactiles ;
-- peu de colonnes, plutôt des cartes ;
-- actions en un ou deux gestes ;
-- appareil photo et partage de fichiers du navigateur ;
-- chargements légers ;
-- droits déjà existants, appliqués sans exception.
-Une PWA installable pourra être ajoutée plus tard, sans changer l’application : raccourci sur l’écran d’accueil, cache des écrans essentiels et, éventuellement, synchronisation différée pour les zones sans réseau.
-
-Priorités ergonomiques :
-- une action principale par écran ;
-- vocabulaire chantier, sans termes techniques ;
-- boutons visibles, libellés explicites et icônes en complément ;
-- accès direct aux tâches, photos, documents et signalements ;
-- pas de tableaux larges ni de formulaires longs ;
-- conservation automatique des brouillons quand elle sera nécessaire.
-L’objectif : un utilisateur doit pouvoir consulter une consigne, prendre une photo ou signaler un problème sans formation.
 
 
-### Signature électronique
-Oui : par un webhook Documenso.
-À chaque signature ou fin de signature, Documenso appelle une URL d’Easy Projet. L’application pourra alors :
-- mettre à jour le statut des signataires et de la demande ;
-- enregistrer la date de fin ;
-- récupérer le PDF signé final ;
-- créer une notification Easy Projet pour les utilisateurs concernés.
-Ce n’est pas encore câblé dans le code : l’adaptateur sait déjà vérifier le secret webhook, mais il faut ajouter la vue de réception et le traitement des événements.
-Comme Easy Projet est actuellement sur localhost, Documenso Cloud ne peut pas l’appeler directement. Pour les essais, il faudra exposer temporairement le serveur Django via un tunnel HTTPS Cloudflare ; en production, l’URL publique du serveur sera utilisée. Documenso prévoit explicitement les webhooks pour suivre ces événements. docs.documenso.com

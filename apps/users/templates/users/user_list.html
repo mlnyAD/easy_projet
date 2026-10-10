@@ -3,14 +3,14 @@
 {% extends "layout/base.html" %}
 
 {% block title %}
-    Utilisateurs — Easy Projet
+    Contacts — Easy Projet
 {% endblock %}
 
 {% block content %}
 
     <div class="ep-page">
 
-        {% include "edf/page/header.html" with page_title="Utilisateurs" page_action_label="Nouvel utilisateur" page_action_url=user_create_url page_action_icon="plus" %}
+        {% include "edf/page/header.html" with page_title="Contacts" page_action_label="Nouveau contact" page_action_url=user_create_url page_action_icon="plus" %}
 
         {% include "edf/list/list.html" %}
 

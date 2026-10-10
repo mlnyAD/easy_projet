@@ -18,6 +18,15 @@ from django.urls import (
 from django.utils.http import (
     url_has_allowed_host_and_scheme,
 )
+from django.db.models import (
+    Case,
+    CharField,
+    F,
+    Value,
+    When,
+)
+
+from apps.core.models import ClientEnvironmentMembership
 from django.views import View
 from django.views.generic import FormView, ListView
 from urllib.parse import quote
@@ -50,7 +59,7 @@ from .forms import (
     UserForm,
     UserLoginForm,
 )
-from .lists import USER_LIST_DEFINITION
+from .lists import CONTACT_LIST_DEFINITION
 from .models import User
 from .services import TemporaryPasswordService
 from .services.access import UserAccessService
@@ -86,14 +95,13 @@ class UserListView(
     EPListSortingMixin,
     EPListPreferencesMixin,
     EPListPaginationMixin,
-    UserAccessListQuerysetMixin,
     ListView,
 ):
-    model = User
+    model = ClientEnvironmentMembership
     template_name = "users/user_list.html"
-    context_object_name = "users"
+    context_object_name = "contacts"
 
-    list_definition = USER_LIST_DEFINITION
+    list_definition = CONTACT_LIST_DEFINITION
 
     company_parameter = "company"
     activity_parameter = "activity"
@@ -109,43 +117,53 @@ class UserListView(
     )
 
     def get_sort_field_map(self) -> dict[str, str]:
-        """
-        Associe les colonnes affichées aux champs ORM triables.
-        """
-
         sort_field_map = super().get_sort_field_map()
 
-        sort_field_map["company"] = "company__name"
+        sort_field_map.update(
+            {
+                "last_name": "user__last_name",
+                "first_name": "user__first_name",
+                "email": "user__email",
+                "phone": "user__phone",
+                "client": (
+                    "client_environment__company__name"
+                ),
+                "employment_type": "employment_type__label",
+                "client_administration": (
+                    "is_client_admin_responsible"
+                ),
+                "user_is_active": "user__is_active",
+            }
+        )
 
         return sort_field_map
 
     def get_filter_companies(self):
-        """
-        Retourne les sociétés présentes dans le périmètre visible.
-
-        Une société sans contact accessible n'est jamais proposée.
-        """
-
-        accessible_users = (
-            UserAccessService.get_accessible_users(
+        memberships = (
+            UserAccessService
+            .get_accessible_client_environment_memberships(
                 self.request.user
             )
         )
 
-        return (
-            Company.objects.filter(
-                users__in=accessible_users,
+        environment_ids = (
+            memberships
+            .order_by()
+            .values_list(
+                "client_environment_id",
+                flat=True,
             )
-            .distinct()
+        )
+
+        return (
+            Company.objects
+            .filter(
+                client_environment__in=environment_ids,
+            )
             .order_by("name")
         )
 
     def get_company_filter(self) -> str | None:
-        """
-        Retourne l'identifiant de société sélectionné, s'il est valide
-        et appartient au périmètre accessible.
-        """
-
         raw_company_id = self.request.GET.get(
             self.company_parameter,
             "",
@@ -167,10 +185,6 @@ class UserListView(
         return str(company_id)
 
     def get_activity_filter(self) -> str:
-        """
-        Retourne le filtre d'activité effectif.
-        """
-
         activity = self.request.GET.get(
             self.activity_parameter,
             self.activity_active,
@@ -182,26 +196,51 @@ class UserListView(
         return activity
 
     def get_queryset(self):
-        """
-        Retourne les contacts autorisés, filtrés et triés.
-
-        Le tri est appliqué avant la pagination Django.
-        """
-
-        queryset = super().get_queryset()
+        queryset = (
+            UserAccessService
+            .get_accessible_client_environment_memberships(
+                self.request.user
+            )
+            .annotate(
+                last_name=F("user__last_name"),
+                first_name=F("user__first_name"),
+                email=F("user__email"),
+                phone=F("user__phone"),
+                client=F(
+                    "client_environment__company__name"
+                ),
+                user_is_active=F("user__is_active"),
+                client_administration=Case(
+                    When(
+                        is_client_admin_responsible=True,
+                        then=Value(
+                            "Administrateur client"
+                        ),
+                    ),
+                    When(
+                        is_client_admin=True,
+                        then=Value(
+                            "Administrateur client délégué"
+                        ),
+                    ),
+                    default=Value(""),
+                    output_field=CharField(),
+                ),
+            )
+        )
 
         company_id = self.get_company_filter()
 
         if company_id is not None:
             queryset = queryset.filter(
-                company_id=company_id,
+                client_environment__company_id=company_id,
             )
 
         activity = self.get_activity_filter()
 
         if activity != self.activity_all:
             queryset = queryset.filter(
-                is_active=(
+                user__is_active=(
                     activity == self.activity_active
                 ),
             )
@@ -219,9 +258,7 @@ class UserListView(
         )
 
         framework_page = ListPage(
-            rows=tuple(
-                django_page.object_list
-            ),
+            rows=tuple(django_page.object_list),
             page=django_page.number,
             page_size=django_page.paginator.per_page,
             total_items=django_page.paginator.count,
@@ -248,8 +285,6 @@ class UserListView(
         )
 
         context["list_view"] = list_view
-
-        # Alias temporaire pour compatibilité avec les tests existants.
         context["list"] = list_view
 
         context["list_definition"] = (
@@ -299,7 +334,7 @@ class UserListView(
         )
 
         return context
-    
+
 
 class UserReturnUrlMixin:
     """

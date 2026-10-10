@@ -10,7 +10,10 @@ from django.utils import timezone
 from django.utils.http import (
     url_has_allowed_host_and_scheme,
 )
-from django.views.generic import ListView
+from django.views.generic import (
+    DetailView,
+    ListView,
+)
 from apps.catalogs.models import CatalogValue
 from apps.companies.models import Company
 from framework.integrations.django.list_pagination import (
@@ -367,7 +370,8 @@ class LicenseReturnUrlMixin:
 
     def get_cancel_url(self):
         return self.get_return_url()
-    
+
+        
 class LicenseCreateView(
     LicenseReturnUrlMixin,
     EPCreateView,
@@ -412,23 +416,27 @@ class LicenseUpdateView(
     definition = LICENSE_FORM_DEFINITION
     template_name = "edf/form/view.html"
 
-    def dispatch(self, request, *args, **kwargs):
-        if not LicenseAccessService.can_update_license(
-            request.user
-        ):
-            raise PermissionDenied
+    def can_edit_object(self) -> bool:
+        """
+        L'administrateur système modifie la licence.
+        Les autres utilisateurs autorisés la consultent
+        dans le même formulaire, en lecture seule.
+        """
 
-        return super().dispatch(
-            request,
-            *args,
-            **kwargs,
+        return LicenseAccessService.can_update_license(
+            self.request.user,
         )
 
     def get_queryset(self):
+        """
+        La consultation comme la modification restent limitées
+        aux licences accessibles à l'utilisateur connecté.
+        """
+
         return (
             LicenseAccessService
             .get_accessible_licenses(
-                self.request.user
+                self.request.user,
             )
         )
 

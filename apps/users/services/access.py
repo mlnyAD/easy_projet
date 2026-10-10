@@ -16,6 +16,56 @@ class UserAccessService:
     """
     Centralise les règles d'accès aux utilisateurs.
     """
+    
+    @classmethod
+    def get_accessible_client_environment_memberships(
+        cls,
+        user: User,
+    ) -> QuerySet[ClientEnvironmentMembership]:
+        """
+        Retourne les rattachements client actifs visibles
+        par l'utilisateur.
+
+        Une ligne représente un contact dans un environnement
+        client donné.
+        """
+
+        queryset = (
+            ClientEnvironmentMembership.objects
+            .filter(
+                is_active=True,
+                client_environment__is_active=True,
+            )
+            .select_related(
+                "user",
+                "user__company",
+                "client_environment",
+                "client_environment__company",
+                "employment_type",
+            )
+            .order_by(
+                "user__last_name",
+                "user__first_name",
+                "client_environment__company__name",
+            )
+        )
+
+        if not user.is_active:
+            return queryset.none()
+
+        if user.is_system_admin:
+            return queryset
+
+        environment_ids = (
+            cls._get_visible_environment_ids(user)
+        )
+
+        if not environment_ids:
+            return queryset.none()
+
+        return queryset.filter(
+            client_environment_id__in=environment_ids,
+        )    
 
     @classmethod
     def get_accessible_users(

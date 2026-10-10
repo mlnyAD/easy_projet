@@ -5,7 +5,7 @@
     {% if can_manage_client_environments %}
 
         <a
-            href="{% url 'users:client-environment-membership-list' row.source_object.pk %}"
+            href="{% url 'users:client-environment-membership-list' row.source_object.user.pk %}"
             class="ep-list-row-action"
             title="Gérer les accès client"
             aria-label="Gérer les accès aux environnements clients"
@@ -20,7 +20,7 @@
     {% endif %}
 
     <a
-        href="{% url 'users:update' row.source_object.pk %}?next={{ request.get_full_path|urlencode }}"
+        href="{% url 'users:update' row.source_object.user.pk %}?next={{ request.get_full_path|urlencode }}"
         class="ep-list-row-action"
         title="Modifier"
         aria-label="Modifier"
@@ -34,7 +34,7 @@
 
     <form
         method="post"
-        action="{% url 'users:temporary-password-resend' row.source_object.pk %}"
+        action="{% url 'users:temporary-password-resend' row.source_object.user.pk %}"
         class="inline"
     >
         {% csrf_token %}

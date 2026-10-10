@@ -1,18 +1,37 @@
 
 
-{% if can_update_license %}
+<div class="ep-list-row-actions">
 
-    <a
-        href="{% url 'licenses:update' row.source_object.pk %}?next={{ request.get_full_path|urlencode }}"
-        class="ep-list-row-action"
-        title="Modifier"
-        aria-label="Modifier la licence"
-    >
-        <i
-            data-lucide="pen"
-            class="ep-list-row-action-icon"
-            aria-hidden="true"
-        ></i>
-    </a>
+    {% if can_update_license %}
 
-{% endif %}
+        <a
+            href="{% url 'licenses:update' row.source_object.pk %}?next={{ request.get_full_path|urlencode }}"
+            class="ep-list-row-action"
+            title="Modifier"
+            aria-label="Modifier la licence"
+        >
+            <i
+                data-lucide="pen"
+                class="ep-list-row-action-icon"
+                aria-hidden="true"
+            ></i>
+        </a>
+
+    {% else %}
+
+        <a
+            href="{% url 'licenses:update' row.source_object.pk %}?next={{ request.get_full_path|urlencode }}"
+            class="ep-list-row-action"
+            title="Consulter"
+            aria-label="Consulter la licence"
+        >
+            <i
+                data-lucide="eye"
+                class="ep-list-row-action-icon"
+                aria-hidden="true"
+            ></i>
+        </a>
+
+    {% endif %}
+
+</div>
