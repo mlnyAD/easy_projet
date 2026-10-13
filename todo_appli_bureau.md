@@ -7,30 +7,23 @@
 *A définir*
 
 ### Transaction Sociétés
-Liste : RAS
-Transaction : RAS
 
 ### Transaction Contacts
-Liste : RAS
 Transaction : Tester un utilisateur avec plusieurs environnements client
 
 ### Transaction Licences
-Liste : Ras
-Transaction : RAS
 
 ### Transaction client
-Crééer une arborescence type
+Créer une arborescence type
 Créer un projet type
 Fonction de recherche des orphelins 
 Fonction de recherche des fichiers bloqués en édition
-Développer la transaction cliet avec les objets déjà définis
+Développer la transaction client avec les objets déjà définis
 
 ### Transaction Localisation des projets
 RAS
 
 ### Transaction Risques
-Liste : RAS
-Transaction : RAS
 
 ### Transaction Intégrations externes
 Liste : Distinguer une intégration externe globale (proposée par Axcio-Data) d'une intégration privée
@@ -42,26 +35,19 @@ A faire :
 - dashboard multi-projets / CP ;
 - choix des agrégats et navigation entre niveaux.
 
-
 ### #############################
 ###     Application bureau
 ###         Mes projets
 ### #############################
 
 ### Transaction Projets
-Liste : RAS
-Transaction : RAS
 
 ### Transaction Favoris
 Liste : Offir les mêmes actions sur le fichier que dans l'arborescence
 
 ### Transaction Lots de travaux
-Liste : RAS
-Transaction : RAS
 
 ### Transaction Tâches
-Liste : RAS
-Transaction : RAS
 
 ### Transaction Planning
 Global : Ajouter des commandes : Tout déplier, tout replier, déplier/replier lot
@@ -72,16 +58,13 @@ Calendrier : Prévoir qu'une tâche peut durer seulement 1 jour
              Si une tâche sur plusieurs jours, afficher cette tâche pour chaque jour
 
 ### Transaction Réunions
-Liste : RAS
-Transaction : RAS
 
 ### Transaction Mon rapport d'activité (RA)
 Traiter le cas où l'utilisateur ne peut pas créer son propre RA. A saisir par le CP.
 Offrir la possibilité de visualiser les RA déjà émis pour utilisateur (par exemple depuis le popup menu à gauche en bas d'écran)
 
 ### Transaction Validation des RA
-Liste : Adopter le même look que les autres listes 
-        Ajoputer un bouton Quitter
+Liste : Adopter le même look que les autres listes (Ultérieurement)
 Transaction : Quand un RA est à traiter par le CP, il faudrait le notifier avec le compteur des notifications.
 
 
@@ -226,4 +209,41 @@ Je propose, quand le fonctionnel documentaire sera stabilisé, de faire un inven
 5. Dialogues et formulaires spécialisés, seulement si leur ergonomie reste insuffisante.
 
 
+### IA
+Pour le planning et le plan de charge, l’IA pourrait analyser :
+- tâches, dépendances, jalons et dates ;
+- charges prévues par métier et par personne ;
+- disponibilités, surcharges et compétences ;
+- retards ou incohérences de planification.
+Elle retournerait par exemple :
+- les surcharges détectées ;
+- des scénarios de décalage ou de réaffectation ;
+- les métiers manquants sur une période ;
+- l’incidence de chaque proposition sur les dates et charges ;
+- les hypothèses utilisées.
+Point important : le calcul fiable des contraintes restera dans l’application — et éventuellement un solveur d’optimisation plus tard. L’IA sert surtout à interpréter la situation, comparer des scénarios et formuler des recommandations compréhensibles.
+Pour la documentation, elle pourrait :
+- résumer un document ou un dossier ;
+- classer automatiquement les documents ;
+- extraire les éléments importants d’un CCTP, d’un compte rendu ou d’un devis ;
+- répondre à une question en citant précisément les documents source ;
+- détecter les pièces manquantes dans un DOE.
+Architecture cible simple :
+- un module apps/ai ;
+- une demande IA historisée : données transmises, utilisateur, date, objectif ;
+- une réponse structurée et validée avant affichage ;
+- des recommandations avec statut : proposée, acceptée, refusée, appliquée ;
+- aucune donnée métier modifiée sans action explicite de l’utilisateur ;
+- journalisation des décisions et des sources documentaires utilisées.
+Je conseille de commencer par le planning en mode analyse seule : détection des surcharges, incohérences et risques de délai, sans optimisation automatique. C’est le cas le plus concret pour valider l’utilité et l’ergonomie avant d’étendre à la GED.
 
+
+L’IA n’a aucun accès direct à votre serveur, à votre base de données ou à vos documents.
+Le fonctionnement actuel est le suivant :
+1. Easy Projet lit les données autorisées côté serveur.
+2. Il prépare un extrait : tâches, dates, charges, ressources, besoins métiers, question et historique.
+3. Cet extrait est envoyé à l’API OpenAI avec la clé stockée sur votre serveur.
+4. OpenAI renvoie une réponse textuelle.
+5. Easy Projet l’affiche, sans écriture automatique dans vos données.
+Pour l’assistant de la topbar, seules la question et les quelques messages précédents sont transmis. Pour le Planning, les données calculées du projet sélectionné sont également transmises.
+L’API ne reçoit donc que les informations que nous choisissons explicitement de lui envoyer ; elle ne peut ni parcourir la base, ni consulter les fichiers GED, ni agir dans l’application.

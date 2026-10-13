@@ -2,6 +2,7 @@
 
 from django.urls import path
 
+from apps.integrations.services.ai_views import AIAssistantView
 from .views import (
     ExternalIntegrationCreateView,
     ExternalIntegrationListView,
@@ -27,5 +28,10 @@ urlpatterns = [
         "<uuid:pk>/edit/",
         ExternalIntegrationUpdateView.as_view(),
         name="update",
+    ),
+    path(
+        "ai/assistant/",
+        AIAssistantView.as_view(),
+        name="ai-assistant",
     ),
 ]

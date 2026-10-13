@@ -1,0 +1,119 @@
+
+
+<aside
+    class="ep-communication-panel ep-ai-assistant-panel"
+    aria-label="Assistant IA"
+    aria-hidden="true"
+    data-ai-assistant-panel
+    data-ai-assistant-general-url="{% url 'integrations:ai-assistant' %}"
+>
+    <header class="ep-communication-panel-header">
+        <div class="ep-communication-panel-heading">
+            <h2
+                class="ep-communication-panel-title"
+                data-ai-assistant-title
+            >
+                Assistant IA
+            </h2>
+
+            <p
+                class="ep-communication-panel-project"
+                data-ai-assistant-subtitle
+            >
+                Questions générales sur Easy Projet
+            </p>
+        </div>
+
+        <div class="ep-communication-panel-header-actions">
+            <button
+                type="button"
+                class="ep-communication-panel-pin"
+                title="Épingler le volet"
+                aria-label="Épingler le volet"
+                aria-pressed="false"
+                data-ai-assistant-pin
+            >
+                <i
+                    data-lucide="pin-off"
+                    class="ep-communication-panel-icon"
+                    aria-hidden="true"
+                ></i>
+            </button>
+
+            <button
+                type="button"
+                class="ep-communication-panel-close"
+                title="Fermer"
+                aria-label="Fermer l'assistant IA"
+                data-ai-assistant-close
+            >
+                <i
+                    data-lucide="x"
+                    class="ep-communication-panel-icon"
+                    aria-hidden="true"
+                ></i>
+            </button>
+        </div>
+    </header>
+
+    <div
+        class="ep-ai-assistant-messages"
+        aria-live="polite"
+        data-ai-assistant-messages
+    ></div>
+
+    <form
+        class="ep-ai-assistant-form"
+        data-ai-assistant-form
+    >
+        {% csrf_token %}
+
+        <label
+            for="ai-assistant-question"
+            class="mb-1 block text-sm font-medium"
+        >
+            Votre demande
+        </label>
+
+        <textarea
+            id="ai-assistant-question"
+            rows="3"
+            maxlength="1500"
+            placeholder="Posez votre question…"
+            class="
+                w-full resize-none rounded-md border px-3 py-2 text-sm
+                border-axcio-border-light
+                bg-white
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-dark
+            "
+            data-ai-assistant-question
+        ></textarea>
+
+        <div class="mt-3 flex items-center justify-between gap-3">
+            <p
+                class="
+                    text-xs text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                "
+            >
+                L’IA formule des propositions ; elle ne modifie
+                jamais les données.
+            </p>
+
+            <button
+                type="submit"
+                class="
+                    shrink-0 rounded-md px-3 py-2 text-sm font-medium
+                    text-white transition-colors
+                "
+                style="background-color: #0D5262;"
+                onmouseover="this.style.backgroundColor='#1E7477'"
+                onmouseout="this.style.backgroundColor='#0D5262'"
+                data-ai-assistant-submit
+            >
+                Envoyer
+            </button>
+        </div>
+    </form>
+</aside>

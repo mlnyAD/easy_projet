@@ -1146,3 +1146,103 @@
         max-width: none;
     }
 }
+
+/* ==========================================================================
+   ASSISTANT IA
+   ========================================================================== */
+
+.ep-ai-assistant-panel-pinned {
+    transform: translateX(0);
+    box-shadow: none;
+}
+
+.ep-app-main.ep-app-main-ai-assistant-pinned
+.ep-main-content {
+    margin-right: 24rem;
+}
+
+.ep-ai-assistant-messages {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1rem;
+}
+
+.ep-ai-assistant-form {
+    flex-shrink: 0;
+    border-top: 1px solid var(--color-axcio-border-light);
+    padding: 1rem;
+}
+
+.dark .ep-ai-assistant-form {
+    border-color: var(--color-axcio-border-dark);
+}
+
+.ep-ai-assistant-message {
+    max-width: 92%;
+    align-self: flex-start;
+    border: 1px solid var(--color-axcio-border-light);
+    border-radius: 0.5rem;
+    background-color: var(--color-axcio-surface-alt);
+    padding: 0.75rem;
+}
+
+.dark .ep-ai-assistant-message {
+    border-color: var(--color-axcio-border-dark);
+    background-color: var(--color-axcio-surface-alt-dark);
+}
+
+.ep-ai-assistant-message-user {
+    align-self: flex-end;
+    border-color: color-mix(
+        in srgb,
+        var(--color-axcio-light) 35%,
+        transparent
+    );
+    background-color: color-mix(
+        in srgb,
+        var(--color-axcio-light) 12%,
+        transparent
+    );
+}
+
+.ep-ai-assistant-message-label {
+    margin-bottom: 0.25rem;
+    color: var(--color-axcio-text-muted);
+    font-size: 0.6875rem;
+    font-weight: 600;
+}
+
+.dark .ep-ai-assistant-message-label {
+    color: var(--color-axcio-text-muted-dark);
+}
+
+.ep-ai-assistant-message-body {
+    white-space: pre-wrap;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+@media (max-width: 1023px) {
+    .ep-app-main.ep-app-main-ai-assistant-pinned
+    .ep-main-content {
+        margin-right: 0;
+    }
+
+    .ep-ai-assistant-panel-pinned {
+        transform: translateX(100%);
+    }
+
+    .ep-ai-assistant-panel-pinned
+    .ep-communication-panel-pin {
+        display: none;
+    }
+
+    .ep-ai-assistant-panel-pinned.ep-communication-panel-open {
+        transform: translateX(0);
+    }
+}

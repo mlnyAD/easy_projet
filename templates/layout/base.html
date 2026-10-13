@@ -53,7 +53,7 @@
 
     <link
         rel="stylesheet"
-        href="{% static 'dist/output.css' %}?v=8"
+        href="{% static 'dist/output.css' %}?v=9"
     >
 
 </head>
@@ -78,6 +78,8 @@
             </main>
 
             {% communication_panel current_project %}
+
+            {% include "ai/assistant_panel.html" %}
 
         </div>
 
@@ -128,6 +130,10 @@
 
         <script
             src="{% static 'js/framework/communications.js' %}?v=14"
+            defer
+        ></script>
+        <script
+            src="{% static 'js/framework/ai_assistant.js' %}?v=1"
             defer
         ></script>
         <script

@@ -232,6 +232,20 @@ GOOGLE_MAPS_API_KEY = os.environ.get(
     "",
 )
 
+# **************************************************************************
+# Intelligence artificielle — OpenAI
+# **************************************************************************
+
+OPENAI_API_KEY = os.getenv(
+    "OPENAI_API_KEY",
+    "",
+).strip()
+
+OPENAI_MODEL = os.getenv(
+    "OPENAI_MODEL",
+    "",
+).strip()
+
 # ***********************************
 # OnlyOffice
 # ***********************************

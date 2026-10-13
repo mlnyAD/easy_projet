@@ -2,6 +2,7 @@
 
 from django.urls import path
 
+from .ai_views import PlanningAIAnalysisView
 from .views import PlanningHomeView
 
 
@@ -13,5 +14,10 @@ urlpatterns = [
         "",
         PlanningHomeView.as_view(),
         name="home",
+    ),
+    path(
+        "ai-analysis/",
+        PlanningAIAnalysisView.as_view(),
+        name="ai-analysis",
     ),
 ]

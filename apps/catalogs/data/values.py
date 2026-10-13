@@ -792,6 +792,13 @@ CATALOG_VALUE_DEFINITIONS = [
 
     CatalogValueDefinition(
         catalog="INTEGRATION_SERVICE_TYPE",
+        code="GENERATIVE_AI",
+        label="Intelligence artificielle générative",
+        sort_order=30,
+    ),
+    
+    CatalogValueDefinition(
+        catalog="INTEGRATION_SERVICE_TYPE",
         code="SIGNATURE",
         label="Signature électronique",
         sort_order=40,
@@ -911,6 +918,12 @@ CATALOG_VALUE_DEFINITIONS = [
         code="DOCUMENSO",
         label="Documenso",
         sort_order=100,
+    ),
+    CatalogValueDefinition(
+        catalog="INTEGRATION_PROVIDER",
+        code="OPENAI",
+        label="OpenAI",
+        sort_order=110,
     ),
 
     # ========================================================================

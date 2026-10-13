@@ -329,7 +329,7 @@
                     {% if can_manage_project_hours %}
 
                         <a
-                            href="{% url 'reporting:review-list' %}?project={{ project.pk }}&status=VALIDATED"
+                            href="{% url 'reporting:review-list' %}?project={{ project.pk }}&status=VALIDATED&next={{ request.get_full_path|urlencode }}"
                             class="project-action-card"
                         >
                             <i

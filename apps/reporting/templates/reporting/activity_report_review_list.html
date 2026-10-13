@@ -20,21 +20,48 @@
 
         <div>
             <h1
-                class="text-xl font-semibold
-                       text-axcio-text
-                       dark:text-axcio-text-dark"
+                class="
+                    text-xl font-semibold
+                    text-axcio-text
+                    dark:text-axcio-text-dark
+                "
             >
                 Rapports d'activité
             </h1>
 
             <p
-                class="mt-1 text-sm
-                       text-axcio-text-muted
-                       dark:text-axcio-text-muted-dark"
+                class="
+                    mt-1 text-sm
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                "
             >
                 Activités projet transmises par les collaborateurs
             </p>
         </div>
+
+        <a
+            href="{{ return_url }}"
+            class="
+                inline-flex items-center gap-2 rounded-lg border
+                border-axcio-border-light
+                px-4 py-2 text-sm font-medium
+                text-axcio-text-secondary
+                transition-colors
+                hover:bg-axcio-surface-alt
+                dark:border-axcio-border-dark
+                dark:text-axcio-text-secondary-dark
+                dark:hover:bg-axcio-surface-alt-dark
+            "
+        >
+            <i
+                data-lucide="arrow-left"
+                class="h-4 w-4"
+                aria-hidden="true"
+            ></i>
+
+            {{ return_label }}
+        </a>
 
     </div>
 
@@ -56,6 +83,22 @@
             method="get"
             class="flex flex-wrap items-end gap-3"
         >
+
+            {% if selected_project_id %}
+                <input
+                    type="hidden"
+                    name="project"
+                    value="{{ selected_project_id }}"
+                >
+            {% endif %}
+
+            {% if caller_url %}
+                <input
+                    type="hidden"
+                    name="next"
+                    value="{{ caller_url }}"
+                >
+            {% endif %}
 
             <div class="min-w-48">
 

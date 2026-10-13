@@ -19,6 +19,7 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import (
     DetailView,
     ListView,
@@ -774,6 +775,53 @@ class ActivityReportReviewListView(
             "activity_report__user__first_name",
         )
 
+    def get_caller_url(self) -> str | None:
+        """
+        Retourne l'URL appelante lorsqu'elle est interne
+        à l'application.
+        """
+
+        candidate = (
+            self.request.GET.get("next")
+            or ""
+        ).strip()
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={
+                    self.request.get_host(),
+                },
+                require_https=self.request.is_secure(),
+            )
+        ):
+            return candidate
+
+        return None
+
+
+    def get_return_url(self) -> str:
+        """
+        Retourne l'appelant ou, à défaut, la liste des projets.
+        """
+
+        return (
+            self.get_caller_url()
+            or reverse("projects:list")
+        )
+
+
+    def get_return_label(self) -> str:
+        """
+        Adapte le libellé à l'origine de l'appel.
+        """
+
+        if self.get_caller_url():
+            return "Retour au projet"
+
+        return "Retour aux projets"
+
     # ------------------------------------------------------------------
     # Contexte
     # ------------------------------------------------------------------
@@ -815,6 +863,15 @@ class ActivityReportReviewListView(
             ActivityReportProjectReviewStatus
             .IGNORED
         )
+
+        context["selected_project_id"] = (
+            self.request.GET.get("project")
+            or ""
+        ).strip()
+
+        context["caller_url"] = self.get_caller_url()
+        context["return_url"] = self.get_return_url()
+        context["return_label"] = self.get_return_label()
 
         return context
     
