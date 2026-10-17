@@ -74,8 +74,8 @@ Transaction : Quand un RA est à traiter par le CP, il faudrait le notifier avec
 ### #############################
 
 ### Documents
-Mettre les fichiers supprimés dans une corbeille lors de la suppression initiale
 Implémenter Partager et Permissions
+Il faudra ajouter l'administrateur système comme ayant droit de supprimer des fichiers (contenu illicite)
 
 ### Affichage des répertoires
 
@@ -92,6 +92,10 @@ Je la formaliserais ainsi :
 5. Easy Projet génère un DOE brouillon : arborescence, copies des fichiers et index.
 6. Le CP ou son adjoint ajuste le classement, ajoute ou exclut des documents, puis valide.
 7. La validation fige une version du DOE et produit le ZIP ainsi que l’index PDF.
+
+DOE à jour — recommandé
+Le document source mis en corbeille n’est plus repris au prochain rafraîchissement. Sa copie DOE actuelle reste visible jusqu’à ce rafraîchissement.
+
 
 ### Signature électronique
 Oui : par un webhook Documenso.
@@ -247,3 +251,16 @@ Le fonctionnement actuel est le suivant :
 5. Easy Projet l’affiche, sans écriture automatique dans vos données.
 Pour l’assistant de la topbar, seules la question et les quelques messages précédents sont transmis. Pour le Planning, les données calculées du projet sélectionné sont également transmises.
 L’API ne reçoit donc que les informations que nous choisissons explicitement de lui envoyer ; elle ne peut ni parcourir la base, ni consulter les fichiers GED, ni agir dans l’application.
+
+Je recommande cet ordre :
+1. Conversion ciblée des écrans non conformes au standard
+   Stabilise les composants, l’ergonomie et évite de dupliquer des écarts.
+2. Transaction client / documentation
+   Nous venons de travailler sur ce module ; recherche, fichiers bloqués et arborescences de types le rendront réellement exploitable.
+3. OPR : photos, plans et modifications
+   Le socle documentaire sera alors prêt pour ces pièces terrain.
+4. Application terrain
+   Elle pourra s’appuyer directement sur les flux OPR stabilisés.
+5. Dashboards
+   À traiter après consolidation des données opérationnelles, pour produire des indicateurs utiles et fiables.
+Je commencerais par la conversion ciblée, puis la documentation.

@@ -134,6 +134,7 @@ class DoeService:
             .filter(
                 project=project,
                 is_doe_generated=False,
+                trashed_at__isnull=True,
                 current_version__isnull=False,
                 folder__is_doe_root=False,
                 folder__is_doe_generated=False,

@@ -1,53 +1,81 @@
 
 
 <div
-    class="mb-3 flex items-center
-           justify-between gap-4"
+    class="
+        mb-3 flex items-center justify-between gap-4
+    "
 >
     <div class="min-w-0">
-
         <h1
-            class="truncate text-xl font-semibold
-                   text-axcio-text
-                   dark:text-axcio-text-dark"
+            class="
+                truncate text-xl font-semibold text-axcio-text
+                dark:text-axcio-text-dark
+            "
         >
             Documentation
         </h1>
 
         <p
-            class="truncate text-sm
-                   text-axcio-text-muted
-                   dark:text-axcio-text-muted-dark"
+            class="
+                truncate text-sm text-axcio-text-muted
+                dark:text-axcio-text-muted-dark
+            "
         >
             {{ project.reference }}
             —
             {{ project.name }}
         </p>
-
     </div>
-    <a
-        href="{% url 'projects:workspace' project.pk %}"
-        class="inline-flex shrink-0 items-center gap-2
-               rounded-lg border
-               border-axcio-border
-               bg-axcio-surface-alt px-4 py-2
-               text-sm font-medium
-               text-axcio-text-secondary
-               transition-colors
-               hover:bg-axcio-border-light
-               focus:outline-none focus:ring-2
-               focus:ring-axcio-light
-               dark:border-axcio-border-dark
-               dark:bg-axcio-surface-alt-dark
-               dark:text-axcio-text-secondary-dark
-               dark:hover:bg-axcio-border-dark"
-    >
-        <i
-            data-lucide="arrow-left"
-            class="h-4 w-4"
-            aria-hidden="true"
-        ></i>
 
-        Retour au projet
-    </a>
+    <div class="flex shrink-0 items-center gap-2">
+        <a
+            href="{% url 'documents:trash' project.pk %}?next={{ request.get_full_path|urlencode }}"
+            class="
+                inline-flex items-center gap-2 rounded-lg border
+                border-axcio-border bg-axcio-surface-alt px-3 py-2
+                text-sm font-medium text-axcio-text-secondary
+                transition-colors hover:bg-axcio-border-light
+                focus:outline-none focus:ring-2 focus:ring-axcio-light
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-alt-dark
+                dark:text-axcio-text-secondary-dark
+                dark:hover:bg-axcio-border-dark
+            "
+            title="Corbeille"
+            aria-label="Ouvrir la corbeille documentaire"
+        >
+            <i
+                data-lucide="trash-2"
+                class="h-4 w-4"
+                aria-hidden="true"
+            ></i>
+
+            <span class="sr-only">
+                Corbeille
+            </span>
+        </a>
+
+        <a
+            href="{% url 'projects:workspace' project.pk %}"
+            class="
+                inline-flex items-center gap-2 rounded-lg border
+                border-axcio-border bg-axcio-surface-alt px-4 py-2
+                text-sm font-medium text-axcio-text-secondary
+                transition-colors hover:bg-axcio-border-light
+                focus:outline-none focus:ring-2 focus:ring-axcio-light
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-alt-dark
+                dark:text-axcio-text-secondary-dark
+                dark:hover:bg-axcio-border-dark
+            "
+        >
+            <i
+                data-lucide="arrow-left"
+                class="h-4 w-4"
+                aria-hidden="true"
+            ></i>
+
+            Retour au projet
+        </a>
+    </div>
 </div>

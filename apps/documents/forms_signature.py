@@ -95,6 +95,7 @@ class SignatureRequestCreateForm(forms.Form):
                 project=project,
                 current_version__isnull=False,
                 is_doe_generated=False,
+                trashed_at__isnull=True,
             )
             .select_related(
                 "current_version",
@@ -105,7 +106,7 @@ class SignatureRequestCreateForm(forms.Form):
                 "title",
             )
         )
-
+        
         internal_signers = (
             User.objects
             .filter(

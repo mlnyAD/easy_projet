@@ -27,8 +27,11 @@ from apps.documents.views import (
     ProjectPhotoAlbumView,
     DocumentPropertiesView,
     DocumentFolderDownloadView,
+    DocumentRestoreView,
+    DocumentTrashListView,
 )
 
+from apps.documents.views.document import DocumentPermanentDeleteView
 from apps.documents.views.doe import DoeGenerateView
 from apps.documents.views.folder import DocumentFolderDoeSelectionView
 from apps.documents.views.signature import SignatureRequestCreateView
@@ -42,6 +45,19 @@ urlpatterns = [
         "projects/<uuid:project_id>/",
         DocumentExplorerView.as_view(),
         name="explorer",
+    ),
+     path(
+        "projects/<uuid:project_id>/trash/",
+        DocumentTrashListView.as_view(),
+        name="trash",
+    ),
+    path(
+        (
+            "projects/<uuid:project_id>/"
+            "documents/<uuid:document_id>/restore/"
+        ),
+        DocumentRestoreView.as_view(),
+        name="document-restore",
     ),
     path(
         "projects/<uuid:project_id>/album-photos/",
@@ -233,5 +249,13 @@ urlpatterns = [
         ),
         DocumentFolderDoeSelectionView.as_view(),
         name="folder-doe-selection",
-    ),    
+    ),
+    path(
+        (
+            "projects/<uuid:project_id>/"
+            "documents/<uuid:document_id>/permanent-delete/"
+        ),
+        DocumentPermanentDeleteView.as_view(),
+        name="document-permanent-delete",
+    ), 
 ]

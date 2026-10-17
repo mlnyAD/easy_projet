@@ -604,8 +604,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 const confirmed = window.confirm(
-                    `Supprimer définitivement le document ` +
-                    `"${title}" et toutes ses versions ?`
+                    `Mettre le document "${title}" à la corbeille ?\n\n`
+                    + "Il pourra être restauré depuis la corbeille."
                 );
 
                 if (confirmed) {

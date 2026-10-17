@@ -10,7 +10,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views.generic import TemplateView
-
+from django.db.models import Exists, F, OuterRef, Q
 from apps.documents.models import (
     Document,
     DocumentFavorite,
@@ -225,6 +225,15 @@ class DocumentExplorerView(
                     folder=current_folder,
                     is_doe_generated=is_doe_workspace,
                 )
+            )
+
+            if not is_doe_workspace:
+                documents = documents.filter(
+                    trashed_at__isnull=True,
+                )
+
+            documents = (
+                documents
                 .select_related(
                     "document_type",
                     "status",
@@ -234,18 +243,20 @@ class DocumentExplorerView(
                 .order_by("title")
             )
 
-        favorite_document_ids = set(
-            DocumentFavorite.objects
-            .filter(
-                user=self.request.user,
-                document__in=documents,
-            )
-            .values_list(
-                "document_id",
-                flat=True,
-            )
+        documents = documents.annotate(
+            is_favorite=Exists(
+                DocumentFavorite.objects.filter(
+                    document_id=OuterRef("pk"),
+                )
+            ),
+            is_favorite_for_user=Exists(
+                DocumentFavorite.objects.filter(
+                    user=self.request.user,
+                    document_id=OuterRef("pk"),
+                )
+            ),
         )
-
+        
         if is_doe_workspace:
             doe_selected_document_ids = set()
             signed_document_ids = set()
@@ -358,9 +369,6 @@ class DocumentExplorerView(
                     if can_work_on_workspace
                     else ()
                 ),
-                "favorite_document_ids": (
-                    favorite_document_ids
-                ),
                 "doe_selected_document_ids": (
                     doe_selected_document_ids
                 ),
@@ -377,7 +385,7 @@ class DocumentExplorerView(
         )
 
         return context
-
+    
     @staticmethod
     def get_doe_selected_document_ids(
         *,

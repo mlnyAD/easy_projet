@@ -27,18 +27,6 @@
                 {% endif %}
             </span>
 
-            {% if field.help_text %}
-                <span
-                    class="ep-field-help-icon"
-                    aria-hidden="true"
-                >
-                    <i
-                        data-lucide="circle-help"
-                        class="h-3.5 w-3.5"
-                    ></i>
-                </span>
-            {% endif %}
-
         </div>
 
 
@@ -130,14 +118,22 @@
                         class="ep-file-upload-current-name"
                         data-file-upload-name
                     >
-                        Aucun fichier
+                        {% if field.upload.multiple %}
+                            Aucun fichier sélectionné
+                        {% else %}
+                            Aucun fichier
+                        {% endif %}
                     </span>
 
                     <label
                         for="{{ bound_field.id_for_label }}"
                         class="ep-file-upload-action"
                     >
-                        Choisir un fichier
+                        {% if field.upload.multiple %}
+                            Choisir des fichiers
+                        {% else %}
+                            Choisir un fichier
+                        {% endif %}
                     </label>
 
                 </div>

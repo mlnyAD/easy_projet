@@ -16,8 +16,7 @@ class DocumentFavoriteListView(
     ListView,
 ):
     """
-    Liste des documents favoris accessibles
-    à l'utilisateur connecté.
+    Liste les documents favoris accessibles à l'utilisateur connecté.
     """
 
     model = DocumentFavorite
@@ -36,9 +35,8 @@ class DocumentFavoriteListView(
             DocumentFavorite.objects
             .filter(
                 user=self.request.user,
-                document__project__in=(
-                    accessible_projects
-                ),
+                document__project__in=accessible_projects,
+                document__trashed_at__isnull=True,
             )
             .select_related(
                 "document",

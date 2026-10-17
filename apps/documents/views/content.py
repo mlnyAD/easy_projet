@@ -67,7 +67,11 @@ class DocumentVersionContentView(View):
         version = get_object_or_404(
             DocumentVersion.objects.select_related(
                 "document",
+            )
+            .filter(
+                document__trashed_at__isnull=True,
             ),
+
             pk=version_id,
         )
 
@@ -151,6 +155,9 @@ class DocumentVersionCallbackView(View):
         version = get_object_or_404(
             DocumentVersion.objects.select_related(
                 "document",
+            )
+            .filter(
+                document__trashed_at__isnull=True,
             ),
             pk=version_id,
         )
@@ -260,6 +267,7 @@ class DocumentVersionView(
                 document__project__in=(
                     accessible_projects
                 ),
+                document__trashed_at__isnull=True,
             ),
             pk=version_id,
         )
@@ -328,6 +336,7 @@ class DocumentVersionDownloadView(
                 document__project__in=(
                     accessible_projects
                 ),
+                document__trashed_at__isnull=True,
             ),
             pk=version_id,
         )

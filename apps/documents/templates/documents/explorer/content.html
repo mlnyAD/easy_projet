@@ -167,7 +167,7 @@
                 data-document-favorite-add-url="{% url 'documents:document-favorite-add' project.pk document.pk %}"
                 data-document-favorite-remove-url="{% url 'documents:document-favorite-remove' project.pk document.pk %}"
 
-                {% if document.pk in favorite_document_ids %}
+                {% if document.is_favorite_for_user %}
                     data-document-favorite="true"
                 {% else %}
                     data-document-favorite="false"
@@ -214,6 +214,24 @@
                         >
                             {{ document.title }}
                         </span>
+                        {% if document.is_favorite %}
+                            <span
+                                title="Favori"
+                                role="img"
+                                aria-label="Favori"
+                                class="
+                                    inline-flex h-4 w-4 shrink-0 items-center justify-center
+                                    rounded-full bg-emerald-600 text-white
+                                    dark:bg-emerald-500
+                                "
+                            >
+                                <i
+                                    data-lucide="star"
+                                    class="h-2.5 w-2.5 fill-current"
+                                    aria-hidden="true"
+                                ></i>
+                            </span>
+                        {% endif %}
 
                         {% if document.pk in signed_document_ids %}
 
@@ -292,16 +310,23 @@
                 >
 
 
-                    {% if document.pk in favorite_document_ids %}
-
-                        <i
-                            data-lucide="star"
+                    {% if document.is_favorite %}
+                        <span
                             title="Favori"
-                            class="absolute right-2 top-2 h-3.5 w-3.5
-                                   text-amber-500"
-                            aria-hidden="true"
-                        ></i>
-
+                            role="img"
+                            aria-label="Favori"
+                            class="
+                                absolute right-2 top-2 inline-flex h-5 w-5
+                                items-center justify-center rounded-full
+                                bg-emerald-600 text-white dark:bg-emerald-500
+                            "
+                        >
+                            <i
+                                data-lucide="star"
+                                class="h-3 w-3 fill-current"
+                                aria-hidden="true"
+                            ></i>
+                        </span>
                     {% endif %}
 
                     <div class="flex flex-1 items-center justify-center">

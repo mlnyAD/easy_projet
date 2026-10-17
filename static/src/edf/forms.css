@@ -336,12 +336,11 @@
 }
 
 .ep-file-upload-current-name {
-    overflow: hidden;
     color: var(--color-axcio-text-secondary);
     font-size: 0.875rem;
     line-height: 1.25rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }
 
 .ep-file-upload-actions {
@@ -509,20 +508,6 @@
  */
 .ep-field-required {
     color: var(--color-axcio-danger);
-}
-
-
-/*
- * ep-field-help-icon
- * Icône indiquant la présence d'une aide contextuelle.
- */
-.ep-field-help-icon {
-    display: inline-flex;
-    color: var(--color-axcio-text-muted);
-}
-
-.dark .ep-field-help-icon {
-    color: var(--color-axcio-text-muted-dark);
 }
 
 /*

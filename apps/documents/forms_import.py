@@ -3,9 +3,16 @@
 from __future__ import annotations
 
 from django import forms
+from django.core.exceptions import ValidationError
+
+from apps.documents.models import Document
+from common.constants.document import (
+    DOCUMENT_IMPORT_MAX_FILES,
+)
+from common.forms.widgets import FileUploadInput
 
 
-class MultipleFileInput(forms.ClearableFileInput):
+class MultipleFileInput(FileUploadInput):
     allow_multiple_selected = True
 
 
@@ -17,10 +24,25 @@ class MultipleFileField(forms.FileField):
         data,
         initial=None,
     ) -> list:
-        single_file_clean = super().clean
+        if not data:
+            return super().clean(
+                data,
+                initial,
+            )
 
         if not isinstance(data, list):
             data = [data]
+
+        if len(data) > DOCUMENT_IMPORT_MAX_FILES:
+            raise ValidationError(
+                (
+                    "Vous pouvez importer au maximum "
+                    f"{DOCUMENT_IMPORT_MAX_FILES} fichiers "
+                    "à la fois."
+                )
+            )
+
+        single_file_clean = super().clean
 
         return [
             single_file_clean(
@@ -43,7 +65,9 @@ class DocumentImportForm(forms.Form):
 
     description = forms.CharField(
         label="Commentaire",
-        max_length=1000,
+        max_length=Document._meta.get_field(
+            "description"
+        ).max_length,
         required=False,
         widget=forms.Textarea(
             attrs={

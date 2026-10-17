@@ -49,3 +49,8 @@ DOCUMENT_EXTENSION_LENGTH = 20
 DOCUMENT_TECHNICAL_TYPE_LENGTH = 20
 
 
+# ----------------------------------------------------------------------
+# Nombre de max de fichiers importés en 1 seule fois
+# ----------------------------------------------------------------------
+
+DOCUMENT_IMPORT_MAX_FILES = 50

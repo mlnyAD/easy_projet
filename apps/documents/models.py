@@ -406,6 +406,27 @@ class Document(TimeStampedModel):
     )
     
     # ------------------------------------------------------------------
+    # Corbeille
+    # ------------------------------------------------------------------
+
+    trashed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name="Mis à la corbeille le",
+    )
+
+    trashed_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="trashed_documents",
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name="Mis à la corbeille par",
+    )
+    
+    # ------------------------------------------------------------------
     # Créateur
     # ------------------------------------------------------------------
 
@@ -467,6 +488,24 @@ class Document(TimeStampedModel):
             *args,
             **kwargs,
         )
+
+    @property
+    def current_filename(self) -> str:
+        if self.current_version is None:
+            return "—"
+
+        return self.current_version.original_filename
+
+    @property
+    def folder_full_path(self) -> str:
+        return self.folder.full_path
+
+    @property
+    def trashed_by_display(self) -> str:
+        if self.trashed_by is None:
+            return "—"
+
+        return str(self.trashed_by)
 
     class Meta:
         db_table = "document"

@@ -403,6 +403,32 @@ class ProjectAuthorizationService:
         )
 
     @classmethod
+    def can_permanently_delete_document(
+        cls,
+        *,
+        user: User,
+        project: Project,
+    ) -> bool:
+        """
+        Indique si l'utilisateur peut supprimer définitivement
+        un document placé dans la corbeille.
+
+        Cette action est réservée au chef de projet titulaire
+        ou délégué.
+        """
+
+        if not cls.can_view_project(
+            user=user,
+            project=project,
+        ):
+            return False
+
+        return ProjectManagerService.is_project_manager(
+            user=user,
+            project=project,
+        )
+        
+    @classmethod
     def _is_client_admin_for_project(
         cls,
         *,

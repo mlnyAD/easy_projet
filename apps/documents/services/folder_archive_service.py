@@ -50,6 +50,7 @@ class DocumentFolderArchiveService:
             .filter(
                 folder_id__in=folders_by_id,
                 current_version__isnull=False,
+                trashed_at__isnull=True,
             )
             .select_related(
                 "folder",

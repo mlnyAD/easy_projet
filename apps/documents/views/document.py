@@ -12,6 +12,7 @@ from django.shortcuts import (
 from django.views import View
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.core.exceptions import PermissionDenied
 
 from framework.integrations.django.views import EPUpdateView
 
@@ -54,6 +55,7 @@ class DocumentPropertiesView(
         return (
             Document.objects.filter(
                 project=project,
+                trashed_at__isnull=True,
             )
             .select_related(
                 "folder",
@@ -141,6 +143,7 @@ class DocumentRenameView(
             ),
             pk=document_id,
             project=project,
+            trashed_at__isnull=True,
         )
 
         title = request.POST.get(
@@ -190,6 +193,7 @@ class DocumentMoveView(
     ) -> HttpResponse:
         project = self.get_project(
             project_id=project_id,
+            trashed_at__isnull=True,
         )
 
         document = get_object_or_404(
@@ -199,6 +203,7 @@ class DocumentMoveView(
             ),
             pk=document_id,
             project=project,
+            trashed_at__isnull=True,
         )
 
         destination_id = request.POST.get(
@@ -275,6 +280,7 @@ class DocumentCopyView(
             ),
             pk=document_id,
             project=project,
+            trashed_at__isnull=True,            
         )
 
         destination_id = request.POST.get(
@@ -357,6 +363,7 @@ class DocumentFavoriteAddView(
             ),
             pk=document_id,
             project=project,
+            trashed_at__isnull=True,            
         )
 
         DocumentFavoriteService.add_favorite(
@@ -402,6 +409,7 @@ class DocumentFavoriteRemoveView(
             ),
             pk=document_id,
             project=project,
+            trashed_at__isnull=True,            
         )
 
         DocumentFavoriteService.remove_favorite(
@@ -420,14 +428,13 @@ class DocumentFavoriteRemoveView(
             folder_id=document.folder_id,
         )
 
-
 class DocumentDeleteView(
     LoginRequiredMixin,
     ProjectDocumentWorkMixin,
     View,
 ):
     """
-    Suppression définitive d'un document.
+    Met un document source à la corbeille.
     """
 
     def post(
@@ -447,34 +454,178 @@ class DocumentDeleteView(
             ),
             pk=document_id,
             project=project,
+            is_doe_generated=False,
+            trashed_at__isnull=True,
         )
 
         folder_id = document.folder_id
         title = document.title
 
         try:
-            DocumentService().delete_document(
+            DocumentService().move_to_trash(
                 document=document,
+                user=request.user,
             )
-        except Exception:
+        except ValueError as exc:
             messages.error(
                 request,
-                "Le document n'a pas pu être supprimé.",
+                str(exc),
             )
-
-            return redirect(
-                "documents:folder",
-                project_id=project.pk,
-                folder_id=folder_id,
+        else:
+            messages.success(
+                request,
+                f'Le document "{title}" a été mis à la corbeille.',
             )
-
-        messages.success(
-            request,
-            f'Le document "{title}" a été supprimé.',
-        )
 
         return redirect(
             "documents:folder",
             project_id=project.pk,
             folder_id=folder_id,
+        )
+
+
+class DocumentRestoreView(
+    LoginRequiredMixin,
+    ProjectDocumentWorkMixin,
+    View,
+):
+    """
+    Restaure un document depuis la corbeille.
+    """
+
+    def post(
+        self,
+        request: HttpRequest,
+        *,
+        project_id,
+        document_id,
+    ) -> HttpResponse:
+        project = self.get_project(
+            project_id=project_id,
+        )
+
+        document = get_object_or_404(
+            Document.objects.select_related(
+                "folder",
+            ),
+            pk=document_id,
+            project=project,
+            is_doe_generated=False,
+            trashed_at__isnull=False,
+        )
+
+        title = document.title
+
+        try:
+            DocumentService().restore_document(
+                document=document,
+                user=request.user,
+            )
+        except ValueError as exc:
+            messages.error(
+                request,
+                str(exc),
+            )
+        else:
+            messages.success(
+                request,
+                f'Le document "{title}" a été restauré.',
+            )
+
+        candidate = (
+            request.POST.get("next")
+            or ""
+        ).strip()
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            )
+        ):
+            return redirect(candidate)
+
+        return redirect(
+            "documents:trash",
+            project_id=project.pk,
+        )
+        
+        
+class DocumentPermanentDeleteView(
+    LoginRequiredMixin,
+    ProjectDocumentAccessMixin,
+    View,
+):
+    """
+    Supprime définitivement un document placé dans la corbeille.
+    """
+
+    def post(
+        self,
+        request: HttpRequest,
+        *,
+        project_id,
+        document_id,
+    ) -> HttpResponse:
+        project = self.get_project(
+            project_id=project_id,
+        )
+
+        if not (
+            ProjectAuthorizationService
+            .can_permanently_delete_document(
+                user=request.user,
+                project=project,
+            )
+        ):
+            raise PermissionDenied(
+                "Vous ne pouvez pas supprimer définitivement "
+                "ce document."
+            )
+
+        document = get_object_or_404(
+            Document.objects.select_related("folder"),
+            pk=document_id,
+            project=project,
+            is_doe_generated=False,
+            trashed_at__isnull=False,
+        )
+
+        title = document.title
+
+        try:
+            DocumentService().delete_document(
+                document=document,
+            )
+        except ValueError as exc:
+            messages.error(
+                request,
+                str(exc),
+            )
+        else:
+            messages.success(
+                request,
+                f'Le document "{title}" a été supprimé définitivement.',
+            )
+
+        candidate = (
+            request.POST.get("next")
+            or ""
+        ).strip()
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            )
+        ):
+            return redirect(candidate)
+
+        return redirect(
+            "documents:trash",
+            project_id=project.pk,
         )

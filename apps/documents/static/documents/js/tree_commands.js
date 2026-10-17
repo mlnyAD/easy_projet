@@ -3,6 +3,92 @@
 document.addEventListener(
     "DOMContentLoaded",
     () => {
+        const treeStateStoragePrefix = (
+            "easy-projet-tree-open:"
+        );
+
+        const getTreeStateKey = (tree) => {
+            const rootUrl = (
+                tree.dataset.treeRootUrl
+                || window.location.pathname
+            );
+
+            return (
+                treeStateStoragePrefix
+                + rootUrl
+            );
+        };
+
+        const getStoredOpenNodeIds = (tree) => {
+            try {
+                const value = window.sessionStorage.getItem(
+                    getTreeStateKey(tree)
+                );
+
+                if (!value) {
+                    return null;
+                }
+
+                const nodeIds = JSON.parse(value);
+
+                if (!Array.isArray(nodeIds)) {
+                    return null;
+                }
+
+                return new Set(
+                    nodeIds.filter(
+                        (nodeId) => (
+                            typeof nodeId === "string"
+                        )
+                    )
+                );
+            } catch (_error) {
+                return null;
+            }
+        };
+
+        const storeOpenNodeIds = (tree) => {
+            const nodeIds = [
+                ...tree.querySelectorAll(
+                    "details[data-tree-node-id][open]"
+                ),
+            ]
+                .map(
+                    (node) => (
+                        node.dataset.treeNodeId
+                    )
+                )
+                .filter(Boolean);
+
+            try {
+                window.sessionStorage.setItem(
+                    getTreeStateKey(tree),
+                    JSON.stringify(nodeIds)
+                );
+            } catch (_error) {
+                // Le fonctionnement de l'arborescence ne dépend pas
+                // du stockage navigateur.
+            }
+        };
+
+        const restoreOpenNodeIds = (tree) => {
+            const openNodeIds = getStoredOpenNodeIds(tree);
+
+            if (openNodeIds === null) {
+                return;
+            }
+
+            tree
+                .querySelectorAll(
+                    "details[data-tree-node-id]"
+                )
+                .forEach((node) => {
+                    node.open = openNodeIds.has(
+                        node.dataset.treeNodeId
+                    );
+                });
+        };
+
         const rootCreateFolderButton = (
             document.getElementById(
                 "root-create-folder"
@@ -56,6 +142,28 @@ document.addEventListener(
                     "[data-tree-empty-area]"
                 );
 
+                restoreOpenNodeIds(tree);
+
+                tree
+                    .querySelectorAll(
+                        "details[data-tree-node-id]"
+                    )
+                    .forEach((node) => {
+                        node.addEventListener(
+                            "toggle",
+                            () => {
+                                storeOpenNodeIds(tree);
+                            }
+                        );
+                    });
+
+                window.addEventListener(
+                    "pagehide",
+                    () => {
+                        storeOpenNodeIds(tree);
+                    }
+                );
+
                 emptyArea?.addEventListener(
                     "click",
                     () => {
@@ -94,6 +202,8 @@ document.addEventListener(
                                         node.open = true;
                                     }
                                 );
+
+                                storeOpenNodeIds(tree);
                             }
                         );
                     });
@@ -111,6 +221,8 @@ document.addEventListener(
                                         node.open = false;
                                     }
                                 );
+
+                                storeOpenNodeIds(tree);
                             }
                         );
                     });

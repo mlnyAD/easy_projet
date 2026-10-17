@@ -6,7 +6,7 @@ import logging
 from typing import BinaryIO
 from pathlib import Path
 from django.db import transaction
-
+from django.utils import timezone
 from apps.documents.models import (
     Document,
     DocumentFolder,
@@ -489,7 +489,119 @@ class DocumentService:
             return title
 
         return f"{title}{extension}"    
-    
+
+    def move_to_trash(
+        self,
+        *,
+        document: Document,
+        user: User,
+    ) -> Document:
+        """
+        Met un document source à la corbeille.
+
+        Les versions et fichiers physiques sont conservés afin de
+        permettre une restauration dans le dossier d'origine.
+        """
+
+        with transaction.atomic():
+            locked_document = (
+                Document.objects
+                .select_for_update()
+                .get(pk=document.pk)
+            )
+
+            if locked_document.is_doe_generated:
+                raise ValueError(
+                    "Un document généré pour le DOE ne peut pas être "
+                    "mis à la corbeille."
+                )
+
+            if locked_document.trashed_at is not None:
+                return locked_document
+
+            locked_document.trashed_at = timezone.now()
+            locked_document.trashed_by = user
+
+            locked_document.full_clean()
+            locked_document.save(
+                update_fields=[
+                    "trashed_at",
+                    "trashed_by",
+                    "updated_at",
+                ]
+            )
+
+            history = DocumentHistory(
+                document=locked_document,
+                version=locked_document.current_version,
+                action=DocumentHistory.Action.TRASHED,
+                user=user,
+                details=(
+                    f'Mise à la corbeille du document '
+                    f'"{locked_document.title}".'
+                ),
+            )
+
+            history.full_clean()
+            history.save()
+
+            return locked_document
+
+    def restore_document(
+        self,
+        *,
+        document: Document,
+        user: User,
+    ) -> Document:
+        """
+        Restaure un document source depuis la corbeille.
+
+        Le document retrouve son dossier d'origine.
+        """
+
+        with transaction.atomic():
+            locked_document = (
+                Document.objects
+                .select_for_update()
+                .get(pk=document.pk)
+            )
+
+            if locked_document.is_doe_generated:
+                raise ValueError(
+                    "Un document généré pour le DOE ne peut pas être "
+                    "restauré depuis la corbeille."
+                )
+
+            if locked_document.trashed_at is None:
+                return locked_document
+
+            locked_document.trashed_at = None
+            locked_document.trashed_by = None
+
+            locked_document.full_clean()
+            locked_document.save(
+                update_fields=[
+                    "trashed_at",
+                    "trashed_by",
+                    "updated_at",
+                ]
+            )
+
+            history = DocumentHistory(
+                document=locked_document,
+                version=locked_document.current_version,
+                action=DocumentHistory.Action.RESTORED,
+                user=user,
+                details=(
+                    f'Restauration du document '
+                    f'"{locked_document.title}".'
+                ),
+            )
+
+            history.full_clean()
+            history.save()
+
+            return locked_document    
 
     def delete_document(
         self,
@@ -544,6 +656,18 @@ class DocumentService:
                     ]
                 )
 
+            if locked_document.is_doe_generated:
+                raise ValueError(
+                    "Un document généré pour le DOE ne peut pas être "
+                    "supprimé définitivement."
+                )
+
+            if locked_document.trashed_at is None:
+                raise ValueError(
+                    "Seul un document placé dans la corbeille peut être "
+                    "supprimé définitivement."
+                )
+                
             locked_document.delete()
 
             transaction.on_commit(

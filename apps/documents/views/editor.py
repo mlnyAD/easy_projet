@@ -71,6 +71,7 @@ class DocumentEditorView(
                 document__project__in=(
                     accessible_projects
                 ),
+                document__trashed_at__isnull=True,
             ),
             pk=version_id,
         )

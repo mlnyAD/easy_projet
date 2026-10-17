@@ -176,6 +176,32 @@
         );
     }
 
+    function updateSelection(
+        component,
+        files
+    ) {
+        if (files.length === 1) {
+            updatePreview(
+                component,
+                files[0]
+            );
+
+            return;
+        }
+
+        const name = getNameElement(
+            component
+        );
+
+        if (name) {
+            name.textContent = (
+                `${files.length} fichiers sélectionnés : `
+                + files
+                    .map((file) => file.name)
+                    .join(", ")
+            );
+        }
+    }
 
     function bindComponent(component) {
         const fileInput = getFileInput(
@@ -209,9 +235,9 @@
                         false;
                 }
 
-                updatePreview(
+                updateSelection(
                     component,
-                    files[0]
+                    files
                 );
             }
         );

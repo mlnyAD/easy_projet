@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.views.generic import FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import (
-    redirect,
-    render,
+from framework.form import FormMode
+from framework.integrations.django.views.form import (
+    EPFormView,
 )
-from django.views import View
 
+from apps.documents.form_definition import (
+    DOCUMENT_CREATE_FORM_DEFINITION,
+)
 from apps.documents.forms import DocumentCreateForm
 from apps.documents.services import DocumentService
 from apps.documents.views.mixins import (
@@ -19,116 +24,37 @@ from apps.documents.views.mixins import (
 class DocumentCreateView(
     LoginRequiredMixin,
     ProjectDocumentWorkMixin,
-    View,
+    EPFormView,
+    FormView,
 ):
     """
     Création d'un document natif Easy Projet.
     """
 
-    template_name = (
-        "documents/document_form.html"
-    )
+    form_class = DocumentCreateForm
+    definition = DOCUMENT_CREATE_FORM_DEFINITION
+    template_name = "edf/form/view.html"
 
-    def get(
-        self,
-        request,
-        *,
-        project_id,
-    ):
-        project = self.get_project(
-            project_id=project_id,
+    def get_form_mode(self):
+        return FormMode.CREATE
+
+    def get_project_instance(self):
+        return self.get_project(
+            project_id=self.kwargs["project_id"],
         )
 
-        form = DocumentCreateForm(
-            project=project,
-            initial=self.get_initial(
-                request=request,
-                project=project,
-            ),
-        )
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
 
-        return render(
-            request,
-            self.template_name,
-            {
-                "form": form,
-                "project": project,
-            },
-        )
+        kwargs["project"] = self.get_project_instance()
 
-    def post(
-        self,
-        request,
-        *,
-        project_id,
-    ):
-        project = self.get_project(
-            project_id=project_id,
-        )
+        return kwargs
 
-        form = DocumentCreateForm(
-            request.POST,
-            project=project,
-        )
-
-        if not form.is_valid():
-            return render(
-                request,
-                self.template_name,
-                {
-                    "form": form,
-                    "project": project,
-                },
-            )
-
-        document = DocumentService().create_document(
-            project=project,
-            folder=form.cleaned_data["folder"],
-            title=form.cleaned_data["title"],
-            document_format=(
-                form.cleaned_data["document_format"]
-            ),
-            document_type=(
-                form.cleaned_data["document_type"]
-            ),
-            status=form.cleaned_data["status"],
-            lifecycle=form.cleaned_data["lifecycle"],
-            user=request.user,
-            is_doe=form.cleaned_data["is_doe"],
-        )
-
-        document.refresh_from_db()
-
-        if (
-            request.POST.get("action")
-            == "create_and_open"
-        ):
-            return redirect(
-                "documents:version-edit",
-                version_id=document.current_version.pk,
-            )
-
-        return redirect(
-            "documents:folder",
-            project_id=project.pk,
-            folder_id=document.folder_id,
-        )
-        
-    @staticmethod
-    def get_initial(
-        *,
-        request,
-        project,
-    ) -> dict:
-        """
-        Préremplit le formulaire depuis le menu contextuel
-        de l'explorateur documentaire.
-        """
-
-        initial = {}
+    def get_initial(self) -> dict:
+        initial = super().get_initial()
 
         document_format = (
-            request.GET.get("document_format")
+            self.request.GET.get("document_format")
             or ""
         ).strip()
 
@@ -141,22 +67,81 @@ class DocumentCreateView(
         if document_format in valid_formats:
             initial["document_format"] = document_format
 
+        folder = self.get_selected_folder()
+
+        if folder is not None:
+            initial["folder"] = folder.pk
+
+        return initial
+
+    def get_selected_folder(self):
         folder_pk = (
-            request.GET.get("folder")
+            self.request.POST.get("folder")
+            or self.request.GET.get("folder")
             or ""
         ).strip()
 
-        if folder_pk:
-            folder = (
-                project.document_folders
-                .filter(
-                    pk=folder_pk,
-                    is_active=True,
-                )
-                .first()
+        if not folder_pk:
+            return None
+
+        return (
+            self.get_project_instance()
+            .document_folders
+            .filter(
+                pk=folder_pk,
+                is_active=True,
+            )
+            .first()
+        )
+
+    def get_cancel_url(self) -> str:
+        project = self.get_project_instance()
+        folder = self.get_selected_folder()
+
+        if folder is not None:
+            return reverse(
+                "documents:folder",
+                kwargs={
+                    "project_id": project.pk,
+                    "folder_id": folder.pk,
+                },
             )
 
-            if folder is not None:
-                initial["folder"] = folder.pk
+        return reverse(
+            "documents:explorer",
+            kwargs={
+                "project_id": project.pk,
+            },
+        )
 
-        return initial
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["project"] = self.get_project_instance()
+
+        return context
+
+    def form_valid(self, form):
+        project = self.get_project_instance()
+
+        document = DocumentService().create_document(
+            project=project,
+            folder=form.cleaned_data["folder"],
+            title=form.cleaned_data["title"],
+            document_format=(
+                form.cleaned_data["document_format"]
+            ),
+            document_type=form.cleaned_data["document_type"],
+            status=form.cleaned_data["status"],
+            lifecycle=form.cleaned_data["lifecycle"],
+            user=self.request.user,
+            is_doe=form.cleaned_data["is_doe"],
+        )
+
+        document.refresh_from_db()
+
+        return redirect(
+            "documents:folder",
+            project_id=project.pk,
+            folder_id=document.folder_id,
+        )

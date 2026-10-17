@@ -1,74 +1,74 @@
 
 
+from .cadviewer import DocumentCadViewerView
 from .content import (
+    DocumentFolderDownloadView,
     DocumentVersionCallbackView,
     DocumentVersionContentView,
     DocumentVersionDownloadView,
     DocumentVersionView,
-    DocumentFolderDownloadView,
 )
 from .create import DocumentCreateView
-from .editor import DocumentEditorView
-from .explorer import DocumentExplorerView
-from .folder import (
-    DocumentFolderCreateView,
-    DocumentFolderDeleteView,
-    DocumentFolderRenameView,
-    DocumentFolderMoveView,
-)
-from .import_view import (
-    DocumentImportView,
-)
-from .editor import (
-    DocumentEditorView,
-    DocumentEditLockRefreshView,
-)
+from .doe import DoeGenerateView
 from .document import (
     DocumentCopyView,
     DocumentDeleteView,
     DocumentFavoriteAddView,
     DocumentFavoriteRemoveView,
     DocumentMoveView,
-    DocumentRenameView,
     DocumentPropertiesView,
+    DocumentRenameView,
+    DocumentRestoreView,
+    DocumentPermanentDeleteView
 )
-from .photo_album import ProjectPhotoAlbumView
+from .editor import (
+    DocumentEditLockRefreshView,
+    DocumentEditorView,
+)
+from .explorer import DocumentExplorerView
 from .favorites import DocumentFavoriteListView
-
-from .cadviewer import (
-    DocumentCadViewerView,
+from .folder import (
+    DocumentFolderCreateView,
+    DocumentFolderDeleteView,
+    DocumentFolderDoeSelectionView,
+    DocumentFolderMoveView,
+    DocumentFolderRenameView,
 )
-
-from .doe import DoeGenerateView
-from .folder import DocumentFolderDoeSelectionView
+from .import_view import DocumentImportView
+from .photo_album import ProjectPhotoAlbumView
 from .signature import SignatureRequestCreateView
+from .trash import DocumentTrashListView
+
 
 __all__ = [
+    "DocumentCadViewerView",
+    "DocumentCopyView",
     "DocumentCreateView",
+    "DocumentDeleteView",
+    "DocumentEditLockRefreshView",
     "DocumentEditorView",
     "DocumentExplorerView",
-    "DocumentVersionCallbackView",
-    "DocumentVersionContentView",
+    "DocumentFavoriteAddView",
+    "DocumentFavoriteListView",
+    "DocumentFavoriteRemoveView",
     "DocumentFolderCreateView",
     "DocumentFolderDeleteView",
+    "DocumentFolderDoeSelectionView",
+    "DocumentFolderDownloadView",
+    "DocumentFolderMoveView",
     "DocumentFolderRenameView",
     "DocumentImportView",
+    "DocumentMoveView",
+    "DocumentPropertiesView",
+    "DocumentRenameView",
+    "DocumentRestoreView",
+    "DocumentTrashListView",
+    "DocumentVersionCallbackView",
+    "DocumentVersionContentView",
     "DocumentVersionDownloadView",
     "DocumentVersionView",
-    "DocumentRenameView",
-    "DocumentMoveView",
-    "DocumentCopyView",
-    "DocumentFavoriteAddView",
-    "DocumentFavoriteRemoveView",
-    "DocumentFavoriteListView",
-    "DocumentDeleteView",
-    "DocumentFolderMoveView",
-    "DocumentCadViewerView",
-    "DocumentEditLockRefreshView",
-    "ProjectPhotoAlbumView",
-    "DocumentPropertiesView",
-    "DocumentFolderDownloadView",
     "DoeGenerateView",
-    "DocumentFolderDoeSelectionView",
+    "ProjectPhotoAlbumView",
     "SignatureRequestCreateView",
+    "DocumentPermanentDeleteView,"
 ]

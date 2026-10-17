@@ -2,16 +2,26 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import (
     get_object_or_404,
     redirect,
-    render,
 )
-from django.views import View
-from pathlib import Path
+from django.urls import reverse
+from django.views.generic import FormView
+
+from framework.form import FormMode
+from framework.integrations.django.views.form import (
+    EPFormView,
+)
+
 from apps.catalogs.models import CatalogValue
+from apps.documents.form_definition import (
+    DOCUMENT_IMPORT_FORM_DEFINITION,
+)
 from apps.documents.forms_import import (
     DocumentImportForm,
 )
@@ -25,15 +35,22 @@ from apps.documents.views.mixins import (
 class DocumentImportView(
     LoginRequiredMixin,
     ProjectDocumentWorkMixin,
-    View,
+    EPFormView,
+    FormView,
 ):
     """
-    Import d'un fichier dans un dossier documentaire.
+    Import d'un ou plusieurs fichiers dans un dossier documentaire.
     """
 
-    template_name = (
-        "documents/document_import.html"
-    )
+    form_class = DocumentImportForm
+    definition = DOCUMENT_IMPORT_FORM_DEFINITION
+    template_name = "edf/form/view.html"
+
+    def get_form_mode(self):
+        return FormMode.CREATE
+
+    def get_project_instance(self):
+        return self.get_project()
 
     def get_folder(
         self,
@@ -46,55 +63,35 @@ class DocumentImportView(
             is_active=True,
         )
 
-    def get(
-        self,
-        request,
-        *,
-        project_id,
-        folder_id,
-    ):
-        project = self.get_project()
+    def get_cancel_url(self) -> str:
+        project = self.get_project_instance()
         folder = self.get_folder(project)
 
-        form = DocumentImportForm()
-
-        return render(
-            request,
-            self.template_name,
-            {
-                "form": form,
-                "project": project,
-                "folder": folder,
+        return reverse(
+            "documents:folder",
+            kwargs={
+                "project_id": project.pk,
+                "folder_id": folder.pk,
             },
         )
 
-    def post(
-        self,
-        request,
-        *,
-        project_id,
-        folder_id,
-    ):
-        project = self.get_project()
-        folder = self.get_folder(project)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-        form = DocumentImportForm(
-            request.POST,
-            request.FILES,
+        project = self.get_project_instance()
+
+        context.update(
+            {
+                "project": project,
+                "folder": self.get_folder(project),
+            }
         )
 
-        if not form.is_valid():
-            return render(
-                request,
-                self.template_name,
-                {
-                    "form": form,
-                    "project": project,
-                    "folder": folder,
-                },
-            )
+        return context
 
-        uploaded_files = form.cleaned_data["files"]
+    def form_valid(self, form):
+        project = self.get_project_instance()
+        folder = self.get_folder(project)
 
         lifecycle = get_object_or_404(
             CatalogValue,
@@ -105,6 +102,8 @@ class DocumentImportView(
         )
 
         document_service = DocumentService()
+
+        uploaded_files = form.cleaned_data["files"]
 
         for uploaded_file in uploaded_files:
             mime_type = (
@@ -131,14 +130,14 @@ class DocumentImportView(
                 content=uploaded_file,
                 original_filename=uploaded_file.name,
                 mime_type=mime_type,
-                user=request.user,
+                user=self.request.user,
                 is_doe=form.cleaned_data["is_doe"],
             )
 
         file_count = len(uploaded_files)
 
         messages.success(
-            request,
+            self.request,
             (
                 "Le fichier a été importé."
                 if file_count == 1

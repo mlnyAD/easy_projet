@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from uuid import UUID
-from django.urls import reverse
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.views.generic import TemplateView
 
 from apps.documents.models import Document, DocumentVersion
@@ -18,8 +19,7 @@ class ProjectPhotoAlbumView(
     TemplateView,
 ):
     """
-    Visionneuse des images présentes dans la documentation
-    d'un projet, quel que soit leur dossier.
+    Visionneuse des images présentes dans la documentation d'un projet.
     """
 
     template_name = "documents/photo_album.html"
@@ -37,8 +37,10 @@ class ProjectPhotoAlbumView(
         project: Project,
     ) -> tuple[Document, ...]:
         return tuple(
-            Document.objects.filter(
+            Document.objects
+            .filter(
                 project=project,
+                trashed_at__isnull=True,
                 current_version__technical_type=(
                     DocumentVersion.TechnicalType.IMAGE
                 ),

@@ -1,0 +1,83 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Corbeille - {{ project.name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-6xl space-y-4">
+
+    <div class="flex items-start justify-between gap-4">
+
+        <div>
+            <h1 class="text-2xl font-semibold">
+                Corbeille
+            </h1>
+
+            <p
+                class="
+                    mt-1 text-sm text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                "
+            >
+                {{ project.reference }} — {{ project.name }}
+            </p>
+
+            {% if not can_work_on_project %}
+                <p
+                    class="
+                        mt-1 text-xs text-axcio-text-muted
+                        dark:text-axcio-text-muted-dark
+                    "
+                >
+                    Lecture seule
+                </p>
+            {% endif %}
+        </div>
+
+        <a
+            href="{% firstof return_url '' %}{% if not return_url %}{% url 'documents:explorer' project.pk %}{% endif %}"
+            class="
+                inline-flex shrink-0 items-center gap-2 rounded-lg
+                border border-axcio-border-light px-4 py-2
+                text-sm font-medium hover:bg-axcio-surface-alt
+                dark:border-axcio-border-dark
+                dark:hover:bg-axcio-surface-alt-dark
+            "
+        >
+            <i
+                data-lucide="arrow-left"
+                class="h-4 w-4"
+                aria-hidden="true"
+            ></i>
+
+            Documentation
+        </a>
+    </div>
+
+    <div
+        class="
+            rounded-lg border border-axcio-border-light
+            bg-axcio-surface px-4 py-3
+            dark:border-axcio-border-dark
+            dark:bg-axcio-surface-dark
+        "
+    >
+        <p
+            class="
+                text-sm text-axcio-text-muted
+                dark:text-axcio-text-muted-dark
+            "
+        >
+            Les documents restaurés retrouvent leur dossier d’origine.
+        </p>
+    </div>
+
+    {% include "edf/list/list.html" %}
+
+</div>
+
+{% endblock %}

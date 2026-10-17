@@ -1,5 +1,12 @@
 
 
+from common.constants.document import (
+    DOCUMENT_IMPORT_MAX_FILES,
+)
+from framework.form.file_upload import (
+    FileUploadDefinition,
+)
+from framework.form.kinds import FieldKind
 from framework.form import (
     FieldDefinition,
     FormDefinition,
@@ -7,6 +14,102 @@ from framework.form import (
 )
 from framework.types.field_width import FieldWidth
 
+DOCUMENT_IMPORT_FORM_DEFINITION = FormDefinition(
+    name="document-import",
+    title="Importer des fichiers",
+    sections=[
+        SectionDefinition(
+            title="Fichiers",
+            fields=[
+                FieldDefinition(
+                    name="files",
+                    label=(
+                        "Fichiers à importer "
+                        "(50 maximum)"
+                    ),
+                    help_text=(
+                        "Sélectionnez au plus 50 fichiers "
+                        "par import."
+                    ),
+                    kind=FieldKind.FILE_UPLOAD,
+                    width=FieldWidth.MD,
+                    upload=FileUploadDefinition(
+                        multiple=True,
+                        max_files=DOCUMENT_IMPORT_MAX_FILES,
+                        preview=False,
+                        allow_replace=False,
+                        allow_delete=False,
+                    ),
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Classement",
+            fields=[
+                FieldDefinition(
+                    name="description",
+                    width=FieldWidth.MD,
+                    required=False,
+                ),
+                FieldDefinition(
+                    name="is_doe",
+                    width=FieldWidth.SM,
+                    required=False,
+                    checked_label="Inclus au DOE",
+                    unchecked_label="Non inclus au DOE",
+                ),
+            ],
+        ),
+    ],
+)
+
+DOCUMENT_CREATE_FORM_DEFINITION = FormDefinition(
+    name="document-create",
+    title="Nouveau document",
+    sections=[
+        SectionDefinition(
+            title="Informations générales",
+            fields=[
+                FieldDefinition(
+                    name="title",
+                    width=FieldWidth.MD,
+                ),
+                FieldDefinition(
+                    name="document_format",
+                    width=FieldWidth.SM,
+                ),
+                FieldDefinition(
+                    name="folder",
+                    width=FieldWidth.MD,
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Classement",
+            fields=[
+                FieldDefinition(
+                    name="document_type",
+                    width=FieldWidth.SM,
+                ),
+                FieldDefinition(
+                    name="status",
+                    width=FieldWidth.SM,
+                ),
+                FieldDefinition(
+                    name="lifecycle",
+                    width=FieldWidth.SM,
+                ),
+                FieldDefinition(
+                    name="is_doe",
+                    width=FieldWidth.SM,
+                    required=False,
+                    checked_label="Inclus au DOE",
+                    unchecked_label="Non inclus au DOE",
+                ),
+            ],
+        ),
+    ],
+)
 
 DOCUMENT_PROPERTIES_FORM_DEFINITION = FormDefinition(
     name="document-properties",
