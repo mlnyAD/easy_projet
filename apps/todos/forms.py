@@ -20,7 +20,19 @@ class TodoActionForm(forms.ModelForm):
     par l'application et non saisis par l'utilisateur.
     """
 
-
+    due_date = forms.DateField(
+        label="Date de fin",
+        required=False,
+        input_formats=[
+            "%Y-%m-%d",
+        ],
+        widget=forms.DateInput(
+            format="%Y-%m-%d",
+            attrs={
+                "type": "date",
+            },
+        ),
+    )
 
     class Meta:
         model = TodoAction
@@ -32,6 +44,9 @@ class TodoActionForm(forms.ModelForm):
             "origin",
             "project",
         )
+        labels = {
+            "origin": "Affectation",
+        }
 
         widgets = {
             "title": forms.TextInput(
@@ -42,11 +57,6 @@ class TodoActionForm(forms.ModelForm):
             "details": forms.Textarea(
                 attrs={
                     "rows": 3,
-                }
-            ),
-            "due_date": forms.DateInput(
-                attrs={
-                    "type": "date",
                 }
             ),
         }

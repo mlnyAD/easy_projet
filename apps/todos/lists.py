@@ -80,7 +80,7 @@ TODO_LIST_DEFINITION = ListDefinition(
             field=TODO_ENTITY_DEFINITION.get_field(
                 "role_label"
             ),
-            label="Rôle",
+            label="Mon rôle",
             width="sm",
             order=60,
         ),

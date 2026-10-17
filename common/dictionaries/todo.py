@@ -55,7 +55,7 @@ TODO_DICTIONARY = {
         },
 
         "role_label": {
-            "label": "Rôle",
+            "label": "Mon rôle",
             "data_type": "string",
             "required": False,
         },

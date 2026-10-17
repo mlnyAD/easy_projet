@@ -6,13 +6,21 @@ from django.contrib.auth.mixins import (
 )
 from django.db import transaction
 from django.db.models import F
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.views import View
 from django.views.generic import ListView
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+)
+from django.urls import reverse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from framework.integrations.django.list_pagination import (
     EPListPaginationMixin,
 )
+from framework.integrations.django.views import EPCreateView
 from framework.runtime import (
     EPList,
     ListPage,
@@ -20,14 +28,19 @@ from framework.runtime import (
 from framework.viewmodel.builder import (
     ListViewModelBuilder,
 )
-
 from .forms import (
     TodoActionForm,
     TodoActionRecipientFormSet,
 )
+from .form_definition import TODO_ACTION_FORM_DEFINITION
 from .lists import TODO_LIST_DEFINITION
 from .models import TodoAction
 from .selectors import get_user_todo_actions
+
+from framework.integrations.django.views import (
+    EPCreateView,
+    EPUpdateView,
+)
 
 
 class TodoListView(
@@ -82,6 +95,12 @@ class TodoListView(
             "page_obj"
         ]
 
+        for action in django_page.object_list:
+            action.can_manage = (
+                action.owner_id
+                == self.request.user.pk
+            )
+            
         runtime = EPList(
             definition=TODO_LIST_DEFINITION,
             rows=django_page.object_list,
@@ -123,103 +142,136 @@ class TodoListView(
         # aux autres listes Easy Projet.
         context["list"] = list_view
 
+        context["row_actions_template"] = (
+            "todos/todo_actions.html"
+        )
+
         return context
 
 
 class TodoActionCreateView(
     LoginRequiredMixin,
-    View,
+    EPCreateView,
 ):
     """
-    Création d'une action Todo et de ses éventuels
-    destinataires dans une transaction unique.
+    Création d'une action Todo et de ses destinataires.
     """
 
-    template_name = (
-        "todos/todo_action_form.html"
-    )
+    model = TodoAction
+    form_class = TodoActionForm
+    definition = TODO_ACTION_FORM_DEFINITION
+    template_name = "edf/form/view.html"
 
-    def get(self, request):
-        action = TodoAction(
-            owner=request.user,
-            origin=TodoAction.Origin.PERSONAL,
+    def get_cancel_url(self) -> str:
+        return reverse("todos:list")
+
+    def get_success_url(self) -> str:
+        return reverse("todos:list")
+
+    def get_formsets(
+        self,
+        *,
+        django_form,
+        context,
+    ) -> dict:
+        return {
+            "recipients": self.get_recipient_formset(
+                form=django_form,
+            ),
+        }
+
+    def get_recipient_formset(
+        self,
+        *,
+        form,
+    ):
+        if not hasattr(
+            self,
+            "_recipient_formset",
+        ):
+            self._recipient_formset = (
+                TodoActionRecipientFormSet(
+                    data=(
+                        self.request.POST
+                        if self.request.method == "POST"
+                        else None
+                    ),
+                    instance=form.instance,
+                    prefix="recipients",
+                )
+            )
+
+        return self._recipient_formset
+
+    def get_context_data(
+        self,
+        **kwargs,
+    ):
+        context = super().get_context_data(
+            **kwargs,
         )
 
-        form = TodoActionForm(
-            instance=action,
+        context["form_extra_template"] = (
+            "todos/todo_action_form_extra.html"
         )
 
+        return context
+
+    def form_valid(self, form):
         recipient_formset = (
-            TodoActionRecipientFormSet(
-                instance=action,
-                prefix="recipients",
+            self.get_recipient_formset(
+                form=form,
             )
         )
 
-        return self._render(
-            request=request,
-            form=form,
-            recipient_formset=recipient_formset,
-        )
-
-    def post(self, request):
-        action = TodoAction(
-            owner=request.user,
-        )
-
-        form = TodoActionForm(
-            request.POST,
-            instance=action,
-        )
-
-        recipient_formset = (
-            TodoActionRecipientFormSet(
-                request.POST,
-                instance=action,
-                prefix="recipients",
-            )
-        )
-
-        form_valid = form.is_valid()
         formset_valid = recipient_formset.is_valid()
 
-        if (
-            form_valid
-            and formset_valid
+        business_rules_valid = (
+            formset_valid
             and self._validate_business_rules(
                 form=form,
                 recipient_formset=recipient_formset,
             )
+        )
+
+        if not (
+            formset_valid
+            and business_rules_valid
         ):
-            with transaction.atomic():
-                action = form.save(
-                    commit=False
-                )
-
-                action.owner = request.user
-                action.status = (
-                    TodoAction.Status.TODO
-                )
-
-                action.full_clean()
-                action.save()
-
-                recipient_formset.instance = action
-                recipient_formset.save()
-
-            messages.success(
-                request,
-                "L'action a été créée.",
+            messages.error(
+                self.request,
+                "Certaines informations sont incorrectes.",
             )
 
-            return redirect(
-                "todos:list"
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form,
+                )
             )
 
-        return self._render(
-            request=request,
-            form=form,
-            recipient_formset=recipient_formset,
+        with transaction.atomic():
+            action = form.save(
+                commit=False,
+            )
+
+            action.owner = self.request.user
+            action.status = TodoAction.Status.TODO
+
+            action.full_clean()
+            action.save()
+
+            recipient_formset.instance = action
+            recipient_formset.save()
+
+        self.object = action
+
+        messages.success(
+            self.request,
+            "L'action a été créée.",
+        )
+
+        return redirect(
+            self.get_success_url()
         )
 
     def _validate_business_rules(
@@ -235,49 +287,39 @@ class TodoActionCreateView(
         active_recipient_forms = []
 
         for recipient_form in recipient_formset.forms:
-            if not hasattr(
+            cleaned_data = getattr(
                 recipient_form,
                 "cleaned_data",
-            ):
-                continue
-
-            cleaned_data = (
-                recipient_form.cleaned_data
+                None,
             )
 
             if not cleaned_data:
                 continue
 
-            if cleaned_data.get(
-                "DELETE"
-            ):
+            if cleaned_data.get("DELETE"):
                 continue
 
-            if cleaned_data.get(
-                "user"
-            ):
+            if cleaned_data.get("user"):
                 active_recipient_forms.append(
                     recipient_form
                 )
 
         if (
-            origin
-            == TodoAction.Origin.PERSONAL
+            origin == TodoAction.Origin.PERSONAL
             and active_recipient_forms
         ):
             form.add_error(
                 "origin",
                 (
-                    "Une action personnelle ne peut "
-                    "pas avoir de destinataire."
+                    "Une action personnelle ne peut pas "
+                    "avoir de destinataire."
                 ),
             )
 
             return False
 
         if (
-            origin
-            == TodoAction.Origin.ASSIGNED
+            origin == TodoAction.Origin.ASSIGNED
             and not active_recipient_forms
         ):
             form.add_error(
@@ -291,21 +333,303 @@ class TodoActionCreateView(
             return False
 
         return True
+    
 
-    def _render(
+class TodoActionReturnUrlMixin:
+    """
+    Préserve le contexte d'origine de la liste Todo.
+    """
+
+    def get_return_url(self) -> str:
+        candidate = (
+            self.request.GET.get("next")
+            or self.request.POST.get("next")
+            or ""
+        ).strip()
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={
+                    self.request.get_host(),
+                },
+                require_https=self.request.is_secure(),
+            )
+        ):
+            return candidate
+
+        return reverse("todos:list")
+
+    def get_success_url(self) -> str:
+        return self.get_return_url()
+
+    def get_cancel_url(self) -> str:
+        return self.get_return_url()
+
+
+class TodoActionFormsetMixin:
+    """
+    Gestion commune du formset des destinataires.
+    """
+
+    def get_formsets(
         self,
         *,
-        request,
+        django_form,
+        context,
+    ) -> dict:
+        return {
+            "recipients": self.get_recipient_formset(
+                form=django_form,
+            ),
+        }
+
+    def get_recipient_formset(
+        self,
+        *,
+        form,
+    ):
+        if not hasattr(
+            self,
+            "_recipient_formset",
+        ):
+            self._recipient_formset = (
+                TodoActionRecipientFormSet(
+                    data=(
+                        self.request.POST
+                        if self.request.method == "POST"
+                        else None
+                    ),
+                    instance=form.instance,
+                    prefix="recipients",
+                )
+            )
+
+        return self._recipient_formset
+
+    def get_context_data(
+        self,
+        **kwargs,
+    ):
+        context = super().get_context_data(
+            **kwargs,
+        )
+
+        context["form_extra_template"] = (
+            "todos/todo_action_form_extra.html"
+        )
+
+        return context
+
+    def validate_business_rules(
+        self,
+        *,
         form,
         recipient_formset,
-    ):
-        return render(
-            request,
-            self.template_name,
-            {
-                "form": form,
-                "recipient_formset": (
-                    recipient_formset
+    ) -> bool:
+        origin = form.cleaned_data.get("origin")
+
+        active_recipient_forms = []
+
+        for recipient_form in recipient_formset.forms:
+            cleaned_data = getattr(
+                recipient_form,
+                "cleaned_data",
+                None,
+            )
+
+            if (
+                not cleaned_data
+                or cleaned_data.get("DELETE")
+            ):
+                continue
+
+            if cleaned_data.get("user"):
+                active_recipient_forms.append(
+                    recipient_form
+                )
+
+        if (
+            origin == TodoAction.Origin.PERSONAL
+            and active_recipient_forms
+        ):
+            form.add_error(
+                "origin",
+                (
+                    "Une action personnelle ne peut pas "
+                    "avoir de destinataire."
                 ),
-            },
+            )
+            return False
+
+        if (
+            origin == TodoAction.Origin.ASSIGNED
+            and not active_recipient_forms
+        ):
+            form.add_error(
+                "origin",
+                (
+                    "Une action assignée doit avoir "
+                    "au moins un destinataire."
+                ),
+            )
+            return False
+
+        return True
+
+    def save_recipients(
+        self,
+        *,
+        form,
+        set_owner: bool,
+    ):
+        recipient_formset = self.get_recipient_formset(
+            form=form,
         )
+
+        formset_valid = recipient_formset.is_valid()
+
+        if not (
+            formset_valid
+            and self.validate_business_rules(
+                form=form,
+                recipient_formset=recipient_formset,
+            )
+        ):
+            return None
+
+        with transaction.atomic():
+            action = form.save(commit=False)
+
+            if set_owner:
+                action.owner = self.request.user
+                action.status = TodoAction.Status.TODO
+
+            action.full_clean()
+            action.save()
+
+            recipient_formset.instance = action
+            recipient_formset.save()
+
+        return action
+
+
+class TodoActionCreateView(
+    LoginRequiredMixin,
+    TodoActionReturnUrlMixin,
+    TodoActionFormsetMixin,
+    EPCreateView,
+):
+    """
+    Création d'une action Todo et de ses destinataires.
+    """
+
+    model = TodoAction
+    form_class = TodoActionForm
+    definition = TODO_ACTION_FORM_DEFINITION
+    template_name = "edf/form/view.html"
+
+    def form_valid(self, form):
+        action = self.save_recipients(
+            form=form,
+            set_owner=True,
+        )
+
+        if action is None:
+            messages.error(
+                self.request,
+                "Certaines informations sont incorrectes.",
+            )
+
+            return self.render_to_response(
+                self.get_context_data(form=form)
+            )
+
+        self.object = action
+
+        messages.success(
+            self.request,
+            "L'action a été créée.",
+        )
+
+        return redirect(self.get_success_url())
+
+
+class TodoActionUpdateView(
+    LoginRequiredMixin,
+    TodoActionReturnUrlMixin,
+    TodoActionFormsetMixin,
+    EPUpdateView,
+):
+    """
+    Modification d'une action par son rédacteur.
+    """
+
+    model = TodoAction
+    form_class = TodoActionForm
+    definition = TODO_ACTION_FORM_DEFINITION
+    template_name = "edf/form/view.html"
+
+    def get_queryset(self):
+        return TodoAction.objects.filter(
+            owner=self.request.user,
+        )
+
+    def form_valid(self, form):
+        action = self.save_recipients(
+            form=form,
+            set_owner=False,
+        )
+
+        if action is None:
+            messages.error(
+                self.request,
+                "Certaines informations sont incorrectes.",
+            )
+
+            return self.render_to_response(
+                self.get_context_data(form=form)
+            )
+
+        self.object = action
+
+        messages.success(
+            self.request,
+            "L'action a été modifiée.",
+        )
+
+        return redirect(self.get_success_url())
+
+
+class TodoActionDeleteView(
+    LoginRequiredMixin,
+    TodoActionReturnUrlMixin,
+    View,
+):
+    """
+    Suppression d'une action par son rédacteur.
+    """
+
+    def post(
+        self,
+        request,
+        *,
+        pk,
+    ):
+        action = get_object_or_404(
+            TodoAction,
+            pk=pk,
+            owner=request.user,
+        )
+
+        title = action.title
+
+        action.delete()
+
+        messages.success(
+            request,
+            f'L’action "{title}" a été supprimée.',
+        )
+
+        return redirect(self.get_success_url())
