@@ -210,9 +210,9 @@
                         <span
                             data-document-name
                             class="truncate"
-                            title="{{ document.title }}"
+                            title="{{ document.title }}{% if document.current_version %}{{ document.current_version.extension }}{% endif %}"
                         >
-                            {{ document.title }}
+                            {{ document.title }}{% if document.current_version %}{{ document.current_version.extension }}{% endif %}
                         </span>
                         {% if document.is_favorite %}
                             <span
@@ -340,13 +340,9 @@
                     <span
                         class="w-full truncate text-sm font-medium
                             text-axcio-text dark:text-axcio-text-dark"
-                        title="{{ document.title }}"
+                       title="{{ document.title }}{% if document.current_version %}{{ document.current_version.extension }}{% endif %}"
                     >
-                        {% if document.title|length > 12 %}
-                            {{ document.title|slice:":12" }}...
-                        {% else %}
-                            {{ document.title }}
-                        {% endif %}
+                        {{ document.title }}{% if document.current_version %}{{ document.current_version.extension }}{% endif %}
                     </span>
                     
                     <span

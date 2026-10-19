@@ -21,7 +21,6 @@ Fonction de recherche des fichiers bloqués en édition
 Développer la transaction client avec les objets déjà définis
 
 ### Transaction Localisation des projets
-RAS
 
 ### Transaction Risques
 
@@ -43,7 +42,6 @@ A faire :
 ### Transaction Projets
 
 ### Transaction Favoris
-Liste : Offir les mêmes actions sur le fichier que dans l'arborescence
 
 ### Transaction Lots de travaux
 
@@ -106,6 +104,9 @@ Oui : par un webhook Documenso.
 - créer une notification Easy Projet pour les utilisateurs concernés.
 Ce n’est pas encore câblé dans le code : l’adaptateur sait déjà vérifier le secret webhook, mais il faut ajouter la vue de réception et le traitement des événements.
 Comme Easy Projet est actuellement sur localhost, Documenso Cloud ne peut pas l’appeler directement. Pour les essais, il faudra exposer temporairement le serveur Django via un tunnel HTTPS Cloudflare ; en production, l’URL publique du serveur sera utilisée. Documenso prévoit explicitement les webhooks pour suivre ces événements. docs.documenso.com
+
+A terme, l’utilisateur choisira n’importe quel document compatible, sans se soucier du PDF.
+
 
 ### #############################
 ###     Application bureau

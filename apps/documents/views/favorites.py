@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 
-from apps.documents.models import DocumentFavorite
+from apps.documents.models import (
+    DocumentFavorite,
+    DocumentFolder,
+)
 from apps.projects.services.access import (
     ProjectAccessService,
+)
+from apps.projects.services.authorization import (
+    ProjectAuthorizationService,
 )
 
 
@@ -49,3 +57,85 @@ class DocumentFavoriteListView(
                 "document__title",
             )
         )
+
+    def get_context_data(
+        self,
+        **kwargs,
+    ):
+        context = super().get_context_data(
+            **kwargs
+        )
+
+        favorites = tuple(
+            context["favorites"]
+        )
+
+        projects_by_id = {
+            favorite.document.project_id: (
+                favorite.document.project
+            )
+            for favorite in favorites
+        }
+
+        project_ids = set(
+            projects_by_id
+        )
+
+        work_project_ids = {
+            project_id
+            for project_id, project in (
+                projects_by_id.items()
+            )
+            if ProjectAuthorizationService.can_work_on_project(
+                user=self.request.user,
+                project=project,
+            )
+        }
+        
+        folders_by_project_id = defaultdict(list)
+
+        folders = (
+            DocumentFolder.objects
+            .filter(
+                project_id__in=project_ids,
+                is_active=True,
+                is_doe_root=False,
+                is_doe_generated=False,
+            )
+            .order_by(
+                "project_id",
+                "sort_order",
+                "name",
+            )
+        )
+
+        for folder in folders:
+            folders_by_project_id[
+                folder.project_id
+            ].append(folder)
+
+        for favorite in favorites:
+            document = favorite.document
+
+            document.can_work_on_project = (
+                document.project_id
+                in work_project_ids
+            )
+
+            document.destination_folders = tuple(
+                folders_by_project_id[
+                    document.project_id
+                ]
+            )
+
+        context.update(
+            {
+                "favorites": favorites,
+                "destination_folders": (),
+                "return_url": (
+                    self.request.get_full_path()
+                ),
+            }
+        )
+
+        return context

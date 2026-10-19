@@ -21,6 +21,9 @@ from apps.documents.integrations.signature import (
     SignatureIntegration,
     SignatureRecipientSubmission,
     SignatureSubmission,
+    SignatureDocumentReference,
+    SignatureDocumentDownloadRequest,
+    SignatureSignedDocument,
 )
 from apps.documents.models import SignatureRequest
 from apps.integrations.models import ExternalIntegration
@@ -117,6 +120,15 @@ class DocumensoAdapter(SignatureIntegration):
             "Documenso n'a retourné aucun identifiant d'enveloppe.",
         )
 
+        document_references = (
+            self._get_envelope_document_references(
+                base_url=base_url,
+                api_key=api_key,
+                provider_request_id=provider_request_id,
+                documents=documents,
+            )
+        )
+        
         self._post_json(
             url=f"{base_url}/envelope/distribute",
             api_key=api_key,
@@ -127,6 +139,7 @@ class DocumensoAdapter(SignatureIntegration):
 
         return SignatureSubmission(
             provider_request_id=provider_request_id,
+            document_references=document_references,
         )
 
     def cancel_signature_request(
@@ -163,6 +176,113 @@ class DocumensoAdapter(SignatureIntegration):
                 "envelopeId": provider_request_id,
             },
         )
+
+    def download_signed_documents(
+        self,
+        *,
+        external_integration: ExternalIntegration,
+        signature_request: SignatureRequest,
+        documents: tuple[
+            SignatureDocumentDownloadRequest,
+            ...,
+        ],
+    ) -> tuple[SignatureSignedDocument, ...]:
+        """
+        Télécharge les PDF signés d'une enveloppe Documenso terminée.
+        """
+
+        provider_request_id = (
+            signature_request.provider_request_id.strip()
+        )
+
+        if not provider_request_id:
+            raise ValueError(
+                "La demande ne possède pas d'identifiant Documenso."
+            )
+
+        api_key = self.credential_resolver.resolve(
+            external_integration.credential_reference
+        )
+
+        base_url = self._get_base_url(
+            external_integration
+        )
+
+        envelope = self._get_json(
+            url=(
+                f"{base_url}/envelope/"
+                f"{provider_request_id}"
+            ),
+            api_key=api_key,
+        )
+
+        status = self._get_required_string(
+            envelope,
+            "status",
+            "Documenso n'a retourné aucun statut d'enveloppe.",
+        )
+
+        if status != "COMPLETED":
+            raise ValueError(
+                "L'enveloppe Documenso n'est pas encore "
+                "complètement signée."
+                 f"(statut actuel : {status})."
+            )
+
+        envelope_items = envelope.get("envelopeItems")
+
+        if not isinstance(envelope_items, list):
+            raise DocumensoIntegrationError(
+                "Documenso n'a retourné aucun document "
+                "dans l'enveloppe."
+            )
+
+        envelope_item_ids = {
+            self._get_required_string(
+                envelope_item,
+                "id",
+                (
+                    "Documenso a retourné un document d'enveloppe "
+                    "sans identifiant."
+                ),
+            )
+            for envelope_item in envelope_items
+            if isinstance(envelope_item, dict)
+        }
+
+        signed_documents = []
+
+        for document in documents:
+            provider_document_id = (
+                document.provider_document_id.strip()
+            )
+
+            if provider_document_id not in envelope_item_ids:
+                raise DocumensoIntegrationError(
+                    "Un document Easy Projet ne correspond à aucun "
+                    "document de l'enveloppe Documenso."
+                )
+
+            content = self._get_binary(
+                url=(
+                    f"{base_url}/envelope/item/"
+                    f"{provider_document_id}/download"
+                    "?version=signed"
+                ),
+                api_key=api_key,
+            )
+
+            signed_documents.append(
+                SignatureSignedDocument(
+                    request_document_id=(
+                        document.request_document_id
+                    ),
+                    filename=document.filename,
+                    content=content,
+                )
+            )
+
+        return tuple(signed_documents)
 
     def verify_webhook(
         self,
@@ -216,7 +336,92 @@ class DocumensoAdapter(SignatureIntegration):
             received_secret,
             expected_secret,
         )
+        
+    def _get_envelope_document_references(
+        self,
+        *,
+        base_url: str,
+        api_key: str,
+        provider_request_id: str,
+        documents: tuple[SignatureDocumentSubmission, ...],
+    ) -> tuple[SignatureDocumentReference, ...]:
+        """
+        Associe les documents Easy Projet aux éléments de l'enveloppe
+        Documenso, dans l'ordre de transmission des fichiers.
+        """
 
+        envelope = self._get_json(
+            url=(
+                f"{base_url}/envelope/"
+                f"{provider_request_id}"
+            ),
+            api_key=api_key,
+        )
+
+        envelope_items = envelope.get("envelopeItems")
+
+        if not isinstance(envelope_items, list):
+            raise DocumensoIntegrationError(
+                "Documenso n'a retourné aucun document "
+                "dans l'enveloppe créée."
+            )
+
+        if len(envelope_items) != len(documents):
+            raise DocumensoIntegrationError(
+                "Le nombre de documents retournés par Documenso "
+                "ne correspond pas à la demande envoyée."
+            )
+
+        references = []
+
+        for document, envelope_item in zip(
+            documents,
+            envelope_items,
+            strict=True,
+        ):
+            if not isinstance(envelope_item, dict):
+                raise DocumensoIntegrationError(
+                    "Documenso a retourné un document d'enveloppe "
+                    "invalide."
+                )
+
+            provider_document_id = self._get_required_string(
+                envelope_item,
+                "id",
+                (
+                    "Documenso n'a retourné aucun identifiant "
+                    "de document d'enveloppe."
+                ),
+            )
+
+            references.append(
+                SignatureDocumentReference(
+                    request_document_id=(
+                        document.request_document_id
+                    ),
+                    provider_document_id=provider_document_id,
+                )
+            )
+
+        return tuple(references)
+
+    def _get_json(
+        self,
+        *,
+        url: str,
+        api_key: str,
+    ) -> dict[str, Any]:
+        request = Request(
+            url,
+            method="GET",
+            headers={
+                "Authorization": api_key,
+                "Accept": "application/json",
+            },
+        )
+
+        return self._execute_request(request)
+    
     def _build_create_payload(
         self,
         *,
@@ -376,6 +581,66 @@ class DocumensoAdapter(SignatureIntegration):
             )
 
         return normalized_url
+
+    def _get_json(
+        self,
+        *,
+        url: str,
+        api_key: str,
+    ) -> dict[str, Any]:
+        request = Request(
+            url,
+            method="GET",
+            headers={
+                "Authorization": api_key,
+                "Accept": "application/json",
+            },
+        )
+
+        return self._execute_request(request)
+
+    def _get_binary(
+        self,
+        *,
+        url: str,
+        api_key: str,
+    ) -> bytes:
+        request = Request(
+            url,
+            method="GET",
+            headers={
+                "Authorization": api_key,
+                "Accept": "application/pdf",
+            },
+        )
+
+        try:
+            with urlopen(
+                request,
+                timeout=self.REQUEST_TIMEOUT_SECONDS,
+            ) as response:
+                content = response.read()
+
+        except HTTPError as exc:
+            raise DocumensoIntegrationError(
+                self._get_http_error_message(exc)
+            ) from exc
+        except (
+            URLError,
+            TimeoutError,
+            OSError,
+        ) as exc:
+            raise DocumensoIntegrationError(
+                "Impossible de télécharger le PDF signé "
+                "depuis Documenso."
+            ) from exc
+
+        if not content:
+            raise DocumensoIntegrationError(
+                "Documenso a retourné un PDF signé vide."
+            )
+
+        return content
 
     def _post_json(
         self,

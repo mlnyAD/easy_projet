@@ -4,14 +4,21 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import (
     url_has_allowed_host_and_scheme,
 )
-from django.views import View
+from django.views.generic import FormView
 
+from framework.form import FormMode
+from framework.integrations.django.views.form import (
+    EPFormView,
+)
+
+from apps.documents.form_definition import (
+    DOCUMENT_SIGNATURE_REQUEST_FORM_DEFINITION,
+)
 from apps.documents.forms_signature import (
     SignatureRequestCreateForm,
 )
@@ -32,79 +39,111 @@ from apps.documents.views.mixins import (
 class SignatureRequestCreateView(
     LoginRequiredMixin,
     ProjectDocumentWorkMixin,
-    View,
+    EPFormView,
+    FormView,
 ):
     """
     Prépare puis envoie une demande de signature électronique.
     """
 
-    template_name = (
-        "documents/signature_request_form.html"
-    )
+    form_class = SignatureRequestCreateForm
+    definition = DOCUMENT_SIGNATURE_REQUEST_FORM_DEFINITION
+    template_name = "edf/form/view.html"
 
-    def get(
-        self,
-        request: HttpRequest,
-        *,
-        project_id,
-    ) -> HttpResponse:
-        project = self.get_project(
-            project_id=project_id,
+    def get_form_mode(self):
+        return FormMode.CREATE
+
+    def get_project_instance(self):
+        if not hasattr(
+            self,
+            "_project_instance",
+        ):
+            self._project_instance = self.get_project(
+                project_id=self.kwargs["project_id"],
+            )
+
+        return self._project_instance
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs["project"] = self.get_project_instance()
+
+        kwargs["initial_document_ids"] = (
+            self.request.GET.getlist("document")
         )
 
-        form = SignatureRequestCreateForm(
-            project=project,
-            initial_document_ids=(
-                request.GET.getlist("document")
-            ),
-            initial=self.get_initial(
-                request=request,
-            ),
-        )
+        return kwargs
 
-        return render(
-            request,
-            self.template_name,
-            {
-                "form": form,
-                "project": project,
-                "return_url": self.get_return_url(
-                    request=request,
-                    project=project,
+    def get_initial(self):
+        initial = super().get_initial()
+
+        if len(
+            self.request.GET.getlist("document")
+        ) == 1:
+            initial["title"] = "Demande de signature"
+
+        return initial
+
+    def get_return_url(self) -> str:
+        candidate = (
+            self.request.POST.get("next")
+            or self.request.GET.get("next")
+            or ""
+        ).strip()
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={
+                    self.request.get_host(),
+                },
+                require_https=self.request.is_secure(),
+            )
+        ):
+            return candidate
+
+        return reverse(
+            "documents:explorer",
+            kwargs={
+                "project_id": (
+                    self.get_project_instance().pk
                 ),
             },
         )
 
-    def post(
+    def get_success_url(self) -> str:
+        return self.get_return_url()
+
+    def get_cancel_url(self) -> str:
+        return self.get_return_url()
+
+    def get_context_data(
         self,
-        request: HttpRequest,
-        *,
-        project_id,
-    ) -> HttpResponse:
-        project = self.get_project(
-            project_id=project_id,
+        **kwargs,
+    ):
+        context = super().get_context_data(
+            **kwargs,
         )
 
-        form = SignatureRequestCreateForm(
-            request.POST,
-            project=project,
+        project = self.get_project_instance()
+
+        context.update(
+            {
+                "project": project,
+                "form_subtitle": (
+                    f"{project.reference} — {project.name}"
+                ),
+                "form_action_label": "Envoyer à signer",
+                "form_action_icon": "send",
+            }
         )
 
-        return_url = self.get_return_url(
-            request=request,
-            project=project,
-        )
+        return context
 
-        if not form.is_valid():
-            return render(
-                request,
-                self.template_name,
-                {
-                    "form": form,
-                    "project": project,
-                    "return_url": return_url,
-                },
-            )
+    def form_valid(self, form):
+        project = self.get_project_instance()
 
         versions = tuple(
             document.current_version
@@ -121,11 +160,9 @@ class SignatureRequestCreateView(
                 )
             )
 
-            storage = get_document_storage()
-
             signature_service = SignatureService(
                 artifact_service=SignatureArtifactService(
-                    storage=storage,
+                    storage=get_document_storage(),
                 ),
             )
 
@@ -143,7 +180,7 @@ class SignatureRequestCreateView(
                         .external_integration
                     ),
                     title=form.cleaned_data["title"],
-                    user=request.user,
+                    user=self.request.user,
                 )
             )
 
@@ -152,65 +189,16 @@ class SignatureRequestCreateView(
             )
 
         except (LookupError, ValueError) as exc:
-            form.add_error(None, str(exc))
-
-            return render(
-                request,
-                self.template_name,
-                {
-                    "form": form,
-                    "project": project,
-                    "return_url": return_url,
-                },
+            form.add_error(
+                None,
+                str(exc),
             )
 
+            return self.form_invalid(form)
+
         messages.success(
-            request,
+            self.request,
             "La demande de signature a été envoyée.",
         )
 
-        return redirect(return_url)
-
-    @staticmethod
-    def get_initial(
-        *,
-        request: HttpRequest,
-    ) -> dict:
-        initial = {}
-
-        document_ids = request.GET.getlist("document")
-
-        if len(document_ids) == 1:
-            initial["title"] = "Demande de signature"
-
-        return initial
-
-    @staticmethod
-    def get_return_url(
-        *,
-        request: HttpRequest,
-        project,
-    ) -> str:
-        candidate = (
-            request.POST.get("next")
-            or request.GET.get("next")
-        )
-
-        if (
-            candidate
-            and url_has_allowed_host_and_scheme(
-                candidate,
-                allowed_hosts={
-                    request.get_host(),
-                },
-                require_https=request.is_secure(),
-            )
-        ):
-            return candidate
-
-        return reverse(
-            "documents:explorer",
-            kwargs={
-                "project_id": project.pk,
-            },
-        )
+        return redirect(self.get_success_url())

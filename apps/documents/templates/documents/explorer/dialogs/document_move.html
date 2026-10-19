@@ -13,6 +13,12 @@
 
 {% block dialog_body %}
 
+    <input
+        type="hidden"
+        name="next"
+        value="{{ return_url }}"
+    >
+
     {% include "edf/form/fields/select.html" with standalone_id="document-move-destination" standalone_name="destination_id" standalone_label="Dossier de destination" standalone_required=True standalone_options_template="documents/explorer/dialogs/document_destination_options.html" %}
 
 {% endblock %}

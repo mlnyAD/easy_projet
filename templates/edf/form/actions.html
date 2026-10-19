@@ -6,7 +6,11 @@
 
     {% if not form_view.is_readonly %}
 
-        {% ep_button label="Enregistrer" action="execute" button_type="submit" icon="save" %}
+        {% with execute_label=form_action_label|default:"Enregistrer" execute_icon=form_action_icon|default:"save" %}
+
+            {% ep_button label=execute_label action="execute" button_type="submit" icon=execute_icon %}
+
+        {% endwith %}
 
         {% if form_view.cancel_url %}
             {% ep_button label="Annuler" action="cancel" url=form_view.cancel_url icon="x" %}

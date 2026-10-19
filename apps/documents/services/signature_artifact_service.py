@@ -9,7 +9,7 @@ from typing import BinaryIO
 from uuid import uuid4
 
 from django.db import transaction
-
+from django.utils import timezone
 from apps.documents.models import SignatureRequestDocument
 from apps.documents.storage import DocumentStorage
 
@@ -119,6 +119,10 @@ class SignatureArtifactService:
                     hashlib.sha256(content_bytes).hexdigest()
                 )
 
+                locked_request_document.prepared_at = (
+                    timezone.now()
+                )
+                
                 locked_request_document.full_clean()
 
                 locked_request_document.save(
@@ -197,6 +201,10 @@ class SignatureArtifactService:
                     hashlib.sha256(content_bytes).hexdigest()
                 )
 
+                locked_request_document.signed_at = (
+                    timezone.now()
+                )
+                
                 locked_request_document.full_clean()
 
                 locked_request_document.save(

@@ -7,6 +7,7 @@ Rendu des champs du framework Easy Projet.
 from django.forms.boundfield import BoundField
 from django.forms.widgets import (
     CheckboxInput,
+    CheckboxSelectMultiple,
     Select,
 )
 
@@ -20,12 +21,6 @@ from framework.form.resolved_field import ResolvedField
 class FieldRenderer:
     """
     Résout le template associé à un champ.
-
-    Les widgets Django ordinaires utilisent leur nature
-    de widget pour déterminer le template.
-
-    Les composants explicitement spécialisés par le
-    framework peuvent imposer leur propre template.
     """
 
     DEFAULT_TEMPLATE = "edf/form/field.html"
@@ -38,8 +33,11 @@ class FieldRenderer:
     }
 
     WIDGET_TEMPLATE = {
-        Select: "edf/form/fields/select.html",
         CheckboxInput: "edf/form/fields/checkbox.html",
+        CheckboxSelectMultiple: (
+            "edf/form/fields/checkbox_multiple.html"
+        ),
+        Select: "edf/form/fields/select.html",
     }
 
     def get_template_name(self, field) -> str:
@@ -72,13 +70,6 @@ class FieldRenderer:
         """
         Résout le template d'un champ Easy Projet lié
         à un BoundField Django.
-
-        FILE_UPLOAD est une sémantique explicite du framework
-        et prend donc priorité.
-
-        Pour les autres champs, le widget Django reste
-        la référence afin de préserver les comportements
-        existants, notamment Select et CheckboxInput.
         """
 
         if field.kind == FieldKind.FILE_UPLOAD:

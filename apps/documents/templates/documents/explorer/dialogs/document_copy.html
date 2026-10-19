@@ -15,6 +15,12 @@
 
     <div class="space-y-4">
 
+        <input
+            type="hidden"
+            name="next"
+            value="{{ return_url }}"
+        >
+
         {% include "edf/form/fields/text.html" with standalone_id="document-copy-title" standalone_name="title" standalone_label="Nom du nouveau document" standalone_required=True standalone_autocomplete="off" %}
 
         {% include "edf/form/fields/select.html" with standalone_id="document-copy-destination" standalone_name="destination_id" standalone_label="Dossier de destination" standalone_required=True standalone_options_template="documents/explorer/dialogs/document_destination_options.html" %}

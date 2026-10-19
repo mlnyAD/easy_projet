@@ -1,6 +1,6 @@
 
 
-{% if form_view.title or form_view.subtitle %}
+{% if form_view.title or form_view.subtitle or form_subtitle %}
 
     <header class="ep-form-header">
 
@@ -10,9 +10,9 @@
             </h1>
         {% endif %}
 
-        {% if form_view.subtitle %}
+        {% if form_view.subtitle or form_subtitle %}
             <p class="ep-form-subtitle">
-                {{ form_view.subtitle }}
+                {{ form_view.subtitle|default:form_subtitle }}
             </p>
         {% endif %}
 

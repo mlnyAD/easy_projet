@@ -1,7 +1,7 @@
 
             
 from __future__ import annotations
-
+from io import BytesIO
 from contextlib import ExitStack
 from dataclasses import dataclass
 from typing import Sequence
@@ -25,7 +25,9 @@ from apps.documents.models import (
 from apps.integrations.models import ExternalIntegration
 from apps.projects.models import Project
 from apps.users.models import User
-
+from apps.documents.integrations.signature import (
+    SignatureDocumentDownloadRequest,
+)
 from .signature_artifact_service import SignatureArtifactService
 
 
@@ -315,6 +317,13 @@ class SignatureService:
                     "de demande de signature."
                 )
 
+            provider_document_ids = (
+                self._get_provider_document_ids(
+                    submission=submission,
+                    request_documents=request_documents,
+                )
+            )
+            
             locked_request.provider_request_id = (
                 provider_request_id
             )
@@ -338,9 +347,12 @@ class SignatureService:
                 request_document.status = (
                     SignatureRequestDocument.Status.SENT
                 )
-
+                request_document.provider_document_id = (
+                    provider_document_ids[request_document.pk]
+                )
                 request_document.save(
                     update_fields=[
+                        "provider_document_id",
                         "status",
                         "updated_at",
                     ]
@@ -359,6 +371,258 @@ class SignatureService:
                 )
 
             return locked_request
+
+    def retrieve_completed_documents(
+        self,
+        *,
+        signature_request: SignatureRequest,
+    ) -> SignatureRequest:
+        """
+        Télécharge et archive les PDF signés d'une demande terminée.
+        """
+
+        current_request = (
+            SignatureRequest.objects
+            .select_related(
+                "external_integration",
+                "external_integration__provider",
+            )
+            .get(pk=signature_request.pk)
+        )
+
+        if (
+            current_request.status
+            == SignatureRequest.Status.COMPLETED
+        ):
+            return current_request
+
+        if current_request.status not in {
+            SignatureRequest.Status.SENT,
+            SignatureRequest.Status.PARTIALLY_SIGNED,
+        }:
+            raise ValueError(
+                "Seule une demande envoyée peut être récupérée."
+            )
+
+        request_documents = tuple(
+            SignatureRequestDocument.objects
+            .filter(signature_request=current_request)
+            .order_by("created_at")
+        )
+
+        if not request_documents:
+            raise ValueError(
+                "La demande ne contient aucun document."
+            )
+
+        documents_to_download = tuple(
+            request_document
+            for request_document in request_documents
+            if not request_document.has_signed_pdf
+        )
+
+        if documents_to_download:
+            download_requests = tuple(
+                SignatureDocumentDownloadRequest(
+                    request_document_id=str(
+                        request_document.pk
+                    ),
+                    provider_document_id=(
+                        request_document.provider_document_id
+                    ),
+                    filename=request_document.prepared_filename,
+                )
+                for request_document in documents_to_download
+            )
+
+            if any(
+                not request.provider_document_id.strip()
+                for request in download_requests
+            ):
+                raise ValueError(
+                    "Un document de signature ne possède pas "
+                    "d'identifiant prestataire."
+                )
+
+            integration = self._get_signature_integration(
+                current_request.external_integration
+            )
+
+            signed_documents = (
+                integration.download_signed_documents(
+                    external_integration=(
+                        current_request.external_integration
+                    ),
+                    signature_request=current_request,
+                    documents=download_requests,
+                )
+            )
+
+            signed_documents_by_request_id = (
+                self._get_signed_documents_by_request_id(
+                    signed_documents=signed_documents,
+                    request_documents=documents_to_download,
+                )
+            )
+
+            for request_document in documents_to_download:
+                signed_document = (
+                    signed_documents_by_request_id[
+                        str(request_document.pk)
+                    ]
+                )
+
+                self.artifact_service.store_signed_pdf(
+                    request_document=request_document,
+                    content=BytesIO(signed_document.content),
+                    filename=signed_document.filename,
+                )
+
+        with transaction.atomic():
+            locked_request = (
+                SignatureRequest.objects
+                .select_for_update()
+                .get(pk=current_request.pk)
+            )
+
+            locked_documents = tuple(
+                SignatureRequestDocument.objects
+                .select_for_update()
+                .filter(signature_request=locked_request)
+                .order_by("created_at")
+            )
+
+            for request_document in locked_documents:
+                if not request_document.has_signed_pdf:
+                    raise ValueError(
+                        "Tous les PDF signés n'ont pas été récupérés."
+                    )
+
+                request_document.status = (
+                    SignatureRequestDocument.Status.SIGNED
+                )
+                request_document.save(
+                    update_fields=[
+                        "status",
+                        "updated_at",
+                    ]
+                )
+
+            locked_request.status = (
+                SignatureRequest.Status.COMPLETED
+            )
+            locked_request.completed_at = timezone.now()
+            locked_request.full_clean()
+            locked_request.save(
+                update_fields=[
+                    "status",
+                    "completed_at",
+                    "updated_at",
+                ]
+            )
+
+        return locked_request
+
+    @staticmethod
+    def _get_signed_documents_by_request_id(
+        *,
+        signed_documents,
+        request_documents: tuple[SignatureRequestDocument, ...],
+    ) -> dict:
+        """
+        Vérifie que chaque document demandé a été téléchargé une fois.
+        """
+
+        expected_request_document_ids = {
+            str(request_document.pk)
+            for request_document in request_documents
+        }
+
+        documents_by_request_id = {}
+
+        for signed_document in signed_documents:
+            request_document_id = (
+                signed_document.request_document_id.strip()
+            )
+
+            if (
+                request_document_id
+                not in expected_request_document_ids
+                or request_document_id
+                in documents_by_request_id
+            ):
+                raise ValueError(
+                    "Le fournisseur a retourné des PDF signés "
+                    "incohérents."
+                )
+
+            documents_by_request_id[request_document_id] = (
+                signed_document
+            )
+
+        if (
+            set(documents_by_request_id)
+            != expected_request_document_ids
+        ):
+            raise ValueError(
+                "Le fournisseur n'a pas retourné tous les "
+                "PDF signés attendus."
+            )
+
+        return documents_by_request_id
+
+    @staticmethod
+    def _get_provider_document_ids(
+        *,
+        submission,
+        request_documents: tuple[SignatureRequestDocument, ...],
+    ) -> dict:
+        """
+        Valide et indexe les identifiants des documents prestataire.
+        """
+
+        expected_document_ids = {
+            str(request_document.pk)
+            for request_document in request_documents
+        }
+
+        provider_document_ids = {}
+
+        for reference in submission.document_references:
+            request_document_id = (
+                reference.request_document_id.strip()
+            )
+            provider_document_id = (
+                reference.provider_document_id.strip()
+            )
+
+            if (
+                request_document_id not in expected_document_ids
+                or not provider_document_id
+                or request_document_id
+                in provider_document_ids
+            ):
+                raise ValueError(
+                    "Le fournisseur a retourné des identifiants "
+                    "de documents incohérents."
+                )
+
+            provider_document_ids[request_document_id] = (
+                provider_document_id
+            )
+
+        if set(provider_document_ids) != expected_document_ids:
+            raise ValueError(
+                "Le fournisseur n'a pas retourné l'identifiant "
+                "de chaque document envoyé."
+            )
+
+        return {
+            request_document.pk: provider_document_ids[
+                str(request_document.pk)
+            ]
+            for request_document in request_documents
+        }
 
     @staticmethod
     def _validate_external_integration(

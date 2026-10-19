@@ -36,6 +36,38 @@ from apps.projects.services.authorization import (
     ProjectAuthorizationService,
 )
 
+def get_document_return_url(
+    *,
+    request: HttpRequest,
+    project,
+    folder_id,
+) -> str:
+    candidate = (
+        request.POST.get("next")
+        or ""
+    ).strip()
+
+    if (
+        candidate
+        and url_has_allowed_host_and_scheme(
+            candidate,
+            allowed_hosts={
+                request.get_host(),
+            },
+            require_https=request.is_secure(),
+        )
+    ):
+        return candidate
+
+    return reverse(
+        "documents:folder",
+        kwargs={
+            "project_id": project.pk,
+            "folder_id": folder_id,
+        },
+    )
+    
+
 class DocumentPropertiesView(
     ProjectDocumentAccessMixin,
     EPUpdateView,
@@ -169,11 +201,41 @@ class DocumentRenameView(
             )
 
         return redirect(
-            "documents:folder",
-            project_id=project.pk,
-            folder_id=document.folder_id,
+            self.get_return_url(
+                request=request,
+                document=document,
+            )
         )
 
+    @staticmethod
+    def get_return_url(
+        *,
+        request: HttpRequest,
+        document: Document,
+    ) -> str:
+        candidate = request.POST.get(
+            "next",
+        )
+
+        if (
+            candidate
+            and url_has_allowed_host_and_scheme(
+                candidate,
+                allowed_hosts={
+                    request.get_host(),
+                },
+                require_https=request.is_secure(),
+            )
+        ):
+            return candidate
+
+        return reverse(
+            "documents:folder",
+            kwargs={
+                "project_id": document.project_id,
+                "folder_id": document.folder_id,
+            },
+        )
 
 class DocumentMoveView(
     LoginRequiredMixin,
@@ -193,7 +255,6 @@ class DocumentMoveView(
     ) -> HttpResponse:
         project = self.get_project(
             project_id=project_id,
-            trashed_at__isnull=True,
         )
 
         document = get_object_or_404(
@@ -233,9 +294,11 @@ class DocumentMoveView(
             )
 
             return redirect(
-                "documents:folder",
-                project_id=project.pk,
-                folder_id=source_folder.pk,
+                get_document_return_url(
+                    request=request,
+                    project=project,
+                    folder_id=source_folder.pk,
+                )
             )
 
         messages.success(
@@ -244,9 +307,11 @@ class DocumentMoveView(
         )
 
         return redirect(
-            "documents:folder",
-            project_id=project.pk,
-            folder_id=destination.pk,
+            get_document_return_url(
+                request=request,
+                project=project,
+                folder_id=destination.pk,
+            )
         )
 
 
@@ -317,11 +382,12 @@ class DocumentCopyView(
             )
 
             return redirect(
-                "documents:folder",
-                project_id=project.pk,
-                folder_id=document.folder_id,
+                get_document_return_url(
+                    request=request,
+                    project=project,
+                    folder_id=document.folder_id,
+                )
             )
-
         messages.success(
             request,
             (
@@ -331,11 +397,13 @@ class DocumentCopyView(
         )
 
         return redirect(
-            "documents:folder",
-            project_id=project.pk,
-            folder_id=destination.pk,
+            get_document_return_url(
+                request=request,
+                project=project,
+                folder_id=destination.pk,
+            )
         )
-
+ 
 
 class DocumentFavoriteAddView(
     LoginRequiredMixin,
@@ -377,11 +445,12 @@ class DocumentFavoriteAddView(
         )
 
         return redirect(
-            "documents:folder",
-            project_id=project.pk,
-            folder_id=document.folder_id,
+            get_document_return_url(
+                request=request,
+                project=project,
+                folder_id=document.folder_id,
+            )
         )
-
 
 class DocumentFavoriteRemoveView(
     LoginRequiredMixin,
@@ -423,9 +492,11 @@ class DocumentFavoriteRemoveView(
         )
 
         return redirect(
-            "documents:folder",
-            project_id=project.pk,
-            folder_id=document.folder_id,
+            get_document_return_url(
+                request=request,
+                project=project,
+                folder_id=document.folder_id,
+            )
         )
 
 class DocumentDeleteView(
@@ -478,9 +549,11 @@ class DocumentDeleteView(
             )
 
         return redirect(
-            "documents:folder",
-            project_id=project.pk,
-            folder_id=folder_id,
+            get_document_return_url(
+                request=request,
+                project=project,
+                folder_id=folder_id,
+            )
         )
 
 

@@ -13,6 +13,11 @@
 
 {% block dialog_body %}
 
+    <input
+        type="hidden"
+        name="next"
+        value="{{ return_url }}"
+    >
     {% include "edf/form/fields/text.html" with standalone_id="document-rename-title" standalone_name="title" standalone_label="Nom" standalone_required=True standalone_autocomplete="off" %}
 
 {% endblock %}

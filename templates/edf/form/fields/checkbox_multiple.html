@@ -1,0 +1,90 @@
+
+
+<div class="ep-field">
+
+    <div class="ep-field-label-row">
+
+        <span class="ep-field-label">
+            {{ field.label }}
+
+            {% if field.required %}
+                <span
+                    class="ep-field-required"
+                    aria-hidden="true"
+                >
+                    *
+                </span>
+
+                <span class="sr-only">
+                    Champ obligatoire
+                </span>
+            {% endif %}
+        </span>
+
+    </div>
+
+    <div
+        class="
+            mt-2 max-h-64 space-y-1 overflow-y-auto
+            rounded-md border p-2
+            border-axcio-border-light
+            dark:border-axcio-border-dark
+        "
+    >
+        {% for choice in bound_field %}
+
+            <label
+                class="
+                    flex cursor-pointer items-center gap-2
+                    rounded px-2 py-1.5 text-sm
+                    text-axcio-text
+                    hover:bg-axcio-surface-alt
+                    dark:text-axcio-text-dark
+                    dark:hover:bg-axcio-surface-alt-dark
+                "
+            >
+                {{ choice.tag }}
+
+                <span>
+                    {{ choice.choice_label }}
+                </span>
+            </label>
+
+        {% empty %}
+
+            <p
+                class="
+                    px-2 py-1 text-sm
+                    text-axcio-text-muted
+                    dark:text-axcio-text-muted-dark
+                "
+            >
+                Aucun choix disponible.
+            </p>
+
+        {% endfor %}
+    </div>
+
+    {% if field.help_text %}
+        <div
+            id="{{ bound_field.auto_id }}_help"
+            class="ep-field-tooltip"
+            role="tooltip"
+        >
+            {{ field.help_text }}
+        </div>
+    {% endif %}
+
+    {% if field.errors %}
+        <div
+            id="{{ bound_field.auto_id }}_errors"
+            class="ep-field-errors"
+            role="alert"
+        >
+            {% for error in field.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>

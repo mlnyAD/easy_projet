@@ -3,16 +3,17 @@
 from common.constants.document import (
     DOCUMENT_IMPORT_MAX_FILES,
 )
-from framework.form.file_upload import (
-    FileUploadDefinition,
-)
-from framework.form.kinds import FieldKind
 from framework.form import (
     FieldDefinition,
     FormDefinition,
     SectionDefinition,
 )
+from framework.form.file_upload import (
+    FileUploadDefinition,
+)
+from framework.form.kinds import FieldKind
 from framework.types.field_width import FieldWidth
+
 
 DOCUMENT_IMPORT_FORM_DEFINITION = FormDefinition(
     name="document-import",
@@ -63,6 +64,7 @@ DOCUMENT_IMPORT_FORM_DEFINITION = FormDefinition(
     ],
 )
 
+
 DOCUMENT_CREATE_FORM_DEFINITION = FormDefinition(
     name="document-create",
     title="Nouveau document",
@@ -110,6 +112,52 @@ DOCUMENT_CREATE_FORM_DEFINITION = FormDefinition(
         ),
     ],
 )
+
+
+DOCUMENT_SIGNATURE_REQUEST_FORM_DEFINITION = FormDefinition(
+    name="document-signature-request",
+    title="Demande de signature",
+    sections=[
+        SectionDefinition(
+            title="Demande",
+            fields=[
+                FieldDefinition(
+                    name="title",
+                    width=FieldWidth.MD,
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Documents à signer",
+            fields=[
+                FieldDefinition(
+                    name="documents",
+                    width=FieldWidth.FULL,
+                    help_text=(
+                        "Seuls les documents PDF peuvent être "
+                        "envoyés en signature."
+                    ),
+                ),
+            ],
+        ),
+        SectionDefinition(
+            title="Signataires",
+            fields=[
+                FieldDefinition(
+                    name="internal_signers",
+                    width=FieldWidth.FULL,
+                    required=False,
+                ),
+                FieldDefinition(
+                    name="external_signers",
+                    width=FieldWidth.FULL,
+                    required=False,
+                ),
+            ],
+        ),
+    ],
+)
+
 
 DOCUMENT_PROPERTIES_FORM_DEFINITION = FormDefinition(
     name="document-properties",

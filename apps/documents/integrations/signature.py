@@ -41,6 +41,17 @@ class SignatureRecipientSubmission:
 
 
 @dataclass(frozen=True, slots=True)
+class SignatureDocumentReference:
+    """
+    Associe un document Easy Projet à son élément prestataire.
+    """
+
+    request_document_id: str
+
+    provider_document_id: str
+    
+    
+@dataclass(frozen=True, slots=True)
 class SignatureSubmission:
     """
     Résultat de la création et de l'envoi d'une demande externe.
@@ -48,7 +59,38 @@ class SignatureSubmission:
 
     provider_request_id: str
 
+    document_references: tuple[
+        SignatureDocumentReference,
+        ...
+    ]
 
+
+@dataclass(frozen=True, slots=True)
+class SignatureDocumentDownloadRequest:
+    """
+    Identifie un PDF signé à récupérer auprès du prestataire.
+    """
+
+    request_document_id: str
+
+    provider_document_id: str
+
+    filename: str
+
+
+@dataclass(frozen=True, slots=True)
+class SignatureSignedDocument:
+    """
+    PDF signé récupéré auprès du prestataire.
+    """
+
+    request_document_id: str
+
+    filename: str
+
+    content: bytes
+    
+    
 class SignatureIntegration(DocumentIntegration, ABC):
     """
     Contrat spécifique aux fournisseurs de signature électronique.
@@ -131,6 +173,23 @@ class SignatureIntegration(DocumentIntegration, ABC):
 
         raise NotImplementedError
 
+    @abstractmethod
+    def download_signed_documents(
+        self,
+        *,
+        external_integration: ExternalIntegration,
+        signature_request: SignatureRequest,
+        documents: tuple[
+            SignatureDocumentDownloadRequest,
+            ...,
+        ],
+    ) -> tuple[SignatureSignedDocument, ...]:
+        """
+        Télécharge les PDF signés d'une demande terminée.
+        """
+
+        raise NotImplementedError
+    
     @abstractmethod
     def verify_webhook(
         self,

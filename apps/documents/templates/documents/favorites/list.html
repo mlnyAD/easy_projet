@@ -1,6 +1,7 @@
 
 
 {% extends "layout/base.html" %}
+{% load static %}
 
 {% block title %}
     Favoris - Easy Projet
@@ -10,15 +11,18 @@
 
     <div class="flex h-full min-h-0 flex-col">
 
-        <div
-            class="mb-4 flex items-center justify-between"
-        >
+        <div class="mb-4 flex items-center justify-between">
             <h1 class="text-xl font-semibold">
                 Favoris
             </h1>
         </div>
 
+        <form class="hidden">
+            {% csrf_token %}
+        </form>
+
         <div
+            id="favorite-document-content"
             class="
                 min-h-0 flex-1 overflow-auto
                 rounded-lg border
@@ -64,19 +68,34 @@
 
                         {% if document.current_version %}
 
-                            <a
+                            <div
+                                data-favorite-document-row
+                                data-document-id="{{ document.pk }}"
+                                data-document-title="{{ document.title }}"
+                                data-document-folder-id="{{ document.folder_id }}"
+                                data-document-favorite-remove-url="{% url 'documents:document-favorite-remove' document.project_id document.pk %}?next={{ return_url|urlencode }}"
+                                data-document-properties-url="{% url 'documents:document-properties' document.project_id document.pk %}?next={{ return_url|urlencode }}"
+                                data-document-download-url="{% url 'documents:version-download' document.current_version.pk %}"
+                                data-document-can-work="{% if document.can_work_on_project %}true{% else %}false{% endif %}"
+
                                 {% if document.current_version.technical_type == "CAD" %}
-                                    href="{% url 'documents:version-cad-view' document.current_version.pk %}"
+                                    data-document-open-url="{% url 'documents:version-cad-view' document.current_version.pk %}"
                                 {% elif document.current_version.technical_type == "OFFICE" %}
-                                    href="{% url 'documents:version-edit' document.current_version.pk %}"
+                                    data-document-open-url="{% url 'documents:version-edit' document.current_version.pk %}"
                                 {% else %}
-                                    href="{% url 'documents:version-view' document.current_version.pk %}"
+                                    data-document-open-url="{% url 'documents:version-view' document.current_version.pk %}"
                                 {% endif %}
-                                target="_blank"
-                                rel="noopener"
+
+                                {% if document.can_work_on_project %}
+                                    data-document-rename-url="{% url 'documents:document-rename' document.project_id document.pk %}"
+                                    data-document-copy-url="{% url 'documents:document-copy' document.project_id document.pk %}"
+                                    data-document-move-url="{% url 'documents:document-move' document.project_id document.pk %}"
+                                    data-document-signature-url="{% url 'documents:signature-request-create' document.project_id %}?document={{ document.pk }}&next={{ return_url|urlencode }}"
+                                    data-document-delete-url="{% url 'documents:document-delete' document.project_id document.pk %}"
+                                {% endif %}
 
                                 class="
-                                    grid min-h-9 items-center
+                                    grid min-h-9 cursor-default items-center
                                     border-b border-axcio-border-light
                                     px-3 text-sm
                                     hover:bg-axcio-surface-alt
@@ -108,9 +127,9 @@
 
                                 <span
                                     class="truncate font-medium"
-                                    title="{{ document.title }}"
+                                    title="{{ document.title }}{{ document.current_version.extension }}"
                                 >
-                                    {{ document.title }}
+                                    {{ document.title }}{{ document.current_version.extension }}
                                 </span>
 
                                 <span
@@ -132,7 +151,21 @@
                                 >
                                     {{ document.updated_at|date:"d/m/Y H:i" }}
                                 </span>
-                            </a>
+                            </div>
+
+                            <template
+                                data-document-destination-options="{{ document.pk }}"
+                            >
+                                <option value="">
+                                    Sélectionnez un dossier
+                                </option>
+
+                                {% for folder in document.destination_folders %}
+                                    <option value="{{ folder.pk }}">
+                                        {{ folder.full_path }}
+                                    </option>
+                                {% endfor %}
+                            </template>
 
                         {% endif %}
 
@@ -157,5 +190,71 @@
         </div>
 
     </div>
+
+    <div
+        id="favorite-document-context-menu"
+        class="
+            fixed z-50 hidden min-w-52 rounded-lg border
+            border-axcio-border-light bg-axcio-page py-1 shadow-lg
+            dark:border-axcio-border-dark dark:bg-axcio-page-dark
+        "
+    >
+        <button type="button" data-document-action="open" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-axcio-text hover:bg-axcio-surface-alt dark:text-axcio-text-dark dark:hover:bg-axcio-surface-alt-dark">
+            <i data-lucide="external-link" class="h-4 w-4"></i>
+            Ouvrir
+        </button>
+
+        <button type="button" data-document-action="download" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-axcio-text hover:bg-axcio-surface-alt dark:text-axcio-text-dark dark:hover:bg-axcio-surface-alt-dark">
+            <i data-lucide="download" class="h-4 w-4"></i>
+            Télécharger
+        </button>
+
+        <button type="button" data-document-action="properties" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-axcio-text hover:bg-axcio-surface-alt dark:text-axcio-text-dark dark:hover:bg-axcio-surface-alt-dark">
+            <i data-lucide="info" class="h-4 w-4"></i>
+            Propriétés
+        </button>
+
+        <div data-document-work-separator class="my-1 border-t border-axcio-border-light dark:border-axcio-border-dark"></div>
+
+        <button type="button" data-document-work-action data-document-action="rename" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-axcio-text hover:bg-axcio-surface-alt dark:text-axcio-text-dark dark:hover:bg-axcio-surface-alt-dark">
+            <i data-lucide="pencil" class="h-4 w-4"></i>
+            Renommer
+        </button>
+
+        <button type="button" data-document-work-action data-document-action="copy" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-axcio-text hover:bg-axcio-surface-alt dark:text-axcio-text-dark dark:hover:bg-axcio-surface-alt-dark">
+            <i data-lucide="copy" class="h-4 w-4"></i>
+            Copier
+        </button>
+
+        <button type="button" data-document-work-action data-document-action="move" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-axcio-text hover:bg-axcio-surface-alt dark:text-axcio-text-dark dark:hover:bg-axcio-surface-alt-dark">
+            <i data-lucide="folder-input" class="h-4 w-4"></i>
+            Déplacer
+        </button>
+
+        <button type="button" data-document-work-action data-document-action="sign" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-axcio-text hover:bg-axcio-surface-alt dark:text-axcio-text-dark dark:hover:bg-axcio-surface-alt-dark">
+            <i data-lucide="signature" class="h-4 w-4"></i>
+            Envoyer à signer
+        </button>
+
+        <div data-document-work-separator class="my-1 border-t border-axcio-border-light dark:border-axcio-border-dark"></div>
+
+        <button type="button" data-document-action="favorite" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-axcio-text hover:bg-axcio-surface-alt dark:text-axcio-text-dark dark:hover:bg-axcio-surface-alt-dark">
+            <i data-lucide="star-off" class="h-4 w-4"></i>
+            Retirer des favoris
+        </button>
+
+        <button type="button" data-document-work-action data-document-action="delete" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30">
+            <i data-lucide="trash-2" class="h-4 w-4"></i>
+            Mettre à la corbeille
+        </button>
+    </div>
+
+    {% include "documents/explorer/dialogs/document_rename.html" %}
+    {% include "documents/explorer/dialogs/document_move.html" %}
+    {% include "documents/explorer/dialogs/document_copy.html" %}
+
+    <script
+        src="{% static 'documents/js/favorites.js' %}"
+    ></script>
 
 {% endblock %}

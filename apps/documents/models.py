@@ -497,6 +497,28 @@ class Document(TimeStampedModel):
         return self.current_version.original_filename
 
     @property
+    def display_title(self) -> str:
+        """
+        Retourne le titre métier complété par l'extension
+        de la version courante.
+        """
+
+        if self.current_version is None:
+            return self.title
+
+        extension = self.current_version.extension
+
+        if (
+            not extension
+            or self.title.lower().endswith(
+                extension.lower()
+            )
+        ):
+            return self.title
+
+        return f"{self.title}{extension}"
+    
+    @property
     def folder_full_path(self) -> str:
         return self.folder.full_path
 
