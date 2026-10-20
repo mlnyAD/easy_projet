@@ -46,11 +46,6 @@ class DocumentFolderTemplate(TimeStampedModel):
         verbose_name="Description",
     )
 
-    is_default = models.BooleanField(
-        default=False,
-        verbose_name="Arborescence par défaut",
-    )
-
     is_active = models.BooleanField(
         default=True,
         verbose_name="Active",
@@ -70,16 +65,6 @@ class DocumentFolderTemplate(TimeStampedModel):
                 ],
                 name="uq_doc_folder_tpl_env_name",
             ),
-            models.UniqueConstraint(
-                fields=[
-                    "client_environment",
-                ],
-                condition=Q(
-                    is_default=True,
-                    is_active=True,
-                ),
-                name="uq_doc_folder_tpl_env_default",
-            ),
         ]
         verbose_name = "Modèle d'arborescence documentaire"
         verbose_name_plural = (
@@ -90,14 +75,6 @@ class DocumentFolderTemplate(TimeStampedModel):
         super().clean()
 
         errors = {}
-
-        if (
-            self.is_default
-            and not self.is_active
-        ):
-            errors["is_default"] = (
-                "Une arborescence par défaut doit être active."
-            )
 
         if errors:
             raise ValidationError(errors)

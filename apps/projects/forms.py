@@ -28,6 +28,9 @@ from .models import (
 )
 from apps.core.models import ClientEnvironmentMembership
 from django.db.models import Q
+from apps.client_configuration.models import (
+    DocumentFolderTemplate,
+)
 
 
 PROJECT_DATE_FORMAT = "%Y-%m-%d"
@@ -71,6 +74,16 @@ class ProjectForm(forms.ModelForm):
         label="Type de projet",
     )
 
+    document_folder_template = forms.ModelChoiceField(
+        queryset=DocumentFolderTemplate.objects.none(),
+        required=False,
+        label="Arborescence documentaire",
+        help_text=(
+            "Le modèle choisi sera copié une seule fois "
+            "dans le projet."
+        ),
+    )
+    
     class Meta:
         model = Project
 
@@ -308,6 +321,11 @@ class ProjectForm(forms.ModelForm):
             None,
         )
 
+        document_folder_template_queryset = kwargs.pop(
+            "document_folder_template_queryset",
+            None,
+        )
+
         super().__init__(*args, **kwargs)
 
         for field_name in PROJECT_DATE_FIELD_NAMES:
@@ -354,6 +372,26 @@ class ProjectForm(forms.ModelForm):
         if not self.is_bound and self.instance._state.adding:
             self._apply_catalog_default("status")
             self._apply_catalog_default("project_type")
+        
+        document_folder_template_field = self.fields[
+            "document_folder_template"
+        ]
+
+        if self.instance._state.adding:
+            document_folder_template_field.required = True
+
+            if document_folder_template_queryset is None:
+                document_folder_template_field.queryset = (
+                    DocumentFolderTemplate.objects.none()
+                )
+            else:
+                document_folder_template_field.queryset = (
+                    document_folder_template_queryset
+                )
+        else:
+            document_folder_template_field.queryset = (
+                DocumentFolderTemplate.objects.none()
+            )
 
     def _configure_catalog_field(
         self,
@@ -416,6 +454,42 @@ class ProjectForm(forms.ModelForm):
 
         if default_value is not None:
             self.initial[field_name] = default_value.pk
+            
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if not self.instance._state.adding:
+            return cleaned_data
+
+        company = cleaned_data.get("company")
+        template = cleaned_data.get(
+            "document_folder_template"
+        )
+
+        if template is None or company is None:
+            return cleaned_data
+
+        if template.client_environment.company_id != company.pk:
+            self.add_error(
+                "document_folder_template",
+                (
+                    "L'arborescence choisie ne correspond pas "
+                    "à la société du projet."
+                ),
+            )
+
+        elif not template.folders.filter(
+            is_active=True,
+        ).exists():
+            self.add_error(
+                "document_folder_template",
+                (
+                    "L'arborescence choisie ne contient aucun "
+                    "dossier actif."
+                ),
+            )
+
+        return cleaned_data
 
 
 class ProjectMembershipForm(forms.ModelForm):

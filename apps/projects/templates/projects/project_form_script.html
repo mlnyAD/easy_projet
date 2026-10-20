@@ -1,6 +1,7 @@
 
 
 {{ project_membership_users_data|json_script:"project-membership-users-data" }}
+{{ project_document_folder_templates_data|json_script:"project-document-folder-templates-data" }}
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -8,11 +9,23 @@ document.addEventListener("DOMContentLoaded", () => {
         "project-membership-users-data"
     );
 
+    const templatesDataElement = document.getElementById(
+        "project-document-folder-templates-data"
+    );
+
     const users = usersDataElement
         ? JSON.parse(usersDataElement.textContent)
         : [];
 
+    const templates = templatesDataElement
+        ? JSON.parse(templatesDataElement.textContent)
+        : [];
+
     const companySelect = document.querySelector("#id_company");
+
+    const documentFolderTemplateSelect = document.querySelector(
+        "#id_document_folder_template"
+    );
 
     function getSelectedCompanyId() {
         return companySelect?.value || "";
@@ -28,6 +41,23 @@ document.addEventListener("DOMContentLoaded", () => {
         return users.filter(
             (user) => (
                 String(user.client_environment__company_id)
+                === String(companyId)
+            )
+        );
+    }
+
+    function getAvailableDocumentFolderTemplates() {
+        const companyId = getSelectedCompanyId();
+
+        if (!companyId) {
+            return [];
+        }
+
+        return templates.filter(
+            (template) => (
+                String(
+                    template.client_environment__company_id
+                )
                 === String(companyId)
             )
         );
@@ -72,10 +102,54 @@ document.addEventListener("DOMContentLoaded", () => {
         getMembershipUserSelects().forEach(refreshUserSelect);
     }
 
+    function refreshDocumentFolderTemplateSelect() {
+        if (!documentFolderTemplateSelect) {
+            return;
+        }
+
+        const currentValue = (
+            documentFolderTemplateSelect.value
+        );
+
+        documentFolderTemplateSelect.innerHTML = "";
+
+        const emptyOption = document.createElement("option");
+
+        emptyOption.value = "";
+        emptyOption.textContent = "---------";
+
+        documentFolderTemplateSelect.appendChild(
+            emptyOption
+        );
+
+        getAvailableDocumentFolderTemplates().forEach(
+            (template) => {
+                const option = document.createElement("option");
+
+                option.value = template.id;
+                option.textContent = template.name;
+
+                if (
+                    String(template.id)
+                    === String(currentValue)
+                ) {
+                    option.selected = true;
+                }
+
+                documentFolderTemplateSelect.appendChild(
+                    option
+                );
+            }
+        );
+    }
+
     if (companySelect && !companySelect.disabled) {
         companySelect.addEventListener(
             "change",
-            refreshAllUserSelects
+            () => {
+                refreshAllUserSelects();
+                refreshDocumentFolderTemplateSelect();
+            }
         );
     }
 
@@ -90,5 +164,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         window.setTimeout(refreshAllUserSelects, 0);
     });
+
+    refreshAllUserSelects();
+    refreshDocumentFolderTemplateSelect();
 });
 </script>

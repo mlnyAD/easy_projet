@@ -16,57 +16,60 @@ from ..models import (
     DocumentFolderTemplateFolder,
 )
 
+
 if TYPE_CHECKING:
     from apps.projects.models import Project
 
 
 class DocumentFolderTemplateApplicationService:
     """
-    Applique au projet l'arborescence documentaire par défaut
-    de son environnement client.
+    Copie une arborescence documentaire type dans un projet.
+
+    Le modèle et l'arborescence créée restent indépendants :
+    une modification ultérieure du modèle ne modifie jamais
+    les dossiers déjà présents dans le projet.
     """
 
     @classmethod
     @transaction.atomic
-    def apply_default_template(
+    def apply_template(
         cls,
         *,
         project: Project,
+        template: DocumentFolderTemplate,
     ) -> int:
         """
-        Copie l'arborescence par défaut dans le projet.
+        Copie le modèle actif choisi dans le projet.
 
         Retourne le nombre de dossiers créés.
-        Aucun dossier n'est créé lorsqu'aucun modèle actif
-        n'est défini par défaut.
         """
 
         if project.client_environment_id is None:
             raise ValueError(
-                "Le projet doit appartenir à un environnement client."
+                "Le projet doit appartenir à un "
+                "environnement client."
+            )
+
+        if template.client_environment_id != (
+            project.client_environment_id
+        ):
+            raise ValueError(
+                "L'arborescence choisie n'appartient pas "
+                "à l'environnement client du projet."
+            )
+
+        if not template.is_active:
+            raise ValueError(
+                "L'arborescence choisie n'est plus active."
             )
 
         if DocumentFolder.objects.filter(
             project=project,
         ).exists():
             raise ValueError(
-                "L'arborescence documentaire du projet existe déjà."
+                "L'arborescence documentaire du projet "
+                "existe déjà."
             )
-
-        template = (
-            DocumentFolderTemplate.objects
-            .filter(
-                client_environment_id=(
-                    project.client_environment_id
-                ),
-                is_active=True,
-                is_default=True,
-            )
-            .first()
-        )
-
-        if template is None:
-            return 0
 
         root_folders = (
             DocumentFolderTemplateFolder.objects
@@ -80,6 +83,12 @@ class DocumentFolderTemplateApplicationService:
                 "name",
             )
         )
+
+        if not root_folders.exists():
+            raise ValueError(
+                "L'arborescence choisie ne contient aucun "
+                "dossier actif."
+            )
 
         return cls._copy_folders(
             project=project,
@@ -137,4 +146,3 @@ class DocumentFolderTemplateApplicationService:
             )
 
         return created_count
-    

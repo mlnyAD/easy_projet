@@ -43,12 +43,18 @@ from framework.runtime import EPList, ListPage
 from framework.integrations.django.viewmodel import (
     DjangoListViewModelBuilder,
 )
+from apps.client_configuration.models import (
+    DocumentFolderTemplate,
+)
 from apps.client_configuration.services.document_folder_template_application import (
     DocumentFolderTemplateApplicationService,
 )
 from apps.documents.models import DocumentFolder
 
-from .form_definition import PROJECT_FORM_DEFINITION
+from .form_definition import (
+    PROJECT_CREATE_FORM_DEFINITION,
+    PROJECT_FORM_DEFINITION,
+)
 
 from .forms import (
     ProjectExternalParticipantFormSet,
@@ -773,6 +779,14 @@ class ProjectFormCollectionsMixin:
             )
 
         is_creating = form.instance._state.adding
+        
+        document_folder_template = (
+            form.cleaned_data.get(
+                "document_folder_template"
+            )
+            if is_creating
+            else None
+        )
 
         with transaction.atomic():
             self.object = form.save()
@@ -787,8 +801,10 @@ class ProjectFormCollectionsMixin:
 
             if is_creating:
                 (
-                    DocumentFolderTemplateApplicationService.apply_default_template(
+                    DocumentFolderTemplateApplicationService
+                    .apply_template(
                         project=self.object,
+                        template=document_folder_template,
                     )
                 )
 
@@ -810,7 +826,7 @@ class ProjectCreateView(
 
     form_class = ProjectForm
 
-    definition = PROJECT_FORM_DEFINITION
+    definition = PROJECT_CREATE_FORM_DEFINITION
 
     template_name = "edf/form/view.html"
 
@@ -839,7 +855,27 @@ class ProjectCreateView(
         kwargs = super().get_form_kwargs()
 
         kwargs["company_queryset"] = self.get_creation_companies()
-
+        
+        kwargs["document_folder_template_queryset"] = (
+            DocumentFolderTemplate.objects
+            .filter(
+                client_environment__company__in=(
+                    self.get_creation_companies()
+                ),
+                client_environment__is_active=True,
+                is_active=True,
+                folders__is_active=True,
+            )
+            .select_related(
+                "client_environment",
+                "client_environment__company",
+            )
+            .distinct()
+            .order_by(
+                "client_environment__company__name",
+                "name",
+            )
+        )
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -872,6 +908,20 @@ class ProjectCreateView(
             )
         )
 
+        context[
+            "project_document_folder_templates_data"
+        ] = list(
+            django_form.fields[
+                "document_folder_template"
+            ]
+            .queryset
+            .values(
+                "id",
+                "name",
+                "client_environment__company_id",
+            )
+        )
+        
         context["form_extra_template"] = (
             "projects/project_form_script.html"
         )

@@ -1039,7 +1039,17 @@ class DocumentHistory(TimeStampedModel):
             "DOE_UNSELECTED",
             "Retrait DOE",
         )
+        
+        EDIT_LOCK_RELEASED = (
+            "EDIT_LOCK_RELEASED",
+            "Déblocage d'édition",
+        )
 
+        EXPIRED_EDIT_LOCK_CLEANED = (
+            "EXPIRED_EDIT_LOCK_CLEANED",
+            "Nettoyage d'un verrou expiré",
+        )
+        
     id = models.UUIDField(
         primary_key=True,
         default=uuid4,

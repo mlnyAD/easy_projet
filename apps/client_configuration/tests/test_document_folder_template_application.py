@@ -64,32 +64,32 @@ class DocumentFolderTemplateApplicationServiceTests(
         self,
         *,
         name="Arborescence chantier",
-        is_default=True,
     ):
         return DocumentFolderTemplate.objects.create(
             client_environment=self.client_environment,
             name=name,
-            is_default=is_default,
         )
 
-    def test_no_folder_is_created_without_default_template(
+    def test_empty_template_is_refused(
         self,
     ):
+        template = self.create_template()
+
         project = self.create_project(
             reference="PRJ-CONFIG-001",
         )
 
-        created_count = (
-            DocumentFolderTemplateApplicationService
-            .apply_default_template(
-                project=project,
+        with self.assertRaisesMessage(
+            ValueError,
+            "ne contient aucun dossier actif",
+        ):
+            (
+                DocumentFolderTemplateApplicationService
+                .apply_template(
+                    project=project,
+                    template=template,
+                )
             )
-        )
-
-        self.assertEqual(
-            created_count,
-            0,
-        )
 
         self.assertFalse(
             DocumentFolder.objects.filter(
@@ -97,7 +97,7 @@ class DocumentFolderTemplateApplicationServiceTests(
             ).exists()
         )
 
-    def test_default_template_is_copied_to_project(
+    def test_template_is_copied_to_project(
         self,
     ):
         template = self.create_template()
@@ -138,8 +138,9 @@ class DocumentFolderTemplateApplicationServiceTests(
 
         created_count = (
             DocumentFolderTemplateApplicationService
-            .apply_default_template(
+            .apply_template(
                 project=project,
+                template=template,
             )
         )
 
@@ -235,8 +236,9 @@ class DocumentFolderTemplateApplicationServiceTests(
 
         created_count = (
             DocumentFolderTemplateApplicationService
-            .apply_default_template(
+            .apply_template(
                 project=project,
+                template=template,
             )
         )
 

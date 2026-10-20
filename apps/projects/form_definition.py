@@ -9,7 +9,6 @@ from framework.form import (
 )
 from framework.types.field_width import FieldWidth
 
-
 PROJECT_FORM_DEFINITION = FormDefinition(
     name="project",
     title="Projet",
@@ -259,4 +258,22 @@ PROJECT_FORM_DEFINITION = FormDefinition(
             delete_label="Supprimer le participant externe",
         ),
     ],
+)
+
+PROJECT_CREATE_FORM_DEFINITION = FormDefinition(
+    name="project-create",
+    title="Nouveau projet",
+    sections=[
+        *PROJECT_FORM_DEFINITION.sections,
+        SectionDefinition(
+            title="Documentation",
+            fields=[
+                FieldDefinition(
+                    name="document_folder_template",
+                    width=FieldWidth.MD,
+                ),
+            ],
+        ),
+    ],
+    collections=PROJECT_FORM_DEFINITION.collections,
 )

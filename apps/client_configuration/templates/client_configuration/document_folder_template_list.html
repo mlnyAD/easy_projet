@@ -98,19 +98,6 @@
                                     {{ document_folder_template.name }}
                                 </h2>
 
-                                {% if document_folder_template.is_default %}
-                                    <span
-                                        class="
-                                            rounded-full
-                                            bg-axcio-light px-2 py-0.5
-                                            text-xs font-medium
-                                            text-axcio-text-inverse
-                                        "
-                                    >
-                                        Par défaut
-                                    </span>
-                                {% endif %}
-
                                 {% if not document_folder_template.is_active %}
                                     <span
                                         class="
@@ -171,27 +158,6 @@
                                 Modifier
                             </a>
 
-                            {% if document_folder_template.is_active and not document_folder_template.is_default %}
-                                <form
-                                    method="post"
-                                    action="{% url 'client_configuration:document-folder-template-set-default' client_environment.pk document_folder_template.pk %}"
-                                >
-                                    {% csrf_token %}
-
-                                    <button
-                                        type="submit"
-                                        class="
-                                            rounded-md bg-axcio-light
-                                            px-3 py-2 text-sm
-                                            font-medium
-                                            text-axcio-text-inverse
-                                            hover:bg-axcio-dark
-                                        "
-                                    >
-                                        Définir par défaut
-                                    </button>
-                                </form>
-                            {% endif %}
                         </div>
                     </article>
 

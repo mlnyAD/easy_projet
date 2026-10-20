@@ -1,0 +1,203 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Configuration client
+{% endblock %}
+
+{% block content %}
+
+    <div class="ep-page space-y-6">
+
+        <div>
+            <a
+                href="{% url 'client_configuration:home' %}"
+                class="text-sm text-axcio-light hover:underline"
+            >
+                ← Configuration client
+            </a>
+
+            <h1 class="mt-2 text-2xl font-semibold">
+                {{ client_environment.company.name }}
+            </h1>
+
+            <p
+                class="mt-1 text-sm text-axcio-text-muted dark:text-axcio-text-muted-dark"
+            >
+                Commandes d'exploitation de l'environnement client.
+            </p>
+        </div>
+
+        {% include "edf/components/tabs.html" with tabs=tabs %}
+
+        <section
+            class="rounded-lg border border-axcio-border-light bg-axcio-surface dark:border-axcio-border-dark dark:bg-axcio-surface-dark"
+        >
+            <div
+                class="flex flex-wrap items-center justify-between gap-4 border-b border-axcio-border-light px-5 py-4 dark:border-axcio-border-dark"
+            >
+                <div>
+                    <h2 class="font-semibold">
+                        Verrous d’édition documentaire
+                    </h2>
+
+                    <p
+                        class="mt-1 text-sm text-axcio-text-muted dark:text-axcio-text-muted-dark"
+                    >
+                        Les verrous affichés sont limités aux projets
+                        sur lesquels vous êtes autorisé à intervenir.
+                    </p>
+                </div>
+
+                <form
+                    method="post"
+                    action="{% url 'client_configuration:edit-lock-cleanup' client_environment.pk %}"
+                    onsubmit="return window.confirm('Supprimer tous les verrous expirés affichés ?');"
+                >
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="inline-flex items-center gap-2 rounded-md border border-axcio-border-light px-3 py-2 text-sm font-medium hover:border-axcio-light disabled:cursor-not-allowed disabled:opacity-50 dark:border-axcio-border-dark"
+                        {% if not expired_lock_count %}
+                            disabled
+                        {% endif %}
+                    >
+                        <i
+                            data-lucide="broom"
+                            class="h-4 w-4"
+                            aria-hidden="true"
+                        ></i>
+
+                        Nettoyer les expirés
+                    </button>
+                </form>
+            </div>
+
+            {% if edit_locks %}
+
+                <div class="overflow-x-auto">
+
+                    <table class="w-full text-left text-sm">
+
+                        <thead
+                            class="border-b border-axcio-border-light text-xs text-axcio-text-muted dark:border-axcio-border-dark dark:text-axcio-text-muted-dark"
+                        >
+                            <tr>
+                                <th class="px-5 py-3 font-medium">
+                                    Document
+                                </th>
+                                <th class="px-5 py-3 font-medium">
+                                    Détenteur
+                                </th>
+                                <th class="px-5 py-3 font-medium">
+                                    Expiration
+                                </th>
+                                <th class="px-5 py-3 font-medium">
+                                    État
+                                </th>
+                                <th class="px-5 py-3 text-right font-medium">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for edit_lock in edit_locks %}
+
+                                <tr
+                                    class="border-b border-axcio-border-light last:border-0 dark:border-axcio-border-dark"
+                                >
+                                    <td class="px-5 py-3">
+                                        <div class="font-medium">
+                                            {{ edit_lock.document.title }}{% if edit_lock.version.extension %}.{{ edit_lock.version.extension }}{% endif %}
+                                        </div>
+
+                                        <div
+                                            class="mt-0.5 text-xs text-axcio-text-muted dark:text-axcio-text-muted-dark"
+                                        >
+                                            {{ edit_lock.document.project.reference }}
+                                            — {{ edit_lock.document.project.name }}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-5 py-3">
+                                        {{ edit_lock.user }}
+                                    </td>
+
+                                    <td class="px-5 py-3">
+                                        {{ edit_lock.expires_at|date:"d/m/Y H:i" }}
+                                    </td>
+
+                                    <td class="px-5 py-3">
+
+                                        {% if edit_lock.is_expired %}
+
+                                            <span
+                                                class="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 dark:bg-red-950/40 dark:text-red-300"
+                                            >
+                                                Expiré
+                                            </span>
+
+                                        {% else %}
+
+                                            <span
+                                                class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                            >
+                                                Actif
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td class="px-5 py-3 text-right">
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'client_configuration:edit-lock-force-release' client_environment.pk edit_lock.pk %}"
+                                            class="inline"
+                                            onsubmit="return window.confirm('Libérer ce verrou d’édition ?');"
+                                        >
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="inline-flex items-center gap-2 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30"
+                                            >
+                                                <i
+                                                    data-lucide="unlock"
+                                                    class="h-4 w-4"
+                                                    aria-hidden="true"
+                                                ></i>
+
+                                                Libérer
+                                            </button>
+                                        </form>
+
+                                    </td>
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div
+                    class="px-5 py-10 text-center text-sm text-axcio-text-muted dark:text-axcio-text-muted-dark"
+                >
+                    Aucun verrou d’édition dans votre périmètre.
+                </div>
+
+            {% endif %}
+        </section>
+
+    </div>
+
+{% endblock %}

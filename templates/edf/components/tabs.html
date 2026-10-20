@@ -1,0 +1,46 @@
+
+
+{% if tabs %}
+
+    <nav
+        class="border-b border-axcio-border-light dark:border-axcio-border-dark"
+        aria-label="Navigation secondaire"
+    >
+        <div class="flex flex-wrap gap-1">
+
+            {% for tab in tabs %}
+
+                {% if tab.disabled %}
+
+                    <span
+                        class="cursor-not-allowed border-b-2 border-transparent px-3 py-2 text-sm text-axcio-text-muted opacity-60 dark:text-axcio-text-muted-dark"
+                        aria-disabled="true"
+                    >
+                        {{ tab.label }}
+                    </span>
+
+                {% else %}
+
+                    <a
+                        href="{{ tab.url }}"
+                        class="border-b-2 px-3 py-2 text-sm font-medium transition-colors
+                               {% if tab.is_active %}
+                                   border-axcio-light text-axcio-light
+                               {% else %}
+                                   border-transparent text-axcio-text-muted hover:border-axcio-border-light hover:text-axcio-text dark:text-axcio-text-muted-dark dark:hover:border-axcio-border-dark dark:hover:text-axcio-text-dark
+                               {% endif %}"
+                        {% if tab.is_active %}
+                            aria-current="page"
+                        {% endif %}
+                    >
+                        {{ tab.label }}
+                    </a>
+
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+    </nav>
+
+{% endif %}

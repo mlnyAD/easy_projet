@@ -4,13 +4,15 @@ from django.urls import path
 
 from .views import (
     ClientConfigurationHomeView,
+    ClientEnvironmentCommandsView,
+    DocumentEditLockExpiredCleanupView,
+    DocumentEditLockForceReleaseView,
     DocumentFolderTemplateCreateView,
     DocumentFolderTemplateFolderCreateView,
     DocumentFolderTemplateFolderDeleteView,
     DocumentFolderTemplateFolderListView,
     DocumentFolderTemplateFolderUpdateView,
     DocumentFolderTemplateListView,
-    DocumentFolderTemplateSetDefaultView,
     DocumentFolderTemplateUpdateView,
 )
 
@@ -23,6 +25,33 @@ urlpatterns = [
         "",
         ClientConfigurationHomeView.as_view(),
         name="home",
+    ),
+    path(
+        (
+            "client-environments/"
+            "<uuid:client_environment_pk>/"
+        ),
+        ClientEnvironmentCommandsView.as_view(),
+        name="client-environment",
+    ),
+    path(
+        (
+            "client-environments/"
+            "<uuid:client_environment_pk>/"
+            "commands/edit-locks/cleanup/"
+        ),
+        DocumentEditLockExpiredCleanupView.as_view(),
+        name="edit-lock-cleanup",
+    ),
+    path(
+        (
+            "client-environments/"
+            "<uuid:client_environment_pk>/"
+            "commands/edit-locks/<uuid:lock_pk>/"
+            "force-release/"
+        ),
+        DocumentEditLockForceReleaseView.as_view(),
+        name="edit-lock-force-release",
     ),
     path(
         (
@@ -51,16 +80,6 @@ urlpatterns = [
         ),
         DocumentFolderTemplateUpdateView.as_view(),
         name="document-folder-template-update",
-    ),
-    path(
-        (
-            "client-environments/"
-            "<uuid:client_environment_pk>/"
-            "document-folder-templates/"
-            "<uuid:template_pk>/set-default/"
-        ),
-        DocumentFolderTemplateSetDefaultView.as_view(),
-        name="document-folder-template-set-default",
     ),
     path(
         (

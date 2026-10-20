@@ -265,3 +265,13 @@ Je recommande cet ordre :
 5. Dashboards
    À traiter après consolidation des données opérationnelles, pour produire des indicateurs utiles et fiables.
 Je commencerais par la conversion ciblée, puis la documentation.
+
+-------------------------
+Je retiens donc les règles suivantes :
+- aucune arborescence « par défaut » ;
+- le choix d’une arborescence est obligatoire lors de la création d’un projet ;
+- seuls les modèles actifs, ayant au moins un dossier actif, sont proposés ;
+- le modèle doit appartenir à l’environnement client correspondant à la société du projet ;
+- le modèle est copié une seule fois ; une modification ultérieure du projet ne le réapplique jamais ;
+- l’option is_default, son bouton et les routes associées seront supprimés de la configuration client.
+Le futur choix DOE suivra le même principe.

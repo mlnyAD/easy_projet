@@ -7,6 +7,7 @@ from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.utils import timezone
 from django.http import HttpResponseBadRequest
 from django.shortcuts import (
     get_object_or_404,
@@ -29,6 +30,8 @@ from .models import (
 from .services.access import (
     ClientConfigurationAccessService,
 )
+from apps.documents.models import DocumentEditLock
+from apps.documents.services import DocumentEditLockService
 
 
 class ClientConfigurationHomeView(
@@ -87,6 +90,223 @@ class ClientEnvironmentConfigurationMixin(
         return self._client_environment
 
 
+class ClientEnvironmentMaintenanceMixin(
+    ClientEnvironmentConfigurationMixin,
+):
+    """
+    Fournit le périmètre documentaire sur lequel l'utilisateur
+    peut exécuter des commandes de maintenance.
+    """
+
+    def get_maintainable_projects(self):
+        if not hasattr(
+            self,
+            "_maintainable_projects",
+        ):
+            self._maintainable_projects = (
+                ClientConfigurationAccessService
+                .get_maintainable_projects(
+                    self.request.user,
+                    client_environment=(
+                        self.get_client_environment()
+                    ),
+                )
+            )
+
+        return self._maintainable_projects
+
+    def get_maintainable_edit_locks(self):
+        return (
+            DocumentEditLock.objects
+            .filter(
+                document__project__in=(
+                    self.get_maintainable_projects()
+                ),
+            )
+            .select_related(
+                "document",
+                "document__project",
+                "user",
+                "version",
+            )
+        )
+
+
+class ClientEnvironmentCommandsView(
+    ClientEnvironmentMaintenanceMixin,
+    TemplateView,
+):
+    """
+    Affiche les commandes de maintenance accessibles dans
+    l'environnement client courant.
+    """
+
+    template_name = (
+        "client_configuration/"
+        "client_environment_commands.html"
+    )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        client_environment = (
+            self.get_client_environment()
+        )
+        now = timezone.now()
+
+        edit_locks = list(
+            self.get_maintainable_edit_locks()
+            .order_by(
+                "expires_at",
+                "document__project__reference",
+                "document__title",
+            )
+        )
+
+        expired_lock_count = 0
+
+        for edit_lock in edit_locks:
+            edit_lock.is_expired = (
+                edit_lock.expires_at <= now
+            )
+
+            if edit_lock.is_expired:
+                expired_lock_count += 1
+
+        context.update(
+            {
+                "client_environment": client_environment,
+                "active_tab": "commands",
+                "tabs": (
+                    {
+                        "label": "Commandes",
+                        "url": reverse(
+                            "client_configuration:"
+                            "client-environment",
+                            kwargs={
+                                "client_environment_pk": (
+                                    client_environment.pk
+                                ),
+                            },
+                        ),
+                        "is_active": True,
+                    },
+                    {
+                        "label": "Arborescences",
+                        "url": reverse(
+                            "client_configuration:"
+                            "document-folder-template-list",
+                            kwargs={
+                                "client_environment_pk": (
+                                    client_environment.pk
+                                ),
+                            },
+                        ),
+                        "is_active": False,
+                    },
+                    {
+                        "label": "DOE",
+                        "url": "",
+                        "is_active": False,
+                        "disabled": True,
+                    },
+                ),
+                "edit_locks": edit_locks,
+                "expired_lock_count": expired_lock_count,
+            }
+        )
+
+        return context
+
+
+class DocumentEditLockExpiredCleanupView(
+    ClientEnvironmentMaintenanceMixin,
+    View,
+):
+    """
+    Supprime les verrous expirés dans le périmètre autorisé.
+    """
+
+    def post(self, request, *args, **kwargs):
+        deleted_count = (
+            DocumentEditLockService.release_expired(
+                locks=self.get_maintainable_edit_locks(),
+                user=request.user,
+            )
+        )
+
+        if deleted_count:
+            messages.success(
+                request,
+                (
+                    f"{deleted_count} verrou(s) expiré(s) "
+                    "ont été supprimés."
+                ),
+            )
+        else:
+            messages.info(
+                request,
+                "Aucun verrou expiré à supprimer.",
+            )
+
+        return redirect(
+            "client_configuration:client-environment",
+            client_environment_pk=(
+                self.get_client_environment().pk
+            ),
+        )
+
+
+class DocumentEditLockForceReleaseView(
+    ClientEnvironmentMaintenanceMixin,
+    View,
+):
+    """
+    Libère un verrou sélectionné dans le périmètre autorisé.
+    """
+
+    lock_url_kwarg = "lock_pk"
+
+    def post(self, request, *args, **kwargs):
+        edit_lock = get_object_or_404(
+            self.get_maintainable_edit_locks(),
+            pk=self.kwargs[
+                self.lock_url_kwarg
+            ],
+        )
+
+        released = (
+            DocumentEditLockService.force_release(
+                lock=edit_lock,
+                user=request.user,
+            )
+        )
+
+        if released:
+            messages.success(
+                request,
+                (
+                    "Le verrou d'édition a été "
+                    "libéré."
+                ),
+            )
+        else:
+            messages.info(
+                request,
+                (
+                    "Le verrou avait déjà été supprimé "
+                    "ou remplacé."
+                ),
+            )
+
+        return redirect(
+            "client_configuration:client-environment",
+            client_environment_pk=(
+                self.get_client_environment().pk
+            ),
+        )
+        
+
 class DocumentFolderTemplateListView(
     ClientEnvironmentConfigurationMixin,
     TemplateView,
@@ -118,7 +338,6 @@ class DocumentFolderTemplateListView(
                         ),
                     )
                     .order_by(
-                        "-is_default",
                         "name",
                     )
                 ),
@@ -293,66 +512,6 @@ class DocumentFolderTemplateUpdateView(
         )
 
         return context
-
-
-class DocumentFolderTemplateSetDefaultView(
-    DocumentFolderTemplateMixin,
-    View,
-):
-    """
-    Définit le modèle actif utilisé lors de la création
-    des nouveaux projets de l'environnement client.
-    """
-
-    def post(self, request, *args, **kwargs):
-        template = self.get_document_folder_template()
-
-        if not template.is_active:
-            return HttpResponseBadRequest(
-                "Un modèle inactif ne peut pas être "
-                "défini par défaut."
-            )
-
-        with transaction.atomic():
-            (
-                DocumentFolderTemplate.objects
-                .filter(
-                    client_environment=(
-                        template.client_environment
-                    ),
-                    is_default=True,
-                )
-                .exclude(
-                    pk=template.pk,
-                )
-                .update(
-                    is_default=False,
-                )
-            )
-
-            template.is_default = True
-            template.save(
-                update_fields=[
-                    "is_default",
-                    "updated_at",
-                ]
-            )
-
-        messages.success(
-            request,
-            (
-                "Le modèle d'arborescence documentaire "
-                "est maintenant utilisé par défaut."
-            ),
-        )
-
-        return redirect(
-            "client_configuration:"
-            "document-folder-template-list",
-            client_environment_pk=(
-                template.client_environment_id
-            ),
-        )
 
 
 class DocumentFolderTemplateFolderListView(

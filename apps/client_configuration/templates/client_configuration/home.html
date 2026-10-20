@@ -33,7 +33,7 @@
                 {% for client_environment in client_environments %}
 
                     <a
-                        href="{% url 'client_configuration:document-folder-template-list' client_environment.pk %}"
+                        href="{% url 'client_configuration:client-environment' client_environment.pk %}"
                         class="
                             rounded-lg border
                             border-axcio-border-light

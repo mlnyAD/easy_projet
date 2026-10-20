@@ -11,6 +11,7 @@ from django.utils import timezone
 from apps.documents.models import (
     Document,
     DocumentEditLock,
+    DocumentHistory,
     DocumentVersion,
 )
 from apps.users.models import User
@@ -34,7 +35,9 @@ class DocumentEditLockService:
     - reprendre un verrou expiré ;
     - refuser l'édition si un autre utilisateur détient
       encore un verrou valide ;
-    - libérer un verrou.
+    - libérer un verrou ;
+    - permettre à un opérateur autorisé de supprimer un verrou ;
+    - nettoyer les verrous expirés.
     """
 
     @staticmethod
@@ -252,6 +255,106 @@ class DocumentEditLockService:
 
         return True
 
+    @classmethod
+    @transaction.atomic
+    def force_release(
+        cls,
+        *,
+        lock: DocumentEditLock,
+        user: User,
+    ) -> bool:
+        """
+        Supprime un verrou à la demande d'un opérateur autorisé.
+
+        L'autorisation fonctionnelle est contrôlée par la vue
+        appelante. L'opération est historisée sur le document.
+        """
+
+        locked_lock = (
+            DocumentEditLock.objects
+            .select_for_update()
+            .select_related(
+                "document",
+                "user",
+                "version",
+            )
+            .filter(
+                pk=lock.pk,
+            )
+            .first()
+        )
+
+        if locked_lock is None:
+            return False
+
+        cls._create_history_entry(
+            lock=locked_lock,
+            user=user,
+            action=DocumentHistory.Action.EDIT_LOCK_RELEASED,
+            details=(
+                "Verrou d'édition détenu par "
+                f"{locked_lock.user} et libéré par "
+                f"{user}."
+            ),
+        )
+
+        locked_lock.delete()
+
+        return True
+
+    @classmethod
+    @transaction.atomic
+    def release_expired(
+        cls,
+        *,
+        locks,
+        user: User,
+    ) -> int:
+        """
+        Supprime les verrous expirés du périmètre transmis.
+
+        Chaque suppression est historisée sur le document.
+        """
+
+        now = timezone.now()
+
+        expired_locks = list(
+            locks
+            .select_for_update()
+            .select_related(
+                "document",
+                "user",
+                "version",
+            )
+            .filter(
+                expires_at__lte=now,
+            )
+        )
+
+        for lock in expired_locks:
+            cls._create_history_entry(
+                lock=lock,
+                user=user,
+                action=(
+                    DocumentHistory.Action
+                    .EXPIRED_EDIT_LOCK_CLEANED
+                ),
+                details=(
+                    "Verrou d'édition expiré détenu par "
+                    f"{lock.user} supprimé par {user}."
+                ),
+            )
+
+        if expired_locks:
+            DocumentEditLock.objects.filter(
+                pk__in=[
+                    lock.pk
+                    for lock in expired_locks
+                ],
+            ).delete()
+
+        return len(expired_locks)
+
     @staticmethod
     def get_active_lock(
         *,
@@ -282,3 +385,23 @@ class DocumentEditLockService:
             return None
 
         return lock
+
+    @staticmethod
+    def _create_history_entry(
+        *,
+        lock: DocumentEditLock,
+        user: User,
+        action: str,
+        details: str,
+    ) -> None:
+        """
+        Crée la trace d'une opération de maintenance.
+        """
+
+        DocumentHistory.objects.create(
+            document=lock.document,
+            version=lock.version,
+            action=action,
+            user=user,
+            details=details,
+        )
