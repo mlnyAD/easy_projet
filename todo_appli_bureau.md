@@ -275,3 +275,18 @@ Je retiens donc les règles suivantes :
 - le modèle est copié une seule fois ; une modification ultérieure du projet ne le réapplique jamais ;
 - l’option is_default, son bouton et les routes associées seront supprimés de la configuration client.
 Le futur choix DOE suivra le même principe.
+
+
+Cas	Génération initiale	IA, ultérieurement
+Modèle DOE choisi	Création de la structure du modèle, puis dépôt de tous les documents taggés dans un répertoire d’entrée du DOE, par exemple À classer.	Proposition de déplacement des documents vers les répertoires du modèle. Validation opérateur avant application.
+Aucun modèle disponible	Génération du DOE en reproduisant l’arborescence et les noms des documents taggés.	Analyse de la structure produite et proposition de corrections de classement. Validation opérateur avant application.
+
+
+Le dépôt temporaire À classer évite tout classement arbitraire avant décision de l’IA ou de l’opérateur. Les documents générés restent des copies DOE : les originaux ne sont jamais déplacés ni modifiés.
+
+La première étape consiste donc à créer les modèles DOE dans la configuration client et à adapter la demande de génération pour proposer le choix lorsqu’au moins un modèle actif existe. L’assistance IA viendra ensuite comme une proposition réversible, jamais comme un déplacement automatique.
+Oui. La règle devient :
+- modèles DOE disponibles : l’opérateur peut en choisir un ou sélectionner « Sans modèle » ;
+- modèle choisi : création de sa structure, avec les documents taggés déposés dans À classer ;
+- aucun modèle choisi, volontairement ou faute de modèle disponible : génération classique par reproduction de l’arborescence source des documents taggés.
+L’IA pourra ensuite proposer un classement ou des corrections dans les deux cas.

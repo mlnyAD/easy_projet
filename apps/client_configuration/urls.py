@@ -14,6 +14,11 @@ from .views import (
     DocumentFolderTemplateFolderUpdateView,
     DocumentFolderTemplateListView,
     DocumentFolderTemplateUpdateView,
+    DoeTemplateCreateView,
+    DoeTemplateFolderDeleteView,
+    DoeTemplateFolderListView,
+    DoeTemplateListView,
+    DoeTemplateUpdateView,
 )
 
 
@@ -122,5 +127,54 @@ urlpatterns = [
         ),
         DocumentFolderTemplateFolderDeleteView.as_view(),
         name="document-folder-template-folder-delete",
+    ),
+        path(
+        (
+            "client-environments/"
+            "<uuid:client_environment_pk>/"
+            "doe-templates/"
+        ),
+        DoeTemplateListView.as_view(),
+        name="doe-template-list",
+    ),
+    path(
+        (
+            "client-environments/"
+            "<uuid:client_environment_pk>/"
+            "doe-templates/new/"
+        ),
+        DoeTemplateCreateView.as_view(),
+        name="doe-template-create",
+    ),
+    path(
+        (
+            "client-environments/"
+            "<uuid:client_environment_pk>/"
+            "doe-templates/"
+            "<uuid:template_pk>/edit/"
+        ),
+        DoeTemplateUpdateView.as_view(),
+        name="doe-template-update",
+    ),
+    path(
+        (
+            "client-environments/"
+            "<uuid:client_environment_pk>/"
+            "doe-templates/"
+            "<uuid:template_pk>/folders/"
+        ),
+        DoeTemplateFolderListView.as_view(),
+        name="doe-template-folders",
+    ),
+    path(
+        (
+            "client-environments/"
+            "<uuid:client_environment_pk>/"
+            "doe-templates/"
+            "<uuid:template_pk>/folders/"
+            "<uuid:folder_pk>/delete/"
+        ),
+        DoeTemplateFolderDeleteView.as_view(),
+        name="doe-template-folder-delete",
     ),
 ]

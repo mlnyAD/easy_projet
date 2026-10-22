@@ -22,10 +22,14 @@ from apps.core.models import ClientEnvironment
 from .forms import (
     DocumentFolderTemplateFolderForm,
     DocumentFolderTemplateForm,
+    DoeTemplateFolderForm,
+    DoeTemplateForm,
 )
 from .models import (
     DocumentFolderTemplate,
     DocumentFolderTemplateFolder,
+    DoeTemplate,
+    DoeTemplateFolder,
 )
 from .services.access import (
     ClientConfigurationAccessService,
@@ -88,6 +92,50 @@ class ClientEnvironmentConfigurationMixin(
             )
 
         return self._client_environment
+    
+    def get_configuration_tabs(
+        self,
+        *,
+        active_tab: str,
+    ) -> tuple[dict, ...]:
+        client_environment = self.get_client_environment()
+
+        definitions = (
+            (
+                "commands",
+                "Commandes",
+                "client_configuration:client-environment",
+            ),
+            (
+                "folders",
+                "Arborescences",
+                (
+                    "client_configuration:"
+                    "document-folder-template-list"
+                ),
+            ),
+            (
+                "doe",
+                "DOE",
+                "client_configuration:doe-template-list",
+            ),
+        )
+
+        return tuple(
+            {
+                "label": label,
+                "url": reverse(
+                    url_name,
+                    kwargs={
+                        "client_environment_pk": (
+                            client_environment.pk
+                        ),
+                    },
+                ),
+                "is_active": key == active_tab,
+            }
+            for key, label, url_name in definitions
+        )
 
 
 class ClientEnvironmentMaintenanceMixin(
@@ -177,40 +225,9 @@ class ClientEnvironmentCommandsView(
             {
                 "client_environment": client_environment,
                 "active_tab": "commands",
-                "tabs": (
-                    {
-                        "label": "Commandes",
-                        "url": reverse(
-                            "client_configuration:"
-                            "client-environment",
-                            kwargs={
-                                "client_environment_pk": (
-                                    client_environment.pk
-                                ),
-                            },
-                        ),
-                        "is_active": True,
-                    },
-                    {
-                        "label": "Arborescences",
-                        "url": reverse(
-                            "client_configuration:"
-                            "document-folder-template-list",
-                            kwargs={
-                                "client_environment_pk": (
-                                    client_environment.pk
-                                ),
-                            },
-                        ),
-                        "is_active": False,
-                    },
-                    {
-                        "label": "DOE",
-                        "url": "",
-                        "is_active": False,
-                        "disabled": True,
-                    },
-                ),
+                "tabs": self.get_configuration_tabs(
+                        active_tab="commands",
+                    ),
                 "edit_locks": edit_locks,
                 "expired_lock_count": expired_lock_count,
             }
@@ -340,6 +357,9 @@ class DocumentFolderTemplateListView(
                     .order_by(
                         "name",
                     )
+                ),
+                "tabs": self.get_configuration_tabs(
+                    active_tab="folders",
                 ),
             }
         )
@@ -948,3 +968,458 @@ class DocumentFolderTemplateFolderDeleteView(
             template_pk=template.pk,
         )
         
+        
+class DoeTemplateListView(
+    ClientEnvironmentConfigurationMixin,
+    TemplateView,
+):
+    """
+    Liste les modèles de DOE d'un environnement client.
+    """
+
+    template_name = (
+        "client_configuration/"
+        "doe_template_list.html"
+    )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        client_environment = (
+            self.get_client_environment()
+        )
+
+        context.update(
+            {
+                "client_environment": client_environment,
+                "tabs": self.get_configuration_tabs(
+                    active_tab="doe",
+                ),
+                "doe_templates": (
+                    DoeTemplate.objects
+                    .filter(
+                        client_environment=(
+                            client_environment
+                        ),
+                    )
+                    .order_by(
+                        "name",
+                    )
+                ),
+            }
+        )
+
+        return context
+
+
+class DoeTemplateMixin(
+    ClientEnvironmentConfigurationMixin,
+):
+    """
+    Charge un modèle de DOE appartenant à l'environnement
+    client administrable courant.
+    """
+
+    template_url_kwarg = "template_pk"
+
+    def get_doe_template(self) -> DoeTemplate:
+        if not hasattr(
+            self,
+            "_doe_template",
+        ):
+            self._doe_template = get_object_or_404(
+                DoeTemplate.objects.filter(
+                    client_environment=(
+                        self.get_client_environment()
+                    ),
+                ),
+                pk=self.kwargs[
+                    self.template_url_kwarg
+                ],
+            )
+
+        return self._doe_template
+
+
+class DoeTemplateCreateView(
+    ClientEnvironmentConfigurationMixin,
+    FormView,
+):
+    """
+    Crée un modèle de DOE.
+    """
+
+    template_name = (
+        "client_configuration/"
+        "doe_template_form.html"
+    )
+    form_class = DoeTemplateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs["client_environment"] = (
+            self.get_client_environment()
+        )
+
+        return kwargs
+
+    def form_valid(self, form):
+        template = form.save()
+
+        messages.success(
+            self.request,
+            "Le modèle de DOE a été créé.",
+        )
+
+        return redirect(
+            "client_configuration:doe-template-folders",
+            client_environment_pk=(
+                template.client_environment_id
+            ),
+            template_pk=template.pk,
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update(
+            {
+                "client_environment": (
+                    self.get_client_environment()
+                ),
+                "page_title": "Nouveau modèle de DOE",
+                "submit_label": "Créer le modèle",
+            }
+        )
+
+        return context
+
+
+class DoeTemplateUpdateView(
+    DoeTemplateMixin,
+    FormView,
+):
+    """
+    Modifie les informations générales d'un modèle de DOE.
+    """
+
+    template_name = (
+        "client_configuration/"
+        "doe_template_form.html"
+    )
+    form_class = DoeTemplateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        kwargs.update(
+            {
+                "instance": self.get_doe_template(),
+                "client_environment": (
+                    self.get_client_environment()
+                ),
+            }
+        )
+
+        return kwargs
+
+    def form_valid(self, form):
+        template = form.save()
+
+        messages.success(
+            self.request,
+            "Le modèle de DOE a été modifié.",
+        )
+
+        return redirect(
+            "client_configuration:doe-template-folders",
+            client_environment_pk=(
+                template.client_environment_id
+            ),
+            template_pk=template.pk,
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update(
+            {
+                "client_environment": (
+                    self.get_client_environment()
+                ),
+                "doe_template": self.get_doe_template(),
+                "page_title": "Modifier le modèle de DOE",
+                "submit_label": "Enregistrer",
+            }
+        )
+
+        return context
+
+
+class DoeTemplateFolderListView(
+    DoeTemplateMixin,
+    TemplateView,
+):
+    """
+    Affiche l'arborescence d'un modèle de DOE et permet
+    d'ajouter ou modifier un dossier dans le volet latéral.
+    """
+
+    template_name = (
+        "client_configuration/"
+        "doe_template_folder_list.html"
+    )
+
+    def get_context_data(self, **kwargs):
+        folder_form = kwargs.pop(
+            "folder_form",
+            None,
+        )
+        selected_folder = kwargs.pop(
+            "selected_folder",
+            None,
+        )
+
+        context = super().get_context_data(**kwargs)
+
+        template = self.get_doe_template()
+
+        if selected_folder is None:
+            selected_folder = self._get_selected_folder(
+                folder_pk=self.request.GET.get(
+                    "folder",
+                    "",
+                ),
+            )
+
+        if folder_form is None:
+            folder_form = DoeTemplateFolderForm(
+                instance=selected_folder,
+                template=template,
+            )
+
+        folders = list(
+            DoeTemplateFolder.objects
+            .filter(template=template)
+            .order_by(
+                "parent_id",
+                "sort_order",
+                "name",
+            )
+        )
+
+        context.update(
+            {
+                "client_environment": (
+                    self.get_client_environment()
+                ),
+                "doe_template": template,
+                "folder_rows": self._build_folder_rows(
+                    folders=folders,
+                ),
+                "folder_form": folder_form,
+                "selected_folder": selected_folder,
+                "parent_options": (
+                    self._build_parent_options(
+                        form=folder_form,
+                    )
+                ),
+            }
+        )
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        template = self.get_doe_template()
+
+        selected_folder = self._get_selected_folder(
+            folder_pk=request.POST.get(
+                "folder_pk",
+                "",
+            ),
+        )
+
+        folder_form = DoeTemplateFolderForm(
+            request.POST,
+            instance=selected_folder,
+            template=template,
+        )
+
+        if folder_form.is_valid():
+            folder_form.save()
+
+            messages.success(
+                request,
+                (
+                    "Le dossier a été modifié."
+                    if selected_folder is not None
+                    else "Le dossier a été ajouté."
+                ),
+            )
+
+            return redirect(
+                "client_configuration:doe-template-folders",
+                client_environment_pk=(
+                    template.client_environment_id
+                ),
+                template_pk=template.pk,
+            )
+
+        return self.render_to_response(
+            self.get_context_data(
+                folder_form=folder_form,
+                selected_folder=selected_folder,
+            )
+        )
+
+    def _get_selected_folder(
+        self,
+        *,
+        folder_pk: str,
+    ) -> DoeTemplateFolder | None:
+        folder_pk = (folder_pk or "").strip()
+
+        if not folder_pk:
+            return None
+
+        return get_object_or_404(
+            DoeTemplateFolder.objects
+            .filter(
+                template=self.get_doe_template(),
+            ),
+            pk=folder_pk,
+        )
+
+    @staticmethod
+    def _build_parent_options(
+        *,
+        form: DoeTemplateFolderForm,
+    ) -> tuple[dict, ...]:
+        selected_value = str(
+            form["parent"].value() or ""
+        )
+
+        return tuple(
+            {
+                "value": str(value or ""),
+                "label": label,
+                "selected": (
+                    str(value or "")
+                    == selected_value
+                ),
+            }
+            for value, label in (
+                form.fields["parent"].choices
+            )
+        )
+
+    @staticmethod
+    def _build_folder_rows(
+        *,
+        folders: list[DoeTemplateFolder],
+    ) -> list[dict]:
+        folders_by_parent = defaultdict(list)
+
+        for folder in folders:
+            folders_by_parent[
+                folder.parent_id
+            ].append(folder)
+
+        rows = []
+
+        def append_children(
+            *,
+            parent_id,
+            prefix: str,
+        ) -> None:
+            children = folders_by_parent[parent_id]
+
+            for index, folder in enumerate(children):
+                is_last = index == len(children) - 1
+
+                if parent_id is None:
+                    tree_prefix = ""
+                    child_prefix = ""
+                else:
+                    tree_prefix = (
+                        prefix
+                        + (
+                            "└── "
+                            if is_last
+                            else "├── "
+                        )
+                    )
+                    child_prefix = (
+                        prefix
+                        + (
+                            "    "
+                            if is_last
+                            else "│   "
+                        )
+                    )
+
+                rows.append(
+                    {
+                        "folder": folder,
+                        "tree_prefix": tree_prefix,
+                    }
+                )
+
+                append_children(
+                    parent_id=folder.pk,
+                    prefix=child_prefix,
+                )
+
+        append_children(
+            parent_id=None,
+            prefix="",
+        )
+
+        return rows
+
+
+class DoeTemplateFolderDeleteView(
+    DoeTemplateMixin,
+    View,
+):
+    """
+    Supprime un dossier vide d'un modèle de DOE.
+    """
+
+    folder_url_kwarg = "folder_pk"
+
+    def post(self, request, *args, **kwargs):
+        template = self.get_doe_template()
+
+        folder = get_object_or_404(
+            DoeTemplateFolder.objects
+            .filter(template=template),
+            pk=self.kwargs[
+                self.folder_url_kwarg
+            ],
+        )
+
+        if folder.children.exists():
+            messages.error(
+                request,
+                (
+                    "Le dossier contient des sous-dossiers. "
+                    "Supprimez-les ou déplacez-les auparavant."
+                ),
+            )
+        else:
+            folder.delete()
+
+            messages.success(
+                request,
+                "Le dossier a été supprimé.",
+            )
+
+        return redirect(
+            "client_configuration:doe-template-folders",
+            client_environment_pk=(
+                template.client_environment_id
+            ),
+            template_pk=template.pk,
+        )

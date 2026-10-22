@@ -233,3 +233,201 @@ class DocumentFolderTemplateFolder(TimeStampedModel):
             f"{self.template} - "
             f"{self.name}"
         )
+        
+
+class DoeTemplate(TimeStampedModel):
+    """
+    Structure de DOE réutilisable pour un environnement client.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    client_environment = models.ForeignKey(
+        ClientEnvironment,
+        on_delete=models.PROTECT,
+        related_name="doe_templates",
+        verbose_name="Environnement client",
+    )
+
+    name = models.CharField(
+        max_length=150,
+        verbose_name="Nom",
+    )
+
+    description = models.TextField(
+        blank=True,
+        max_length=2000,
+        verbose_name="Description",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Actif",
+    )
+
+    class Meta:
+        db_table = "doe_template"
+        ordering = [
+            "client_environment__company__name",
+            "name",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "client_environment",
+                    "name",
+                ],
+                name="uq_doe_tpl_env_name",
+            ),
+        ]
+        verbose_name = "Modèle de DOE"
+        verbose_name_plural = "Modèles de DOE"
+
+    def save(self, *args, **kwargs):
+        self.name = self.name.strip()
+        self.description = self.description.strip()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return (
+            f"{self.client_environment} - "
+            f"{self.name}"
+        )
+
+
+class DoeTemplateFolder(TimeStampedModel):
+    """
+    Dossier appartenant à un modèle de DOE.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    template = models.ForeignKey(
+        DoeTemplate,
+        on_delete=models.CASCADE,
+        related_name="folders",
+        verbose_name="Modèle de DOE",
+    )
+
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        related_name="children",
+        null=True,
+        blank=True,
+        verbose_name="Dossier parent",
+    )
+
+    name = models.CharField(
+        max_length=150,
+        verbose_name="Nom",
+    )
+
+    sort_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Ordre d'affichage",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Actif",
+    )
+
+    class Meta:
+        db_table = "doe_template_folder"
+        ordering = [
+            "template",
+            "parent__sort_order",
+            "parent__name",
+            "sort_order",
+            "name",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "template",
+                    "name",
+                ],
+                condition=Q(
+                    parent__isnull=True,
+                ),
+                name="uq_doe_tpl_root_name",
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "template",
+                    "parent",
+                    "name",
+                ],
+                condition=Q(
+                    parent__isnull=False,
+                ),
+                name="uq_doe_tpl_child_name",
+            ),
+        ]
+        verbose_name = "Dossier de modèle de DOE"
+        verbose_name_plural = "Dossiers de modèles de DOE"
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.parent_id
+            and self.parent.template_id != self.template_id
+        ):
+            raise ValidationError(
+                {
+                    "parent": (
+                        "Le dossier parent doit appartenir "
+                        "au même modèle de DOE."
+                    ),
+                }
+            )
+
+        if (
+            self.parent_id
+            and self.pk
+            and self.parent_id == self.pk
+        ):
+            raise ValidationError(
+                {
+                    "parent": (
+                        "Un dossier ne peut pas être son "
+                        "propre parent."
+                    ),
+                }
+            )
+
+        ancestor = self.parent
+
+        while ancestor is not None:
+            if self.pk and ancestor.pk == self.pk:
+                raise ValidationError(
+                    {
+                        "parent": (
+                            "Un dossier ne peut pas être déplacé "
+                            "dans l'un de ses descendants."
+                        ),
+                    }
+                )
+
+            ancestor = ancestor.parent
+
+    def save(self, *args, **kwargs):
+        self.name = self.name.strip()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.template} - {self.name}"

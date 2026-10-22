@@ -1213,6 +1213,15 @@ class DoeGeneration(TimeStampedModel):
         verbose_name="Dossier DOE",
     )
 
+    doe_template = models.ForeignKey(
+        "client_configuration.DoeTemplate",
+        on_delete=models.SET_NULL,
+        related_name="generations",
+        null=True,
+        blank=True,
+        verbose_name="Modèle de DOE",
+    )
+    
     generated_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,

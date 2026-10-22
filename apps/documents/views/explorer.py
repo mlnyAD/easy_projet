@@ -545,7 +545,6 @@ class DocumentExplorerView(
                         )}?"
                         f"{urlencode({'next': doe_workspace_url})}"
                     ),
-                    method="POST",
                 )
             )
 

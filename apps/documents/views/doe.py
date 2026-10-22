@@ -6,13 +6,17 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
+from django.shortcuts import (
+    redirect,
+    render,
+)
 from django.urls import reverse
 from django.utils.http import (
     url_has_allowed_host_and_scheme,
 )
 from django.views import View
 
+from apps.documents.forms_doe import DoeGenerateForm
 from apps.documents.services import DoeService
 from apps.documents.views.mixins import (
     ProjectDocumentWorkMixin,
@@ -25,8 +29,30 @@ class DoeGenerateView(
     View,
 ):
     """
-    Génère ou rafraîchit le DOE d'un projet.
+    Prépare puis génère ou rafraîchit le DOE d'un projet.
     """
+
+    template_name = "documents/doe_generate_form.html"
+
+    def get(
+        self,
+        request,
+        *,
+        project_id,
+    ):
+        project = self.get_project(
+            project_id=project_id,
+        )
+
+        form = DoeGenerateForm(
+            project=project,
+        )
+
+        return self.render_form(
+            request=request,
+            project=project,
+            form=form,
+        )
 
     def post(
         self,
@@ -38,10 +64,27 @@ class DoeGenerateView(
             project_id=project_id,
         )
 
+        form = DoeGenerateForm(
+            request.POST,
+            project=project,
+        )
+
+        if not form.is_valid():
+            return self.render_form(
+                request=request,
+                project=project,
+                form=form,
+            )
+
+        doe_template = form.cleaned_data[
+            "doe_template"
+        ]
+
         try:
             generation = DoeService().generate(
                 project=project,
                 user=request.user,
+                doe_template=doe_template,
             )
         except ValueError as exc:
             messages.error(
@@ -55,13 +98,24 @@ class DoeGenerateView(
                     "Aucun document ou dossier n'est "
                     "sélectionné pour le DOE.",
                 )
-            else:
+            elif doe_template is None:
                 messages.success(
                     request,
                     (
                         "Le DOE a été généré avec "
                         f"{generation.document_count} document"
                         f"{'s' if generation.document_count > 1 else ''}."
+                    ),
+                )
+            else:
+                messages.success(
+                    request,
+                    (
+                        "Le DOE a été généré à partir du "
+                        f'modèle « {doe_template.name} » avec '
+                        f"{generation.document_count} document"
+                        f"{'s' if generation.document_count > 1 else ''} "
+                        "à classer."
                     ),
                 )
 
@@ -72,13 +126,39 @@ class DoeGenerateView(
             )
         )
 
+    def render_form(
+        self,
+        *,
+        request,
+        project,
+        form: DoeGenerateForm,
+    ):
+        return render(
+            request,
+            self.template_name,
+            {
+                "project": project,
+                "form": form,
+                "has_available_templates": (
+                    form.has_available_templates
+                ),
+                "return_url": self.get_return_url(
+                    request=request,
+                    project=project,
+                ),
+            },
+        )
+
     @staticmethod
     def get_return_url(
         *,
         request,
         project,
     ) -> str:
-        candidate = request.GET.get("next")
+        candidate = (
+            request.POST.get("next")
+            or request.GET.get("next")
+        )
 
         if (
             candidate

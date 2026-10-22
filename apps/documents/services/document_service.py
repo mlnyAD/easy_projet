@@ -607,19 +607,16 @@ class DocumentService:
         self,
         *,
         document: Document,
+        allow_doe_generated: bool = False,
     ) -> None:
         """
         Supprime définitivement un document.
 
-        La suppression comprend :
-        - le Document ;
-        - ses DocumentVersion ;
-        - son historique ;
-        - ses favoris par cascade ;
-        - les fichiers physiques associés.
+        Les documents ordinaires doivent auparavant être placés
+        dans la corbeille.
 
-        Les fichiers physiques sont supprimés uniquement
-        après validation de la transaction PostgreSQL.
+        Les copies générées pour le DOE ne peuvent être supprimées
+        que par une opération interne de régénération.
         """
 
         with transaction.atomic():
@@ -629,6 +626,24 @@ class DocumentService:
                 .select_for_update()
                 .get(pk=document.pk)
             )
+
+            if (
+                locked_document.is_doe_generated
+                and not allow_doe_generated
+            ):
+                raise ValueError(
+                    "Un document généré pour le DOE ne peut pas être "
+                    "supprimé définitivement."
+                )
+
+            if (
+                not locked_document.is_doe_generated
+                and locked_document.trashed_at is None
+            ):
+                raise ValueError(
+                    "Seul un document placé dans la corbeille peut être "
+                    "supprimé définitivement."
+                )
 
             storage_keys = list(
                 locked_document.versions
@@ -656,18 +671,6 @@ class DocumentService:
                     ]
                 )
 
-            if locked_document.is_doe_generated:
-                raise ValueError(
-                    "Un document généré pour le DOE ne peut pas être "
-                    "supprimé définitivement."
-                )
-
-            if locked_document.trashed_at is None:
-                raise ValueError(
-                    "Seul un document placé dans la corbeille peut être "
-                    "supprimé définitivement."
-                )
-                
             locked_document.delete()
 
             transaction.on_commit(
@@ -675,7 +678,7 @@ class DocumentService:
                     storage_keys
                 )
             )
-
+            
     def _delete_storage_files(
         self,
         storage_keys: list[str],

@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from django.db import transaction
 
+from apps.client_configuration.models import (
+    DoeTemplate,
+    DoeTemplateFolder,
+)
 from apps.documents.models import (
     Document,
     DocumentFolder,
@@ -20,11 +24,17 @@ class DoeService:
     """
     Construit et rafraîchit le DOE d'un projet.
 
-    Le DOE est une copie structurée des documents sélectionnés.
-    Les originaux et leur arborescence restent inchangés.
+    Sans modèle, le DOE reproduit l'arborescence source des
+    documents sélectionnés.
+
+    Avec un modèle, sa structure est créée sous la racine DOE
+    et tous les documents sélectionnés sont placés dans le
+    dossier « À classer ».
     """
 
     ROOT_FOLDER_NAME = "DOE"
+    TO_SORT_FOLDER_NAME = "À classer"
+    TO_SORT_FOLDER_ORDER = 999_999
 
     def __init__(
         self,
@@ -41,12 +51,23 @@ class DoeService:
         *,
         project: Project,
         user: User,
+        doe_template: DoeTemplate | None = None,
     ) -> DoeGeneration | None:
         """
         Génère ou rafraîchit le DOE du projet.
 
-        Retourne None lorsqu'aucun document source n'est sélectionné.
+        Sans modèle, aucun DOE n'est créé lorsqu'aucun document
+        source n'est sélectionné.
+
+        Avec un modèle, la structure du DOE est créée même si
+        aucun document n'est encore sélectionné.
         """
+
+        if doe_template is not None:
+            self._validate_template(
+                project=project,
+                doe_template=doe_template,
+            )
 
         source_folders = {
             folder.pk: folder
@@ -77,7 +98,7 @@ class DoeService:
             selected_folder_ids=selected_folder_ids,
         )
 
-        if not source_documents:
+        if not source_documents and doe_template is None:
             return None
 
         doe_root = self._get_or_create_root_folder(
@@ -88,34 +109,109 @@ class DoeService:
             project=project,
         )
 
-        destination_folders: dict[
-            object,
-            DocumentFolder,
-        ] = {}
+        if doe_template is not None:
+            self._copy_template_folders(
+                project=project,
+                doe_template=doe_template,
+                parent=doe_root,
+            )
 
-        for source_document in source_documents:
-            destination = self._get_destination_folder(
-                source_folder=source_document.folder,
+            destination = self._create_to_sort_folder(
+                project=project,
                 doe_root=doe_root,
-                source_folders=source_folders,
-                destination_folders=destination_folders,
             )
 
-            self.document_service.copy_document(
-                document=source_document,
-                destination=destination,
-                user=user,
-                is_doe=False,
-                is_doe_generated=True,
-                doe_source_document=source_document,
-            )
+            for source_document in source_documents:
+                self.document_service.copy_document(
+                    document=source_document,
+                    destination=destination,
+                    user=user,
+                    is_doe=False,
+                    is_doe_generated=True,
+                    doe_source_document=source_document,
+                )
+
+        else:
+            destination_folders: dict[
+                object,
+                DocumentFolder,
+            ] = {}
+
+            for source_document in source_documents:
+                destination = self._get_destination_folder(
+                    source_folder=source_document.folder,
+                    doe_root=doe_root,
+                    source_folders=source_folders,
+                    destination_folders=destination_folders,
+                )
+
+                self.document_service.copy_document(
+                    document=source_document,
+                    destination=destination,
+                    user=user,
+                    is_doe=False,
+                    is_doe_generated=True,
+                    doe_source_document=source_document,
+                )
 
         return DoeGeneration.objects.create(
             project=project,
             doe_root_folder=doe_root,
+            doe_template=doe_template,
             generated_by=user,
             document_count=len(source_documents),
         )
+
+    @staticmethod
+    def _validate_template(
+        *,
+        project: Project,
+        doe_template: DoeTemplate,
+    ) -> None:
+        if (
+            doe_template.client_environment_id
+            != project.client_environment_id
+        ):
+            raise ValueError(
+                "Le modèle de DOE n'appartient pas à "
+                "l'environnement client du projet."
+            )
+
+        if not doe_template.is_active:
+            raise ValueError(
+                "Le modèle de DOE sélectionné est inactif."
+            )
+
+        if not (
+            DoeTemplateFolder.objects
+            .filter(
+                template=doe_template,
+                is_active=True,
+            )
+            .exists()
+        ):
+            raise ValueError(
+                "Le modèle de DOE sélectionné ne contient "
+                "aucun dossier actif."
+            )
+
+        if (
+            DoeTemplateFolder.objects
+            .filter(
+                template=doe_template,
+                parent__isnull=True,
+                is_active=True,
+                name__iexact=DoeService.TO_SORT_FOLDER_NAME,
+            )
+            .exists()
+        ):
+            raise ValueError(
+                (
+                    f'Le modèle de DOE ne peut pas contenir '
+                    f'un dossier racine nommé '
+                    f'"{DoeService.TO_SORT_FOLDER_NAME}".'
+                )
+            )
 
     def _get_selected_documents(
         self,
@@ -173,10 +269,6 @@ class DoeService:
         source_folders: dict[object, DocumentFolder],
         selected_folder_ids: set[object],
     ) -> bool:
-        """
-        Indique si un dossier ou l'un de ses parents est sélectionné.
-        """
-
         current_id = folder_id
 
         while current_id is not None:
@@ -197,10 +289,6 @@ class DoeService:
         *,
         project: Project,
     ) -> DocumentFolder:
-        """
-        Retourne la racine DOE du projet ou la crée.
-        """
-
         existing_root = (
             DocumentFolder.objects
             .filter(
@@ -245,11 +333,6 @@ class DoeService:
         *,
         project: Project,
     ) -> None:
-        """
-        Supprime les copies et dossiers issus de la génération
-        précédente, sans jamais supprimer les originaux.
-        """
-
         generated_documents = list(
             Document.objects
             .filter(
@@ -262,6 +345,7 @@ class DoeService:
         for document in generated_documents:
             self.document_service.delete_document(
                 document=document,
+                allow_doe_generated=True,
             )
 
         (
@@ -273,6 +357,65 @@ class DoeService:
             .delete()
         )
 
+    def _copy_template_folders(
+        self,
+        *,
+        project: Project,
+        doe_template: DoeTemplate,
+        parent: DocumentFolder,
+        template_parent: DoeTemplateFolder | None = None,
+    ) -> None:
+        template_folders = (
+            DoeTemplateFolder.objects
+            .filter(
+                template=doe_template,
+                parent=template_parent,
+                is_active=True,
+            )
+            .order_by(
+                "sort_order",
+                "name",
+            )
+        )
+
+        for template_folder in template_folders:
+            destination_folder = DocumentFolder(
+                project=project,
+                parent=parent,
+                name=template_folder.name,
+                sort_order=template_folder.sort_order,
+                is_doe_generated=True,
+            )
+
+            destination_folder.full_clean()
+            destination_folder.save()
+
+            self._copy_template_folders(
+                project=project,
+                doe_template=doe_template,
+                parent=destination_folder,
+                template_parent=template_folder,
+            )
+
+    def _create_to_sort_folder(
+        self,
+        *,
+        project: Project,
+        doe_root: DocumentFolder,
+    ) -> DocumentFolder:
+        folder = DocumentFolder(
+            project=project,
+            parent=doe_root,
+            name=self.TO_SORT_FOLDER_NAME,
+            sort_order=self.TO_SORT_FOLDER_ORDER,
+            is_doe_generated=True,
+        )
+
+        folder.full_clean()
+        folder.save()
+
+        return folder
+
     def _get_destination_folder(
         self,
         *,
@@ -281,11 +424,6 @@ class DoeService:
         source_folders: dict[object, DocumentFolder],
         destination_folders: dict[object, DocumentFolder],
     ) -> DocumentFolder:
-        """
-        Crée, si nécessaire, le chemin miroir du dossier source
-        sous la racine DOE.
-        """
-
         cached_destination = destination_folders.get(
             source_folder.pk
         )

@@ -1,0 +1,126 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Générer le DOE
+{% endblock %}
+
+{% block content %}
+
+    <div class="ep-page max-w-3xl space-y-6">
+
+        <div>
+            <h1 class="text-2xl font-semibold">
+                Générer le DOE
+            </h1>
+
+            <p
+                class="mt-1 text-sm text-axcio-text-muted dark:text-axcio-text-muted-dark"
+            >
+                {{ project.reference }} — {{ project.name }}
+            </p>
+        </div>
+
+        <form
+            method="post"
+            novalidate
+            class="
+                space-y-5 rounded-lg border
+                border-axcio-border-light bg-axcio-surface p-5
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-dark
+            "
+        >
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="next"
+                value="{{ return_url }}"
+            >
+
+            {% if form.non_field_errors %}
+                <div
+                    class="
+                        rounded-md border border-axcio-danger
+                        bg-axcio-danger/10 p-3 text-sm
+                        text-axcio-danger
+                    "
+                >
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% if has_available_templates %}
+
+                <div>
+                    <label
+                        for="{{ form.doe_template.id_for_label }}"
+                        class="block text-sm font-medium"
+                    >
+                        {{ form.doe_template.label }}
+                    </label>
+
+                    {{ form.doe_template }}
+
+                    <p
+                        class="mt-1 text-sm text-axcio-text-muted dark:text-axcio-text-muted-dark"
+                    >
+                        Avec un modèle, sa structure est créée
+                        puis les documents sélectionnés sont placés
+                        dans le dossier « À classer ».
+                    </p>
+
+                    {% for error in form.doe_template.errors %}
+                        <p class="mt-1 text-sm text-axcio-danger">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+                </div>
+
+            {% else %}
+
+                <div
+                    class="
+                        rounded-md border border-axcio-border-light
+                        bg-axcio-surface-alt p-4 text-sm
+                        text-axcio-text-muted
+                        dark:border-axcio-border-dark
+                        dark:bg-axcio-surface-alt-dark
+                        dark:text-axcio-text-muted-dark
+                    "
+                >
+                    Aucun modèle de DOE actif n'est défini pour
+                    cet environnement client. Le DOE reprendra
+                    l'arborescence source des documents sélectionnés.
+                </div>
+
+            {% endif %}
+
+            <div
+                class="
+                    flex flex-wrap justify-end gap-3 border-t
+                    border-axcio-border-light pt-5
+                    dark:border-axcio-border-dark
+                "
+            >
+                <a
+                    href="{{ return_url }}"
+                    class="rounded-md border border-axcio-border-light px-4 py-2 text-sm hover:border-axcio-light dark:border-axcio-border-dark"
+                >
+                    Annuler
+                </a>
+
+                <button
+                    type="submit"
+                    class="rounded-md bg-axcio-light px-4 py-2 text-sm font-medium text-axcio-text-inverse hover:bg-axcio-dark"
+                >
+                    Générer le DOE
+                </button>
+            </div>
+        </form>
+
+    </div>
+
+{% endblock %}
