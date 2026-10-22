@@ -17,6 +17,11 @@ from .signature_service import (
 from .template_service import DocumentTemplateService
 from .version_service import DocumentVersionService
 
+from .doe_classification_service import (
+    DoeClassificationError,
+    DoeClassificationService,
+)
+
 __all__ = [
     "DocumentAccessTokenService",
     "DocumentEditLockResult",
@@ -30,4 +35,6 @@ __all__ = [
     "SignatureArtifactService",
     "SignatureRecipientInput",
     "SignatureService",
+    "DoeClassificationError",
+    "DoeClassificationService",
 ]

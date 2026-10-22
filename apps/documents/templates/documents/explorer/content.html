@@ -84,6 +84,61 @@
         </div>
     </div>
 
+    {% if doe_classification_request_url %}
+
+        <section
+            class="
+                m-3 flex flex-wrap items-center justify-between gap-4
+                rounded-lg border border-axcio-light/30
+                bg-axcio-light/5 px-4 py-3
+                dark:bg-axcio-light/10
+            "
+        >
+            <div>
+                <h2 class="text-sm font-semibold">
+                    Classement assisté du DOE
+                </h2>
+
+                <p
+                    class="
+                        mt-1 text-sm text-axcio-text-muted
+                        dark:text-axcio-text-muted-dark
+                    "
+                >
+                    L’IA proposera un classement pour les documents
+                    présents dans « À classer ». Aucun document ne sera
+                    déplacé sans validation explicite.
+                </p>
+            </div>
+
+            <form
+                method="post"
+                action="{{ doe_classification_request_url }}"
+                onsubmit="return window.confirm('Demander une proposition de classement à l’IA ?');"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="
+                        inline-flex items-center gap-2 rounded-md
+                        bg-axcio-light px-3 py-2 text-sm font-medium
+                        text-axcio-text-inverse hover:bg-axcio-dark
+                    "
+                >
+                    <i
+                        data-lucide="sparkles"
+                        class="h-4 w-4"
+                        aria-hidden="true"
+                    ></i>
+
+                    Proposer un classement IA
+                </button>
+            </form>
+        </section>
+
+    {% endif %}    
+
     {% if documents %}
 
         <div

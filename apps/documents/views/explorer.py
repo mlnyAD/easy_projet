@@ -17,6 +17,7 @@ from apps.documents.models import (
     DocumentFolder,
     SignatureRequest,
     SignatureRequestDocument,
+    DoeGeneration,
 )
 from apps.documents.trees import (
     DOCUMENT_EXPLORER_CREATE_ROOT_FOLDER_COMMAND,
@@ -37,6 +38,7 @@ from apps.projects.services.authorization import (
 )
 from framework.runtime import EPTree, TreeCommand
 from framework.viewmodel import TreeViewModelBuilder
+from apps.documents.services.doe_service import DoeService
 
 
 class DocumentExplorerView(
@@ -304,6 +306,59 @@ class DocumentExplorerView(
             ),
             None,
         )
+        
+        doe_classification_request_url = None
+
+        if (
+            is_doe_workspace
+            and can_work_on_project
+            and doe_root is not None
+        ):
+            latest_generation = (
+                DoeGeneration.objects
+                .filter(
+                    project=project,
+                    doe_root_folder=doe_root,
+                    doe_template__isnull=False,
+                )
+                .order_by("-created_at")
+                .first()
+            )
+
+            if latest_generation is not None:
+                to_sort_folder = (
+                    DocumentFolder.objects
+                    .filter(
+                        project=project,
+                        parent=doe_root,
+                        name=DoeService.TO_SORT_FOLDER_NAME,
+                        is_doe_generated=True,
+                        is_active=True,
+                    )
+                    .first()
+                )
+
+                if (
+                    to_sort_folder is not None
+                    and Document.objects.filter(
+                        project=project,
+                        folder=to_sort_folder,
+                        is_doe_generated=True,
+                        trashed_at__isnull=True,
+                        current_version__isnull=False,
+                    ).exists()
+                ):
+                    propose_url = reverse(
+                        "documents:doe-classification-propose",
+                        kwargs={
+                            "project_id": project.pk,
+                        },
+                    )
+
+                    doe_classification_request_url = (
+                        f"{propose_url}?"
+                        f"{urlencode({'next': return_url})}"
+                    )        
 
         tree_commands = self.get_tree_commands(
             project=project,
@@ -381,6 +436,9 @@ class DocumentExplorerView(
                 "return_url": return_url,
                 "tree_view": tree_view,
                 "is_doe_workspace": is_doe_workspace,
+                "doe_classification_request_url": (
+                    doe_classification_request_url
+                ),
             }
         )
 

@@ -1253,3 +1253,272 @@ from .signature_models import (
     SignatureRequestDocument,
     SignatureRequestRecipient,
 )
+
+
+class DoeClassificationProposal(TimeStampedModel):
+    """
+    Proposition de classement IA pour un DOE généré.
+
+    La proposition ne déplace aucun document. Elle conserve les
+    recommandations avant validation explicite d'un utilisateur.
+    """
+
+    class Status(models.TextChoices):
+        COMPLETED = (
+            "COMPLETED",
+            "Terminée",
+        )
+        FAILED = (
+            "FAILED",
+            "En échec",
+        )
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="doe_classification_proposals",
+        verbose_name="Projet",
+    )
+
+    doe_generation = models.ForeignKey(
+        DoeGeneration,
+        on_delete=models.CASCADE,
+        related_name="classification_proposals",
+        verbose_name="Génération DOE",
+    )
+
+    requested_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="requested_doe_classifications",
+        verbose_name="Demandé par",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.COMPLETED,
+        verbose_name="État",
+    )
+
+    input_document_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Nombre de documents analysés",
+    )
+
+    error_message = models.TextField(
+        blank=True,
+        max_length=2000,
+        verbose_name="Erreur",
+    )
+
+    class Meta:
+        db_table = "doe_classification_proposal"
+        ordering = ["-created_at"]
+        verbose_name = "Proposition de classement DOE"
+        verbose_name_plural = (
+            "Propositions de classement DOE"
+        )
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.doe_generation_id
+            and self.project_id
+            != self.doe_generation.project_id
+        ):
+            raise ValidationError(
+                {
+                    "doe_generation": (
+                        "La génération DOE doit appartenir "
+                        "au même projet."
+                    ),
+                }
+            )
+
+    def __str__(self) -> str:
+        return (
+            f"Proposition DOE {self.project} — "
+            f"{self.created_at:%d/%m/%Y %H:%M}"
+        )
+
+
+class DoeClassificationProposalItem(TimeStampedModel):
+    """
+    Recommandation de classement d'un document DOE.
+
+    Le classement proposé ne devient effectif qu'après validation
+    de l'opérateur.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = (
+            "PENDING",
+            "À valider",
+        )
+        APPLIED = (
+            "APPLIED",
+            "Appliquée",
+        )
+        REJECTED = (
+            "REJECTED",
+            "Refusée",
+        )
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid4,
+        editable=False,
+        verbose_name="Identifiant",
+    )
+
+    proposal = models.ForeignKey(
+        DoeClassificationProposal,
+        on_delete=models.CASCADE,
+        related_name="items",
+        verbose_name="Proposition",
+    )
+
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="doe_classification_items",
+        verbose_name="Document DOE",
+    )
+
+    proposed_folder = models.ForeignKey(
+        DocumentFolder,
+        on_delete=models.SET_NULL,
+        related_name="proposed_doe_classification_items",
+        null=True,
+        blank=True,
+        verbose_name="Dossier proposé",
+    )
+
+    final_folder = models.ForeignKey(
+        DocumentFolder,
+        on_delete=models.SET_NULL,
+        related_name="validated_doe_classification_items",
+        null=True,
+        blank=True,
+        verbose_name="Dossier retenu",
+    )
+
+    confidence_percent = models.PositiveSmallIntegerField(
+        verbose_name="Confiance (%)",
+    )
+
+    reason = models.TextField(
+        blank=True,
+        max_length=1000,
+        verbose_name="Justification",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        verbose_name="État",
+    )
+
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="reviewed_doe_classification_items",
+        null=True,
+        blank=True,
+        verbose_name="Revu par",
+    )
+
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Revu le",
+    )
+
+    class Meta:
+        db_table = "doe_classification_proposal_item"
+        ordering = [
+            "proposal",
+            "document__title",
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "proposal",
+                    "document",
+                ],
+                name=(
+                    "uq_doe_classification_proposal_"
+                    "document"
+                ),
+            ),
+        ]
+        verbose_name = (
+            "Élément de proposition de classement DOE"
+        )
+        verbose_name_plural = (
+            "Éléments de proposition de classement DOE"
+        )
+
+    def clean(self):
+        super().clean()
+
+        errors = {}
+
+        if (
+            self.document_id
+            and not self.document.is_doe_generated
+        ):
+            errors["document"] = (
+                "Seul un document généré pour le DOE peut "
+                "faire l'objet d'une proposition IA."
+            )
+
+        if (
+            self.document_id
+            and self.proposal_id
+            and self.document.project_id
+            != self.proposal.project_id
+        ):
+            errors["document"] = (
+                "Le document doit appartenir au projet "
+                "de la proposition."
+            )
+
+        for field_name, folder in (
+            ("proposed_folder", self.proposed_folder),
+            ("final_folder", self.final_folder),
+        ):
+            if (
+                folder is not None
+                and self.proposal_id
+                and folder.project_id
+                != self.proposal.project_id
+            ):
+                errors[field_name] = (
+                    "Le dossier doit appartenir au projet "
+                    "de la proposition."
+                )
+
+        if self.confidence_percent > 100:
+            errors["confidence_percent"] = (
+                "Le niveau de confiance ne peut pas dépasser 100 %."
+            )
+
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self) -> str:
+        return (
+            f"{self.document} → "
+            f"{self.proposed_folder or 'Non classé'}"
+        )

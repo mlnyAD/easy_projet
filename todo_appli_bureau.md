@@ -14,11 +14,6 @@ Transaction : Tester un utilisateur avec plusieurs environnements client
 ### Transaction Licences
 
 ### Transaction client
-Créer une arborescence type
-Créer un projet type
-Fonction de recherche des orphelins 
-Fonction de recherche des fichiers bloqués en édition
-Développer la transaction client avec les objets déjà définis
 
 ### Transaction Localisation des projets
 
@@ -290,3 +285,9 @@ Oui. La règle devient :
 - modèle choisi : création de sa structure, avec les documents taggés déposés dans À classer ;
 - aucun modèle choisi, volontairement ou faute de modèle disponible : génération classique par reproduction de l’arborescence source des documents taggés.
 L’IA pourra ensuite proposer un classement ou des corrections dans les deux cas.
+
+Nous retiendrons donc :
+- copies DOE supprimables après confirmation ;
+- documents sources intouchables ;
+- régénération possible à tout moment ;
+- exclusion durable traitée par une commande spécifique sur la sélection DOE.

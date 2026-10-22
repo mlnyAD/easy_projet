@@ -1,0 +1,336 @@
+
+
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Proposition de classement DOE
+{% endblock %}
+
+{% block content %}
+
+    <div class="ep-page space-y-6">
+
+        <div
+            class="
+                flex flex-wrap items-start justify-between gap-4
+            "
+        >
+            <div>
+                <a
+                    href="{{ return_url }}"
+                    class="text-sm text-axcio-light hover:underline"
+                >
+                    ← Retour au DOE
+                </a>
+
+                <h1 class="mt-2 text-2xl font-semibold">
+                    Proposition de classement IA
+                </h1>
+
+                <p
+                    class="
+                        mt-1 text-sm text-axcio-text-muted
+                        dark:text-axcio-text-muted-dark
+                    "
+                >
+                    {{ project.reference }} — {{ project.name }}
+                </p>
+            </div>
+
+            <div
+                class="
+                    rounded-lg border border-axcio-border-light
+                    bg-axcio-surface px-4 py-3 text-sm
+                    dark:border-axcio-border-dark
+                    dark:bg-axcio-surface-dark
+                "
+            >
+                <div>
+                    {{ proposal.input_document_count }}
+                    document{{ proposal.input_document_count|pluralize }}
+                    analysé{{ proposal.input_document_count|pluralize }}
+                </div>
+
+                <div
+                    class="
+                        mt-1 text-xs text-axcio-text-muted
+                        dark:text-axcio-text-muted-dark
+                    "
+                >
+                    Demandée par {{ proposal.requested_by }}
+                    le {{ proposal.created_at|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+        </div>
+
+        {% if proposal.doe_generation.doe_template %}
+
+            <div
+                class="
+                    rounded-lg border border-axcio-border-light
+                    bg-axcio-surface px-4 py-3 text-sm
+                    dark:border-axcio-border-dark
+                    dark:bg-axcio-surface-dark
+                "
+            >
+                Modèle DOE :
+                <span class="font-medium">
+                    {{ proposal.doe_generation.doe_template.name }}
+                </span>
+            </div>
+
+        {% endif %}
+
+        <section
+            class="
+                overflow-hidden rounded-lg border
+                border-axcio-border-light
+                bg-axcio-surface
+                dark:border-axcio-border-dark
+                dark:bg-axcio-surface-dark
+            "
+        >
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-left text-sm">
+
+                    <thead
+                        class="
+                            border-b border-axcio-border-light
+                            text-xs text-axcio-text-muted
+                            dark:border-axcio-border-dark
+                            dark:text-axcio-text-muted-dark
+                        "
+                    >
+                        <tr>
+                            <th class="px-4 py-3 font-medium">
+                                Document
+                            </th>
+                            <th class="px-4 py-3 font-medium">
+                                Dossier proposé
+                            </th>
+                            <th class="px-4 py-3 font-medium">
+                                Confiance
+                            </th>
+                            <th class="px-4 py-3 font-medium">
+                                Justification
+                            </th>
+                            <th class="px-4 py-3 font-medium">
+                                État
+                            </th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in proposal.items.all %}
+
+                            <tr
+                                class="
+                                    border-b border-axcio-border-light
+                                    last:border-0
+                                    dark:border-axcio-border-dark
+                                "
+                            >
+                                <td class="px-4 py-3">
+                                    <div class="font-medium">
+                                        {{ item.document.title }}{% if item.document.current_version %}{{ item.document.current_version.extension }}{% endif %}
+                                    </div>
+
+                                    <div
+                                        class="
+                                            mt-1 text-xs text-axcio-text-muted
+                                            dark:text-axcio-text-muted-dark
+                                        "
+                                    >
+                                        Emplacement actuel :
+                                        {{ item.document.folder.full_path }}
+                                    </div>
+                                </td>
+
+                                <td class="px-4 py-3">
+
+                                    {% if item.proposed_folder %}
+
+                                        {{ item.proposed_folder.full_path }}
+
+                                    {% else %}
+
+                                        <span
+                                            class="
+                                                text-axcio-text-muted
+                                                dark:text-axcio-text-muted-dark
+                                            "
+                                        >
+                                            Aucun classement proposé
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    {{ item.confidence_percent }} %
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    {{ item.reason|default:"—" }}
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    <span
+                                        class="
+                                            rounded-full bg-amber-100 px-2 py-1
+                                            text-xs font-medium text-amber-800
+                                            dark:bg-amber-950/50
+                                            dark:text-amber-200
+                                        "
+                                    >
+                                        {{ item.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+
+                                    {% if item.status == "PENDING" %}
+
+                                        <div class="flex flex-wrap justify-end gap-2">
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'documents:doe-classification-item-apply' project.pk proposal.pk item.pk %}"
+                                                class="flex items-center gap-2"
+                                                onsubmit="return window.confirm('Classer ce document dans le dossier sélectionné ?');"
+                                            >
+                                                {% csrf_token %}
+
+                                                <select
+                                                    name="destination_id"
+                                                    class="
+                                                        rounded-md border border-axcio-border-light
+                                                        bg-axcio-page px-2 py-1.5 text-sm
+                                                        dark:border-axcio-border-dark
+                                                        dark:bg-axcio-page-dark
+                                                    "
+                                                    required
+                                                >
+                                                    <option value="">
+                                                        Choisir un dossier
+                                                    </option>
+
+                                                    {% for folder in target_folders %}
+
+                                                        <option
+                                                            value="{{ folder.pk }}"
+                                                            {% if item.proposed_folder_id == folder.pk %}
+                                                                selected
+                                                            {% endif %}
+                                                        >
+                                                            {{ folder.full_path }}
+                                                        </option>
+
+                                                    {% endfor %}
+                                                </select>
+
+                                                <button
+                                                    type="submit"
+                                                    class="
+                                                        inline-flex items-center gap-1 rounded-md
+                                                        bg-axcio-light px-3 py-1.5 text-sm font-medium
+                                                        text-axcio-text-inverse hover:bg-axcio-dark
+                                                    "
+                                                >
+                                                    <i
+                                                        data-lucide="check"
+                                                        class="h-4 w-4"
+                                                        aria-hidden="true"
+                                                    ></i>
+
+                                                    Valider
+                                                </button>
+                                            </form>
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'documents:doe-classification-item-reject' project.pk proposal.pk item.pk %}"
+                                                onsubmit="return window.confirm('Refuser cette proposition sans déplacer le document ?');"
+                                            >
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="
+                                                        inline-flex items-center gap-1 rounded-md
+                                                        border border-red-300 px-3 py-1.5 text-sm
+                                                        font-medium text-red-700 hover:bg-red-50
+                                                        dark:border-red-900 dark:text-red-300
+                                                        dark:hover:bg-red-950/30
+                                                    "
+                                                >
+                                                    <i
+                                                        data-lucide="x"
+                                                        class="h-4 w-4"
+                                                        aria-hidden="true"
+                                                    ></i>
+
+                                                    Refuser
+                                                </button>
+                                            </form>
+
+                                        </div>
+
+                                    {% else %}
+
+                                        <span
+                                            class="
+                                                text-xs text-axcio-text-muted
+                                                dark:text-axcio-text-muted-dark
+                                            "
+                                        >
+                                            Revu par {{ item.reviewed_by }}
+                                            le {{ item.reviewed_at|date:"d/m/Y H:i" }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>                                
+                            </tr>
+
+                        {% empty %}
+
+                            <tr>
+                                <td
+                                    colspan="6"
+                                    class="
+                                        px-4 py-8 text-center text-sm
+                                        text-axcio-text-muted
+                                        dark:text-axcio-text-muted-dark
+                                    "
+                                >
+                                    Aucun document n’a été analysé.
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+            </div>
+        </section>
+
+        <p
+            class="
+                text-sm text-axcio-text-muted
+                dark:text-axcio-text-muted-dark
+            "
+        >
+            Cette page permet de valider, corriger ou refuser chaque proposition.
+            Aucun document source n’est modifié.
+        </p>
+
+    </div>
+
+{% endblock %}

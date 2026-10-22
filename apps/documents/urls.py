@@ -32,7 +32,13 @@ from apps.documents.views import (
 )
 
 from apps.documents.views.document import DocumentPermanentDeleteView
-from apps.documents.views.doe import DoeGenerateView
+from apps.documents.views.doe import (
+    DoeClassificationProposalCreateView,
+    DoeClassificationProposalDetailView,
+    DoeClassificationProposalItemApplyView,
+    DoeClassificationProposalItemRejectView,
+    DoeGenerateView,
+)
 from apps.documents.views.folder import DocumentFolderDoeSelectionView
 from apps.documents.views.signature import SignatureRequestCreateView
 
@@ -68,6 +74,22 @@ urlpatterns = [
         "projects/<uuid:project_id>/doe/generate/",
         DoeGenerateView.as_view(),
         name="doe-generate",
+    ),
+    path(
+        (
+            "projects/<uuid:project_id>/"
+            "doe/classification/propose/"
+        ),
+        DoeClassificationProposalCreateView.as_view(),
+        name="doe-classification-propose",
+    ),
+    path(
+        (
+            "projects/<uuid:project_id>/"
+            "doe/classifications/<uuid:proposal_id>/"
+        ),
+        DoeClassificationProposalDetailView.as_view(),
+        name="doe-classification-proposal-detail",
     ),
     path(
         (
@@ -258,4 +280,22 @@ urlpatterns = [
         DocumentPermanentDeleteView.as_view(),
         name="document-permanent-delete",
     ), 
+    path(
+        (
+            "projects/<uuid:project_id>/"
+            "doe/classifications/<uuid:proposal_id>/"
+            "items/<uuid:item_id>/apply/"
+        ),
+        DoeClassificationProposalItemApplyView.as_view(),
+        name="doe-classification-item-apply",
+    ),
+    path(
+        (
+            "projects/<uuid:project_id>/"
+            "doe/classifications/<uuid:proposal_id>/"
+            "items/<uuid:item_id>/reject/"
+        ),
+        DoeClassificationProposalItemRejectView.as_view(),
+        name="doe-classification-item-reject",
+    ),
 ]
